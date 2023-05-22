@@ -14,6 +14,8 @@ import { omitBy, pickBy } from "lodash/fp";
 import { mapValues } from "lodash";
 
 declare module "zod" {
+  interface ZodTypeDef {}
+
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     safeParseAsync(
       data: unknown,

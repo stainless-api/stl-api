@@ -1,0 +1,17 @@
+{
+  "exclude": ["node_modules"],
+  "compilerOptions": {
+    "composite": true,
+    "sourceMap": true,
+    "declarationMap": true,
+    "target": "ES2016",
+    "lib": ["DOM", "DOM.Iterable", "ESNext"],
+    "strict": true,
+    "forceConsistentCasingInFileNames": true,
+    "skipLibCheck": true,
+    "esModuleInterop": true,
+    "module": "CommonJS",
+    "moduleResolution": "node",
+    "resolveJsonModule": true
+  }
+}

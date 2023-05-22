@@ -3,6 +3,12 @@
   "version": "0.0.0-development",
   "license": "ISC",
   "source": "src/nextAuthPlugin.ts",
+  "main": "dist/nextAuthPlugin.js",
+  "module": "dist/nextAuthPlugin.es.js",
+  "types": "dist/nextAuthPlugin.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "devDependencies": {
     "@types/node": "^20.2.3"
   },

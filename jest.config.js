@@ -2,8 +2,8 @@
 module.exports = {
   preset: "ts-jest",
   testEnvironment: "node",
-  modulePathIgnorePatterns: ["<rootDir>/node_modules/"],
-  testPathIgnorePatterns: ["<rootDir>/node_modules/"],
+  modulePathIgnorePatterns: ["<rootDir>/node_modules/", "/dist/", ".next/"],
+  testPathIgnorePatterns: ["<rootDir>/node_modules/", "/dist/", ".next/"],
   testMatch: ["**/__tests__/**/*.test.[jt]s?(x)"],
   setupFilesAfterEnv: [],
   watchPathIgnorePatterns: ["<rootDir>/node_modules/"],

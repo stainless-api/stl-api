@@ -26,7 +26,7 @@ importers:
         specifier: ^5.0.4
         version: 5.0.4
 
-  packages/demo:
+  demo:
     dependencies:
       '@next-auth/prisma-adapter':
         specifier: ^1.0.5
@@ -36,16 +36,19 @@ importers:
         version: 4.11.0(prisma@4.13.0)
       '@stl-api/next':
         specifier: workspace:*
-        version: link:../next
+        version: link:../packages/next
       '@stl-api/next-auth':
         specifier: workspace:*
-        version: link:../next-auth
+        version: link:../packages/next-auth
       '@stl-api/prisma':
         specifier: workspace:*
-        version: link:../prisma
+        version: link:../packages/prisma
       '@stl-api/stl':
         specifier: workspace:*
-        version: link:../stl
+        version: link:../packages/stl
+      '@tanstack/query-core':
+        specifier: ^4.29.5
+        version: 4.29.5
       '@tanstack/react-query':
         specifier: ^4.29.5
         version: 4.29.5(react-dom@18.2.0)(react@18.2.0)

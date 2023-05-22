@@ -3,6 +3,12 @@
   "version": "0.0.0-development",
   "license": "ISC",
   "source": "src/nextPlugin.ts",
+  "main": "dist/nextPlugin.js",
+  "module": "dist/nextPlugin.es.js",
+  "types": "dist/nextPlugin.d.ts",
+  "scripts": {
+    "build": "tsc"
+  },
   "devDependencies": {
     "@types/node": "^20.2.3",
     "@types/qs": "^6.9.7"

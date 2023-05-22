@@ -3,6 +3,10 @@
   "private": true,
   "version": "1.0.0",
   "license": "ISC",
+  "scripts": {
+    "test": "jest",
+    "build": "pnpm -r run build"
+  },
   "devDependencies": {
     "@types/jest": "^29.5.1",
     "@types/node": "^20.2.3",
