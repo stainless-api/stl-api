@@ -2,6 +2,7 @@
   "name": "@stl-api/next",
   "version": "0.0.0-development",
   "license": "ISC",
+  "source": "src/nextPlugin.ts",
   "devDependencies": {
     "@types/node": "^20.2.3",
     "@types/qs": "^6.9.7"

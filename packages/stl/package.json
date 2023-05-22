@@ -2,11 +2,11 @@
   "name": "@stl-api/stl",
   "version": "0.0.0-development",
   "license": "ISC",
+  "source": "src/stl.ts",
   "devDependencies": {
     "@types/lodash": "^4.14.194",
     "@types/node": "^20.2.3",
-    "@types/qs": "^6.9.7",
-    "typescript": "^5.0.4"
+    "@types/qs": "^6.9.7"
   },
   "dependencies": {
     "@asteasolutions/zod-to-openapi": "^4.8.0",
