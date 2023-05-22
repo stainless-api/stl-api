@@ -1,0 +1,14 @@
+{
+  "name": "@stl-api/next-auth",
+  "version": "0.0.0-development",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.2.3"
+  },
+  "dependencies": {
+    "@stl-api/stl": "workspace:*",
+    "@stl-api/next": "workspace:*",
+    "next": "^13.2.4",
+    "next-auth": "^4.21.1"
+  }
+}

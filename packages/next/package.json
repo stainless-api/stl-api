@@ -1,0 +1,16 @@
+{
+  "name": "@stl-api/next",
+  "version": "0.0.0-development",
+  "license": "ISC",
+  "devDependencies": {
+    "@types/node": "^20.2.3",
+    "@types/qs": "^6.9.7"
+  },
+  "dependencies": {
+    "@stl-api/stl": "workspace:*",
+    "hono": "^3.1.8",
+    "lodash": "^4.17.21",
+    "next": "^13.2.4",
+    "qs": "^6.11.2"
+  }
+}
