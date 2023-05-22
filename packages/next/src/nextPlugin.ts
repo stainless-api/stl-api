@@ -90,8 +90,7 @@ const makeAppHandlers = (handler: AppHandler): AppHandlers => ({
 
 // Next plugin, TODO move to its own file
 export const makeNextPlugin =
-  (cfg: {}): MakeStainlessPlugin<any, NextStatics> =>
-  (stl) => {
+  (): MakeStainlessPlugin<any, NextStatics> => (stl) => {
     function makeRouter(
       endpoints: AnyEndpoint[],
       options?: RouterOptions

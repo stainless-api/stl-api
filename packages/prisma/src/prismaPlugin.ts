@@ -442,8 +442,7 @@ function* subselKeys(select: IncludeSelect["select"]): Iterable<string> {
 }
 
 export const makePrismaPlugin =
-  (cfg: {}): MakeStainlessPlugin<any, PrismaStatics> =>
-  (stl) => {
+  (): MakeStainlessPlugin<any, PrismaStatics> => (stl) => {
     extendZodForPrismaPlugin(z);
     return {
       statics: {

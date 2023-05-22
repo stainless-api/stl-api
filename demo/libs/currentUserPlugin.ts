@@ -9,8 +9,7 @@ import { StlUserContext } from "./stl";
 import { User } from ".prisma/client";
 
 export const makeCurrentUserPlugin =
-  (cfg: {}): MakeStainlessPlugin<StlUserContext> =>
-  (stl) => ({
+  (): MakeStainlessPlugin<StlUserContext> => (stl) => ({
     async middleware<EC extends AnyEndpoint>(
       endpoint: EC,
       params: Params,
