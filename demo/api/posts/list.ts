@@ -12,8 +12,8 @@ export const list = stl.endpoint({
   query: stl.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
-    expand: stl.expandParam(response, 3).optional(),
-    select: stl.selectParam(response, 3).optional(),
+    expand: stl.expands(response, 3).optional(),
+    select: stl.selects(response, 3).optional(),
   }),
   response,
   async handler({ userId, expand, ...params }, ctx) {

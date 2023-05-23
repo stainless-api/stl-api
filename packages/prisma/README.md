@@ -74,8 +74,8 @@ export const retrieve = stl.endpoint({
     postId: z.string(),
   }),
   query: z.object({
-    expand: stl.expandParam(Post, 3).optional(),
-    select: stl.selectParam(Post, 3).optional(),
+    expand: stl.expands(Post, 3).optional(),
+    select: stl.selects(Post, 3).optional(),
   }),
   response: Post,
   async handler({ postId }, ctx) {

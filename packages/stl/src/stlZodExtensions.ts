@@ -8,8 +8,8 @@ import {
 } from "zod";
 import { StlContext } from "./stl";
 import { SelectTree } from "./parseSelect";
-import { getSelectParam } from "./selectParam";
-import { getExpandParam } from "./expandParam";
+import { getSelects } from "./selects";
+import { getExpands } from "./expands";
 import { omitBy, pickBy } from "lodash/fp";
 import { mapValues } from "lodash";
 
@@ -292,7 +292,7 @@ export function extendZodForStl(zod: typeof z) {
   class StlExpandable<T extends z.ZodTypeAny> extends zod.ZodOptional<T> {
     _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
       const ctx = getStlParseContext(input.parent);
-      const expand = ctx ? getExpandParam(ctx) : undefined;
+      const expand = ctx ? getExpands(ctx) : undefined;
 
       if (!expand || !zodPathIsExpanded(input.path, expand)) {
         return z.OK(undefined);
@@ -321,7 +321,7 @@ export function extendZodForStl(zod: typeof z) {
     _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
       const { path, parent } = input;
       const ctx = getStlParseContext(parent);
-      const select = ctx ? getSelectParam(ctx) : undefined;
+      const select = ctx ? getSelects(ctx) : undefined;
       if (!select) return z.OK(undefined);
       const property = path[path.length - 1];
       if (typeof property !== "string" || !property.endsWith("_fields")) {

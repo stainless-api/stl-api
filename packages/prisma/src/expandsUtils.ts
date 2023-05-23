@@ -1,13 +1,13 @@
 import z from "zod";
 
 /**
- * Given an zod schema from `expandParam`, extracts the possible options
+ * Given an zod schema from `expands`, extracts the possible options
  */
-export function expandParamOptions<V extends string[]>(param: z.ZodType<V>): V {
+export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
   if (param instanceof z.ZodOptional || param instanceof z.ZodNullable)
-    return expandParamOptions(param.unwrap());
+    return expandsOptions(param.unwrap());
   if (param instanceof z.ZodDefault)
-    return expandParamOptions(param._def.innerType);
+    return expandsOptions(param._def.innerType);
   if (!(param instanceof z.ZodArray)) {
     throw new Error(`param must be a ZodArray of a ZodEnum of string`);
   }

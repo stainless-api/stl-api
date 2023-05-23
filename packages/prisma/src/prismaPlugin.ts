@@ -12,10 +12,10 @@ import {
   extendZodForStl,
 } from "@stl-api/stl";
 import {
-  expandParamOptions,
+  expandsOptions,
   expandSubPaths,
   addExpandParents,
-} from "./expandParamUtils";
+} from "./expandsUtils";
 import z from "zod";
 import { isPlainObject } from "lodash";
 
@@ -337,7 +337,7 @@ function createIncludeSelect<
     userInclude && expandSchema
       ? removeUnexpandedIncludes(
           userInclude,
-          expandParamOptions(expandSchema),
+          expandsOptions(expandSchema),
           addExpandParents(expand || [])
         )
       : userInclude;

@@ -22,9 +22,9 @@ export {
 } from "./stlZodExtensions";
 import { z } from "zod";
 import qs from "qs";
-import { selectParam } from "./selectParam";
-import { expandParam } from "./expandParam";
-export { expandParamOptions } from "./expandParam";
+import { selects } from "./selects";
+import { expands } from "./expands";
+export { expandsOptions } from "./expands";
 import { openapiSpec } from "./openapiSpec";
 import { type OpenAPIObject } from "openapi3-ts";
 import { once } from "lodash";
@@ -425,11 +425,11 @@ export type Stl<UserContext extends object, Plugins extends AnyPlugins> = {
   /**
    * Creates an expand param from all expandable paths in the given zod schema
    */
-  expandParam: typeof expandParam;
+  expands: typeof expands;
   /**
    * Creates an select param from all selectable paths in the given zod schema
    */
-  selectParam: typeof selectParam;
+  selects: typeof selects;
   openapiSpec: typeof openapiSpec;
 
   StlError: typeof StlError;
@@ -524,8 +524,8 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
     response,
     pageResponse,
 
-    expandParam,
-    selectParam,
+    expands,
+    selects,
 
     openapiSpec,
 

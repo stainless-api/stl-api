@@ -5,7 +5,7 @@ import { StlContext } from "./stl";
 /**
  * Creates an expand param from all expandable paths in the given zod schema
  */
-export function expandParam<
+export function expands<
   T extends z.ZodTypeAny,
   Depth extends 0 | 1 | 2 | 3 | 4 | 5
 >(schema: T, depth: Depth): z.ZodType<ExpandablePaths<z.output<T>, Depth>[]> {
@@ -37,13 +37,13 @@ export function expandParam<
 }
 
 /**
- * Given an zod schema from `expandParam`, extracts the possible options
+ * Given an zod schema from `expands`, extracts the possible options
  */
-export function expandParamOptions<V extends string[]>(param: z.ZodType<V>): V {
+export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
   if (param instanceof z.ZodOptional || param instanceof z.ZodNullable)
-    return expandParamOptions(param.unwrap());
+    return expandsOptions(param.unwrap());
   if (param instanceof z.ZodDefault)
-    return expandParamOptions(param._def.innerType);
+    return expandsOptions(param._def.innerType);
   if (!(param instanceof z.ZodArray)) {
     throw new Error(`param must be a ZodArray of a ZodEnum of string`);
   }
@@ -149,15 +149,13 @@ export function expandSubPaths<S extends string[], P extends string>(
   ) as any;
 }
 
-export function getExpandParam(
-  ctx: StlContext<any>
-): string[] | null | undefined {
+export function getExpands(ctx: StlContext<any>): string[] | null | undefined {
   const expand = ctx.parsedParams?.query?.expand;
   if (
     expand != null &&
     (!Array.isArray(expand) || expand.some((e) => typeof e !== "string"))
   ) {
-    throw new Error(`invalid expand param; use stl.expandParam()`);
+    throw new Error(`invalid expand param; use stl.expands()`);
   }
   return expand;
 }

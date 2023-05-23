@@ -6,7 +6,7 @@ import { isEmpty, isPlainObject } from "lodash";
 /**
  * Creates an select param from all selectable paths in the given zod schema
  */
-export function selectParam<
+export function selects<
   T extends z.ZodType<object>,
   Depth extends 0 | 1 | 2 | 3 | 4 | 5
 >(
@@ -89,12 +89,12 @@ function validateSelectTree(
   throw new Error(`unsupported schema type: ${schema.constructor.name}`);
 }
 
-export function getSelectParam(
+export function getSelects(
   ctx: StlContext<any>
 ): SelectTree | null | undefined {
   const select = ctx.parsedParams?.query?.select;
   if (select != null && !isPlainObject(select)) {
-    throw new Error(`invalid select param; use stl.selectParam()`);
+    throw new Error(`invalid select param; use stl.selects()`);
   }
   return select;
 }
