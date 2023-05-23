@@ -18,6 +18,14 @@ based on a fullstack twitter clone we found on youtube: https://github.com/Anton
 - [ ] Select
 - [ ] `create-stl-app`
 
+### Build the monorepo
+
+In the project root:
+
+```
+pnpm build
+```
+
 ### Setup .env file
 
 ```
@@ -54,21 +62,20 @@ psql -U $USER -d postgres
 ### Bootstrap prisma
 
 ```shell
-yarn prisma migrate dev
+pnpm prisma migrate dev
 ```
 
 ### Start the app
 
 ```shell
-yarn
-yarn dev
+pnpm dev
 ```
 
 ## Available commands
 
-Running commands with npm `yarn [command]`
+Running commands with npm `pnpm [command]`
 
-| command           | description                              |
-| :---------------- | :--------------------------------------- |
-| `dev`             | Starts a development instance of the app |
-| `psql [database]` | Open `psql` postgres command line        |
+| command           | description                                                             |
+| :---------------- | :---------------------------------------------------------------------- |
+| `dev`             | Starts a development instance of the app                                |
+| `psql [database]` | Open `psql` postgres command line for db launched with `docker compose` |
