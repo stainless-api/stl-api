@@ -362,7 +362,7 @@ export function extendZodForStl(zod: typeof z) {
     // because they don't rely on the _field property
     // acually being present
     const mask = mapValues(shape, (value) =>
-      value instanceof StlSelectable ? undefined : true
+      value instanceof StlSelectable ? undefined : true as const
     );
     return this.partial(mask);
   };

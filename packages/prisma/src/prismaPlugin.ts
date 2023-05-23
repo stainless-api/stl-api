@@ -20,6 +20,21 @@ import z from "zod";
 import { isPlainObject } from "lodash";
 
 declare module "zod" {
+  interface PrismaModel {
+    findUnique(args: any): Promise<any>;
+    findUniqueOrThrow(args: any): Promise<any>;
+    findMany(args: any): Promise<any>;
+    create(args: any): Promise<any>;
+    update(args: any): Promise<any>;
+    delete(args: any): Promise<any>;
+  }
+
+  type FindUniqueOrThrowResult<D extends PrismaModel> = D extends {
+    findUniqueOrThrow: (args: any) => Promise<infer Result>;
+  }
+    ? Result
+    : never;
+
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     /**
      * Transforms the output value to fetch the Prisma model whose primary
