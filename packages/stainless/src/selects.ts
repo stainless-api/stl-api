@@ -1,6 +1,5 @@
-import z from "zod";
 import { SelectTree, parseSelect } from "./parseSelect";
-import { StlContext } from "./stl";
+import { z, StlContext } from "./stl";
 import { isEmpty, isPlainObject } from "lodash";
 
 /**

@@ -1,10 +1,9 @@
-import { AnyAPIDescription, AnyResourceConfig, allEndpoints } from "./stl";
+import { z, AnyAPIDescription, AnyResourceConfig, allEndpoints } from "./stl";
 import {
   OpenAPIRegistry,
   OpenAPIGenerator,
 } from "@asteasolutions/zod-to-openapi";
 import { snakeCase } from "lodash";
-import { z } from "zod";
 import { preprocessForZodToOpenApi } from "./preprocessForZodToOpenApi";
 import { type OpenAPIObject } from "openapi3-ts";
 

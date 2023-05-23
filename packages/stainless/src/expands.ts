@@ -1,6 +1,5 @@
-import z from "zod";
 import { Expandable, getStainlessMetadata } from "./stlZodExtensions";
-import { StlContext } from "./stl";
+import { z, StlContext } from "./stl";
 
 /**
  * Creates an expand param from all expandable paths in the given zod schema

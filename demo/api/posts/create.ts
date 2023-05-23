@@ -1,5 +1,5 @@
 import { stl } from "~/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import { Post } from "./models";
 
 export const create = stl.endpoint({

@@ -1,6 +1,5 @@
-import z from "zod";
 import { User, UserSelection } from "../users/models";
-import { Expandable, Selectable } from "stainless";
+import { Expandable, Selectable, z } from "stainless";
 import { stl } from "~/libs/stl";
 import prisma from "~/libs/prismadb";
 

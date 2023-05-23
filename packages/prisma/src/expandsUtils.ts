@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "stainless";
 
 /**
  * Given an zod schema from `expands`, extracts the possible options

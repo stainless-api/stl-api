@@ -1,8 +1,7 @@
 import { stl } from "~/libs/stl";
-import { NotFoundError } from "stainless";
-import z from "zod";
 import prisma from "~/libs/prismadb";
 import { Comment } from "./models";
+import { NotFoundError, z } from "stainless";
 
 export const create = stl.endpoint({
   endpoint: "post /api/comments",

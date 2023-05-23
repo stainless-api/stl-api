@@ -38,6 +38,8 @@ export { SelectTree, parseSelect } from "./parseSelect";
  */
 extendZodForStl(z); // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
 
+export { z };
+
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
 export type HttpPath = `/${string}`;
 export type HttpEndpoint = `${HttpMethod} ${HttpPath}`;

@@ -10,13 +10,13 @@ import {
   ExtractStainlessMetadata,
   getStainlessMetadata,
   extendZodForStl,
+  z,
 } from "stainless";
 import {
   expandsOptions,
   expandSubPaths,
   addExpandParents,
 } from "./expandsUtils";
-import z from "zod";
 import { isPlainObject } from "lodash";
 
 declare module "zod" {
@@ -42,8 +42,6 @@ declare module "stainless" {
       ? PrismaContext<M>
       : unknown;
   }
-
-  type X = StlContext<any>["prisma"];
 }
 
 function extendZodForPrismaPlugin(zod: typeof z) {

@@ -1,7 +1,6 @@
-import z from "zod";
 import { User, UserSelection } from "../users/models";
 import { Post, PostSelection } from "../posts/models";
-import { Expandable, Selectable } from "stainless";
+import { Expandable, Selectable, z } from "stainless";
 
 const baseComment = z.object({
   id: z.string().uuid(),

@@ -1,4 +1,4 @@
-import z from "zod";
+import { z } from "./stl";
 
 export function preprocessForZodToOpenApi<T extends z.ZodTypeAny>({
   schema,
