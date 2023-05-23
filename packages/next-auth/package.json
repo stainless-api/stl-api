@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/next-auth",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "ISC",
   "source": "src/nextAuthPlugin.ts",
   "main": "dist/nextAuthPlugin.js",
