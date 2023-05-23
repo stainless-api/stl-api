@@ -16,7 +16,6 @@ body:
     id: versions
     attributes:
       label: Versions
-      description: What package versions are you using?
-      placeholder: (You can paste the output of `grep -E "@stl-api/|next|prisma" <package.json`)
+      description: What package versions are you using? (You can paste the output of `grep -E "@stl-api/|next|prisma" <package.json`)
     validations:
       required: true
