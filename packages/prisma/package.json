@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/prisma",
-  "version": "0.0.0-development",
+  "version": "1.0.0",
   "license": "ISC",
   "source": "src/prismaPlugin.ts",
   "main": "dist/prismaPlugin.js",

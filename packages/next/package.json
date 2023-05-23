@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/next",
-  "version": "0.0.0-development",
+  "version": "1.0.0",
   "license": "ISC",
   "source": "src/nextPlugin.ts",
   "main": "dist/nextPlugin.js",
