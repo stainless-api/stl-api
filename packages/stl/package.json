@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/stl",
-  "version": "0.0.0-development",
+  "version": "0.0.1",
   "license": "ISC",
   "source": "src/stl.ts",
   "main": "dist/stl.js",
