@@ -22,9 +22,6 @@ jobs:
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
 
-      - name: Install
-        run: pnpm i
-
       - name: Build
         run: pnpm build
 
