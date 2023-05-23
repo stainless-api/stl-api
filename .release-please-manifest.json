@@ -1,3 +1,6 @@
 {
-  ".": "0.0.0"
+  "packages/next-auth": "0.0.1",
+  "packages/next": "0.0.1",
+  "packages/prisma": "0.0.1",
+  "packages/stl": "0.0.1"
 }
