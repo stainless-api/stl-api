@@ -20,7 +20,7 @@ export {
   StlRefinementCtx,
   StlParseParams,
 } from "./stlZodExtensions";
-import { z } from "zod";
+import * as z from "./z";
 import qs from "qs";
 import { selects } from "./selects";
 import { expands } from "./expands";
@@ -171,13 +171,6 @@ export type APIDescription<
 
 export type AnyAPIDescription = APIDescription<any, any>;
 
-function response<T extends z.ZodTypeAny, M extends StainlessMetadata = {}>(
-  schema: T,
-  metadata: M = {} as any
-): WithStainlessMetadata<T, M> {
-  return schema.stlMetadata(metadata);
-}
-
 const commonPageResponseFields = {
   startCursor: z.string().nullable(),
   endCursor: z.string().nullable(),
@@ -202,7 +195,7 @@ function pageResponse<I extends z.ZodTypeAny, M extends StainlessMetadata = {}>(
   M & { pageResponse: true }
 > {
   return z
-    .object({
+    .response({
       ...commonPageResponseFields,
       items: z.array(item),
     })
@@ -422,7 +415,6 @@ export type Stl<UserContext extends object, Plugins extends AnyPlugins> = {
 
   // reexported conveniences
   PaginationParams: typeof PaginationParams;
-  response: typeof response;
   pageResponse: typeof pageResponse;
   /**
    * Creates an expand param from all expandable paths in the given zod schema
@@ -523,7 +515,6 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
     NotFoundError,
 
     PaginationParams,
-    response,
     pageResponse,
 
     expands,

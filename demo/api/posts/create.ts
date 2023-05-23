@@ -4,10 +4,10 @@ import { Post } from "./models";
 
 export const create = stl.endpoint({
   endpoint: "post /api/posts",
-  body: z.object({
+  body: z.body({
     body: z.string(),
   }),
-  query: z.object({
+  query: z.query({
     expand: stl.expands(Post, 3).optional(),
   }),
   response: Post,

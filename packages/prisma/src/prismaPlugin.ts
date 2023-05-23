@@ -11,6 +11,7 @@ import {
   getStainlessMetadata,
   extendZodForStl,
   z,
+  WithStainlessMetadata,
 } from "stainless";
 import {
   expandsOptions,
@@ -31,6 +32,10 @@ declare module "zod" {
     prismaModelLoader<M extends PrismaModel>(
       prismaModel: M
     ): z.ZodEffects<this, FindUniqueOrThrowResult<M>, z.input<this>>;
+
+    prismaModel<M extends PrismaModel>(
+      prismaModel: M
+    ): WithStainlessMetadata<this, { prismaModel: M }>;
   }
 }
 
@@ -62,6 +67,13 @@ function extendZodForPrismaPlugin(zod: typeof z) {
       }
       return await prismaModel.findUniqueOrThrow(query);
     });
+  };
+
+  zod.ZodType.prototype.prismaModel = function prismaModel<
+    T extends z.ZodTypeAny,
+    M extends PrismaModel
+  >(this: T, prismaModel: M): WithStainlessMetadata<T, { prismaModel: M }> {
+    return this.stlMetadata({ prismaModel });
   };
 }
 

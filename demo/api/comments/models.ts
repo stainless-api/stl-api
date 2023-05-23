@@ -1,8 +1,9 @@
 import { User, UserSelection } from "../users/models";
 import { Post, PostSelection } from "../posts/models";
 import { Expandable, Selectable, z } from "stainless";
+import prisma from "~/libs/prismadb";
 
-const baseComment = z.object({
+const baseComment = z.response({
   id: z.string().uuid(),
 
   body: z.string(),
@@ -21,12 +22,14 @@ export type Comment = z.infer<typeof baseComment> & {
   post_fields?: Selectable<PostSelection>;
 };
 
-export const Comment: z.ZodType<Comment> = baseComment.extend({
-  user: z.lazy(() => User).expandable(),
-  user_fields: z.lazy(() => UserSelection).selectable(),
-  post: z.lazy(() => Post).expandable(),
-  post_fields: z.lazy(() => PostSelection).selectable(),
-});
+export const Comment: z.ZodType<Comment> = baseComment
+  .extend({
+    user: z.lazy(() => User).expandable(),
+    user_fields: z.lazy(() => UserSelection).selectable(),
+    post: z.lazy(() => Post).expandable(),
+    post_fields: z.lazy(() => PostSelection).selectable(),
+  })
+  .prismaModel(prisma.comment);
 
 export const CommentSelection = Comment.selection();
 export type CommentSelection = z.infer<typeof CommentSelection>;

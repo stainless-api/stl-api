@@ -1,10 +1,9 @@
 import { User, UserSelection } from "../users/models";
 import { Comment, CommentSelection } from "../comments/models";
 import prisma from "~/libs/prismadb";
-import { stl } from "~/libs/stl";
 import { Expandable, Selectable, z } from "stainless";
 
-const Post0 = z.object({
+const Post0 = z.response({
   id: z.string().uuid(),
   body: z.string(),
   createdAt: z.date(),
@@ -28,7 +27,7 @@ const Post1: z.ZodType<Post1> = Post0.extend({
   comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
 });
 
-export const Post = stl.response(Post1, { prismaModel: prisma.post });
+export const Post = Post1.prismaModel(prisma.post);
 export type Post = z.output<typeof Post>;
 
 export const PostSelection = Post.selection();

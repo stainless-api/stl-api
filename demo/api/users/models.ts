@@ -2,8 +2,9 @@ import { Post, PostSelection } from "../posts/models";
 import { Comment, CommentSelection } from "../comments/models";
 import { Notification, NotificationSelection } from "../notifications/models";
 import { Expandable, Selectable, z } from "stainless";
+import prisma from "~/libs/prismadb";
 
-const baseUser = z.object({
+const baseUser = z.response({
   id: z.string().uuid(),
 
   name: z.string().nullable().optional(),
@@ -34,16 +35,18 @@ export type User = z.infer<typeof baseUser> & {
   notifications_fields?: Selectable<NotificationSelection[]>;
 };
 
-export const User: z.ZodType<User> = baseUser.extend({
-  posts: z.array(z.lazy(() => Post)).expandable(),
-  posts_fields: z.array(z.lazy(() => PostSelection)).selectable(),
-  comments: z.array(z.lazy(() => Comment)).expandable(),
-  comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
-  notifications: z.array(z.lazy(() => Notification)).expandable(),
-  notifications_fields: z
-    .array(z.lazy(() => NotificationSelection))
-    .selectable(),
-});
+export const User: z.ZodType<User> = baseUser
+  .extend({
+    posts: z.array(z.lazy(() => Post)).expandable(),
+    posts_fields: z.array(z.lazy(() => PostSelection)).selectable(),
+    comments: z.array(z.lazy(() => Comment)).expandable(),
+    comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
+    notifications: z.array(z.lazy(() => Notification)).expandable(),
+    notifications_fields: z
+      .array(z.lazy(() => NotificationSelection))
+      .selectable(),
+  })
+  .prismaModel(prisma.user);
 
 export const UserSelection = User.selection();
 export type UserSelection = z.infer<typeof UserSelection>;

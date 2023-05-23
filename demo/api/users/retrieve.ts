@@ -5,7 +5,7 @@ import { User } from "./models";
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/users/{userId}",
-  path: z.object({
+  path: z.path({
     userId: z.string(),
   }),
   response: User,

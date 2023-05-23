@@ -6,10 +6,10 @@ import { NotFoundError, z } from "stainless";
 export const create = stl.endpoint({
   endpoint: "post /api/comments",
 
-  query: z.object({
+  query: z.query({
     postId: z.string(),
   }),
-  body: z.object({
+  body: z.body({
     body: z.string(),
   }),
   response: Comment,
