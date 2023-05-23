@@ -13,13 +13,17 @@ for (let key in outputs) {
   const workspace = key.match(/^(.*\/.*)--release_created$/)?.[1];
   if (dryRun) console.log({ key, value, workspace });
   if (!workspace || !value) continue;
-  if (dryRun) {
-    console.log(
-      `non dry-run would do: execa('npm', ['publish', '-w', workspace, '--access', 'public', {stdio: 'inherit'})`
-    );
-  } else {
-    await execa("npm", ["publish", "-w", workspace, "--access", "public"], {
+  await execa(
+    "pnpm",
+    [
+      "publish",
+      workspace,
+      "--access",
+      "public",
+      ...(dryRun ? ["--dry-run"] : []),
+    ],
+    {
       stdio: "inherit",
-    });
-  }
+    }
+  );
 }
