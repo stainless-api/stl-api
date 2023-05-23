@@ -1,6 +1,21 @@
 {
   "name": "@stl-api/stl",
   "version": "0.0.0-development",
+  "description": "stainless api server and client",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/stl"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/stl",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api"
+  ],
   "license": "ISC",
   "source": "src/stl.ts",
   "main": "dist/stl.js",
