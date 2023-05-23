@@ -34,6 +34,30 @@ declare module "zod" {
      */
     expandable(): ExpandableZodType<this>;
 
+    optional<T extends z.ZodTypeAny>(
+      this: T
+    ): T extends WithStainlessMetadata<infer W, infer M>
+      ? WithStainlessMetadata<z.ZodOptional<W>, M>
+      : z.ZodOptional<T>;
+
+    nullish<T extends z.ZodTypeAny>(
+      this: T
+    ): T extends WithStainlessMetadata<infer W, infer M>
+      ? WithStainlessMetadata<z.ZodNullable<W>, M>
+      : z.ZodNullable<T>;
+
+    nullable<T extends z.ZodTypeAny>(
+      this: T
+    ): T extends WithStainlessMetadata<infer W, infer M>
+      ? WithStainlessMetadata<z.ZodNullable<W>, M>
+      : z.ZodNullable<T>;
+
+    nullish<T extends z.ZodTypeAny>(
+      this: T
+    ): T extends WithStainlessMetadata<infer W, infer M>
+      ? WithStainlessMetadata<z.ZodOptional<z.ZodNullable<W>>, M>
+      : z.ZodOptional<z.ZodNullable<T>>;
+
     selection<T extends z.ZodTypeAny>(
       this: T
     ): z.ZodType<Partial<z.output<T>>, this["_def"], Partial<z.input<T>>>;
@@ -203,6 +227,27 @@ export function extendZodForStl(zod: typeof z) {
       }
     );
   }
+
+  const zodTypeOptionalSuper = zod.ZodType.prototype.optional;
+  zod.ZodType.prototype.optional = function optional() {
+    const metadata = getStainlessMetadata(this);
+    const result = zodTypeOptionalSuper.call(this);
+    return metadata ? result.stlMetadata(metadata) : result;
+  };
+
+  const zodTypeNullableSuper = zod.ZodType.prototype.nullable;
+  zod.ZodType.prototype.nullable = function nullable() {
+    const metadata = getStainlessMetadata(this);
+    const result = zodTypeNullableSuper.call(this);
+    return metadata ? result.stlMetadata(metadata) : result;
+  };
+
+  const zodTypeNullishSuper = zod.ZodType.prototype.nullish;
+  zod.ZodType.prototype.nullish = function nullish(this: any) {
+    const metadata = getStainlessMetadata(this);
+    const result = zodTypeNullishSuper.call(this);
+    return metadata ? result.stlMetadata(metadata) : result;
+  } as any;
 
   zod.ZodType.prototype.safeParseAsync = async function safeParseAsync(
     data: unknown,
