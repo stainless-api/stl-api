@@ -11,6 +11,14 @@ You can also opt into Stainless's Stripe-inspired [pristine](#pristine) API desi
 
 Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, and (heavily) from the internal API Framework we worked on at Stripe.
 
+# Ecosystem
+
+Stainless provides plugins for integrating with the following tools. We plan to add more in the future!
+
+- Netx.js: [`@stl-api/next`](/packages/next)
+- NextAuth.js: [`@stl-api/next-auth`](/packages/next-auth)
+- Prisma: [`@stl-api/prisma`](/packages/prisma)
+
 # Getting Started
 
 At the moment, Stainless can be used with Next.js. Support for
