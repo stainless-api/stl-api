@@ -90,6 +90,13 @@ console.log(openapi.paths["/users/:id"].post);
 console.log(openapi.components.schemas.User);
 ```
 
+# Packages
+
+- [@stl-api/stl](/packages/stl)
+- [@stl-api/next](/packages/next)
+- [@stl-api/next-auth](/packages/next-auth)
+- [@stl-api/prisma](/packages/prisma)
+
 # Pristine
 
 Pristine is an API Standard by Stainless, providing opinions on API design so teams don't have to bikeshed, and so tools can expect consistent API shapes.
