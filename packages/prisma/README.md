@@ -55,7 +55,7 @@ that magically inject options for `expand` and `select` params as necessary:
 
 - `findUnique`
 - `findUniqueOrThrow`
-- `findMany` (also magically injects pagination options)
+- `findMany` (also magically injects pagination options from parameters)
 - `create`
 - `update`
 - `delete`

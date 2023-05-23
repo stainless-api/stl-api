@@ -19,7 +19,8 @@
   "license": "ISC",
   "scripts": {
     "test": "jest",
-    "build": "pnpm -r run build",
+    "build": "tsc -b packages/*/tsconfig.build.json && (cd demo && pnpm build)",
+    "build:watch": "tsc -b --watch packages/*/tsconfig.build.json",
     "clean": "pnpm -r run clean"
   },
   "devDependencies": {
