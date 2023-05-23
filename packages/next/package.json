@@ -7,7 +7,7 @@
   "module": "dist/nextPlugin.es.js",
   "types": "dist/nextPlugin.d.ts",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {
