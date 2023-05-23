@@ -14,6 +14,7 @@ import { omitBy, pickBy } from "lodash/fp";
 import { mapValues } from "lodash";
 
 declare module "zod" {
+  // I don't know why TS errors without this, sigh
   interface ZodTypeDef {}
 
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
@@ -362,7 +363,7 @@ export function extendZodForStl(zod: typeof z) {
     // because they don't rely on the _field property
     // acually being present
     const mask = mapValues(shape, (value) =>
-      value instanceof StlSelectable ? undefined : true as const
+      value instanceof StlSelectable ? undefined : (true as const)
     );
     return this.partial(mask);
   };

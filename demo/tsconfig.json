@@ -1,7 +1,11 @@
 {
   "compilerOptions": {
     "target": "es6",
-    "lib": ["dom", "dom.iterable", "esnext"],
+    "lib": [
+      "dom",
+      "dom.iterable",
+      "esnext"
+    ],
     "allowJs": true,
     "skipLibCheck": true,
     "strict": true,
@@ -14,23 +18,40 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "preserve",
-    "incremental": true,
     "paths": {
-      "~/*": ["./*"]
+      "~/*": [
+        "./*"
+      ]
     },
     "plugins": [
       {
         "name": "next"
       }
     ],
-    "isolatedModules": true
+    "isolatedModules": true,
+    "incremental": true
   },
-  "include": ["next-env.d.ts", "**/*.ts", "**/*.tsx", ".next/types/**/*.ts"],
-  "exclude": ["node_modules"],
+  "include": [
+    "next-env.d.ts",
+    "**/*.ts",
+    "**/*.tsx",
+    ".next/types/**/*.ts"
+  ],
+  "exclude": [
+    "node_modules"
+  ],
   "references": [
-    { "path": "../packages/next-auth" },
-    { "path": "../packages/next" },
-    { "path": "../packages/prisma" },
-    { "path": "../packages/stainless" }
+    {
+      "path": "../packages/next-auth"
+    },
+    {
+      "path": "../packages/next"
+    },
+    {
+      "path": "../packages/prisma"
+    },
+    {
+      "path": "../packages/stainless"
+    }
   ]
 }
