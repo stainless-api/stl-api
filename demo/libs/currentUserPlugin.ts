@@ -3,7 +3,7 @@ import {
   MakeStainlessPlugin,
   Params,
   PartialStlContext,
-} from "@stl-api/stl";
+} from "stainless";
 import prisma from "./prismadb";
 import { StlUserContext } from "./stl";
 import { User } from ".prisma/client";

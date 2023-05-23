@@ -15,7 +15,7 @@ npm i --save @stl-api/prisma
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "@stl-api/stl";
+import { makeStl } from "stainless";
 +import { makePrismaPlugin } from "@stl-api/prisma";
 
 export type StlUserContext = {};

@@ -1,4 +1,4 @@
-import { makeStl } from "@stl-api/stl";
+import { makeStl } from "stainless";
 import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";

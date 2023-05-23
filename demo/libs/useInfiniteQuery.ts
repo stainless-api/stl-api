@@ -4,7 +4,7 @@ import {
   PageData,
   PageItemType,
   PaginationParams,
-} from "@stl-api/stl";
+} from "stainless";
 import {
   UseInfiniteQueryOptions,
   UseInfiniteQueryResult,

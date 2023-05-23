@@ -31,7 +31,7 @@
     "@types/qs": "^6.9.7"
   },
   "dependencies": {
-    "@stl-api/stl": "workspace:*",
+    "stainless": "workspace:*",
     "hono": "^3.1.8",
     "lodash": "^4.17.21",
     "next": "^13.2.4",

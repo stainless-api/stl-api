@@ -1,4 +1,4 @@
-import { HttpEndpoint, HttpMethod, parseEndpoint } from "@stl-api/stl";
+import { HttpEndpoint, HttpMethod, parseEndpoint } from "stainless";
 
 /**
  * Converts an endpoint from a format like 'get /users/{id}'

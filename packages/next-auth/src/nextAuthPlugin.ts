@@ -3,12 +3,12 @@ import {
   PartialStlContext,
   MakeStainlessPlugin,
   Params,
-} from "@stl-api/stl";
+} from "stainless";
 import { IncomingMessage, ServerResponse } from "http";
 import { NextServerContext } from "@stl-api/next";
 import { AuthOptions, Session, getServerSession } from "next-auth";
 
-declare module "@stl-api/stl" {
+declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
     session?: Session | null;
   }

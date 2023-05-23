@@ -1,4 +1,4 @@
-# @stl-api/stl: Stainless server and client framework
+# stainless: Stainless server and client framework
 
 Stainless helps you ship quality, typesafe REST APIs from any TypeScript backend.
 
@@ -28,7 +28,7 @@ We will soon provide a `create-stl-app` API. Until then:
 ## Installation
 
 ```
-npm i --save @stl-api/stl @stl-api/next
+npm i --save stainless @stl-api/next
 
 # Optional plugins:
 npm i --save @stl-api/next-auth  # If you are using next-auth
@@ -40,7 +40,7 @@ npm i --save @stl-api/prisma     # If you are using Prisma
 ```ts
 // ~/libs/stl.ts
 
-import { makeStl } from "@stl-api/stl";
+import { makeStl } from "stainless";
 import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
@@ -181,7 +181,7 @@ export { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS };
 ```ts
 // ~/api/client.ts
 
-import { createClient } from "@stl-api/stl";
+import { createClient } from "stainless";
 import type { api } from "./api";
 
 export const client = createClient<typeof api>("/api");

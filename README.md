@@ -17,7 +17,7 @@ For example:
 
 ```ts
 // server.ts
-import { makeStl } from "@stl-api/stl";
+import { makeStl } from "stainless";
 import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
@@ -75,7 +75,7 @@ export const api = stl.api({
 });
 
 // client.ts
-import { createClient } from "@stl-api/stl";
+import { createClient } from "stainless";
 import type { api } from "./server";
 
 const client = createClient<typeof api>("http://localhost:3000/api");
@@ -92,7 +92,7 @@ console.log(openapi.components.schemas.User);
 
 # Packages
 
-- [@stl-api/stl](/packages/stl)
+- [stainless](/packages/stainless)
 - [@stl-api/next](/packages/next)
 - [@stl-api/next-auth](/packages/next-auth)
 - [@stl-api/prisma](/packages/prisma)

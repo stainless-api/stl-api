@@ -15,7 +15,7 @@ npm i --save @stl-api/next
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "@stl-api/stl";
+import { makeStl } from "stainless";
 +import { makeNextPlugin } from "@stl-api/next";
 
 export type StlUserContext = {};

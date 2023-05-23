@@ -31,7 +31,7 @@
     "@types/node": "^20.2.3"
   },
   "dependencies": {
-    "@stl-api/stl": "workspace:*",
+    "stainless": "workspace:*",
     "@stl-api/next": "workspace:*",
     "next": "^13.2.4",
     "next-auth": "^4.21.1"

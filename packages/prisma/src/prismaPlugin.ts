@@ -10,7 +10,7 @@ import {
   ExtractStainlessMetadata,
   getStainlessMetadata,
   extendZodForStl,
-} from "@stl-api/stl";
+} from "stainless";
 import {
   expandsOptions,
   expandSubPaths,
@@ -34,7 +34,7 @@ declare module "zod" {
   }
 }
 
-declare module "@stl-api/stl" {
+declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
     prisma: ExtractStainlessMetadata<EC["response"]> extends {
       prismaModel: infer M extends PrismaModel;

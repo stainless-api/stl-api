@@ -1,4 +1,4 @@
-import { ClientPromise } from "@stl-api/stl";
+import { ClientPromise } from "stainless";
 import {
   UseQueryOptions,
   UseQueryResult,

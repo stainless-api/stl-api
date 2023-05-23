@@ -1,5 +1,5 @@
 import { stl } from "~/libs/stl";
-import { NotFoundError } from "@stl-api/stl";
+import { NotFoundError } from "stainless";
 import z from "zod";
 import prisma from "~/libs/prismadb";
 import { Comment } from "./models";

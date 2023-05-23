@@ -16,7 +16,7 @@
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.5",
     "@prisma/client": "^4.11.0",
-    "@stl-api/stl": "workspace:*",
+    "stainless": "workspace:*",
     "@stl-api/next": "workspace:*",
     "@stl-api/next-auth": "workspace:*",
     "@stl-api/prisma": "workspace:*",

@@ -82,7 +82,7 @@ export default NextAuth(authOptions);
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "@stl-api/stl";
+import { makeStl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 +import { makeNextAuthPlugin } from "@stl-api/next-auth";
 +import { authOptions } from "~/pages/api/auth/[...nextauth]";
@@ -109,7 +109,7 @@ import {
   MakeStainlessPlugin,
   Params,
   PartialStlContext,
-} from "@stl-api/stl";
+} from "stainless";
 import prisma from "./prisma";
 import { StlUserContext } from "./stl";
 
@@ -139,7 +139,7 @@ export const makeCurrentUserPlugin =
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "@stl-api/stl";
+import { makeStl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { makeCurrentUserPlugin } from "./currentUserPlugin";

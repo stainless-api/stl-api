@@ -1,4 +1,4 @@
-import { ClientPromise } from "@stl-api/stl";
+import { ClientPromise } from "stainless";
 import { InvalidateOptions, QueryClient } from "@tanstack/react-query";
 
 export function invalidateQueries(

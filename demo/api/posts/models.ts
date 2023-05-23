@@ -3,7 +3,7 @@ import { User, UserSelection } from "../users/models";
 import { Comment, CommentSelection } from "../comments/models";
 import prisma from "~/libs/prismadb";
 import { stl } from "~/libs/stl";
-import { Expandable, Selectable } from "@stl-api/stl";
+import { Expandable, Selectable } from "stainless";
 
 const Post0 = z.object({
   id: z.string().uuid(),

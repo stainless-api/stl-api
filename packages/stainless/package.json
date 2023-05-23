@@ -1,5 +1,5 @@
 {
-  "name": "@stl-api/stl",
+  "name": "stainless",
   "version": "0.0.0-development",
   "description": "stainless api server and client",
   "author": "dev@stainlessapi.com",

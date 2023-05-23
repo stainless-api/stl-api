@@ -5,14 +5,14 @@ import {
   NotFoundError,
   StlError,
   allEndpoints,
-} from "@stl-api/stl";
+} from "stainless";
 import qs from "qs";
 import { NextApiRequest, NextApiResponse } from "next";
 import { TrieRouter } from "hono/router/trie-router";
 import { endpointToHono } from "./endpointToHono";
 import { NextRequest, NextResponse } from "next/server";
 
-declare module "@stl-api/stl" {
+declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
     server: NextServerContext;
   }

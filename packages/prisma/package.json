@@ -31,7 +31,7 @@
     "@types/node": "^20.2.3"
   },
   "dependencies": {
-    "@stl-api/stl": "workspace:*",
+    "stainless": "workspace:*",
     "lodash": "^4.17.21",
     "zod": "^3.21.4"
   },

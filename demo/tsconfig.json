@@ -31,6 +31,6 @@
     { "path": "../packages/next-auth" },
     { "path": "../packages/next" },
     { "path": "../packages/prisma" },
-    { "path": "../packages/stl" }
+    { "path": "../packages/stainless" }
   ]
 }
