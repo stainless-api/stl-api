@@ -47,6 +47,68 @@ export const Post = z.response(
 );
 ```
 
+## Perform CRUD operations on response `prismaModel`
+
+Any endpoint whose `response` has a `prismaModel` declared with have `ctx.prisma`
+available in its `handler`. `ctx.prisma` provides wrappers for the following methods
+that magically inject options for `expand` and `select` params as necessary:
+
+- `findUnique`
+- `findUniqueOrThrow`
+- `findMany`
+- `create`
+- `update`
+- `delete`
+
+```ts
+// ~/api/posts/retrieve.ts
+
+import { stl } from "~/libs/stl";
+import z from "zod";
+import prisma from "~/libs/prismadb";
+import { Post } from "./models";
+
+export const retrieve = stl.endpoint({
+  endpoint: "get /api/posts/{postId}",
+  path: z.object({
+    postId: z.string(),
+  }),
+  query: z.object({
+    expand: stl.expandParam(Post, 3).optional(),
+    select: stl.selectParam(Post, 3).optional(),
+  }),
+  response: Post,
+  async handler({ postId }, ctx) {
+    // Prisma plugin magically injects options for expand and select!
+    return await ctx.prisma.findUniqueOrThrow({ where: { id: postId } });
+  },
+});
+```
+
+```ts
+// ~/api/posts/create.ts
+
+import { stl } from "~/libs/stl";
+import z from "zod";
+import { Post } from "./models";
+
+export const create = stl.endpoint({
+  endpoint: "post /api/posts",
+  body: z.object({
+    body: z.string(),
+  }),
+  response: Post,
+  async handler({ body }, ctx) {
+    return await ctx.prisma.create({
+      data: {
+        userId: ctx.requireCurrentUser().id,
+        body,
+      },
+    });
+  },
+});
+```
+
 ## Use `prismaModelLoader` on a parameter
 
 ```ts
