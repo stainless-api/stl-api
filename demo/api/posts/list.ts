@@ -12,7 +12,6 @@ export const list = stl.endpoint({
   query: stl.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
-    pageSize: z.coerce.number().default(20),
     expand: stl.expandParam(response, 3).optional(),
     select: stl.selectParam(response, 3).optional(),
   }),

@@ -235,7 +235,7 @@ export type SortDirection = z.infer<typeof SortDirection>;
 export const PaginationParams = z.object({
   pageAfter: z.string().optional(),
   pageBefore: z.string().optional(),
-  pageSize: z.coerce.number().positive(),
+  pageSize: z.coerce.number().positive().default(20),
   sortBy: z.string(),
   sortDirection: SortDirection.default("asc"),
 });
