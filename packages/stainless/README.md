@@ -11,6 +11,25 @@ You can also opt into Stainless's Stripe-inspired [pristine](#pristine) API desi
 
 Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, and (heavily) from the internal API Framework we worked on at Stripe.
 
+# Table of Contents
+
+- [stainless: Stainless server and client framework](#stainless-stainless-server-and-client-framework)
+- [Table of Contents](#table-of-contents)
+- [Ecosystem](#ecosystem)
+- [Getting Started](#getting-started)
+  - [Installation](#installation)
+  - [Create Stainless instance](#create-stainless-instance)
+  - [Create a model](#create-a-model)
+  - [Create an endpoint](#create-an-endpoint)
+  - [Create a resource](#create-a-resource)
+  - [Create API](#create-api)
+  - [Add API route](#add-api-route)
+  - [Create client](#create-client)
+  - [Use client](#use-client)
+- [In-depth topics](#in-depth-topics)
+  - [Expansion](#expansion)
+  - [Selection](#selection)
+
 # Ecosystem
 
 Stainless provides plugins for integrating with the following tools. We plan to add more in the future!
@@ -212,3 +231,17 @@ export default function UserPage({
   return <UserDetailsPanel user={user}>
 }
 ```
+
+# In-depth topics
+
+## [Expansion](/packages/stainless/docs/expansion.md)
+
+Expansion allows you to optionally include associated objects in an API response if the
+user requests them in an `expand` query parameter. Stainless makes it easy to implement
+expansion with Prisma.
+
+## [Selection](/packages/stainless/docs/selection.md)
+
+Selection allows you to pick what subset of fields on an associated object are returned
+in an API response, if the user requests them in a `select` query parameter. Stainless
+makes it easy to implement selection with Prisma.

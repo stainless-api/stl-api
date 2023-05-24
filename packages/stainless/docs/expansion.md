@@ -1,8 +1,8 @@
 # Expansion
 
 Expansion allows you to optionally include associated objects in an API response if the
-user requests them. Here's an example of a `get /api/posts/{postId}` endpoint with an
-expandable `user` property:
+user requests them in an `expand` query parameter. Here's an example of a
+`get /api/posts/{postId}` endpoint with an expandable `user` property:
 
 ```
 $ curl localhost:3000/api/posts/018a286a-f44d-47c3-b8a4-af92096ff512
@@ -141,4 +141,5 @@ Obviously for many use cases, you would want to keep the depth limit low.
 ## Limitations
 
 Right now the query parameter must be named `expand`.
+
 The maximum recursion depth supported by `stl.expands` is 3.
