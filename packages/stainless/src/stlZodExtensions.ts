@@ -163,7 +163,7 @@ export type WithStainlessMetadata<
 > = T & { _def: { [stainlessMetadata]: M } };
 
 export type ExtractStainlessMetadata<T extends z.ZodTypeAny> =
-  z.ZodTypeAny extends T
+  z.ZodTypeAny extends T // bail if T is too generic, to prevent combinatorial explosion
     ? never
     : T["_def"] extends {
         [stainlessMetadata]: infer M extends StainlessMetadata;
