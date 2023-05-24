@@ -1,9 +1,9 @@
-import { User, UserOutput, UserInput, SelectableUser } from "../users/models";
+import { User, UserOutput, UserInput, UserSelection } from "../users/models";
 import {
   Comment,
   CommentOutput,
   CommentInput,
-  SelectableComment,
+  CommentSelection,
 } from "../comments/models";
 import prisma from "~/libs/prismadb";
 import {
@@ -28,22 +28,22 @@ export type PostOutput = z.output<typeof Post0> & {
   user?: ExpandableOutput<UserOutput>;
   user_fields?: SelectableOutput<UserOutput>;
   comments?: ExpandableOutput<CommentOutput[]>;
-  comments_fields?: SelectableOutput<CommentOutput>[];
+  comments_fields?: SelectableOutput<CommentOutput[]>;
 };
 export type PostInput = z.input<typeof Post0> & {
   user?: ExpandableInput<UserInput>;
   user_fields?: SelectableInput<UserInput>;
   comments?: ExpandableInput<CommentInput[]>;
-  comments_fields?: SelectableInput<CommentInput>[];
+  comments_fields?: SelectableInput<CommentInput[]>;
 };
 
 const Post1: z.ZodType<PostOutput, any, PostInput> = Post0.extend({
   user: z.lazy(() => User).expandable(),
-  user_fields: z.lazy(() => SelectableUser).optional(),
+  user_fields: z.lazy(() => UserSelection).selectable(),
   comments: z.array(z.lazy(() => Comment)).expandable(),
-  comments_fields: z.array(z.lazy(() => SelectableComment)).optional(),
+  comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
 });
 
 export const Post = Post1.prismaModel(prisma.post);
 
-export const SelectablePost = Post.selectable();
+export const PostSelection = Post.selection();

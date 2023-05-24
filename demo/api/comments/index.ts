@@ -1,13 +1,13 @@
 import { stl } from "~/libs/stl";
 import { create } from "./create";
-import { Comment, SelectableComment } from "./models";
+import { Comment, CommentSelection } from "./models";
 
 export const comments = stl.resource({
   summary: "comments",
   internal: false,
   models: {
     Comment,
-    SelectableComment,
+    CommentSelection,
   },
   actions: {
     create,

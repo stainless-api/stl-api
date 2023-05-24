@@ -1,15 +1,15 @@
-import { Post, PostOutput, PostInput, SelectablePost } from "../posts/models";
+import { Post, PostOutput, PostInput, PostSelection } from "../posts/models";
 import {
   Comment,
   CommentOutput,
   CommentInput,
-  SelectableComment,
+  CommentSelection,
 } from "../comments/models";
 import {
   Notification,
   NotificationOutput,
   NotificationInput,
-  SelectableNotification,
+  NotificationSelection,
 } from "../notifications/models";
 import {
   ExpandableOutput,
@@ -44,32 +44,32 @@ const baseUser = z.response({
 
 export type UserOutput = z.output<typeof baseUser> & {
   posts?: ExpandableOutput<PostOutput[]>;
-  posts_fields?: SelectableOutput<PostOutput>[];
+  posts_fields?: SelectableOutput<PostOutput[]>;
   comments?: ExpandableOutput<CommentOutput[]>;
-  comments_fields?: SelectableOutput<CommentOutput>[];
+  comments_fields?: SelectableOutput<CommentOutput[]>;
   notifications?: ExpandableOutput<NotificationOutput[]>;
-  notifications_fields?: SelectableOutput<NotificationOutput>[];
+  notifications_fields?: SelectableOutput<NotificationOutput[]>;
 };
 export type UserInput = z.input<typeof baseUser> & {
   posts?: ExpandableInput<PostInput[]>;
-  posts_fields?: SelectableInput<PostInput>[];
+  posts_fields?: SelectableInput<PostInput[]>;
   comments?: ExpandableInput<CommentInput[]>;
-  comments_fields?: SelectableInput<CommentInput>[];
+  comments_fields?: SelectableInput<CommentInput[]>;
   notifications?: ExpandableInput<NotificationInput[]>;
-  notifications_fields?: SelectableInput<NotificationInput>[];
+  notifications_fields?: SelectableInput<NotificationInput[]>;
 };
 
 export const User: z.ZodType<UserOutput, any, UserInput> = baseUser
   .extend({
     posts: z.array(z.lazy(() => Post)).expandable(),
-    posts_fields: z.array(z.lazy(() => SelectablePost)).optional(),
+    posts_fields: z.array(z.lazy(() => PostSelection)).selectable(),
     comments: z.array(z.lazy(() => Comment)).expandable(),
-    comments_fields: z.array(z.lazy(() => SelectableComment)).optional(),
+    comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
     notifications: z.array(z.lazy(() => Notification)).expandable(),
     notifications_fields: z
-      .array(z.lazy(() => SelectableNotification))
-      .optional(),
+      .array(z.lazy(() => NotificationSelection))
+      .selectable(),
   })
   .prismaModel(prisma.user);
 
-export const SelectableUser = User.selectable();
+export const UserSelection = User.selection();

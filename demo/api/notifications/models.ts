@@ -1,4 +1,4 @@
-import { User, UserOutput, UserInput, SelectableUser } from "../users/models";
+import { User, UserOutput, UserInput, UserSelection } from "../users/models";
 import {
   ExpandableOutput,
   ExpandableInput,
@@ -31,8 +31,8 @@ export const Notification: z.ZodType<
 > = baseNotification
   .extend({
     user: z.lazy(() => User).expandable(),
-    user_fields: z.lazy(() => SelectableUser),
+    user_fields: z.lazy(() => UserSelection).selectable(),
   })
   .prismaModel(prisma.notification);
 
-export const SelectableNotification = Notification.selectable();
+export const NotificationSelection = Notification.selection();

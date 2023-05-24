@@ -1,5 +1,5 @@
-import { User, UserOutput, UserInput, SelectableUser } from "../users/models";
-import { Post, PostOutput, PostInput, SelectablePost } from "../posts/models";
+import { User, UserOutput, UserInput, UserSelection } from "../users/models";
+import { Post, PostOutput, PostInput, PostSelection } from "../posts/models";
 import {
   ExpandableOutput,
   ExpandableInput,
@@ -37,10 +37,10 @@ export type CommentInput = z.input<typeof baseComment> & {
 export const Comment: z.ZodType<CommentOutput, any, CommentInput> = baseComment
   .extend({
     user: z.lazy(() => User).expandable(),
-    user_fields: z.lazy(() => SelectableUser),
+    user_fields: z.lazy(() => UserSelection).selectable(),
     post: z.lazy(() => Post).expandable(),
-    post_fields: z.lazy(() => SelectablePost),
+    post_fields: z.lazy(() => PostSelection).selectable(),
   })
   .prismaModel(prisma.comment);
 
-export const SelectableComment = Comment.selectable();
+export const CommentSelection = Comment.selection();

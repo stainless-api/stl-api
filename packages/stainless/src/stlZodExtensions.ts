@@ -124,7 +124,7 @@ export type SelectableOutput<T> =
       : NonNullable<T> extends object
       ? Partial<NonNullable<T>>
       : T) & {
-      readonly [selectableSymbol]: { value: T };
+      readonly [selectableSymbol]: true;
     })
   | null
   | undefined;
@@ -139,15 +139,11 @@ export type SelectableInput<T> =
   | null
   | undefined;
 
-export type Selection<T> =
-  | T
-  | (NonNullable<T> extends Array<infer E>
-      ? Partial<E>[]
-      : NonNullable<T> extends object
-      ? Partial<NonNullable<T>>
-      : T)
-  | null
-  | undefined;
+export type Selection<T> = T extends Array<infer E extends object>
+  ? Partial<E>[]
+  : T extends object
+  ? Partial<T>
+  : T;
 
 type ExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
   ExpandableOutput<z.output<T>>,
@@ -513,7 +509,7 @@ export function extendZodForStl(zod: typeof z) {
   >(this: z.ZodTypeAny, metadata: M) {
     return new (this.constructor as any)({
       ...this._def,
-      [stainlessMetadata]: { ...extractStainlessMetadata(this), ...metadata },
+      [stainlessMetadata]: { ...this._def[stainlessMetadata], ...metadata },
     });
   };
 }

@@ -1,17 +1,17 @@
 import { stl } from "~/libs/stl";
 import { list } from "./list";
 import { retrieve } from "./retrieve";
-import { User, SelectableUser } from "./models";
-import { Notification, SelectableNotification } from "../notifications/models";
+import { User, UserSelection } from "./models";
+import { Notification, NotificationSelection } from "../notifications/models";
 
 export const users = stl.resource({
   summary: "Users",
   internal: false,
   models: {
     User,
-    SelectableUser,
+    UserSelection,
     Notification,
-    SelectableNotification,
+    NotificationSelection,
   },
   actions: {
     list,
