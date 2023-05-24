@@ -82,7 +82,7 @@ function unwrapExpandable(e: z.ZodTypeAny): z.AnyZodObject | undefined {
   // TODO: union, intersection, discriminated union?
 }
 
-type ExpandableKeys<Model> = Model extends object
+export type ExpandableKeys<Model> = Model extends object
   ? {
       [K in keyof Model & string]-?: NonNullable<
         Model[K]
@@ -94,7 +94,7 @@ type ExpandableKeys<Model> = Model extends object
 
 type Decrement = [0, 0, 1, 2, 3, 4, 5];
 
-type ExpandablePaths<
+export type ExpandablePaths<
   Model,
   Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
 > = Model extends object
@@ -111,6 +111,8 @@ type ExpandablePaths<
                     null | undefined | infer T extends object
                   >
                 ? `${K}.${ExpandablePaths<NonNullable<T>, Decrement[Depth]>}`
+                : NonNullable<Model[K]> extends Array<infer T>
+                ? `${K}.${ExpandablePaths<T, Decrement[Depth]>}`
                 : never;
             }[keyof Model & string])
   : never;

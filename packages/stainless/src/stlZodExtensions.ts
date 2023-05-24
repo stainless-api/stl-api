@@ -167,7 +167,11 @@ export type WithStainlessMetadata<
 > = T & { _def: { [stainlessMetadata]: M } };
 
 export type ExtractStainlessMetadata<T extends z.ZodTypeAny> =
-  T["_def"] extends { [stainlessMetadata]: infer M extends StainlessMetadata }
+  z.ZodTypeAny extends T
+    ? never
+    : T["_def"] extends {
+        [stainlessMetadata]: infer M extends StainlessMetadata;
+      }
     ? M
     : T extends z.ZodOptional<infer U>
     ? ExtractStainlessMetadata<U>
@@ -191,7 +195,7 @@ export type ExtractStainlessMetadata<T extends z.ZodTypeAny> =
     ? ExtractStainlessMetadata<U>
     : T extends z.ZodPipeline<infer A, infer U>
     ? ExtractStainlessMetadata<U>
-    : StainlessMetadata;
+    : never;
 
 export function extractStainlessMetadata<T extends z.ZodTypeAny>(
   schema: T
@@ -199,46 +203,40 @@ export function extractStainlessMetadata<T extends z.ZodTypeAny>(
   const own = schema._def[stainlessMetadata];
   if (own) return own;
   if (schema instanceof z.ZodOptional) {
-    return _extractStainlessMetadata(schema.unwrap());
+    return extractStainlessMetadata(schema.unwrap());
   }
   if (schema instanceof z.ZodNullable) {
-    return _extractStainlessMetadata(schema.unwrap());
+    return extractStainlessMetadata(schema.unwrap());
   }
   if (schema instanceof z.ZodDefault) {
-    return _extractStainlessMetadata(schema.removeDefault());
+    return extractStainlessMetadata(schema.removeDefault());
   }
   if (schema instanceof z.ZodLazy) {
-    return _extractStainlessMetadata(schema.schema);
+    return extractStainlessMetadata(schema.schema);
   }
   if (schema instanceof z.ZodEffects) {
-    return _extractStainlessMetadata(schema.innerType());
+    return extractStainlessMetadata(schema.innerType());
   }
   if (schema instanceof z.ZodCatch) {
-    return _extractStainlessMetadata(schema.removeCatch());
+    return extractStainlessMetadata(schema.removeCatch());
   }
   if (schema instanceof z.ZodBranded) {
-    return _extractStainlessMetadata(schema.unwrap());
+    return extractStainlessMetadata(schema.unwrap());
   }
   if (schema instanceof z.ZodArray) {
-    return _extractStainlessMetadata(schema.element);
+    return extractStainlessMetadata(schema.element);
   }
   if (schema instanceof z.ZodPromise) {
-    return _extractStainlessMetadata(schema.unwrap());
+    return extractStainlessMetadata(schema.unwrap());
   }
   if (schema instanceof z.ZodSet) {
-    return _extractStainlessMetadata(schema._def.valueType);
+    return extractStainlessMetadata(schema._def.valueType);
   }
   if (schema instanceof z.ZodPipeline) {
-    return _extractStainlessMetadata(schema._def.out);
+    return extractStainlessMetadata(schema._def.out);
   }
   return {} as any;
 }
-
-/**
- * workaround for TS saying the type instantiation is possibly infinite
- */
-const _extractStainlessMetadata: <T extends z.ZodTypeAny>(schema: T) => any =
-  extractStainlessMetadata;
 
 export type StlTransform<Output, NewOut> = (
   arg: Output,
