@@ -359,10 +359,7 @@ function createIncludeSelect<
   }
   const convertedSelect = select ? convertSelect(select) : undefined;
   if (convertedSelect instanceof Object) {
-    result = mergeIncludeSelect(
-      result,
-      isPage ? { include: convertedSelect } : { select: convertedSelect }
-    );
+    result = mergeIncludeSelect(result, { include: convertedSelect });
   }
   return result;
 }
