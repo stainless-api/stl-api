@@ -60,7 +60,7 @@ declare module "zod" {
 
     selection<T extends z.ZodTypeAny>(
       this: T
-    ): z.ZodType<Partial<z.output<T>>, this["_def"], Partial<z.input<T>>>;
+    ): z.ZodType<Selection<z.output<T>>, this["_def"], Selection<z.input<T>>>;
 
     /**
      * Marks this schema as selectable via a `select` query param.
@@ -107,32 +107,58 @@ export interface StainlessMetadata {
 
 export const expandableSymbol = Symbol("expandable");
 
-export type Expandable<T> =
+export type ExpandableOutput<T> =
   | (NonNullable<T> & {
-      readonly [expandableSymbol]?: { value: T };
+      readonly [expandableSymbol]: { value: T };
     })
   | null
   | undefined;
 
+export type ExpandableInput<T> = T | null | undefined;
+
 export const selectableSymbol = Symbol("selectable");
 
-export type Selectable<T> =
-  | (Partial<NonNullable<T>> & {
-      readonly [selectableSymbol]?: { value: T };
+export type SelectableOutput<T> =
+  | ((NonNullable<T> extends Array<infer E>
+      ? Partial<E>[]
+      : NonNullable<T> extends object
+      ? Partial<NonNullable<T>>
+      : T) & {
+      readonly [selectableSymbol]: { value: T };
     })
+  | null
+  | undefined;
+
+export type SelectableInput<T> =
+  | T
+  | (NonNullable<T> extends Array<infer E extends object>
+      ? Partial<E>[]
+      : NonNullable<T> extends object
+      ? Partial<NonNullable<T>>
+      : T)
+  | null
+  | undefined;
+
+export type Selection<T> =
+  | T
+  | (NonNullable<T> extends Array<infer E>
+      ? Partial<E>[]
+      : NonNullable<T> extends object
+      ? Partial<NonNullable<T>>
+      : T)
   | null
   | undefined;
 
 type ExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
-  Expandable<z.output<T>>,
+  ExpandableOutput<z.output<T>>,
   T["_def"] & { [stainlessMetadata]: { expandable: true } },
-  Expandable<z.input<T>>
+  ExpandableInput<z.input<T>>
 >;
 
 type SelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
-  Selectable<z.output<T>>,
+  SelectableOutput<z.output<T>>,
   T["_def"] & { [stainlessMetadata]: { selectable: true } },
-  Selectable<z.input<T>>
+  SelectableInput<z.input<T>>
 >;
 
 export type WithStainlessMetadata<
@@ -441,7 +467,9 @@ export function extendZodForStl(zod: typeof z) {
     }
   }
 
-  zod.ZodType.prototype.selection = function selection(this: z.ZodTypeAny) {
+  zod.ZodType.prototype.selection = function selection(
+    this: z.ZodTypeAny
+  ): z.ZodTypeAny {
     if (!(this instanceof zod.ZodObject)) {
       throw new Error(`.selection() must be called on a ZodObject`);
     }
@@ -487,7 +515,7 @@ export function extendZodForStl(zod: typeof z) {
   >(this: z.ZodTypeAny, metadata: M) {
     return new (this.constructor as any)({
       ...this._def,
-      [stainlessMetadata]: { ...this._def[stainlessMetadata], ...metadata },
+      [stainlessMetadata]: { ...extractStainlessMetadata(this), ...metadata },
     });
   };
 }

@@ -13,8 +13,10 @@ export {
   ExtractStainlessMetadata,
 };
 export {
-  Selectable,
-  Expandable,
+  SelectableOutput,
+  SelectableInput,
+  ExpandableOutput,
+  ExpandableInput,
   StlTransform,
   StlParseContext,
   StlRefinementCtx,

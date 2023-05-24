@@ -1,5 +1,11 @@
-import { User, UserSelection } from "../users/models";
-import { Expandable, Selectable, z } from "stainless";
+import { User, UserOutput, UserInput, SelectableUser } from "../users/models";
+import {
+  ExpandableOutput,
+  ExpandableInput,
+  SelectableOutput,
+  SelectableInput,
+  z,
+} from "stainless";
 import prisma from "~/libs/prismadb";
 
 export const baseNotification = z.response({
@@ -9,17 +15,24 @@ export const baseNotification = z.response({
   userId: z.string().uuid(),
 });
 
-export type Notification = z.infer<typeof baseNotification> & {
-  user?: Expandable<User>;
-  user_fields?: Selectable<UserSelection>;
+export type NotificationOutput = z.output<typeof baseNotification> & {
+  user?: ExpandableOutput<UserOutput>;
+  user_fields?: SelectableOutput<UserOutput>;
+};
+export type NotificationInput = z.input<typeof baseNotification> & {
+  user?: ExpandableInput<UserInput>;
+  user_fields?: SelectableInput<UserInput>;
 };
 
-export const Notification: z.ZodType<Notification> = baseNotification
+export const Notification: z.ZodType<
+  NotificationOutput,
+  any,
+  NotificationInput
+> = baseNotification
   .extend({
     user: z.lazy(() => User).expandable(),
-    user_fields: z.lazy(() => UserSelection).selectable(),
+    user_fields: z.lazy(() => SelectableUser),
   })
   .prismaModel(prisma.notification);
 
-export const NotificationSelection = Notification.selection();
-export type NotificationSelection = z.infer<typeof NotificationSelection>;
+export const SelectableNotification = Notification.selectable();

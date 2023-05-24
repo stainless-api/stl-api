@@ -1,7 +1,18 @@
-import { User, UserSelection } from "../users/models";
-import { Comment, CommentSelection } from "../comments/models";
+import { User, UserOutput, UserInput, SelectableUser } from "../users/models";
+import {
+  Comment,
+  CommentOutput,
+  CommentInput,
+  SelectableComment,
+} from "../comments/models";
 import prisma from "~/libs/prismadb";
-import { Expandable, Selectable, z } from "stainless";
+import {
+  ExpandableOutput,
+  ExpandableInput,
+  SelectableOutput,
+  SelectableInput,
+  z,
+} from "stainless";
 
 const Post0 = z.response({
   id: z.string().uuid(),
@@ -13,22 +24,26 @@ const Post0 = z.response({
   image: z.string().nullable().optional(),
 });
 
-export type Post1 = z.infer<typeof Post0> & {
-  user?: Expandable<User>;
-  user_fields?: Selectable<UserSelection>;
-  comments?: Expandable<Comment[]>;
-  comments_fields?: Selectable<CommentSelection[]>;
+export type PostOutput = z.output<typeof Post0> & {
+  user?: ExpandableOutput<UserOutput>;
+  user_fields?: SelectableOutput<UserOutput>;
+  comments?: ExpandableOutput<CommentOutput[]>;
+  comments_fields?: SelectableOutput<CommentOutput>[];
+};
+export type PostInput = z.input<typeof Post0> & {
+  user?: ExpandableInput<UserInput>;
+  user_fields?: SelectableInput<UserInput>;
+  comments?: ExpandableInput<CommentInput[]>;
+  comments_fields?: SelectableInput<CommentInput>[];
 };
 
-const Post1: z.ZodType<Post1> = Post0.extend({
+const Post1: z.ZodType<PostOutput, any, PostInput> = Post0.extend({
   user: z.lazy(() => User).expandable(),
-  user_fields: z.lazy(() => UserSelection).selectable(),
+  user_fields: z.lazy(() => SelectableUser).optional(),
   comments: z.array(z.lazy(() => Comment)).expandable(),
-  comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
+  comments_fields: z.array(z.lazy(() => SelectableComment)).optional(),
 });
 
 export const Post = Post1.prismaModel(prisma.post);
-export type Post = z.output<typeof Post>;
 
-export const PostSelection = Post.selection();
-export type PostSelection = z.output<typeof PostSelection>;
+export const SelectablePost = Post.selectable();

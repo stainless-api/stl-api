@@ -14,7 +14,9 @@ export type ExpandableInput<T> = T | null | undefined;
 export const selectableSymbol = Symbol("selectable");
 
 export type SelectableOutput<T> =
-  | (Partial<NonNullable<T>> & {
+  | ((NonNullable<T> extends Array<infer E>
+      ? Partial<E>[]
+      : Partial<NonNullable<T>>) & {
       readonly [selectableSymbol]: { value: T };
     })
   | null
@@ -162,9 +164,24 @@ type ExpandablePaths<
 
 type PostPaths = ExpandablePaths<Post, 1>;
 const expand: ExpandablePaths<Post>[] = [
+  // @ts-expect-error
+  "user_fields",
   "user",
   "user.posts.user",
   "comments.post.user.posts",
+  // @ts-expect-error
+  "comments.post.user.posts.user",
+];
+const expand1: ExpandablePaths<Post, 1>[] = [
+  // @ts-expect-error
+  "user_fields",
+  "user",
+  "user.posts",
+  "comments.post",
+  // @ts-expect-error
+  "comments.post.user.posts",
+  // @ts-expect-error
+  "comments.post.user.posts.user",
 ];
 
 type NonExpandableKeys<Model extends object> = {
