@@ -61,7 +61,7 @@ function extendZodForPrismaPlugin(zod: typeof z) {
   ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
     return this.stlTransform(async (id: z.infer<T>, ctx: StlContext<any>) => {
       const query = { where: { id } };
-      const prisma: PrismaContext<any> = ctx.prisma as any;
+      const prisma: PrismaContext<any> = (ctx as any).prisma;
       if (prisma && prismaModel === prisma.prismaModel) {
         return await prisma.findUniqueOrThrow(query);
       }

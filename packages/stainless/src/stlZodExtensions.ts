@@ -169,7 +169,7 @@ export type ExtractStainlessMetadata<T extends z.ZodTypeAny> =
 
 export function extractStainlessMetadata<T extends z.ZodTypeAny>(
   schema: T
-): ExtractStainlessMetadata<T> {
+): StainlessMetadata {
   const own = schema._def[stainlessMetadata];
   if (own) return own;
   if (schema instanceof z.ZodOptional) {
