@@ -1,16 +1,16 @@
 import {
   StainlessMetadata,
   WithStainlessMetadata,
-  ExtractStainlessMetadata,
   extendZodForStl,
-  getStainlessMetadata,
+  extractStainlessMetadata,
+  ExtractStainlessMetadata,
 } from "./stlZodExtensions";
 export {
   StainlessMetadata,
   WithStainlessMetadata,
-  ExtractStainlessMetadata,
   extendZodForStl,
-  getStainlessMetadata,
+  extractStainlessMetadata,
+  ExtractStainlessMetadata,
 };
 export {
   Selectable,

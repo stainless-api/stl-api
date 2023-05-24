@@ -140,16 +140,79 @@ export type WithStainlessMetadata<
   M extends StainlessMetadata
 > = T & { _def: { [stainlessMetadata]: M } };
 
-export function getStainlessMetadata<T extends z.ZodTypeAny>(
-  schema: T
-): ExtractStainlessMetadata<T> {
-  return schema._def[stainlessMetadata] || {};
-}
-
 export type ExtractStainlessMetadata<T extends z.ZodTypeAny> =
   T["_def"] extends { [stainlessMetadata]: infer M extends StainlessMetadata }
     ? M
+    : T extends z.ZodOptional<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodNullable<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodDefault<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodLazy<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodEffects<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodCatch<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodBranded<infer U, infer Brand>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodArray<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodPromise<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodSet<infer U>
+    ? ExtractStainlessMetadata<U>
+    : T extends z.ZodPipeline<infer A, infer U>
+    ? ExtractStainlessMetadata<U>
     : StainlessMetadata;
+
+export function extractStainlessMetadata<T extends z.ZodTypeAny>(
+  schema: T
+): ExtractStainlessMetadata<T> {
+  const own = schema._def[stainlessMetadata];
+  if (own) return own;
+  if (schema instanceof z.ZodOptional) {
+    return _extractStainlessMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodNullable) {
+    return _extractStainlessMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodDefault) {
+    return _extractStainlessMetadata(schema.removeDefault());
+  }
+  if (schema instanceof z.ZodLazy) {
+    return _extractStainlessMetadata(schema.schema);
+  }
+  if (schema instanceof z.ZodEffects) {
+    return _extractStainlessMetadata(schema.innerType());
+  }
+  if (schema instanceof z.ZodCatch) {
+    return _extractStainlessMetadata(schema.removeCatch());
+  }
+  if (schema instanceof z.ZodBranded) {
+    return _extractStainlessMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodArray) {
+    return _extractStainlessMetadata(schema.element);
+  }
+  if (schema instanceof z.ZodPromise) {
+    return _extractStainlessMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodSet) {
+    return _extractStainlessMetadata(schema._def.valueType);
+  }
+  if (schema instanceof z.ZodPipeline) {
+    return _extractStainlessMetadata(schema._def.out);
+  }
+  return {} as any;
+}
+
+/**
+ * workaround for TS saying the type instantiation is possibly infinite
+ */
+const _extractStainlessMetadata: <T extends z.ZodTypeAny>(schema: T) => any =
+  extractStainlessMetadata;
 
 export type StlTransform<Output, NewOut> = (
   arg: Output,
@@ -227,27 +290,6 @@ export function extendZodForStl(zod: typeof z) {
       }
     );
   }
-
-  const zodTypeOptionalSuper = zod.ZodType.prototype.optional;
-  zod.ZodType.prototype.optional = function optional() {
-    const metadata = getStainlessMetadata(this);
-    const result = zodTypeOptionalSuper.call(this);
-    return metadata ? result.stlMetadata(metadata) : result;
-  };
-
-  const zodTypeNullableSuper = zod.ZodType.prototype.nullable;
-  zod.ZodType.prototype.nullable = function nullable() {
-    const metadata = getStainlessMetadata(this);
-    const result = zodTypeNullableSuper.call(this);
-    return metadata ? result.stlMetadata(metadata) : result;
-  };
-
-  const zodTypeNullishSuper = zod.ZodType.prototype.nullish;
-  zod.ZodType.prototype.nullish = function nullish(this: any) {
-    const metadata = getStainlessMetadata(this);
-    const result = zodTypeNullishSuper.call(this);
-    return metadata ? result.stlMetadata(metadata) : result;
-  } as any;
 
   zod.ZodType.prototype.safeParseAsync = async function safeParseAsync(
     data: unknown,
@@ -433,7 +475,7 @@ export function extendZodForStl(zod: typeof z) {
       parsed,
       omitBy(
         (v, key) =>
-          (getStainlessMetadata(this.shape[key]) as any).expandable &&
+          (extractStainlessMetadata(this.shape[key]) as any).expandable &&
           expand &&
           !zodPathIsExpanded([...path, key], expand)
       )

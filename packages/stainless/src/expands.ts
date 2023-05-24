@@ -1,4 +1,4 @@
-import { Expandable, getStainlessMetadata } from "./stlZodExtensions";
+import { Expandable, extractStainlessMetadata } from "./stlZodExtensions";
 import { z, StlContext } from "./stl";
 
 /**
@@ -53,26 +53,8 @@ export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
   return element.options;
 }
 
-function isExpandable(e: z.ZodTypeAny): boolean {
-  if (getStainlessMetadata(e)?.expandable) return true;
-
-  if (e instanceof z.ZodLazy) {
-    return isExpandable(e.schema);
-  }
-  if (e instanceof z.ZodEffects) {
-    return isExpandable(e.innerType());
-  }
-  if (e instanceof z.ZodOptional || e instanceof z.ZodNullable) {
-    return isExpandable(e.unwrap());
-  }
-  if (e instanceof z.ZodDefault) {
-    return isExpandable(e._def.innerType);
-  }
-  if (e instanceof z.ZodPipeline) {
-    return isExpandable(e._def.out);
-  }
-
-  return false;
+function isExpandable<T extends z.ZodTypeAny>(e: T): boolean {
+  return extractStainlessMetadata(e)?.expandable ?? false;
 }
 
 function unwrapExpandable(e: z.ZodTypeAny): z.AnyZodObject | undefined {

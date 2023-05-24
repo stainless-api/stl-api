@@ -8,7 +8,7 @@ import {
   StlContext,
   SelectTree,
   ExtractStainlessMetadata,
-  getStainlessMetadata,
+  extractStainlessMetadata,
   extendZodForStl,
   z,
   WithStainlessMetadata,
@@ -279,7 +279,7 @@ function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
-  if (getStainlessMetadata(response).pageResponse) {
+  if (extractStainlessMetadata(response)?.pageResponse) {
     const { pageAfter, pageBefore, pageSize, sortBy, sortDirection } =
       context.parsedParams?.query || {};
     const cursorString = pageAfter ?? pageBefore;
@@ -338,7 +338,7 @@ function createIncludeSelect<
   ) {
     throw new Error(`invalid expand query param`);
   }
-  const isPage = getStainlessMetadata(endpoint.response).pageResponse;
+  const isPage = extractStainlessMetadata(endpoint.response).pageResponse;
   if (isPage) {
     expand = expand ? expandSubPaths(expand, "items") : undefined;
     select = select?.select?.items;
@@ -468,7 +468,7 @@ export const makePrismaPlugin =
         params: Params,
         context: PartialStlContext<any, EC>
       ) {
-        const model = getStainlessMetadata(endpoint.response)?.prismaModel;
+        const model = extractStainlessMetadata(endpoint.response)?.prismaModel;
         function getModel(): PrismaModel {
           if (!model)
             throw new Error(`response doesn't have a prisma model configured`);
