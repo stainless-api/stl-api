@@ -1,10 +1,5 @@
-import { User, UserOutput, UserInput, UserSelection } from "../users/models";
-import {
-  Comment,
-  CommentOutput,
-  CommentInput,
-  CommentSelection,
-} from "../comments/models";
+import { User, UserSelection } from "../users/models";
+import { Comment, CommentSelection } from "../comments/models";
 import prisma from "~/libs/prismadb";
 import { z } from "stainless";
 
@@ -18,20 +13,16 @@ const Post0 = z.response({
   image: z.string().nullable().optional(),
 });
 
-export type PostOutput = z.output<typeof Post0> & {
-  user?: z.ExpandableOutput<UserOutput>;
-  user_fields?: z.SelectableOutput<UserOutput>;
-  comments?: z.ExpandableOutput<CommentOutput[]>;
-  comments_fields?: z.SelectableOutput<CommentOutput[]>;
-};
-export type PostInput = z.input<typeof Post0> & {
-  user?: z.ExpandableInput<UserInput>;
-  user_fields?: z.SelectableInput<UserInput>;
-  comments?: z.ExpandableInput<CommentInput[]>;
-  comments_fields?: z.SelectableInput<CommentInput[]>;
-};
-
-const Post1: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> = Post0.extend({
+type Post1 = z.CircularModel<
+  typeof Post0,
+  {
+    user?: z.ExpandableZodType<typeof User>;
+    user_fields?: z.SelectableZodType<typeof User>;
+    comments?: z.ExpandableZodType<z.ZodArray<typeof Comment>>;
+    comments_fields?: z.SelectableZodType<z.ZodArray<typeof Comment>>;
+  }
+>;
+const Post1: Post1 = Post0.extend({
   user: z.lazy(() => User).expandable(),
   user_fields: z.lazy(() => UserSelection).selectable(),
   comments: z.array(z.lazy(() => Comment)).expandable(),

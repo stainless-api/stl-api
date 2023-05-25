@@ -170,10 +170,16 @@ export type ExpandableOutput<T> =
 
 export type ExpandableInput<T> = T | null | undefined;
 
-type ExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
+export type ExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
   ExpandableOutput<z.output<T>>,
   T["_def"] & { [stlMetadataSymbol]: { expandable: true } },
   ExpandableInput<z.input<T>>
+>;
+
+export type ExpandableZodArrayType<T extends z.ZodTypeAny> = z.ZodType<
+  ExpandableOutput<z.output<T>[]>,
+  z.ZodArrayDef & { [stlMetadataSymbol]: { expandable: true } },
+  ExpandableInput<z.input<T>[]>
 >;
 
 class StlExpandable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
@@ -270,6 +276,18 @@ export type SelectableInput<T> =
   | null
   | undefined;
 
+export type SelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
+  SelectableOutput<z.output<T>>,
+  T["_def"] & { [stlMetadataSymbol]: { selectable: true } },
+  SelectableInput<z.input<T>>
+>;
+
+export type SelectableZodArrayType<T extends z.ZodTypeAny> = z.ZodType<
+  SelectableOutput<z.output<T>[]>,
+  z.ZodArrayDef & { [stlMetadataSymbol]: { selectable: true } },
+  SelectableInput<z.input<T>[]>
+>;
+
 export type Selection<T> = T extends Array<infer E extends object>
   ? Partial<E>[]
   : T extends object
@@ -342,12 +360,6 @@ z.ZodType.prototype.selectable = function selectable(this: z.ZodTypeAny) {
     this.optional().stlMetadata({ selectable: true })._def
   );
 };
-
-type SelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
-  SelectableOutput<z.output<T>>,
-  T["_def"] & { [stlMetadataSymbol]: { selectable: true } },
-  SelectableInput<z.input<T>>
->;
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
@@ -633,3 +645,12 @@ export const PaginationParams = z.object({
 });
 
 export type PaginationParams = z.infer<typeof PaginationParams>;
+
+export type CircularModel<
+  Base extends z.ZodType<object, any, object>,
+  Props extends z.ZodRawShape
+> = z.ZodType<
+  z.output<Base> & { [K in keyof Props]: z.output<NonNullable<Props[K]>> },
+  z.ZodTypeDef,
+  z.input<Base> & { [K in keyof Props]: z.input<NonNullable<Props[K]>> }
+>;
