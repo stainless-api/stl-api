@@ -47,7 +47,7 @@ We will soon provide a `create-stl-app` API. Until then:
 
 ## Installation
 
-```
+```bash
 npm i --save stainless @stl-api/next
 
 # Optional plugins:
@@ -61,21 +61,15 @@ npm i --save @stl-api/prisma     # If you are using Prisma
 // ~/libs/stl.ts
 
 import { makeStl } from "stainless";
-import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
-import { makeNextAuthPlugin } from "@stl-api/next-auth";
-import { authOptions } from "~/pages/api/auth/[...nextauth]";
 
-export type StlUserContext = {};
+export type Context = {};
 
 const plugins = {
   next: makeNextPlugin(),
-  nextAuth: makeNextAuthPlugin({ authOptions }),
-  prisma: makePrismaPlugin(),
-  currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = makeStl<StlUserContext, typeof plugins>({
+export const stl = makeStl<Context, typeof plugins>({
   plugins,
 });
 ```
