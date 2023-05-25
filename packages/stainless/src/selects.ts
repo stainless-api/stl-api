@@ -11,7 +11,10 @@ export function selects<
 >(
   schema: T,
   depth: Depth
-): z.ZodType<SelectTree | null | undefined, z.ZodEffectsDef, string> {
+): z.WithStainlessMetadata<
+  z.ZodType<SelectTree | null | undefined, z.ZodEffectsDef, string>,
+  { selects: true }
+> {
   return z
     .string()
     .transform((select) => parseSelect(select))
@@ -24,7 +27,8 @@ export function selects<
           message: error instanceof Error ? error.message : String(error),
         });
       }
-    });
+    })
+    .stlMetadata({ selects: true });
 }
 
 function validateSelectTree(

@@ -112,6 +112,8 @@ export const stainlessMetadata = Symbol("stainlessMetadata");
 export interface StainlessMetadata {
   expandable?: true;
   selectable?: true;
+  expands?: true;
+  selects?: true;
   response?: true;
   pageResponse?: true;
   prismaModel?: any;

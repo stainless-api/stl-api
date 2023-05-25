@@ -6,7 +6,13 @@ import { z, StlContext } from "./stl";
 export function expands<
   T extends z.ZodTypeAny,
   Depth extends 0 | 1 | 2 | 3 | 4 | 5
->(schema: T, depth: Depth): z.ZodType<ExpandablePaths<z.output<T>, Depth>[]> {
+>(
+  schema: T,
+  depth: Depth
+): z.WithStainlessMetadata<
+  z.ZodType<ExpandablePaths<z.output<T>, Depth>[]>,
+  { expands: true }
+> {
   const values: string[] = [];
 
   function add<T extends z.AnyZodObject>(
@@ -31,7 +37,11 @@ export function expands<
   if (!first) {
     throw new Error(`schema has no expandable properties`);
   }
-  return z.array(z.enum([first, ...rest])) as any;
+  return (
+    z.array(z.enum([first, ...rest])) as any as z.ZodType<
+      ExpandablePaths<z.output<T>, Depth>[]
+    >
+  ).stlMetadata({ expands: true });
 }
 
 /**
