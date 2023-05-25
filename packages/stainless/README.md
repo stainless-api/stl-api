@@ -125,10 +125,10 @@ import { User } from "./models";
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/users/{userId}",
+  response: User,
   path: z.object({
     userId: z.string(),
   }),
-  response: User,
   async handler({ userId }, ctx) {
     const user = await prisma.user.findUnique({
       where: {

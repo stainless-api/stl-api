@@ -44,6 +44,7 @@ const update = stl.endpoint({
   endpoint: "post /users/:id",
   description: "Update a user. Currently only updating the name is supported.",
   authenticated: true,
+  response: User,
 
   path: z.object({
     id: z.string(),
@@ -51,7 +52,6 @@ const update = stl.endpoint({
   body: z.object({
     name: z.string(),
   }),
-  response: User,
 
   async handler({ id, name }) {
     return await prisma.users.updateOne(id, { name });
@@ -147,8 +147,8 @@ const User = z.object({
 
 const create = stl.endpoint({
   endpoint: "post /users",
-  body: z.object({ name: z.string() }),
   response: User,
+  body: z.object({ name: z.string() }),
 });
 
 app.post("/users", async (req, rsp) => {

@@ -5,6 +5,8 @@ import { Post } from "./models";
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/posts/{post}",
+  response: Post,
+
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),
   }),
@@ -12,7 +14,7 @@ export const retrieve = stl.endpoint({
     expand: z.expands(Post, 3).optional(),
     select: z.selects(Post, 3).optional(),
   }),
-  response: Post,
+
   async handler({ post }, ctx) {
     return post;
   },

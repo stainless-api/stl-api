@@ -4,13 +4,14 @@ import { Post } from "./models";
 
 export const create = stl.endpoint({
   endpoint: "post /api/posts",
-  body: z.body({
-    body: z.string(),
-  }),
+  response: Post,
+
   query: z.query({
     expand: z.expands(Post, 3).optional(),
   }),
-  response: Post,
+  body: z.body({
+    body: z.string(),
+  }),
 
   async handler({ body }, ctx) {
     return await ctx.prisma.create({

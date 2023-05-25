@@ -73,6 +73,7 @@ import { Post } from "./models";
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/posts/{postId}",
+  response: Post,
   path: z.object({
     postId: z.string(),
   }),
@@ -80,7 +81,6 @@ export const retrieve = stl.endpoint({
     expand: z.expands(Post, 3).optional(),
     select: z.selects(Post, 3).optional(),
   }),
-  response: Post,
   async handler({ postId }, ctx) {
     // Prisma plugin magically injects options for expand and select!
     return await ctx.prisma.findUniqueOrThrow({ where: { id: postId } });
@@ -97,10 +97,10 @@ import { Post } from "./models";
 
 export const create = stl.endpoint({
   endpoint: "post /api/posts",
+  response: Post,
   body: z.object({
     body: z.string(),
   }),
-  response: Post,
   async handler({ body }, ctx) {
     return await ctx.prisma.create({
       data: {
@@ -134,10 +134,10 @@ import { Post } from "./models";
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/posts/{post}",
+  response: Post,
   path: z.object({
     post: z.string().prismaModelLoader(prisma.post),
   }),
-  response: Post,
   async handler({ post }, ctx) {
     // here post is fetched Prisma model, not a string
     return post;
