@@ -33,7 +33,6 @@ function validateSelectTree(
   depth: number,
   path: string[] = []
 ): SelectTree {
-  console.log([path, depth]);
   if (depth < 0) {
     throw new Error(`selected path is too deep: ${path.join(".")}`);
   }
