@@ -28,17 +28,11 @@ import { selects } from "./selects";
 import { expands } from "./expands";
 export { expandsOptions } from "./expands";
 import { openapiSpec } from "./openapiSpec";
-import { type OpenAPIObject } from "openapi3-ts";
+import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 import { once } from "lodash";
 export { SelectTree, parseSelect } from "./parseSelect";
 
-/**
- * TODO: try to come up with a better error message
- * that you must import stl _before_ zod
- * in any file that uses z.openapi(),
- * including the file that calls stl.openapiSpec().
- */
-extendZodForStl(z); // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
+extendZodForStl(z);
 
 export { z };
 

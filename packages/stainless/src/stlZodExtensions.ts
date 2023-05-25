@@ -1,4 +1,4 @@
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { extendZodWithOpenApi } from "zod-openapi";
 import {
   z,
   ParseContext,
@@ -277,13 +277,10 @@ export function extendZodForStl(zod: typeof z) {
   if (extended) return;
   extended = true;
 
-  /**
-   * TODO: try to come up with a better error message
-   * that you must import stl _before_ zod
-   * in any file that uses z.openapi(),
-   * including the file that calls stl.openapiSpec().
-   */
-  extendZodWithOpenApi(zod); // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
+  // https://github.com/samchungy/zod-openapi#extendzodwithopenapi
+  // …and more info may be available at the ancestor project:
+  // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
+  extendZodWithOpenApi(zod);
 
   function handleParseReturn<I, O>(
     result: z.ParseReturnType<I>,
@@ -394,6 +391,7 @@ export function extendZodForStl(zod: typeof z) {
       schema: this,
       typeName: ZodFirstPartyTypeKind.ZodEffects,
       effect: { type: "stlTransform", transform } as any,
+      openapi: { type: "string", ...this._def.openapi }, // TODO get correct type
     }) as any;
   };
 
