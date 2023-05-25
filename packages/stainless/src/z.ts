@@ -25,91 +25,24 @@ export { expands } from "./expands";
  */
 extendZodWithOpenApi(z); // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
 
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+/////////////// StlMetadata //////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+
 declare module "zod" {
-  // I don't know why TS errors without this, sigh
-  interface ZodTypeDef {}
-
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
-    safeParseAsync(
-      data: unknown,
-      params?: Partial<StlParseParams>
-    ): Promise<SafeParseReturnType<Input, Output>>;
-
-    parseAsync(
-      data: unknown,
-      params?: Partial<StlParseParams>
-    ): Promise<Output>;
-
-    /**
-     * Marks this schema as expandable via an `expand[]` query param.
-     * This should only be used on object or array of object property schemas.
-     */
-    expandable(): ExpandableZodType<this>;
-
-    optional<T extends z.ZodTypeAny>(
-      this: T
-    ): T extends WithStainlessMetadata<infer W, infer M>
-      ? WithStainlessMetadata<z.ZodOptional<W>, M>
-      : z.ZodOptional<T>;
-
-    nullish<T extends z.ZodTypeAny>(
-      this: T
-    ): T extends WithStainlessMetadata<infer W, infer M>
-      ? WithStainlessMetadata<z.ZodNullable<W>, M>
-      : z.ZodNullable<T>;
-
-    nullable<T extends z.ZodTypeAny>(
-      this: T
-    ): T extends WithStainlessMetadata<infer W, infer M>
-      ? WithStainlessMetadata<z.ZodNullable<W>, M>
-      : z.ZodNullable<T>;
-
-    nullish<T extends z.ZodTypeAny>(
-      this: T
-    ): T extends WithStainlessMetadata<infer W, infer M>
-      ? WithStainlessMetadata<z.ZodOptional<z.ZodNullable<W>>, M>
-      : z.ZodOptional<z.ZodNullable<T>>;
-
-    selection<T extends z.ZodTypeAny>(
-      this: T
-    ): z.ZodType<Selection<z.output<T>>, this["_def"], Selection<z.input<T>>>;
-
-    /**
-     * Marks this schema as selectable via a `select` query param.
-     * This should only be used on object or array of object property schemas.
-     * The property must have the name of a sibling property + `_fields`.
-     */
-    selectable(): SelectableZodType<this>;
-
     /**
      * Adds stainless metadata properties to the def.
      */
-    stlMetadata<M extends StainlessMetadata>(
-      metadata: M
-    ): WithStainlessMetadata<this, M>;
-
-    transform<NewOut>(
-      transform: (
-        arg: Output,
-        ctx: StlRefinementCtx
-      ) => NewOut | Promise<NewOut>
-    ): z.ZodEffects<this, NewOut>;
-
-    /**
-     * Like `.transform()`, but passes the StlContext and ParseContext
-     * to the transform.
-     * Currently this is used to implement `.prismaModelLoader()` in the
-     * Prisma plugin.
-     */
-    stlTransform<NewOut>(
-      transform: StlTransform<Output, NewOut>
-    ): z.ZodEffects<this, NewOut>;
+    stlMetadata<M extends StlMetadata>(metadata: M): WithStlMetadata<this, M>;
   }
 }
 
-export const stainlessMetadata = Symbol("stainlessMetadata");
+export const stlMetadataSymbol = Symbol("stlMetadata");
 
-export interface StainlessMetadata {
+export interface StlMetadata {
   expandable?: true;
   selectable?: true;
   expands?: true;
@@ -118,6 +51,112 @@ export interface StainlessMetadata {
   pageResponse?: true;
   prismaModel?: any;
   from?: string;
+}
+
+export type WithStlMetadata<
+  T extends z.ZodTypeAny,
+  M extends StlMetadata
+> = T & { _def: { [stlMetadataSymbol]: M } };
+
+z.ZodType.prototype.stlMetadata = function stlMetadata<M extends StlMetadata>(
+  this: z.ZodTypeAny,
+  metadata: M
+) {
+  return new (this.constructor as any)({
+    ...this._def,
+    [stlMetadataSymbol]: { ...this._def[stlMetadataSymbol], ...metadata },
+  });
+};
+
+export type ExtractStlMetadata<T extends z.ZodTypeAny> = z.ZodType<
+  any,
+  z.ZodTypeDef,
+  any
+> extends T
+  ? never // bail if T is too generic, to prevent combinatorial explosion
+  : T["_def"] extends {
+      [stlMetadataSymbol]: infer M extends StlMetadata;
+    }
+  ? M
+  : T extends z.ZodOptional<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodNullable<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodDefault<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodLazy<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodEffects<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodCatch<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodBranded<infer U, infer Brand>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodArray<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodPromise<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodSet<infer U>
+  ? ExtractStlMetadata<U>
+  : T extends z.ZodPipeline<infer A, infer U>
+  ? ExtractStlMetadata<U>
+  : never;
+
+export function extractStlMetadata<T extends z.ZodTypeAny>(
+  schema: T
+): StlMetadata {
+  const own = schema._def[stlMetadataSymbol];
+  if (own) return own;
+  if (schema instanceof z.ZodOptional) {
+    return extractStlMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodNullable) {
+    return extractStlMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodDefault) {
+    return extractStlMetadata(schema.removeDefault());
+  }
+  if (schema instanceof z.ZodLazy) {
+    return extractStlMetadata(schema.schema);
+  }
+  if (schema instanceof z.ZodEffects) {
+    return extractStlMetadata(schema.innerType());
+  }
+  if (schema instanceof z.ZodCatch) {
+    return extractStlMetadata(schema.removeCatch());
+  }
+  if (schema instanceof z.ZodBranded) {
+    return extractStlMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodArray) {
+    return extractStlMetadata(schema.element);
+  }
+  if (schema instanceof z.ZodPromise) {
+    return extractStlMetadata(schema.unwrap());
+  }
+  if (schema instanceof z.ZodSet) {
+    return extractStlMetadata(schema._def.valueType);
+  }
+  if (schema instanceof z.ZodPipeline) {
+    return extractStlMetadata(schema._def.out);
+  }
+  return {} as any;
+}
+
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+/////////////// Expandable ///////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+
+declare module "zod" {
+  interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
+    /**
+     * Marks this schema as expandable via an `expand[]` query param.
+     * This should only be used on object or array of object property schemas.
+     */
+    expandable(): ExpandableZodType<this>;
+  }
 }
 
 export const expandableSymbol = Symbol("expandable");
@@ -130,6 +169,83 @@ export type ExpandableOutput<T> =
   | undefined;
 
 export type ExpandableInput<T> = T | null | undefined;
+
+type ExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
+  ExpandableOutput<z.output<T>>,
+  T["_def"] & { [stlMetadataSymbol]: { expandable: true } },
+  ExpandableInput<z.input<T>>
+>;
+
+class StlExpandable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
+  _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
+    const ctx = getStlParseContext(input.parent);
+    const expand = ctx ? getExpands(ctx) : undefined;
+
+    if (!expand || !zodPathIsExpanded(input.path, expand)) {
+      return z.OK(undefined);
+    }
+    return super._parse(input);
+  }
+}
+
+z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
+  return new StlExpandable(
+    this.optional().stlMetadata({ expandable: true })._def
+  );
+};
+
+function zodPathIsExpanded(
+  zodPath: (string | number)[],
+  expand: string[]
+): boolean {
+  const zodPathStr = zodPath.filter((p) => typeof p === "string").join(".");
+  return expand.some((e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`));
+}
+
+const zodObjectSuperParse = z.ZodObject.prototype._parse;
+z.ZodObject.prototype._parse = function _parse<T>(
+  input: z.ParseInput
+): z.ParseReturnType<T> {
+  const { path } = input;
+  const expand: string[] | undefined = getStlParseContext(input.parent)
+    ?.parsedParams?.query?.expand;
+
+  const parsed = zodObjectSuperParse.call(this, input);
+  // @ts-expect-error only expandable (optional) props are getting omitted
+  return convertParseReturn(
+    parsed,
+    omitBy(
+      (v, key) =>
+        (extractStlMetadata(this.shape[key]) as any).expandable &&
+        expand &&
+        !zodPathIsExpanded([...path, key], expand)
+    )
+  );
+};
+
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+/////////////// Selectable ///////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+
+declare module "zod" {
+  // I don't know why TS errors without this, sigh
+  interface ZodTypeDef {}
+
+  interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
+    selection<T extends z.ZodTypeAny>(
+      this: T
+    ): z.ZodType<Selection<z.output<T>>, this["_def"], Selection<z.input<T>>>;
+
+    /**
+     * Marks this schema as selectable via a `select` query param.
+     * This should only be used on object or array of object property schemas.
+     * The property must have the name of a sibling property + `_fields`.
+     */
+    selectable(): SelectableZodType<this>;
+  }
+}
 
 export const selectableSymbol = Symbol("selectable");
 
@@ -160,96 +276,114 @@ export type Selection<T> = T extends Array<infer E extends object>
   ? Partial<T>
   : T;
 
-type ExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
-  ExpandableOutput<z.output<T>>,
-  T["_def"] & { [stainlessMetadata]: { expandable: true } },
-  ExpandableInput<z.input<T>>
->;
+/**
+ * A .selectable() property like `comments_fields`
+ * actually parses the parent object's `comments`
+ * property as input.
+ *
+ * As a consequence if `.selectable()` gets wrapped with
+ * `.optional()`, the optional will see that there's no
+ * value for `comments_fields` and abort before
+ * `StlSelectable` gets to work its magic.
+ */
+class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
+  _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
+    const { path, parent } = input;
+    const ctx = getStlParseContext(parent);
+    const select = ctx ? getSelects(ctx) : undefined;
+    if (!select) return z.OK(undefined);
+    const property = path[path.length - 1];
+    if (typeof property !== "string" || !property.endsWith("_fields")) {
+      throw new Error(
+        `.selectable() property must be a string ending with _fields`
+      );
+    }
+    if (!(parent.data instanceof Object) || typeof property !== "string") {
+      return z.OK(undefined);
+    }
+    const selectionHere = path.reduce<SelectTree | undefined>(
+      (tree, elem) => (typeof elem === "number" ? tree : tree?.select?.[elem]),
+      select
+    )?.select;
+    if (!selectionHere) return z.OK(undefined);
+
+    const parsed = super._parse(
+      Object.create(input, {
+        data: { value: parent.data[property.replace(/_fields$/, "")] },
+      })
+    );
+
+    const pickSelected = pickBy((v, k) => selectionHere[k]);
+
+    return convertParseReturn(parsed, (value) =>
+      Array.isArray(value) ? value.map(pickSelected) : pickSelected(value)
+    );
+  }
+}
+
+z.ZodType.prototype.selection = function selection(
+  this: z.ZodTypeAny
+): z.ZodTypeAny {
+  if (!(this instanceof z.ZodObject)) {
+    throw new Error(`.selection() must be called on a ZodObject`);
+  }
+  const { shape } = this;
+  // don't wrap StlSelectable fields with ZodOptional,
+  // because they don't rely on the _field property
+  // acually being present
+  const mask = mapValues(shape, (value) =>
+    value instanceof StlSelectable ? undefined : (true as const)
+  );
+  return this.partial(mask);
+};
+
+z.ZodType.prototype.selectable = function selectable(this: z.ZodTypeAny) {
+  return new StlSelectable(
+    this.optional().stlMetadata({ selectable: true })._def
+  );
+};
 
 type SelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
   SelectableOutput<z.output<T>>,
-  T["_def"] & { [stainlessMetadata]: { selectable: true } },
+  T["_def"] & { [stlMetadataSymbol]: { selectable: true } },
   SelectableInput<z.input<T>>
 >;
 
-export type WithStainlessMetadata<
-  T extends z.ZodTypeAny,
-  M extends StainlessMetadata
-> = T & { _def: { [stainlessMetadata]: M } };
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+/////////////// StlTransform /////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
 
-export type ExtractStainlessMetadata<T extends z.ZodTypeAny> = z.ZodType<
-  any,
-  z.ZodTypeDef,
-  any
-> extends T
-  ? never // bail if T is too generic, to prevent combinatorial explosion
-  : T["_def"] extends {
-      [stainlessMetadata]: infer M extends StainlessMetadata;
-    }
-  ? M
-  : T extends z.ZodOptional<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodNullable<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodDefault<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodLazy<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodEffects<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodCatch<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodBranded<infer U, infer Brand>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodArray<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodPromise<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodSet<infer U>
-  ? ExtractStainlessMetadata<U>
-  : T extends z.ZodPipeline<infer A, infer U>
-  ? ExtractStainlessMetadata<U>
-  : never;
+declare module "zod" {
+  interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
+    safeParseAsync(
+      data: unknown,
+      params?: Partial<StlParseParams>
+    ): Promise<SafeParseReturnType<Input, Output>>;
 
-export function extractStainlessMetadata<T extends z.ZodTypeAny>(
-  schema: T
-): StainlessMetadata {
-  const own = schema._def[stainlessMetadata];
-  if (own) return own;
-  if (schema instanceof z.ZodOptional) {
-    return extractStainlessMetadata(schema.unwrap());
+    parseAsync(
+      data: unknown,
+      params?: Partial<StlParseParams>
+    ): Promise<Output>;
+
+    transform<NewOut>(
+      transform: (
+        arg: Output,
+        ctx: StlRefinementCtx
+      ) => NewOut | Promise<NewOut>
+    ): z.ZodEffects<this, NewOut>;
+
+    /**
+     * Like `.transform()`, but passes the StlContext and ParseContext
+     * to the transform.
+     * Currently this is used to implement `.prismaModelLoader()` in the
+     * Prisma plugin.
+     */
+    stlTransform<NewOut>(
+      transform: StlTransform<Output, NewOut>
+    ): z.ZodEffects<this, NewOut>;
   }
-  if (schema instanceof z.ZodNullable) {
-    return extractStainlessMetadata(schema.unwrap());
-  }
-  if (schema instanceof z.ZodDefault) {
-    return extractStainlessMetadata(schema.removeDefault());
-  }
-  if (schema instanceof z.ZodLazy) {
-    return extractStainlessMetadata(schema.schema);
-  }
-  if (schema instanceof z.ZodEffects) {
-    return extractStainlessMetadata(schema.innerType());
-  }
-  if (schema instanceof z.ZodCatch) {
-    return extractStainlessMetadata(schema.removeCatch());
-  }
-  if (schema instanceof z.ZodBranded) {
-    return extractStainlessMetadata(schema.unwrap());
-  }
-  if (schema instanceof z.ZodArray) {
-    return extractStainlessMetadata(schema.element);
-  }
-  if (schema instanceof z.ZodPromise) {
-    return extractStainlessMetadata(schema.unwrap());
-  }
-  if (schema instanceof z.ZodSet) {
-    return extractStainlessMetadata(schema._def.valueType);
-  }
-  if (schema instanceof z.ZodPipeline) {
-    return extractStainlessMetadata(schema._def.out);
-  }
-  return {} as any;
 }
 
 export type StlTransform<Output, NewOut> = (
@@ -280,15 +414,6 @@ function getStlParseContext(
   while (ctx.parent != null) ctx = ctx.parent;
   return (ctx as any).stlContext;
 }
-
-function zodPathIsExpanded(
-  zodPath: (string | number)[],
-  expand: string[]
-): boolean {
-  const zodPathStr = zodPath.filter((p) => typeof p === "string").join(".");
-  return expand.some((e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`));
-}
-
 function handleParseReturn<I, O>(
   result: z.ParseReturnType<I>,
   handle: (result: z.SyncParseReturnType<I>) => z.SyncParseReturnType<O>
@@ -400,121 +525,11 @@ z.ZodType.prototype.stlTransform = function stlTransform(
     effect: { type: "stlTransform", transform } as any,
   }) as any;
 };
-
-class StlExpandable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
-  _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
-    const ctx = getStlParseContext(input.parent);
-    const expand = ctx ? getExpands(ctx) : undefined;
-
-    if (!expand || !zodPathIsExpanded(input.path, expand)) {
-      return z.OK(undefined);
-    }
-    return super._parse(input);
-  }
-}
-
-z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
-  return new StlExpandable(
-    this.optional().stlMetadata({ expandable: true })._def
-  );
-};
-
-/**
- * A .selectable() property like `comments_fields`
- * actually parses the parent object's `comments`
- * property as input.
- *
- * As a consequence if `.selectable()` gets wrapped with
- * `.optional()`, the optional will see that there's no
- * value for `comments_fields` and abort before
- * `StlSelectable` gets to work its magic.
- */
-class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
-  _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
-    const { path, parent } = input;
-    const ctx = getStlParseContext(parent);
-    const select = ctx ? getSelects(ctx) : undefined;
-    if (!select) return z.OK(undefined);
-    const property = path[path.length - 1];
-    if (typeof property !== "string" || !property.endsWith("_fields")) {
-      throw new Error(
-        `.selectable() property must be a string ending with _fields`
-      );
-    }
-    if (!(parent.data instanceof Object) || typeof property !== "string") {
-      return z.OK(undefined);
-    }
-    const selectionHere = path.reduce<SelectTree | undefined>(
-      (tree, elem) => (typeof elem === "number" ? tree : tree?.select?.[elem]),
-      select
-    )?.select;
-    if (!selectionHere) return z.OK(undefined);
-
-    const parsed = super._parse(
-      Object.create(input, {
-        data: { value: parent.data[property.replace(/_fields$/, "")] },
-      })
-    );
-
-    const pickSelected = pickBy((v, k) => selectionHere[k]);
-
-    return convertParseReturn(parsed, (value) =>
-      Array.isArray(value) ? value.map(pickSelected) : pickSelected(value)
-    );
-  }
-}
-
-z.ZodType.prototype.selection = function selection(
-  this: z.ZodTypeAny
-): z.ZodTypeAny {
-  if (!(this instanceof z.ZodObject)) {
-    throw new Error(`.selection() must be called on a ZodObject`);
-  }
-  const { shape } = this;
-  // don't wrap StlSelectable fields with ZodOptional,
-  // because they don't rely on the _field property
-  // acually being present
-  const mask = mapValues(shape, (value) =>
-    value instanceof StlSelectable ? undefined : (true as const)
-  );
-  return this.partial(mask);
-};
-
-z.ZodType.prototype.selectable = function selectable(this: z.ZodTypeAny) {
-  return new StlSelectable(
-    this.optional().stlMetadata({ selectable: true })._def
-  );
-};
-
-const zodObjectSuperParse = z.ZodObject.prototype._parse;
-z.ZodObject.prototype._parse = function _parse<T>(
-  input: z.ParseInput
-): z.ParseReturnType<T> {
-  const { path } = input;
-  const expand: string[] | undefined = getStlParseContext(input.parent)
-    ?.parsedParams?.query?.expand;
-
-  const parsed = zodObjectSuperParse.call(this, input);
-  // @ts-expect-error only expandable (optional) props are getting omitted
-  return convertParseReturn(
-    parsed,
-    omitBy(
-      (v, key) =>
-        (extractStainlessMetadata(this.shape[key]) as any).expandable &&
-        expand &&
-        !zodPathIsExpanded([...path, key], expand)
-    )
-  );
-};
-
-z.ZodType.prototype.stlMetadata = function stlMetadata<
-  M extends StainlessMetadata
->(this: z.ZodTypeAny, metadata: M) {
-  return new (this.constructor as any)({
-    ...this._def,
-    [stainlessMetadata]: { ...this._def[stainlessMetadata], ...metadata },
-  });
-};
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
+/////////////// REST Types ///////////////////////
+//////////////////////////////////////////////////
+//////////////////////////////////////////////////
 
 export function path<T extends z.ZodRawShape>(
   shape: T,
@@ -549,7 +564,7 @@ export function body<T extends z.ZodRawShape>(
 export function response<T extends z.ZodRawShape>(
   shape: T,
   params?: z.RawCreateParams
-): WithStainlessMetadata<z.ZodObject<T, "strip">, { response: true }> {
+): WithStlMetadata<z.ZodObject<T, "strip">, { response: true }> {
   return z.object(shape, params).stlMetadata({ response: true });
 }
 
@@ -571,17 +586,17 @@ class PageResponseWrapper<I extends z.ZodTypeAny> {
 
 export function pageResponse<I extends z.ZodTypeAny>(
   item: I
-): WithStainlessMetadata<
+): WithStlMetadata<
   ReturnType<PageResponseWrapper<I>["wrapped"]>,
-  ExtractStainlessMetadata<I> & { pageResponse: true }
+  ExtractStlMetadata<I> & { pageResponse: true }
 > {
   return response({
     ...commonPageResponseFields,
     items: z.array(item),
   }).stlMetadata({
-    ...extractStainlessMetadata(item),
+    ...(extractStlMetadata(item) as ExtractStlMetadata<I>),
     pageResponse: true,
-  } as ExtractStainlessMetadata<I> & { pageResponse: true });
+  });
 }
 
 export type PageData<I> = {

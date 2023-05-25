@@ -29,13 +29,13 @@ declare module "zod" {
 
     prismaModel<M extends PrismaModel>(
       prismaModel: M
-    ): z.WithStainlessMetadata<this, { prismaModel: M }>;
+    ): z.WithStlMetadata<this, { prismaModel: M }>;
   }
 }
 
 declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
-    prisma: z.ExtractStainlessMetadata<EC["response"]> extends {
+    prisma: z.ExtractStlMetadata<EC["response"]> extends {
       prismaModel: infer M extends PrismaModel;
     }
       ? PrismaContext<M>
@@ -63,7 +63,7 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
 z.ZodType.prototype.prismaModel = function prismaModel<
   T extends z.ZodTypeAny,
   M extends PrismaModel
->(this: T, prismaModel: M): z.WithStainlessMetadata<T, { prismaModel: M }> {
+>(this: T, prismaModel: M): z.WithStlMetadata<T, { prismaModel: M }> {
   return this.stlMetadata({ prismaModel });
 };
 
@@ -272,7 +272,7 @@ function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
-  if (z.extractStainlessMetadata(response)?.pageResponse) {
+  if (z.extractStlMetadata(response)?.pageResponse) {
     const { pageAfter, pageBefore, pageSize, sortBy, sortDirection } =
       context.parsedParams?.query || {};
     const cursorString = pageAfter ?? pageBefore;
@@ -331,7 +331,7 @@ function createIncludeSelect<
   ) {
     throw new Error(`invalid expand query param`);
   }
-  const isPage = z.extractStainlessMetadata(endpoint.response).pageResponse;
+  const isPage = z.extractStlMetadata(endpoint.response).pageResponse;
   if (isPage) {
     expand = expand ? expandSubPaths(expand, "items") : undefined;
     select = select?.select?.items;
@@ -457,9 +457,7 @@ export const makePrismaPlugin =
         params: Params,
         context: PartialStlContext<any, EC>
       ) {
-        const model = z.extractStainlessMetadata(
-          endpoint.response
-        )?.prismaModel;
+        const model = z.extractStlMetadata(endpoint.response)?.prismaModel;
         function getModel(): PrismaModel {
           if (!model)
             throw new Error(`response doesn't have a prisma model configured`);

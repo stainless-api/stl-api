@@ -9,7 +9,7 @@ export function expands<
 >(
   schema: T,
   depth: Depth
-): z.WithStainlessMetadata<
+): z.WithStlMetadata<
   z.ZodType<ExpandablePaths<z.output<T>, Depth>[]>,
   { expands: true }
 > {
@@ -63,7 +63,7 @@ export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
 }
 
 function isExpandable<T extends z.ZodTypeAny>(e: T): boolean {
-  return z.extractStainlessMetadata(e)?.expandable ?? false;
+  return z.extractStlMetadata(e)?.expandable ?? false;
 }
 
 function unwrapExpandable(e: z.ZodTypeAny): z.AnyZodObject | undefined {

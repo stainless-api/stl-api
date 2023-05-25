@@ -104,7 +104,7 @@ Pristine is an API Standard by Stainless, providing opinions on API design so te
 Following the Pristine Standard helps your API offer an interface like Stripe's,
 with best-practices baked in. Like the Relay standard for GQL, Pristine can also help tooling like frontend clients cache data, paginate requests, handle errors, and so on.
 
-You can opt your API into Pristine like so:
+<!-- You can opt your API into Pristine like so:
 
 ```ts
 const stl = new Stainless({ pristine: true });
@@ -114,6 +114,7 @@ This will enforce the Pristine conventions, and provide easier access to tooling
 
 If you're starting with an existing API and don't want to go straight to a v2,
 you can gradually adopt Pristine standards and tooling. In the future, we plan to offer lint rules for your OpenAPI spec and an overall "Lighthouse score" indicating the degree of compliance your API offers.
+ -->
 
 ## Pristine Conventions
 

@@ -84,7 +84,7 @@ export const stl = makeStl<StlUserContext, typeof plugins>({
 ```ts
 // ~/api/users/models.ts
 
-import z from "zod";
+import { z } from "stainless";
 import prisma from "~/libs/prisma";
 
 export const User = z.response(

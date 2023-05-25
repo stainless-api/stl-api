@@ -11,7 +11,7 @@ export function selects<
 >(
   schema: T,
   depth: Depth
-): z.WithStainlessMetadata<
+): z.WithStlMetadata<
   z.ZodType<SelectTree | null | undefined, z.ZodEffectsDef, string>,
   { selects: true }
 > {
