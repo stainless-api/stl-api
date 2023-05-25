@@ -92,7 +92,7 @@ export function getSelects(
 ): SelectTree | null | undefined {
   const select = ctx.parsedParams?.query?.select;
   if (select != null && !isPlainObject(select)) {
-    throw new Error(`invalid select param; use stl.selects()`);
+    throw new Error(`invalid select param; use z.selects()`);
   }
   return select;
 }

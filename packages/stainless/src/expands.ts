@@ -137,7 +137,7 @@ export function getExpands(ctx: StlContext<any>): string[] | null | undefined {
     expand != null &&
     (!Array.isArray(expand) || expand.some((e) => typeof e !== "string"))
   ) {
-    throw new Error(`invalid expand param; use stl.expands()`);
+    throw new Error(`invalid expand param; use z.expands()`);
   }
   return expand;
 }

@@ -16,7 +16,7 @@ $ curl localhost:3000/api/posts/018a286a-f44d-47c3-b8a4-af92096ff512 -G -d 'expa
 
 You can add support for an expandable field by marking it
 `.expandable()` in the response schema and adding
-`expand: stl.expands(...)` to your query schema:
+`expand: z.expands(...)` to your query schema:
 
 ```ts
 // api/posts/index.ts
@@ -45,7 +45,7 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    expand: stl.expands(Post, 0).optional(),
+    expand: z.expands(Post, 0).optional(),
   }),
   response: Post,
   async handler({ post }, ctx) {
@@ -54,7 +54,7 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-`stl.expands(Post, 0)` automatically generates possible values
+`z.expands(Post, 0)` automatically generates possible values
 for the `expand` query parameter from the response properties
 that are marked `.expandable()` (including any nested expandable
 properties). The second argument (0) is the recursion depth limit,
@@ -78,7 +78,7 @@ For example suppose the `User` also has an expandable list of `Post`s
 to fetch `Post`s, but for the sake of demonstration):
 
 ```ts
-import { z, ExpandableOutput, ExpandableInput } from "stainless";
+import { z } from "stainless";
 import { stl } from "~/libs/stl";
 import prisma from "~/libs/prismadb";
 
@@ -88,13 +88,13 @@ const UserBase = z.response({
 });
 
 type UserOutput = z.output<typeof UserBase> & {
-  posts?: ExpandableOutput<PostOutput[]>;
+  posts?: z.ExpandableOutput<PostOutput[]>;
 };
 type UserInput = z.input<typeof UserBase> & {
-  posts?: ExpandableInput<PostInput[]>;
+  posts?: z.ExpandableInput<PostInput[]>;
 };
 
-const User: z.ZodType<UserOutput, any, UserInput> = UserBase.extend({
+const User: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> = UserBase.extend({
   posts: z.array(z.lazy(() => Post)).expandable(),
 }).prismaModel(prisma.user);
 
@@ -104,13 +104,13 @@ const PostBase = z.response({
 });
 
 type PostOutput = z.output<typeof PostBase> & {
-  user?: ExpandableOutput<UserOutput>;
+  user?: z.ExpandableOutput<UserOutput>;
 };
 type PostInput = z.input<typeof PostBase> & {
-  user?: ExpandableInput<UserInput>;
+  user?: z.ExpandableInput<UserInput>;
 };
 
-const Post: z.ZodType<PostOutput, any, PostInput> = PostBase.extend({
+const Post: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> = PostBase.extend({
   user: z.lazy(() => User).expandable(),
 }).prismaModel(prisma.post);
 
@@ -120,7 +120,7 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    expand: stl.expands(Post, 3).optional(),
+    expand: z.expands(Post, 3).optional(),
   }),
   response: Post,
   async handler({ post }, ctx) {
@@ -142,4 +142,4 @@ Obviously for many use cases, you would want to keep the depth limit low.
 
 Right now the query parameter must be named `expand`.
 
-The maximum recursion depth supported by `stl.expands` is 3.
+The maximum recursion depth supported by `z.expands` is 3.

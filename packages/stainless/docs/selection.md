@@ -35,7 +35,7 @@ if `select` could omit properties of the expandable fields.
 
 You can add support for a selectable field by marking it
 `.selectable()` in the response schema and adding
-`expand: stl.selects(...)` to your query schema:
+`expand: z.selects(...)` to your query schema:
 
 ```ts
 // api/posts/index.ts
@@ -64,7 +64,7 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    select: stl.selects(Post, 0).optional(),
+    select: z.selects(Post, 0).optional(),
   }),
   response: Post,
   async handler({ post }, ctx) {
@@ -73,7 +73,7 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-`stl.select(Post, 0)` creates a schema that automatically validates
+`z.selects(Post, 0)` creates a schema that automatically validates
 the `select` query parameter from the response properties
 that are marked `.selectable()` (including any nested selectable
 properties). The second argument (0) is the recursion depth limit,
@@ -97,7 +97,7 @@ For example suppose the `User` also has an selectable list of `Post`s
 to fetch `Post`s, but for the sake of demonstration):
 
 ```ts
-import { z, SelectableOutput, SelectableInput } from "stainless";
+import { z } from "stainless";
 import { stl } from "~/libs/stl";
 import prisma from "~/libs/prismadb";
 
@@ -107,13 +107,13 @@ const UserBase = z.response({
 });
 
 type UserOutput = z.output<typeof UserBase> & {
-  posts_fields?: SelectableOutput<PostOutput[]>;
+  posts_fields?: z.SelectableOutput<PostOutput[]>;
 };
 type UserInput = z.input<typeof UserBase> & {
-  posts_fields?: SelectableInput<PostInput[]>;
+  posts_fields?: z.SelectableInput<PostInput[]>;
 };
 
-const User: z.ZodType<UserOutput, any, UserInput> = UserBase.extend({
+const User: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> = UserBase.extend({
   posts_fields: z.array(z.lazy(() => Post)).selectable(),
 }).prismaModel(prisma.user);
 
@@ -123,13 +123,13 @@ const PostBase = z.response({
 });
 
 type PostOutput = z.output<typeof PostBase> & {
-  user_fields?: SelectableOutput<UserOutput>;
+  user_fields?: z.SelectableOutput<UserOutput>;
 };
 type PostInput = z.input<typeof PostBase> & {
-  user_fields?: SelectableInput<UserInput>;
+  user_fields?: z.SelectableInput<UserInput>;
 };
 
-const Post: z.ZodType<PostOutput, any, PostInput> = PostBase.extend({
+const Post: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> = PostBase.extend({
   user_fields: z.lazy(() => User).selectable(),
 }).prismaModel(prisma.post);
 
@@ -139,7 +139,7 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    select: stl.selects(Post, 3).optional(),
+    select: z.selects(Post, 3).optional(),
   }),
   response: Post,
   async handler({ post }, ctx) {
@@ -161,7 +161,7 @@ Obviously for many use cases, you would want to keep the depth limit low.
 
 Right now the query parameter must be named `select`.
 
-The maximum recursion depth supported by `stl.selects` is 3.
+The maximum recursion depth supported by `z.selects` is 3.
 
 It's not possible to generate precise types for `select` because the number
 of possibilities can easily become huge. We may decide to use a different
