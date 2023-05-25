@@ -21,6 +21,7 @@
     "test": "jest",
     "build": "tsc -b packages/*/tsconfig.build.json && (cd demo && pnpm build)",
     "build:watch": "tsc -b --watch packages/*/tsconfig.build.json demo/tsconfig.json",
+    "watch": "pnpm run build:watch",
     "clean": "pnpm -r run clean"
   },
   "devDependencies": {

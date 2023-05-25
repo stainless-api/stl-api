@@ -1,4 +1,4 @@
-import { extendZodWithOpenApi } from "@asteasolutions/zod-to-openapi";
+import { extendZodWithOpenApi } from "zod-openapi";
 import {
   z,
   ParseContext,

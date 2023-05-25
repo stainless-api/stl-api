@@ -1,7 +1,7 @@
 import * as z from "./z";
 import qs from "qs";
 import { openapiSpec } from "./openapiSpec";
-import { type OpenAPIObject } from "openapi3-ts";
+import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 import { once } from "lodash";
 export { SelectTree, parseSelect } from "./parseSelect";
 export { z };

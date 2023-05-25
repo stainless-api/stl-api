@@ -1,11 +1,12 @@
 import { z, AnyAPIDescription, AnyResourceConfig, allEndpoints } from "./stl";
 import {
-  OpenAPIRegistry,
-  OpenAPIGenerator,
-} from "@asteasolutions/zod-to-openapi";
+  ZodOpenApiOperationObject,
+  ZodOpenApiPathsObject,
+  createDocument,
+} from "zod-openapi";
+import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 import { snakeCase } from "lodash";
-import { preprocessForZodToOpenApi } from "./preprocessForZodToOpenApi";
-import { type OpenAPIObject } from "openapi3-ts";
+import { doc } from "prettier";
 
 function allModels(
   resource:
@@ -24,102 +25,70 @@ function allModels(
 }
 
 export function openapiSpec(apiDescription: AnyAPIDescription): OpenAPIObject {
-  const registry = new OpenAPIRegistry();
-
-  const models: Map<z.ZodTypeAny, string> = new Map(
-    Object.entries(
-      allModels({
-        models: apiDescription.topLevel?.models,
-        namespacedResources: apiDescription.resources,
-      })
-    ).map(([k, v]) => [v, k])
-  );
-
-  console.log([...models.values()]);
-
-  for (const [model, name] of models.entries()) {
-    registry.register(
-      name,
-      preprocessForZodToOpenApi({
-        schema: model,
-        models,
-        processRootModel: true,
-      })
-    );
+  const models = allModels({
+    models: apiDescription.topLevel?.models,
+    namespacedResources: apiDescription.resources,
+  });
+  for (const name in models) {
+    (models[name] as any)["x-stainless-modelName"] = snakeCase(name);
   }
 
-  for (const route of allEndpoints({
+  const endpoints = allEndpoints({
     actions: apiDescription.topLevel?.actions,
     namespacedResources: apiDescription.resources,
-  })) {
+  });
+
+  const paths: ZodOpenApiPathsObject = {};
+  for (const route of endpoints) {
     const [httpMethod, path] = route.endpoint.split(" ", 2);
     const lowerMethod = httpMethod.toLowerCase() as "get" | "post" | "delete";
-    registry.registerPath({
-      method: lowerMethod,
-      path: path,
-      description: "TODO",
+    const operation: ZodOpenApiOperationObject = {
       summary: "TODO",
-      request: {
-        params: route.path
-          ? (preprocessForZodToOpenApi({
-              schema: route.path,
-              models,
-            }) as z.AnyZodObject)
-          : undefined,
-        query: route.query
-          ? (preprocessForZodToOpenApi({
-              schema: route.query,
-              models,
-            }) as z.AnyZodObject)
-          : undefined,
-        body: route.body
-          ? {
-              content: {
-                "application/json": {
-                  schema: preprocessForZodToOpenApi({
-                    schema: route.body,
-                    models,
-                  }),
-                },
-              },
-            }
-          : undefined,
+      description: "TODO",
+      requestParams: {
+        path: route.path,
+        query: route.query,
+        // TODO
+        // header: route.header,
+      },
+      requestBody: {
+        content: {
+          "application/json": {
+            schema: route.body,
+          },
+        },
       },
       responses: {
         200: {
-          description: "TODO",
+          description: "success",
           content: route.response
             ? {
                 "application/json": {
-                  schema: preprocessForZodToOpenApi({
-                    schema: route.response,
-                    models,
-                  }),
+                  schema: route.response,
                 },
               }
-            : undefined,
+            : {},
         },
       },
-    });
+    };
+
+    paths[path] ??= {};
+    paths[path][lowerMethod] = operation;
   }
 
-  const generator = new OpenAPIGenerator(registry.definitions, "3.0.0");
+  console.log(1, Object.keys(models));
 
-  const document = generator.generateDocument({
+  const document = createDocument({
+    openapi: "3.1.0",
     info: {
       version: "1.0.0",
       title: "My API",
     },
     servers: [{ url: "v1" }],
+    components: {
+      schemas: models,
+    },
+    paths,
   });
-
-  const schemas = document.components?.schemas;
-  if (schemas) {
-    for (const name in models) {
-      const schema = schemas[name];
-      if (schema) (schema as any)["x-stainless-modelName"] = snakeCase(name);
-    }
-  }
-
   return document;
 }
