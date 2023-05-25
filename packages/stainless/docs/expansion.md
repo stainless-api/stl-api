@@ -73,8 +73,8 @@ which we can just set to 0 since we don't have recursion.
 ## Automatic Prisma integration
 
 The `@stl-api/prisma` plugin will automatically generate the necessary
-`include` for prisma queries via `ctx.prisma` or `prismaModelLoader()` when
-you have declared a `.prismaModel(...)` on the response schema.
+`include` for prisma queries via [`ctx.prisma`](/packages/prisma/README.md#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/packages/prisma/README.md#use-prismamodelloader-on-a-parameter) when
+you have [declared a `.prismaModel(...)`](/packages/prisma/README.md#declare-prismamodel-on-a-response-type) on the response schema.
 
 For other use cases, you will need to manually include the expanded paths in
 your response.

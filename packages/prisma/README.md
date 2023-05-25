@@ -53,7 +53,7 @@ and [`select`](/packages/stainless/docs/selection.md) params as necessary:
 
 - `findUnique`
 - `findUniqueOrThrow`
-- `findMany` (also magically injects pagination options from parameters)
+- `findMany` (also magically [injects pagination options](/packages/prisma/docs/pagination.md#lower-level-ctxprismafindmanyoptions) from parameters)
 - `create`
 - `update`
 - `delete`
