@@ -1,4 +1,4 @@
-# stainless: Stainless server and client framework
+# `stainless`: Stainless server and client framework
 
 Stainless helps you ship quality, typesafe REST APIs from any TypeScript backend.
 
@@ -7,13 +7,13 @@ and get an OpenAPI spec, docs, and typed frontend client without a build step.
 
 You can use it as a pluggable, batteries-included web framework for APIs (managing auth, pagination, observability, etc) or sprinkle it on top of your existing API in any framework for better OpenAPI support and/or full-stack typesafety.
 
-You can also opt into Stainless's Stripe-inspired [pristine](#pristine) API design conventions and get rich pagination, consistent errors, field expansion & selection, and normalized caching on the frontend for free.
+You can also opt into Stainless's Stripe-inspired [pristine API design conventions](/README.md#pristine-conventions) and get rich pagination, consistent errors, field expansion & selection, and (WIP) normalized caching on the frontend for free.
 
 Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, and (heavily) from the internal API Framework we worked on at Stripe.
 
 # Table of Contents
 
-- [stainless: Stainless server and client framework](#stainless-stainless-server-and-client-framework)
+- [`stainless`: Stainless server and client framework](#stainless-stainless-server-and-client-framework)
 - [Table of Contents](#table-of-contents)
 - [Ecosystem](#ecosystem)
 - [Getting Started](#getting-started)

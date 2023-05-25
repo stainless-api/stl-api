@@ -19,11 +19,7 @@ convention.
   the field(s) to sort by
 - `sortDirection` (optional, `"asc"` or `"desc"`) - the sort direction
 
-> **Warning**
->
-> Stainless current treats `sortBy` as a field and uses it
-> to determine the cursor for a given item. This will probably
-> change in the future.
+[`z.PaginationParams`](#zpaginationparams) provides a Zod schema for these parameters.
 
 ### Response fields
 
@@ -36,6 +32,8 @@ convention.
   May be omitted when paginating backward with `pageBefore`.
 - `hasPreviousPage` (optional boolean) - whether there are more items before this page.
   May be omitted when paginating backward with `pageBefore`.
+
+[`z.pageResponse`](#zpageresponseitem) provides a Zod schema for these response fields.
 
 ### Forward and backward pagination
 
