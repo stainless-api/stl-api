@@ -55,7 +55,7 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    expand: z.expands(Post, 0).optional(),
+    expand: z.expands(Post).optional(),
   }),
   response: Post,
   async handler({ post }, ctx) {
@@ -64,11 +64,10 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-`z.expands(Post, 0)` automatically generates possible values
+`z.expands(Post)` automatically generates possible values
 for the `expand` query parameter from the response properties
 that are marked `.expandable()` (including any nested expandable
-properties). The second argument (0) is the recursion depth limit,
-which we can just set to 0 since we don't have recursion.
+properties).
 
 ## Automatic Prisma integration
 
@@ -149,7 +148,8 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-Now the recursion depth limit of 3 means that the following expand paths are allowed:
+Now we've passed a second argument to `z.expands()`, which is the recursion depth limit (3 is the default).
+This means that the following expand paths are allowed:
 
 - `user`
 - `user.posts`
@@ -159,4 +159,4 @@ Now the recursion depth limit of 3 means that the following expand paths are all
 Obviously for many use cases, you would want to keep the depth limit low.
 
 > **Warning**
-> The maximum recursion depth supported by `z.expands` is 3.
+> The maximum recursion depth supported by `z.expands` is 5.

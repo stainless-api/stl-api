@@ -7,10 +7,10 @@ import { isEmpty, isPlainObject } from "lodash";
  */
 export function selects<
   T extends z.ZodType<object>,
-  Depth extends 0 | 1 | 2 | 3 | 4 | 5
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
 >(
   schema: T,
-  depth: Depth
+  depth: Depth = 3 as any
 ): z.WithStlMetadata<
   z.ZodType<SelectTree | null | undefined, z.ZodEffectsDef, string>,
   { selects: true }

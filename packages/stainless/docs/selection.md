@@ -81,7 +81,7 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    select: z.selects(Post, 0).optional(),
+    select: z.selects(Post).optional(),
   }),
   response: Post,
   async handler({ post }, ctx) {
@@ -90,11 +90,10 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-`z.selects(Post, 0)` creates a schema that automatically validates
+`z.selects(Post)` creates a schema that automatically validates
 the `select` query parameter from the response properties
 that are marked `.selectable()` (including any nested selectable
-properties). The second argument (0) is the recursion depth limit,
-which we can just set to 0 since we don't have recursion.
+properties).
 
 ## Automatic Prisma integration
 
@@ -175,7 +174,8 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-Now the recursion depth limit of 3 means that the following selection paths are allowed:
+Now we've passed a second argument to `z.selects()`, which is the recursion depth limit (3 is the default).
+This means that the following select paths are allowed:
 
 - `user_fields`
 - `user_fields.posts_fields`
@@ -185,4 +185,4 @@ Now the recursion depth limit of 3 means that the following selection paths are 
 Obviously for many use cases, you would want to keep the depth limit low.
 
 > **Warning**
-> The maximum recursion depth supported by `z.expands` is 3.
+> The maximum recursion depth supported by `z.expands` is 5.

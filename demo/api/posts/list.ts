@@ -7,8 +7,8 @@ export const list = stl.endpoint({
   query: z.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
-    expand: z.expands(PostPage, 3).optional(),
-    select: z.selects(PostPage, 3).optional(),
+    expand: z.expands(PostPage).optional(),
+    select: z.selects(PostPage).optional(),
   }),
   response: PostPage,
   async handler({ userId, expand, ...params }, ctx) {

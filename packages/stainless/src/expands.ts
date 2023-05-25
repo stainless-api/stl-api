@@ -5,10 +5,10 @@ import { z, StlContext } from "./stl";
  */
 export function expands<
   T extends z.ZodTypeAny,
-  Depth extends 0 | 1 | 2 | 3 | 4 | 5
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
 >(
   schema: T,
-  depth: Depth
+  depth: Depth = 3 as any
 ): z.WithStlMetadata<
   z.ZodType<ExpandablePaths<z.output<T>, Depth>[]>,
   { expands: true }
