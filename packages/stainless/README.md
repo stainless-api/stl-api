@@ -87,8 +87,8 @@ export const stl = makeStl<StlUserContext, typeof plugins>({
 import { z } from "stainless";
 import prisma from "~/libs/prisma";
 
-export const User = z.response(
-  z.object({
+export const User = z
+  .response({
     id: z.string().uuid(),
 
     name: z.string().nullable().optional(),
@@ -108,9 +108,8 @@ export const User = z.response(
     followingIds: z.array(z.string().uuid()),
     hasNotification: z.boolean().nullable().optional(),
     followersCount: z.number().optional(),
-  }),
-  { prismaModel: prisma.user }
-);
+  })
+  .prismaModel(prisma.user);
 ```
 
 ## Create an endpoint
@@ -164,7 +163,7 @@ export const users = stl.resource({
 ## Create API
 
 ```ts
-// ~/api/api.ts
+// ~/api/index.ts
 
 import { stl } from "~/libs/stl";
 import { users } from "./users";
@@ -179,12 +178,21 @@ export const api = stl.api({
 });
 ```
 
+> **Warning**
+> Currently the names of `resources` have to match the URL paths for
+> the [client](#use-client) to work. For example if the base URL is
+> `/api` and there is a `get /api/users` endpoint, the resource must
+> be named `users` here. If it were named `user`, then `client.user.list(...)`
+> would `GET /api/user`, the wrong URL. We plan to make a build watch
+> process to compile a list of endpoint URLs for the client to remove
+> this limitation.
+
 ## Add API route
 
 ```ts
 // ~/app/api/[...catchall]/route.ts
 
-import { api } from "~/api/api";
+import { api } from "~/api/index";
 import { stl } from "~/libs/stl";
 
 const { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS } =
@@ -201,7 +209,7 @@ export { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS };
 // ~/api/client.ts
 
 import { createClient } from "stainless";
-import type { api } from "./api";
+import type { api } from "./index";
 
 export const client = createClient<typeof api>("/api");
 ```
@@ -231,6 +239,9 @@ export default function UserPage({
   return <UserDetailsPanel user={user}>
 }
 ```
+
+> **Note**
+> We may provide a plugin that adds `client.users.useRetrieve` hooks in the future.
 
 # In-depth topics
 

@@ -16,7 +16,15 @@ $ curl localhost:3000/api/posts/018a286a-f44d-47c3-b8a4-af92096ff512 -G -d 'expa
 
 You can add support for an expandable field by marking it
 `.expandable()` in the response schema and adding
-`expand: z.expands(...)` to your query schema:
+`expand: z.expands(...)` to your query schema.
+
+> **Warning**
+> Currently, the `z.expands(...)` parameter must be named
+> `expand` and declared in the `query`.
+
+> **Note**
+> Although `.expandable()` can be called on any schema, it only works
+> with schemas of type object or array of objects.
 
 ```ts
 // api/posts/index.ts
@@ -148,8 +156,5 @@ Now the recursion depth limit of 3 means that the following expand paths are all
 
 Obviously for many use cases, you would want to keep the depth limit low.
 
-## Limitations
-
-Right now the query parameter must be named `expand`.
-
-The maximum recursion depth supported by `z.expands` is 3.
+> **Warning**
+> The maximum recursion depth supported by `z.expands` is 3.
