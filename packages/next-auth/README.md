@@ -110,7 +110,6 @@ import {
   Params,
   PartialStlContext,
 } from "stainless";
-import prisma from "./prisma";
 import { StlUserContext } from "./stl";
 
 export const makeCurrentUserPlugin =
@@ -122,16 +121,9 @@ export const makeCurrentUserPlugin =
     ) {
       const { session } = context;
 
-      const email = session?.user?.email;
-      if (!email) {
-        context.currentUser = undefined;
-        return;
-      }
-      const user = await prisma.user.findUnique({
-        where: { email },
-      });
-
-      context.currentUser = user ?? undefined;
+      // session?.user is exactly what was returned from authorize(),
+      // but doesn't have complete type information
+      context.currentUser = session?.user as any;
     },
   });
 ```

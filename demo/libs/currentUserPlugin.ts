@@ -4,7 +4,6 @@ import {
   Params,
   PartialStlContext,
 } from "stainless";
-import prisma from "./prismadb";
 import { StlUserContext } from "./stl";
 import { User } from ".prisma/client";
 
@@ -25,15 +24,6 @@ export const makeCurrentUserPlugin =
         return currentUser;
       };
 
-      const email = session?.user?.email;
-      if (!email) {
-        context.currentUser = undefined;
-        return;
-      }
-      const user = await prisma.user.findUnique({
-        where: { email },
-      });
-
-      context.currentUser = user ?? undefined;
+      context.currentUser = session?.user as any;
     },
   });
