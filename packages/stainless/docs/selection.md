@@ -38,7 +38,7 @@ if `select` could omit properties of the expandable fields.
 > format for `select` in the future to achieve better type safety (for example,
 > the same format as `expand`).
 
-## Implementing select without recursive associations
+## Implementing select without circular associations
 
 You can add support for a selectable field by marking it
 `.selectable()` in the response schema and adding
@@ -104,10 +104,12 @@ you have [declared a `.prismaModel(...)`](/packages/prisma/README.md#declare-pri
 For other use cases, you will need to manually include the expanded paths in
 your response.
 
-## Implementing selection with recursive associations
+## Implementing selection with circular associations
 
-When the associations are recursive, it becomes necessary to declare
-input and output types for the schemas due to TypeScript limitations.
+When the associations are circular, it becomes necessary to declare
+types for the schemas due to TypeScript limitations. Stainless provides
+a `z.CircularModel` helper type to make this more manageable.
+
 For example suppose the `User` also has an selectable list of `Post`s
 (in a real-world API you would want to use a paginated list endpoint
 to fetch `Post`s, but for the sake of demonstration):
@@ -122,17 +124,14 @@ const UserBase = z.response({
   name: z.string().optional(),
 });
 
-type UserOutput = z.output<typeof UserBase> & {
-  posts_fields?: z.SelectableOutput<PostOutput[]>;
-};
-type UserInput = z.input<typeof UserBase> & {
-  posts_fields?: z.SelectableInput<PostInput[]>;
-};
-
-const SelectableUser: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> =
-  UserBase.extend({
-    posts_fields: z.array(z.lazy(() => Post)).selectable(),
-  });
+const SelectableUser: z.CircularModel<
+  typeof UserBase,
+  {
+    posts_fields?: z.SelectableZodType<z.ZodArray<Post>>;
+  }
+> = UserBase.extend({
+  posts_fields: z.array(z.lazy(() => Post)).selectable(),
+});
 
 // .prismaModel() must be called separately so that the z.ZodType annotation
 // doesn't erase its type information
@@ -143,17 +142,14 @@ const PostBase = z.response({
   body: z.string(),
 });
 
-type PostOutput = z.output<typeof PostBase> & {
-  user_fields?: z.SelectableOutput<UserOutput>;
-};
-type PostInput = z.input<typeof PostBase> & {
-  user_fields?: z.SelectableInput<UserInput>;
-};
-
-const SelectablePost: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> =
-  PostBase.extend({
-    user_fields: z.lazy(() => User).selectable(),
-  });
+const SelectablePost: z.CircularModel<
+  typeof PostBase,
+  {
+    user_fields?: z.SelectableZodType<User>;
+  }
+> = PostBase.extend({
+  user_fields: z.lazy(() => User).selectable(),
+});
 
 // .prismaModel() must be called separately so that the z.ZodType annotation
 // doesn't erase its type information

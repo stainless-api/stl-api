@@ -12,7 +12,7 @@ $ curl localhost:3000/api/posts/5 -G -d 'expand[]=user'
 {"id":5,"body":"Officia similique ipsa","user":{"id":7,"name":"Kim Bahringer"}}
 ```
 
-## Implementing expansion without recursive associations
+## Implementing expansion without circular associations
 
 You can add support for an expandable field by marking it
 `.expandable()` in the response schema and adding
@@ -78,10 +78,12 @@ you have [declared a `.prismaModel(...)`](/packages/prisma/README.md#declare-pri
 For other use cases, you will need to manually include the expanded paths in
 your response.
 
-## Implementing expansion with recursive associations
+## Implementing expansion with circular associations
 
-When the associations are recursive, it becomes necessary to declare
-input and output types for the schemas due to TypeScript limitations.
+When the associations are circular, it becomes necessary to declare
+types for the schemas due to TypeScript limitations. Stainless provides
+a `z.CircularModel` helper type to make this more manageable.
+
 For example suppose the `User` also has an expandable list of `Post`s
 (in a real-world API you would want to use a paginated list endpoint
 to fetch `Post`s, but for the sake of demonstration):
@@ -96,17 +98,14 @@ const UserBase = z.response({
   name: z.string().optional(),
 });
 
-type UserOutput = z.output<typeof UserBase> & {
-  posts?: z.ExpandableOutput<PostOutput[]>;
-};
-type UserInput = z.input<typeof UserBase> & {
-  posts?: z.ExpandableInput<PostInput[]>;
-};
-
-const ExpandableUser: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> =
-  UserBase.extend({
-    posts: z.array(z.lazy(() => Post)).expandable(),
-  });
+const ExpandableUser: z.CircularModel<
+  typeof UserBase,
+  {
+    posts?: z.ExpandableZodType<z.ZodArray<Post>>;
+  }
+> = UserBase.extend({
+  posts: z.array(z.lazy(() => Post)).expandable(),
+});
 
 // .prismaModel() must be called separately so that the z.ZodType annotation
 // doesn't erase its type information
@@ -117,17 +116,14 @@ const PostBase = z.response({
   body: z.string(),
 });
 
-type PostOutput = z.output<typeof PostBase> & {
-  user?: z.ExpandableOutput<UserOutput>;
-};
-type PostInput = z.input<typeof PostBase> & {
-  user?: z.ExpandableInput<UserInput>;
-};
-
-const ExpandablePost: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> =
-  PostBase.extend({
-    user: z.lazy(() => User).expandable(),
-  });
+const ExpandablePost: z.CircularModel<
+  typeof PostBase,
+  {
+    user?: z.ExpandableZodType<User>;
+  }
+> = PostBase.extend({
+  user: z.lazy(() => User).expandable(),
+});
 
 // .prismaModel() must be called separately so that the z.ZodType annotation
 // doesn't erase its type information
