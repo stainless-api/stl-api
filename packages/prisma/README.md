@@ -145,38 +145,8 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-## Pagination
+# In-depth topics
 
-> **Warning**
->
-> At the moment, `@stl-api/prisma` doesn't support multi-column
-> sort order in pagination.
+## [Pagination](/packages/prisma/docs/pagination.md)
 
-```ts
-// ~/api/posts/list.ts
-
-import z from "zod";
-import prisma from "~/libs/prismadb";
-import { stl } from "~/libs/stl";
-import { Post } from "./models";
-
-// This assumes Post has a .prismaModel(prisma.post)
-// declaration attached to it; stl.pageResponse inherits
-// the .prismaModel.
-const response = stl.pageResponse(Post);
-
-export const list = stl.endpoint({
-  endpoint: "get /api/posts",
-  query: stl.PaginationParams.extend({
-    sortBy: z.enum(["id"]).default("id"),
-    userId: z.string().optional(),
-    pageSize: z.coerce.number().default(20),
-  }),
-  response,
-  async handler({ userId }, ctx) {
-    return await ctx.prisma.paginate({
-      where: userId ? { userId } : {},
-    });
-  },
-});
-```
+`@stl-api/prisma` makes it easy to implement pagination with Prisma.

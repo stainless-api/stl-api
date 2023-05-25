@@ -27,6 +27,7 @@ Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, an
   - [Create client](#create-client)
   - [Use client](#use-client)
 - [In-depth topics](#in-depth-topics)
+  - [Pagination](#pagination)
   - [Expansion](#expansion)
   - [Selection](#selection)
 
@@ -245,6 +246,11 @@ export default function UserPage({
 > We may provide a plugin that adds `client.users.useRetrieve` hooks in the future.
 
 # In-depth topics
+
+## [Pagination](/packages/stainless/docs/pagination.md)
+
+Stainless provides helpers for easily implementing pagination that follows the pristine
+convention, and makes it easy to implement pagination with Prisma.
 
 ## [Expansion](/packages/stainless/docs/expansion.md)
 
