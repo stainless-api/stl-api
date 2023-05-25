@@ -35,7 +35,7 @@ Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, an
 
 Stainless provides plugins for integrating with the following tools. We plan to add more in the future!
 
-- Netx.js: [`@stl-api/next`](/packages/next)
+- Next.js: [`@stl-api/next`](/packages/next)
 - NextAuth.js: [`@stl-api/next-auth`](/packages/next-auth)
 - Prisma: [`@stl-api/prisma`](/packages/prisma)
 

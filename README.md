@@ -90,6 +90,10 @@ console.log(openapi.paths["/users/:id"].post);
 console.log(openapi.components.schemas.User);
 ```
 
+# Getting started
+
+See [`stainless` package docs](/packages/stainless/README.md#getting-started) to get started!
+
 # Packages
 
 - [stainless](/packages/stainless)
