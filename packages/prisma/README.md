@@ -37,21 +37,19 @@ export const stl = makeStl<StlUserContext, typeof plugins>({
 import z from "zod";
 +import prisma from "~/libs/prisma";
 
-export const Post = z.response(
-  z.object({
-    id: z.string().uuid(),
-    body: z.string().nullable().optional(),
-    userId: z.string().uuid(),
-  }),
-+  { prismaModel: prisma.post }
-);
+export const Post = z.response({
+  id: z.string().uuid(),
+  body: z.string().nullable().optional(),
+  userId: z.string().uuid(),
+}).prismaModel(prisma.post);
 ```
 
 ## Perform CRUD operations on response `prismaModel`
 
 Any endpoint whose `response` has a `prismaModel` declared with have `ctx.prisma`
 available in its `handler`. `ctx.prisma` provides wrappers for the following methods
-that magically inject options for `expand` and `select` params as necessary:
+that magically inject options for [`expand`](/packages/stainless/docs/expansion.md)
+and [`select`](/packages/stainless/docs/selection.md) params as necessary:
 
 - `findUnique`
 - `findUniqueOrThrow`
@@ -59,6 +57,11 @@ that magically inject options for `expand` and `select` params as necessary:
 - `create`
 - `update`
 - `delete`
+
+> **Warning**
+>
+> This currently only works if the primary key is named `id`.
+> We plan to remove this limitation soon.
 
 ```ts
 // ~/api/posts/retrieve.ts
@@ -111,6 +114,16 @@ export const create = stl.endpoint({
 
 ## Use `prismaModelLoader` on a parameter
 
+The following `post: z.string().prismaModelLoader(prisma.post)`
+parameter takes a string `id` as input from the `{post}` path
+parameter and is transformed to the fetched model instance in
+the `handler`.
+
+> **Warning**
+>
+> This currently only works if the primary key is named `id`.
+> We plan to remove this limitation soon.
+
 ```ts
 // ~/api/posts/retrieve.ts
 
@@ -126,12 +139,18 @@ export const retrieve = stl.endpoint({
   }),
   response: Post,
   async handler({ post }, ctx) {
+    // here post is fetched Prisma model, not a string
     return post;
   },
 });
 ```
 
 ## Pagination
+
+> **Warning**
+>
+> At the moment, `@stl-api/prisma` doesn't support multi-column
+> sort order in pagination.
 
 ```ts
 // ~/api/posts/list.ts
@@ -141,9 +160,10 @@ import prisma from "~/libs/prismadb";
 import { stl } from "~/libs/stl";
 import { Post } from "./models";
 
-const response = stl.pageResponse(Post, {
-  prismaModel: prisma.post,
-});
+// This assumes Post has a .prismaModel(prisma.post)
+// declaration attached to it; stl.pageResponse inherits
+// the .prismaModel.
+const response = stl.pageResponse(Post);
 
 export const list = stl.endpoint({
   endpoint: "get /api/posts",
