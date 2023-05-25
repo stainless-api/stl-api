@@ -75,11 +75,11 @@ export type Endpoint<
   Response extends z.ZodTypeAny | undefined
 > = {
   endpoint: HttpEndpoint;
+  response: Response;
   config: EndpointConfig;
   path: Path;
   query: Query;
   body: Body;
-  response: Response;
   handler: Handler<
     UserContext &
       StlContext<Endpoint<UserContext, Path, Query, Body, Response>>,

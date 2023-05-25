@@ -77,13 +77,13 @@ const Post = z
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/posts/{post}",
+  response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
     select: z.selects(Post).optional(),
   }),
-  response: Post,
   async handler({ post }, ctx) {
     return post;
   },
@@ -161,13 +161,13 @@ const Post = SelectablePost.prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/posts/{post}",
+  response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
     select: z.selects(Post, 3).optional(),
   }),
-  response: Post,
   async handler({ post }, ctx) {
     return post;
   },

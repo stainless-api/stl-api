@@ -5,6 +5,7 @@ import { NotFoundError, z } from "stainless";
 
 export const create = stl.endpoint({
   endpoint: "post /api/comments",
+  response: Comment,
 
   query: z.query({
     postId: z.string(),
@@ -12,7 +13,7 @@ export const create = stl.endpoint({
   body: z.body({
     body: z.string(),
   }),
-  response: Comment,
+
   async handler({ postId, body }, ctx) {
     const userId = ctx.currentUser?.id;
     if (!userId) {
