@@ -32,6 +32,7 @@ if `select` could omit properties of the expandable fields.
 ```
 
 > **Note**
+>
 > It's not possible to generate precise types for `select` because the number
 > of possibilities can easily become huge. We may decide to use a different
 > format for `select` in the future to achieve better type safety (for example,
@@ -44,10 +45,12 @@ You can add support for a selectable field by marking it
 `select: z.selects(...)` to your query schema:
 
 > **Warning**
+>
 > Currently, the `z.selects(...)` parameter must be named
 > `select` and declared in the `query`.
 
 > **Note**
+>
 > Although `.selectable()` can be called on any schema, it only works
 > with schemas of type object or array of objects.
 

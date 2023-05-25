@@ -179,6 +179,7 @@ export const api = stl.api({
 ```
 
 > **Warning**
+>
 > Currently the names of `resources` have to match the URL paths for
 > the [client](#use-client) to work. For example if the base URL is
 > `/api` and there is a `get /api/users` endpoint, the resource must

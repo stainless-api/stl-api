@@ -19,10 +19,12 @@ You can add support for an expandable field by marking it
 `expand: z.expands(...)` to your query schema.
 
 > **Warning**
+>
 > Currently, the `z.expands(...)` parameter must be named
 > `expand` and declared in the `query`.
 
 > **Note**
+>
 > Although `.expandable()` can be called on any schema, it only works
 > with schemas of type object or array of objects.
 
