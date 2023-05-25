@@ -113,9 +113,14 @@ type UserInput = z.input<typeof UserBase> & {
   posts_fields?: z.SelectableInput<PostInput[]>;
 };
 
-const User: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> = UserBase.extend({
-  posts_fields: z.array(z.lazy(() => Post)).selectable(),
-}).prismaModel(prisma.user);
+const SelectableUser: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> =
+  UserBase.extend({
+    posts_fields: z.array(z.lazy(() => Post)).selectable(),
+  });
+
+// .prismaModel() must be called separately so that the z.ZodType annotation
+// doesn't erase its type information
+const User = SelectableUser.prismaModel(prisma.user);
 
 const PostBase = z.response({
   id: z.string().uuid(),
@@ -129,9 +134,14 @@ type PostInput = z.input<typeof PostBase> & {
   user_fields?: z.SelectableInput<UserInput>;
 };
 
-const Post: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> = PostBase.extend({
-  user_fields: z.lazy(() => User).selectable(),
-}).prismaModel(prisma.post);
+const SelectablePost: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> =
+  PostBase.extend({
+    user_fields: z.lazy(() => User).selectable(),
+  });
+
+// .prismaModel() must be called separately so that the z.ZodType annotation
+// doesn't erase its type information
+const Post = SelectablePost.prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/posts/{post}",

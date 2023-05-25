@@ -94,9 +94,14 @@ type UserInput = z.input<typeof UserBase> & {
   posts?: z.ExpandableInput<PostInput[]>;
 };
 
-const User: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> = UserBase.extend({
-  posts: z.array(z.lazy(() => Post)).expandable(),
-}).prismaModel(prisma.user);
+const ExpandableUser: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> =
+  UserBase.extend({
+    posts: z.array(z.lazy(() => Post)).expandable(),
+  });
+
+// .prismaModel() must be called separately so that the z.ZodType annotation
+// doesn't erase its type information
+const User = ExpandableUser.prismaModel(prisma.user);
 
 const PostBase = z.response({
   id: z.string().uuid(),
@@ -110,9 +115,14 @@ type PostInput = z.input<typeof PostBase> & {
   user?: z.ExpandableInput<UserInput>;
 };
 
-const Post: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> = PostBase.extend({
-  user: z.lazy(() => User).expandable(),
-}).prismaModel(prisma.post);
+const ExpandablePost: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> =
+  PostBase.extend({
+    user: z.lazy(() => User).expandable(),
+  });
+
+// .prismaModel() must be called separately so that the z.ZodType annotation
+// doesn't erase its type information
+const Post = ExpandablePost.prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
   endpoint: "get /api/posts/{post}",
