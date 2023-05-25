@@ -5,11 +5,11 @@ user requests them in an `expand` query parameter. Here's an example of a
 `get /api/posts/{postId}` endpoint with an expandable `user` property:
 
 ```
-$ curl localhost:3000/api/posts/018a286a-f44d-47c3-b8a4-af92096ff512
-{"id":"018a286a-f44d-47c3-b8a4-af92096ff512","body":"Officia similique ipsa quaerat id suscipit"}
+$ curl localhost:3000/api/posts/5
+{"id":5,"body":"Officia similique ipsa"}
 
-$ curl localhost:3000/api/posts/018a286a-f44d-47c3-b8a4-af92096ff512 -G -d 'expand[]=user'
-{"id":"018a286a-f44d-47c3-b8a4-af92096ff512","body":"Officia similique ipsa quaerat id suscipit","user":{"id":"80250f1e-8fcd-4bcc-b676-28c080706e92","name":"Kim Bahringer"}}
+$ curl localhost:3000/api/posts/5 -G -d 'expand[]=user'
+{"id":5,"body":"Officia similique ipsa","user":{"id":7,"name":"Kim Bahringer"}}
 ```
 
 ## Implementing expansion without recursive associations

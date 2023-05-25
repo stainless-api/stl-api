@@ -5,11 +5,11 @@ in an API response, if the user requests them in a `select` query parameter. Her
 `get /api/posts/{postId}` endpoint with an selectable `user_fields` property:
 
 ```
-$ curl localhost:3000/api/posts/018a286a-f44d-47c3-b8a4-af92096ff512
-{"id":"018a286a-f44d-47c3-b8a4-af92096ff512","body":"Officia similique ipsa quaerat id suscipit"}
+$ curl localhost:3000/api/posts/5
+{"id":5,"body":"Officia similique ipsa"}
 
-$ curl localhost:3000/api/posts/018a286a-f44d-47c3-b8a4-af92096ff512 -G -d 'select=user_fields.name'
-{"id":"018a286a-f44d-47c3-b8a4-af92096ff512","body":"Officia similique ipsa quaerat id suscipit","user_fields":{"name":"Kim Bahringer"}}
+$ curl localhost:3000/api/posts/5 -G -d 'select=user_fields.name'
+{"id":5,"body":"Officia similique ipsa","user_fields":{"name":"Kim Bahringer"}}
 ```
 
 ## Pristine convention
