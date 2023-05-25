@@ -1,21 +1,16 @@
 import { z } from "stainless";
-import prisma from "~/libs/prismadb";
 import { stl } from "~/libs/stl";
-import { Post } from "./models";
-
-const response = stl.pageResponse(Post, {
-  prismaModel: prisma.post,
-});
+import { PostPage } from "./models";
 
 export const list = stl.endpoint({
   endpoint: "get /api/posts",
-  query: stl.PaginationParams.extend({
+  query: z.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
-    expand: stl.expands(response, 3).optional(),
-    select: stl.selects(response, 3).optional(),
+    expand: z.expands(PostPage, 3).optional(),
+    select: z.selects(PostPage, 3).optional(),
   }),
-  response,
+  response: PostPage,
   async handler({ userId, expand, ...params }, ctx) {
     if (userId && typeof userId === "string") {
       const page = await ctx.prisma.paginate({

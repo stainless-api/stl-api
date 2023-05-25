@@ -8,7 +8,7 @@ export const create = stl.endpoint({
     body: z.string(),
   }),
   query: z.query({
-    expand: stl.expands(Post, 3).optional(),
+    expand: z.expands(Post, 3).optional(),
   }),
   response: Post,
 

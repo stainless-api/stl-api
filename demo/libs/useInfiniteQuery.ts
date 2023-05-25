@@ -1,18 +1,13 @@
 import * as React from "react";
-import {
-  ClientPromise,
-  PageData,
-  PageItemType,
-  PaginationParams,
-} from "stainless";
+import { ClientPromise, z } from "stainless";
 import {
   UseInfiniteQueryOptions,
   UseInfiniteQueryResult,
   useInfiniteQuery as _useInfiniteQuery,
 } from "@tanstack/react-query";
 
-type ListResource<Q extends PaginationParams, I> = {
-  list: (query: Q) => ClientPromise<PageData<I>>;
+type ListResource<Q extends z.PaginationParams, I> = {
+  list: (query: Q) => ClientPromise<z.PageData<I>>;
 };
 
 type GetQuery<R> = R extends {
@@ -58,8 +53,8 @@ export function useInfiniteQuery<
    * the itemCount.
    */
   itemAndPlaceholderCount: number;
-  items: PageItemType<GetPage<Resource>>[];
-  useItem: UseItem<PageItemType<GetPage<Resource>>>;
+  items: z.PageItemType<GetPage<Resource>>[];
+  useItem: UseItem<z.PageItemType<GetPage<Resource>>>;
 } {
   const result = _useInfiniteQuery<
     GetPage<Resource>,

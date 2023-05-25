@@ -9,8 +9,8 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    expand: stl.expands(Post, 3).optional(),
-    select: stl.selects(Post, 3).optional(),
+    expand: z.expands(Post, 3).optional(),
+    select: z.selects(Post, 3).optional(),
   }),
   response: Post,
   async handler({ post }, ctx) {

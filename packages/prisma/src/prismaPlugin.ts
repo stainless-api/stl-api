@@ -1,17 +1,11 @@
 import {
   AnyEndpoint,
   MakeStainlessPlugin,
-  PageData,
-  PaginationParams,
   Params,
   PartialStlContext,
   StlContext,
   SelectTree,
-  ExtractStainlessMetadata,
-  extractStainlessMetadata,
-  extendZodForStl,
   z,
-  WithStainlessMetadata,
 } from "stainless";
 import {
   expandsOptions,
@@ -35,13 +29,13 @@ declare module "zod" {
 
     prismaModel<M extends PrismaModel>(
       prismaModel: M
-    ): WithStainlessMetadata<this, { prismaModel: M }>;
+    ): z.WithStainlessMetadata<this, { prismaModel: M }>;
   }
 }
 
 declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
-    prisma: ExtractStainlessMetadata<EC["response"]> extends {
+    prisma: z.ExtractStainlessMetadata<EC["response"]> extends {
       prismaModel: infer M extends PrismaModel;
     }
       ? PrismaContext<M>
@@ -49,33 +43,29 @@ declare module "stainless" {
   }
 }
 
-function extendZodForPrismaPlugin(zod: typeof z) {
-  extendZodForStl(zod);
+z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
+  T extends z.ZodTypeAny,
+  M extends PrismaModel
+>(
+  this: T,
+  prismaModel: M
+): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
+  return this.stlTransform(async (id: z.infer<T>, ctx: StlContext<any>) => {
+    const query = { where: { id } };
+    const prisma: PrismaContext<any> = (ctx as any).prisma;
+    if (prisma && prismaModel === prisma.prismaModel) {
+      return await prisma.findUniqueOrThrow(query);
+    }
+    return await prismaModel.findUniqueOrThrow(query);
+  });
+};
 
-  zod.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
-    T extends z.ZodTypeAny,
-    M extends PrismaModel
-  >(
-    this: T,
-    prismaModel: M
-  ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
-    return this.stlTransform(async (id: z.infer<T>, ctx: StlContext<any>) => {
-      const query = { where: { id } };
-      const prisma: PrismaContext<any> = (ctx as any).prisma;
-      if (prisma && prismaModel === prisma.prismaModel) {
-        return await prisma.findUniqueOrThrow(query);
-      }
-      return await prismaModel.findUniqueOrThrow(query);
-    });
-  };
-
-  zod.ZodType.prototype.prismaModel = function prismaModel<
-    T extends z.ZodTypeAny,
-    M extends PrismaModel
-  >(this: T, prismaModel: M): WithStainlessMetadata<T, { prismaModel: M }> {
-    return this.stlMetadata({ prismaModel });
-  };
-}
+z.ZodType.prototype.prismaModel = function prismaModel<
+  T extends z.ZodTypeAny,
+  M extends PrismaModel
+>(this: T, prismaModel: M): z.WithStainlessMetadata<T, { prismaModel: M }> {
+  return this.stlMetadata({ prismaModel });
+};
 
 export type PrismaContext<M extends PrismaModel> = {
   /**
@@ -124,7 +114,7 @@ export type PrismaContext<M extends PrismaModel> = {
    * options and `expand`, `select`, and pagination params, and
    * returns a page response.
    */
-  paginate: (args: FindManyArgs<M>) => Promise<PageData<FindManyItem<M>>>;
+  paginate: (args: FindManyArgs<M>) => Promise<z.PageData<FindManyItem<M>>>;
 };
 
 export type PrismaStatics = {
@@ -151,7 +141,7 @@ function wrapQuery<Q>(
     pageSize,
     sortBy,
     sortDirection = "asc",
-  }: PaginationParams,
+  }: z.PaginationParams,
   query: Q
 ): Q {
   const cursorString = pageAfter ?? pageBefore;
@@ -166,7 +156,10 @@ function wrapQuery<Q>(
   };
 }
 
-function makeResponse<I>(params: PaginationParams, items: I[]): PageData<I> {
+function makeResponse<I>(
+  params: z.PaginationParams,
+  items: I[]
+): z.PageData<I> {
   const { pageAfter, pageBefore, pageSize, sortBy } = params;
   const start = items[0];
   const end = items[Math.min(items.length, pageSize) - 1];
@@ -256,8 +249,8 @@ async function paginate<D extends PrismaModel>(
     sortBy,
     sortDirection,
     ...query
-  }: FindManyArgs<D> & PaginationParams
-): Promise<PageData<FindManyItem<D>>> {
+  }: FindManyArgs<D> & z.PaginationParams
+): Promise<z.PageData<FindManyItem<D>>> {
   const params = {
     pageAfter,
     pageBefore,
@@ -279,7 +272,7 @@ function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
-  if (extractStainlessMetadata(response)?.pageResponse) {
+  if (z.extractStainlessMetadata(response)?.pageResponse) {
     const { pageAfter, pageBefore, pageSize, sortBy, sortDirection } =
       context.parsedParams?.query || {};
     const cursorString = pageAfter ?? pageBefore;
@@ -338,7 +331,7 @@ function createIncludeSelect<
   ) {
     throw new Error(`invalid expand query param`);
   }
-  const isPage = extractStainlessMetadata(endpoint.response).pageResponse;
+  const isPage = z.extractStainlessMetadata(endpoint.response).pageResponse;
   if (isPage) {
     expand = expand ? expandSubPaths(expand, "items") : undefined;
     select = select?.select?.items;
@@ -450,7 +443,6 @@ function* subselKeys(select: IncludeSelect["select"]): Iterable<string> {
 
 export const makePrismaPlugin =
   (): MakeStainlessPlugin<any, PrismaStatics> => (stl) => {
-    extendZodForPrismaPlugin(z);
     return {
       statics: {
         pagination: {
@@ -465,7 +457,9 @@ export const makePrismaPlugin =
         params: Params,
         context: PartialStlContext<any, EC>
       ) {
-        const model = extractStainlessMetadata(endpoint.response)?.prismaModel;
+        const model = z.extractStainlessMetadata(
+          endpoint.response
+        )?.prismaModel;
         function getModel(): PrismaModel {
           if (!model)
             throw new Error(`response doesn't have a prisma model configured`);
@@ -490,7 +484,7 @@ export const makePrismaPlugin =
           create: (args) => getModel().create(wrapQuery(args)),
           update: (args) => getModel().update(wrapQuery(args)),
           delete: (args) => getModel().delete(wrapQuery(args)),
-          async paginate(args: FindManyArgs<any>): Promise<PageData<any>> {
+          async paginate(args: FindManyArgs<any>): Promise<z.PageData<any>> {
             const query = context.parsedParams?.query || {};
             return makeResponse(query, await prismaContext.findMany(args));
           },

@@ -1,4 +1,3 @@
-import { ExpandableOutput, extractStainlessMetadata } from "./stlZodExtensions";
 import { z, StlContext } from "./stl";
 
 /**
@@ -54,7 +53,7 @@ export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
 }
 
 function isExpandable<T extends z.ZodTypeAny>(e: T): boolean {
-  return extractStainlessMetadata(e)?.expandable ?? false;
+  return z.extractStainlessMetadata(e)?.expandable ?? false;
 }
 
 function unwrapExpandable(e: z.ZodTypeAny): z.AnyZodObject | undefined {
@@ -86,7 +85,7 @@ export type ExpandableKeys<Model> = Model extends object
   ? {
       [K in keyof Model & string]-?: NonNullable<
         Model[K]
-      > extends ExpandableOutput<unknown>
+      > extends z.ExpandableOutput<unknown>
         ? K
         : never;
     }[keyof Model & string]
@@ -105,9 +104,9 @@ export type ExpandablePaths<
           : {
               [K in keyof Model & string]-?: NonNullable<
                 Model[K]
-              > extends ExpandableOutput<(infer T extends object)[]>
+              > extends z.ExpandableOutput<(infer T extends object)[]>
                 ? `${K}.${ExpandablePaths<T, Decrement[Depth]>}`
-                : NonNullable<Model[K]> extends ExpandableOutput<
+                : NonNullable<Model[K]> extends z.ExpandableOutput<
                     null | undefined | infer T extends object
                   >
                 ? `${K}.${ExpandablePaths<NonNullable<T>, Decrement[Depth]>}`

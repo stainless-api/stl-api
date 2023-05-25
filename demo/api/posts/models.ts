@@ -6,13 +6,7 @@ import {
   CommentSelection,
 } from "../comments/models";
 import prisma from "~/libs/prismadb";
-import {
-  ExpandableOutput,
-  ExpandableInput,
-  SelectableOutput,
-  SelectableInput,
-  z,
-} from "stainless";
+import { z } from "stainless";
 
 const Post0 = z.response({
   id: z.string().uuid(),
@@ -25,19 +19,19 @@ const Post0 = z.response({
 });
 
 export type PostOutput = z.output<typeof Post0> & {
-  user?: ExpandableOutput<UserOutput>;
-  user_fields?: SelectableOutput<UserOutput>;
-  comments?: ExpandableOutput<CommentOutput[]>;
-  comments_fields?: SelectableOutput<CommentOutput[]>;
+  user?: z.ExpandableOutput<UserOutput>;
+  user_fields?: z.SelectableOutput<UserOutput>;
+  comments?: z.ExpandableOutput<CommentOutput[]>;
+  comments_fields?: z.SelectableOutput<CommentOutput[]>;
 };
 export type PostInput = z.input<typeof Post0> & {
-  user?: ExpandableInput<UserInput>;
-  user_fields?: SelectableInput<UserInput>;
-  comments?: ExpandableInput<CommentInput[]>;
-  comments_fields?: SelectableInput<CommentInput[]>;
+  user?: z.ExpandableInput<UserInput>;
+  user_fields?: z.SelectableInput<UserInput>;
+  comments?: z.ExpandableInput<CommentInput[]>;
+  comments_fields?: z.SelectableInput<CommentInput[]>;
 };
 
-const Post1: z.ZodType<PostOutput, any, PostInput> = Post0.extend({
+const Post1: z.ZodType<PostOutput, z.ZodObjectDef, PostInput> = Post0.extend({
   user: z.lazy(() => User).expandable(),
   user_fields: z.lazy(() => UserSelection).selectable(),
   comments: z.array(z.lazy(() => Comment)).expandable(),
@@ -47,3 +41,5 @@ const Post1: z.ZodType<PostOutput, any, PostInput> = Post0.extend({
 export const Post = Post1.prismaModel(prisma.post);
 
 export const PostSelection = Post.selection();
+
+export const PostPage = z.pageResponse(Post);

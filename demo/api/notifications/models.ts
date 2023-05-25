@@ -1,11 +1,5 @@
 import { User, UserOutput, UserInput, UserSelection } from "../users/models";
-import {
-  ExpandableOutput,
-  ExpandableInput,
-  SelectableOutput,
-  SelectableInput,
-  z,
-} from "stainless";
+import { z } from "stainless";
 import prisma from "~/libs/prismadb";
 
 export const baseNotification = z.response({
@@ -16,17 +10,17 @@ export const baseNotification = z.response({
 });
 
 export type NotificationOutput = z.output<typeof baseNotification> & {
-  user?: ExpandableOutput<UserOutput>;
-  user_fields?: SelectableOutput<UserOutput>;
+  user?: z.ExpandableOutput<UserOutput>;
+  user_fields?: z.SelectableOutput<UserOutput>;
 };
 export type NotificationInput = z.input<typeof baseNotification> & {
-  user?: ExpandableInput<UserInput>;
-  user_fields?: SelectableInput<UserInput>;
+  user?: z.ExpandableInput<UserInput>;
+  user_fields?: z.SelectableInput<UserInput>;
 };
 
 export const Notification: z.ZodType<
   NotificationOutput,
-  any,
+  z.ZodObjectDef,
   NotificationInput
 > = baseNotification
   .extend({

@@ -11,13 +11,7 @@ import {
   NotificationInput,
   NotificationSelection,
 } from "../notifications/models";
-import {
-  ExpandableOutput,
-  ExpandableInput,
-  SelectableOutput,
-  SelectableInput,
-  z,
-} from "stainless";
+import { z } from "stainless";
 import prisma from "~/libs/prismadb";
 
 const baseUser = z.response({
@@ -43,23 +37,23 @@ const baseUser = z.response({
 });
 
 export type UserOutput = z.output<typeof baseUser> & {
-  posts?: ExpandableOutput<PostOutput[]>;
-  posts_fields?: SelectableOutput<PostOutput[]>;
-  comments?: ExpandableOutput<CommentOutput[]>;
-  comments_fields?: SelectableOutput<CommentOutput[]>;
-  notifications?: ExpandableOutput<NotificationOutput[]>;
-  notifications_fields?: SelectableOutput<NotificationOutput[]>;
+  posts?: z.ExpandableOutput<PostOutput[]>;
+  posts_fields?: z.SelectableOutput<PostOutput[]>;
+  comments?: z.ExpandableOutput<CommentOutput[]>;
+  comments_fields?: z.SelectableOutput<CommentOutput[]>;
+  notifications?: z.ExpandableOutput<NotificationOutput[]>;
+  notifications_fields?: z.SelectableOutput<NotificationOutput[]>;
 };
 export type UserInput = z.input<typeof baseUser> & {
-  posts?: ExpandableInput<PostInput[]>;
-  posts_fields?: SelectableInput<PostInput[]>;
-  comments?: ExpandableInput<CommentInput[]>;
-  comments_fields?: SelectableInput<CommentInput[]>;
-  notifications?: ExpandableInput<NotificationInput[]>;
-  notifications_fields?: SelectableInput<NotificationInput[]>;
+  posts?: z.ExpandableInput<PostInput[]>;
+  posts_fields?: z.SelectableInput<PostInput[]>;
+  comments?: z.ExpandableInput<CommentInput[]>;
+  comments_fields?: z.SelectableInput<CommentInput[]>;
+  notifications?: z.ExpandableInput<NotificationInput[]>;
+  notifications_fields?: z.SelectableInput<NotificationInput[]>;
 };
 
-export const User: z.ZodType<UserOutput, any, UserInput> = baseUser
+export const User: z.ZodType<UserOutput, z.ZodObjectDef, UserInput> = baseUser
   .extend({
     posts: z.array(z.lazy(() => Post)).expandable(),
     posts_fields: z.array(z.lazy(() => PostSelection)).selectable(),

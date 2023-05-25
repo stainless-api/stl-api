@@ -1,45 +1,9 @@
-import {
-  StainlessMetadata,
-  WithStainlessMetadata,
-  extendZodForStl,
-  extractStainlessMetadata,
-  ExtractStainlessMetadata,
-} from "./stlZodExtensions";
-export {
-  StainlessMetadata,
-  WithStainlessMetadata,
-  extendZodForStl,
-  extractStainlessMetadata,
-  ExtractStainlessMetadata,
-};
-export {
-  SelectableOutput,
-  SelectableInput,
-  ExpandableOutput,
-  ExpandableInput,
-  StlTransform,
-  StlParseContext,
-  StlRefinementCtx,
-  StlParseParams,
-} from "./stlZodExtensions";
 import * as z from "./z";
 import qs from "qs";
-import { selects } from "./selects";
-import { expands } from "./expands";
-export { expandsOptions } from "./expands";
 import { openapiSpec } from "./openapiSpec";
 import { type OpenAPIObject } from "openapi3-ts";
 import { once } from "lodash";
 export { SelectTree, parseSelect } from "./parseSelect";
-
-/**
- * TODO: try to come up with a better error message
- * that you must import stl _before_ zod
- * in any file that uses z.openapi(),
- * including the file that calls stl.openapiSpec().
- */
-extendZodForStl(z); // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
-
 export { z };
 
 export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
@@ -172,73 +136,6 @@ export type APIDescription<
 };
 
 export type AnyAPIDescription = APIDescription<any, any>;
-
-const commonPageResponseFields = {
-  startCursor: z.string().nullable(),
-  endCursor: z.string().nullable(),
-  hasNextPage: z.boolean().optional(),
-  hasPreviousPage: z.boolean().optional(),
-};
-
-class PageResponseWrapper<I extends z.ZodTypeAny> {
-  wrapped(item: I) {
-    return z.object({
-      ...commonPageResponseFields,
-      items: z.array(item),
-    });
-  }
-}
-
-function pageResponse<I extends z.ZodTypeAny, M extends StainlessMetadata = {}>(
-  item: I,
-  metadata: M = {} as any
-): WithStainlessMetadata<
-  ReturnType<PageResponseWrapper<I>["wrapped"]>,
-  M & { pageResponse: true }
-> {
-  return z
-    .response({
-      ...commonPageResponseFields,
-      items: z.array(item),
-    })
-    .stlMetadata({ ...metadata, pageResponse: true });
-}
-
-export type PageData<I> = {
-  items: I[];
-  startCursor: string | null;
-  endCursor: string | null;
-  hasNextPage?: boolean;
-  hasPreviousPage?: boolean;
-};
-
-export type PageItemType<D extends PageData<any>> = D["items"][number];
-
-export const AnyPageData: z.ZodType<
-  PageData<any>,
-  any,
-  PageData<any>
-> = z.object({
-  items: z.array(z.any()),
-  startCursor: z.string().nullable(),
-  endCursor: z.string().nullable(),
-  hasNextPage: z.boolean().optional(),
-  hasPreviousPage: z.boolean().optional(),
-});
-
-export const SortDirection = z.union([z.literal("asc"), z.literal("desc")]);
-export type SortDirection = z.infer<typeof SortDirection>;
-
-export const PaginationParams = z.object({
-  pageAfter: z.string().optional(),
-  pageBefore: z.string().optional(),
-  pageSize: z.coerce.number().positive().default(20),
-  sortBy: z.string(),
-  sortDirection: SortDirection.default("asc"),
-});
-
-export type PaginationParams = z.infer<typeof PaginationParams>;
-
 export class StlError extends Error {
   constructor(
     public statusCode: number,
@@ -415,17 +312,6 @@ export type Stl<UserContext extends object, Plugins extends AnyPlugins> = {
     Resources
   >;
 
-  // reexported conveniences
-  PaginationParams: typeof PaginationParams;
-  pageResponse: typeof pageResponse;
-  /**
-   * Creates an expand param from all expandable paths in the given zod schema
-   */
-  expands: typeof expands;
-  /**
-   * Creates an select param from all selectable paths in the given zod schema
-   */
-  selects: typeof selects;
   openapiSpec: typeof openapiSpec;
 
   StlError: typeof StlError;
@@ -515,12 +401,6 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
     UnauthorizedError,
     ForbiddenError,
     NotFoundError,
-
-    PaginationParams,
-    pageResponse,
-
-    expands,
-    selects,
 
     openapiSpec,
 
@@ -722,7 +602,7 @@ type ExtractClientResponse<
   Action,
   E extends AnyEndpoint
 > = Action extends ListAction
-  ? z.infer<E["response"]> extends PageData<any>
+  ? z.infer<E["response"]> extends z.PageData<any>
     ? PaginatorPromise<z.infer<E["response"]>>
     : ExtractClientResponse<unknown, E>
   : E["response"] extends z.ZodTypeAny
@@ -888,7 +768,7 @@ export function createClient<Api extends AnyAPIDescription>(
         throw new Error(`Error: ${json.error.message}`);
       }
 
-      const parsed = AnyPageData.safeParse(json);
+      const parsed = z.AnyPageData.safeParse(json);
       if (parsed.success) {
         return new PageImpl(
           client,
@@ -917,26 +797,26 @@ export function createClient<Api extends AnyAPIDescription>(
   return client;
 }
 
-export type Page<D extends PageData<any>> = PageImpl<D> & D;
+export type Page<D extends z.PageData<any>> = PageImpl<D> & D;
 
-export class PageImpl<D extends PageData<any>> {
+export class PageImpl<D extends z.PageData<any>> {
   constructor(
     private client: StainlessClient<any>,
     private clientPath: string[],
     private pathname: string,
-    private params: z.infer<typeof PaginationParams>,
+    private params: z.infer<typeof z.PaginationParams>,
     private data: D
   ) {
     Object.assign(this, data);
   }
 
-  declare items: PageItemType<D>[];
+  declare items: z.PageItemType<D>[];
   declare startCursor: string | null;
   declare endCursor: string | null;
   declare hasNextPage: boolean | undefined;
   declare hasPreviousPage: boolean | undefined;
 
-  getPreviousPageParams(): z.infer<typeof PaginationParams> {
+  getPreviousPageParams(): z.PaginationParams {
     const { startCursor } = this.data;
     if (startCursor == null) {
       throw new Error(
@@ -976,7 +856,7 @@ export class PageImpl<D extends PageData<any>> {
       .list(this.getPreviousPageParams());
   }
 
-  getNextPageParams(): z.infer<typeof PaginationParams> {
+  getNextPageParams(): z.PaginationParams {
     const { endCursor } = this.data;
     if (endCursor == null) {
       throw new Error(`response doesn't have endCursor, can't get next page`);
@@ -1081,15 +961,15 @@ export type { ClientPromise };
  * Promise to get a single page, or async iterated to go through
  * all items
  */
-class PaginatorPromise<D extends PageData<any>>
+class PaginatorPromise<D extends z.PageData<any>>
   extends ClientPromise<Page<D>>
-  implements AsyncIterable<PageItemType<D>>
+  implements AsyncIterable<z.PageItemType<D>>
 {
   constructor(fetch: () => Promise<Page<D>>, props: ClientPromiseProps) {
     super(fetch, props);
   }
 
-  async *[Symbol.asyncIterator](): AsyncIterator<PageItemType<D>> {
+  async *[Symbol.asyncIterator](): AsyncIterator<z.PageItemType<D>> {
     let page: Page<D> | undefined = await this;
     while (page) {
       yield* page.items;
