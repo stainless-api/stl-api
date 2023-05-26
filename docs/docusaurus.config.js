@@ -7,7 +7,7 @@ const darkCodeTheme = require("prism-react-renderer/themes/dracula");
 /** @type {import('@docusaurus/types').Config} */
 const config = {
   title: "✨ Stainless API",
-  tagline: "A TypeScript framework for robust & polished REST APIs",
+  tagline: "A (very WIP) TypeScript framework for robust & polished REST APIs",
   // favicon: "img/favicon.ico",
 
   // Set the production url of your site here
