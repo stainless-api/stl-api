@@ -4,15 +4,17 @@ sidebar_position: 1
 
 # Pagination
 
-> **Warning**
->
-> At the moment, `@stl-api/prisma` doesn't support multi-column
-> sort order in pagination.
->
-> Also, `@stl-api/prisma` current treats `sortBy` as a column name
-> and uses it to determine the cursor of each row.
->
-> We plan to remove these limitations in the future.
+:::caution
+
+At the moment, `@stl-api/prisma` doesn't support multi-column
+sort order in pagination.
+
+Also, `@stl-api/prisma` current treats `sortBy` as a column name
+and uses it to determine the cursor of each row.
+
+We plan to remove these limitations in the future.
+
+:::
 
 ## Easiest method: `ctx.prisma.paginate(options)`
 
@@ -50,10 +52,12 @@ export const list = stl.endpoint({
 });
 ```
 
-> **Warning**
->
-> Currently `ctx.prisma.paginate` doesn't custom names for `PaginationParams`
-> or `response` fields.
+:::caution
+
+Currently `ctx.prisma.paginate` doesn't custom names for `PaginationParams`
+or `response` fields.
+
+:::
 
 ## Lower level: `ctx.prisma.findMany(options)`
 
@@ -67,13 +71,15 @@ as input soon, but currently you must pass the items to
 [`stl.plugins.prisma.pagination.makeResponse()`](#stlpluginsprismapaginationmakeresponsepaginationparams-items)
 or build the response manually.
 
-> **Note**
->
-> `ctx.prisma.findMany()` will inject `limit: pageSize + 1` so that
-> it's possible to > determine `hasPreviousPage` or `hasNextPage` by
-> the presence or absence of an extra item in the query results.
-> If the extra item is present it should not be included in the
-> response, and will be removed by `makeResponse()`.
+:::info
+
+`ctx.prisma.findMany()` will inject `limit: pageSize + 1` so that
+it's possible to > determine `hasPreviousPage` or `hasNextPage` by
+the presence or absence of an extra item in the query results.
+If the extra item is present it should not be included in the
+response, and will be removed by `makeResponse()`.
+
+:::
 
 ## Lower level: `stl.plugins.prisma.paginate(prismaModel, options)`
 
@@ -94,20 +100,24 @@ to use different parameter or response field names.
 Combines the given prisma `query` (`findMany()` options) with values
 from the given `paginationParams`, and returns the combined `findMany()` options.
 
-> **Note**
->
-> `wrapQuery()` will inject `limit: pageSize + 1` so that it's
-> possible to > determine `hasPreviousPage` or `hasNextPage` by
-> the presence or absence of an extra item in the query results.
-> If the extra item is present it should not be included in the
-> response, and will be removed by `makeResponse()`.
+:::info
+
+`wrapQuery()` will inject `limit: pageSize + 1` so that it's
+possible to > determine `hasPreviousPage` or `hasNextPage` by
+the presence or absence of an extra item in the query results.
+If the extra item is present it should not be included in the
+response, and will be removed by `makeResponse()`.
+
+:::
 
 ### `stl.plugins.prisma.pagination.makeResponse(paginationParams, items)`
 
 Creates a [`z.PageData`](/stl/pagination#zpagedatai) response from the given items.
 
-> **Note**
->
-> `makeResponse()` will determine `hasPreviousPage` or `hasNextPage`
-> based upon whether `items.length` > `params.pageSize`.
-> It will remove any `items` beyond `params.pageSize`.
+:::info
+
+`makeResponse()` will determine `hasPreviousPage` or `hasNextPage`
+based upon whether `items.length` > `params.pageSize`.
+It will remove any `items` beyond `params.pageSize`.
+
+:::

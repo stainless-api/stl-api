@@ -35,12 +35,14 @@ if `select` could omit properties of the expandable fields.
 -d 'select=items.user_fields{id,comments_fields{id,body}},items.comments_fields.body'
 ```
 
-> **Note**
->
-> It's not possible to generate precise types for `select` because the number
-> of possibilities can easily become huge. We may decide to use a different
-> format for `select` in the future to achieve better type safety (for example,
-> the same format as `expand`).
+:::info
+
+It's not possible to generate precise types for `select` because the number
+of possibilities can easily become huge. We may decide to use a different
+format for `select` in the future to achieve better type safety (for example,
+the same format as `expand`).
+
+:::
 
 ## Implementing select without circular associations
 
@@ -48,15 +50,19 @@ You can add support for a selectable field by marking it
 `.selectable()` in the response schema and adding
 `select: z.selects(...)` to your query schema:
 
-> **Warning**
->
-> Currently, the `z.selects(...)` parameter must be named
-> `select` and declared in the `query`.
+:::caution
 
-> **Note**
->
-> Although `.selectable()` can be called on any schema, it only works
-> with schemas of type object or array of objects.
+Currently, the `z.selects(...)` parameter must be named
+`select` and declared in the `query`.
+
+:::
+
+:::info
+
+Although `.selectable()` can be called on any schema, it only works
+with schemas of type object or array of objects.
+
+:::
 
 ```ts
 // api/posts/index.ts
@@ -184,5 +190,7 @@ This means that the following select paths are allowed:
 
 Obviously for many use cases, you would want to keep the depth limit low.
 
-> **Warning**
-> The maximum recursion depth supported by `z.expands` is 5.
+:::caution
+The maximum recursion depth supported by `z.expands` is 5.
+
+:::

@@ -11,9 +11,11 @@ available via the following import:
 import { z } from "stainless";
 ```
 
-> **Warning**
->
-> Make sure to use the above import instead of importing directly `from "zod"`.
+:::caution
+
+Make sure to use the above import instead of importing directly `from "zod"`.
+
+:::
 
 In addition to all of the usual Zod schema types, we provide the following specialty types and methods:
 
@@ -21,11 +23,14 @@ In addition to all of the usual Zod schema types, we provide the following speci
 
 ### `.prismaModel(model)`
 
-> **Note**: this is only available if using the [`@stl-api/prisma`](/stl/prisma/getting-started) plugin.
+:::info
+this is only available if using the [`@stl-api/prisma`](/stl/prisma/getting-started) plugin.
+:::
+:::caution
 
-> **Warning**
->
-> Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
+Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
+
+:::
 
 Allows you to declare the Prisma model associated with a response schema. In an endpoint whose
 response schema has a Prisma model declared, [special conveniences](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
@@ -48,10 +53,12 @@ Use this to declare the schema for a `.selectable()` field value:
 user_fields: z.lazy(() => User.selection()).selectable();
 ```
 
-> **Warning**
->
-> Currently, using `.partial()` instead of `.selection()` will cause nested
-> `.selectable()` properties to malfunction.
+:::caution
+
+Currently, using `.partial()` instead of `.selection()` will cause nested
+`.selectable()` properties to malfunction.
+
+:::
 
 ### `z.path(shape)`
 

@@ -4,6 +4,13 @@ sidebar_position: 0
 
 # Getting started
 
+:::caution
+
+This is alpha software, and we may make significant changes in the coming months.
+But we're eager for you to try it out and let us know what you think!
+
+:::
+
 ## Installation
 
 ```
@@ -31,9 +38,11 @@ export const stl = makeStl<StlUserContext, typeof plugins>({
 
 ## Declare `prismaModel` on a response type
 
-> **Warning**
->
-> Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
+:::caution
+
+Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
+
+:::
 
 ```diff
 // ~/api/posts/models.ts
@@ -62,10 +71,12 @@ and [`select`](/stl/selection) params as necessary:
 - `update`
 - `delete`
 
-> **Warning**
->
-> This currently only works if the primary key is named `id`.
-> We plan to remove this limitation soon.
+:::caution
+
+This currently only works if the primary key is named `id`.
+We plan to remove this limitation soon.
+
+:::
 
 ```ts
 // ~/api/posts/retrieve.ts
@@ -123,10 +134,12 @@ parameter takes a string `id` as input from the `{post}` path
 parameter and is transformed to the fetched model instance in
 the `handler`.
 
-> **Warning**
->
-> This currently only works if the primary key is named `id`.
-> We plan to remove this limitation soon.
+:::caution
+
+This currently only works if the primary key is named `id`.
+We plan to remove this limitation soon.
+
+:::
 
 ```ts
 // ~/api/posts/retrieve.ts

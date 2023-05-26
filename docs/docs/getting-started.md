@@ -4,6 +4,13 @@ sidebar_position: 1
 
 # Getting started
 
+:::caution
+
+This is alpha software, and we may make significant changes in the coming months.
+But we're eager for you to try it out and let us know what you think!
+
+:::
+
 At the moment, Stainless can be used with Next.js. Support for
 standalone and Express apps is coming soon.
 We will soon provide a `create-stl-app` API. Until then:
@@ -136,15 +143,17 @@ export const api = stl.api({
 });
 ```
 
-> **Warning**
->
-> Currently the names of `resources` have to match the URL paths for
-> the [client](#use-client) to work. For example if the base URL is
-> `/api` and there is a `get /api/users` endpoint, the resource must
-> be named `users` here. If it were named `user`, then `client.user.list(...)`
-> would `GET /api/user`, the wrong URL. We plan to make a build watch
-> process to compile a list of endpoint URLs for the client to remove
-> this limitation.
+:::caution
+
+Currently the names of `resources` have to match the URL paths for
+the [client](#use-client) to work. For example if the base URL is
+`/api` and there is a `get /api/users` endpoint, the resource must
+be named `users` here. If it were named `user`, then `client.user.list(...)`
+would `GET /api/user`, the wrong URL. We plan to make a build watch
+process to compile a list of endpoint URLs for the client to remove
+this limitation.
+
+:::
 
 ## Add API route
 
