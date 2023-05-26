@@ -11,7 +11,7 @@ const config = {
   // favicon: "img/favicon.ico",
 
   // Set the production url of your site here
-  url: "https://stainlessapi.com",
+  url: "https://stl-docs-1.netlify.app",
   // Set the /<baseUrl>/ pathname under which your site is served
   // For GitHub pages deployment, it is often '/<projectName>/'
   baseUrl: "/stl/",
@@ -39,10 +39,9 @@ const config = {
       ({
         docs: {
           sidebarPath: require.resolve("./sidebars.js"),
-          // Please change this to your repo.
+          routeBasePath: "/",
           // Remove this to remove the "edit this page" links.
-          editUrl:
-            "https://github.com/facebook/docusaurus/tree/main/packages/create-docusaurus/templates/shared/",
+          editUrl: "https://github.com/stainless-api/stl-api/tree/main/docs",
         },
         // blog: {
         // showReadingTime: true,
