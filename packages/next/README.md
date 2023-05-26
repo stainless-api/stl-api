@@ -7,7 +7,7 @@ Use this plugin to serve a Stainless API in a Next.js app.
 ## Installation
 
 ```
-npm i --save @stl-api/next
+npm i --save stainless-api/stl-api#next-0.0.1
 ```
 
 ## Add plugin to stainless instance
