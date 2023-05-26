@@ -37,7 +37,7 @@ export async function gitPublish(packageDir, options) {
     );
   }
 
-  const pack = execa("npm", ["pack"], { stdio: "pipe", encoding: "utf8" });
+  const pack = execa("pnpm", ["pack"], { stdio: "pipe", encoding: "utf8" });
   pack.stderr.pipe(process.stderr);
   pack.stdout.pipe(process.stdout);
   const tarball = (await pack).stdout.trim();
