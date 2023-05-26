@@ -1,29 +1,22 @@
 #!/usr/bin/env node
 import { execa } from "execa";
+import { setDependencyVersions } from "./setDependencyVersions.mjs";
+import { gitPublish } from "./gitPublish.mjs";
+import * as url from "node:url";
+import path from "path";
+import fs from "fs/promises";
 
-const outputs = JSON.parse(process.argv[2]);
+await setDependencyVersions();
+
+const rootDir = path.dirname(path.dirname(url.fileURLToPath(import.meta.url)));
+
+const packagesDir = path.join(rootDir, "packages");
+const packageDirs = (await fs.readdir(packagesDir)).map((dir) =>
+  path.join(packagesDir, dir)
+);
+
 const dryRun = process.argv.includes("--dry-run");
 
-if (dryRun) {
-  console.log("outputs", outputs);
-}
-
-for (let key in outputs) {
-  let value = outputs[key];
-  const workspace = key.match(/^(.*\/.*)--release_created$/)?.[1];
-  if (dryRun) console.log({ key, value, workspace });
-  if (!workspace || !value) continue;
-  await execa(
-    "pnpm",
-    [
-      "publish",
-      workspace,
-      "--access",
-      "public",
-      ...(dryRun ? ["--dry-run"] : []),
-    ],
-    {
-      stdio: "inherit",
-    }
-  );
+for (const dir of packageDirs) {
+  await gitPublish(dir, { dryRun });
 }
