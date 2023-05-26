@@ -35,12 +35,12 @@ const response = stl.pageResponse(Post);
 
 export const list = stl.endpoint({
   endpoint: "get /api/posts",
+  response,
   query: stl.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
     pageSize: z.coerce.number().default(20),
   }),
-  response,
   async handler({ userId }, ctx) {
     return await ctx.prisma.paginate({
       where: userId ? { userId } : {},
