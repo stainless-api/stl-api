@@ -39,7 +39,7 @@ export const stl = makeStl<StlUserContext, typeof plugins>({
 ```diff
 // ~/api/posts/models.ts
 
-import z from "zod";
+import { z } from "stainless";
 +import prisma from "~/libs/prisma";
 
 export const Post = z.response({
@@ -72,7 +72,7 @@ and [`select`](/packages/stainless/docs/selection.md) params as necessary:
 // ~/api/posts/retrieve.ts
 
 import { stl } from "~/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { Post } from "./models";
 
@@ -97,7 +97,7 @@ export const retrieve = stl.endpoint({
 // ~/api/posts/create.ts
 
 import { stl } from "~/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import { Post } from "./models";
 
 export const create = stl.endpoint({
@@ -133,7 +133,7 @@ the `handler`.
 // ~/api/posts/retrieve.ts
 
 import { stl } from "@/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import prisma from "@/libs/prismadb";
 import { Post } from "./models";
 

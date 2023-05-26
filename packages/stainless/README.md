@@ -118,7 +118,7 @@ export const User = z
 // ~/api/users/retrieve.ts
 
 import { stl } from "~/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
