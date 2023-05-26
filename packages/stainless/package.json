@@ -34,6 +34,6 @@
     "lodash": "^4.17.21",
     "qs": "^6.11.2",
     "zod": "^3.21.4",
-    "zod-openapi": "^2.3.0"
+    "zod-openapi": "github:stainless-api/zod-openapi#2.5.1"
   }
 }
