@@ -29,18 +29,18 @@ import { stl } from "~/libs/stl";
 import { Post } from "./models";
 
 // This assumes Post has a .prismaModel(prisma.post)
-// declaration attached to it; stl.pageResponse inherits
+// declaration attached to it; z.pageResponse inherits
 // the .prismaModel.
-const response = stl.pageResponse(Post);
+const response = z.pageResponse(Post);
 
 export const list = stl.endpoint({
   endpoint: "get /api/posts",
-  query: stl.PaginationParams.extend({
+  response,
+  query: z.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
     pageSize: z.coerce.number().default(20),
   }),
-  response,
   async handler({ userId }, ctx) {
     return await ctx.prisma.paginate({
       where: userId ? { userId } : {},

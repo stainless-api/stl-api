@@ -647,6 +647,7 @@ export const PaginationParams = z.object({
   pageAfter: z.string().optional(),
   pageBefore: z.string().optional(),
   pageSize: z.coerce.number().positive().default(20),
+  // TODO consider whether/how to expose these by default.
   sortBy: z.string(),
   sortDirection: SortDirection.default("asc"),
 });

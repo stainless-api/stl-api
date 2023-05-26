@@ -414,18 +414,18 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
       Response extends z.ZodTypeAny = z.ZodVoid
     >({
       config,
+      response,
       path,
       query,
       body,
-      response,
       ...rest
     }: {
       endpoint: HttpEndpoint;
       config?: EndpointConfig;
+      response?: Response;
       path?: Path;
       query?: Query;
       body?: Body;
-      response?: Response;
       handler: Handler<
         UserContext &
           StlContext<Endpoint<UserContext, Path, Query, Body, Response>>,
@@ -437,10 +437,10 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
     }): Endpoint<UserContext, Path, Query, Body, Response> => {
       return {
         config: config as EndpointConfig,
+        response: (response || z.void()) as Response,
         path: path as Path,
         query: query as Query,
         body: body as Body,
-        response: (response || z.void()) as Response,
         ...rest,
       };
     },

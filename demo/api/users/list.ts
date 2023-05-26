@@ -1,19 +1,16 @@
 import { stl } from "~/libs/stl";
 import { z } from "stainless";
-import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
 export const list = stl.endpoint({
   endpoint: "get /api/users",
-  response: z.object({ items: z.array(User) }),
+  response: z.pageResponse(User),
 
+  query: z.PaginationParams.extend({
+    sortBy: z.enum(["createdAt"]).default("createdAt"),
+    sortDirection: z.enum(["desc"]).default("desc"),
+  }),
   async handler(params, ctx) {
-    return {
-      items: await prisma.user.findMany({
-        orderBy: {
-          createdAt: "desc",
-        },
-      }),
-    };
+    return await ctx.prisma.paginate({});
   },
 });
