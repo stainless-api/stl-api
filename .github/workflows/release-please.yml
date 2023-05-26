@@ -38,7 +38,7 @@ jobs:
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
 
-      - run: node ./scripts/publish.mjs '${{toJSON(steps.release.outputs)}}' --dry-run
+      - name: publish dry run
+        run: node ./scripts/publish.mjs '${{toJSON(steps.release.outputs)}}' --dry-run
         env:
           NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
-        if: ${{ steps.release.outputs.releases_created }}
