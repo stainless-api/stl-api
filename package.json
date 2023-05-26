@@ -1,0 +1,39 @@
+{
+  "name": "stainless",
+  "version": "0.0.1",
+  "description": "stainless api server and client",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/stl"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/stl",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api"
+  ],
+  "license": "ISC",
+  "source": "src/stl.ts",
+  "main": "dist/stl.js",
+  "module": "dist/stl.es.js",
+  "types": "dist/stl.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.194",
+    "@types/node": "^20.2.3",
+    "@types/qs": "^6.9.7"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "qs": "^6.11.2",
+    "zod": "^3.21.4",
+    "zod-openapi": "github:stainless-api/zod-openapi#2.5.1"
+  }
+}
