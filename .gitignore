@@ -10,3 +10,5 @@ next-env.d.ts
 
 /packages/*/package
 /packages/*/*.tgz
+# Local Netlify folder
+.netlify
