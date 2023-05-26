@@ -1,3 +1,7 @@
+---
+sidebar_position: 0
+---
+
 # Getting started
 
 Use this plugin to serve a Stainless API in a Next.js app.

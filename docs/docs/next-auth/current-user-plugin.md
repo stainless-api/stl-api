@@ -1,3 +1,7 @@
+---
+sidebar_position: 1
+---
+
 # Add user to Stainless context
 
 You may wish to set a current user property on the Stainless context.
