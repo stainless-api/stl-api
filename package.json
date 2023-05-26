@@ -1,0 +1,41 @@
+{
+  "name": "@stl-api/prisma",
+  "version": "0.0.1",
+  "description": "prisma plugin for stainless api",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/prisma"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/prisma",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api",
+    "prisma"
+  ],
+  "license": "ISC",
+  "source": "src/prismaPlugin.ts",
+  "main": "dist/prismaPlugin.js",
+  "module": "dist/prismaPlugin.es.js",
+  "types": "dist/prismaPlugin.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.194",
+    "@types/node": "^20.2.3"
+  },
+  "dependencies": {
+    "stainless": "github:stainless-api/stl-api#stainless-0.0.1",
+    "lodash": "^4.17.21",
+    "zod": "^3.21.4"
+  },
+  "peerDependencies": {
+    "prisma": "^4.0.0"
+  }
+}
