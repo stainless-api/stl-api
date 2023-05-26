@@ -4,6 +4,11 @@ Provides highly productive ways of creating APIs with Prisma and Stainless.
 
 # Getting started
 
+> **Warning**
+>
+> This is alpha software, and we may make significant changes in the coming months.
+> But we're eager for you to try it out and let us know what you think!
+
 ## Installation
 
 ```
