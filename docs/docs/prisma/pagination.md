@@ -61,7 +61,7 @@ export const list = stl.endpoint({
 params, but unlike [`paginate()`](#easiest-method-ctxprismapaginateoptions), it resolves to the array of items
 directly from Prisma.
 
-We plan to make [`z.pageResponse()`](/docs/pagination#zpageresponseitem)
+We plan to make [`z.pageResponse()`](/stl/pagination#zpageresponseitem)
 schemas accept an array of items
 as input soon, but currently you must pass the items to
 [`stl.plugins.prisma.pagination.makeResponse()`](#stlpluginsprismapaginationmakeresponsepaginationparams-items)
@@ -79,7 +79,7 @@ or build the response manually.
 
 Performs `prismaModel.findMany()` with the given `options` (which
 includes both standard Prisma `findMany()` options and pagination
-parameters) and resolves to a [z.PageData](/docs/pagination#zpagedatai) response.
+parameters) and resolves to a [z.PageData](/stl/pagination#zpagedatai) response.
 
 ## Lowest-level methods
 
@@ -104,7 +104,7 @@ from the given `paginationParams`, and returns the combined `findMany()` options
 
 ### `stl.plugins.prisma.pagination.makeResponse(paginationParams, items)`
 
-Creates a [`z.PageData`](/docs/pagination#zpagedatai) response from the given items.
+Creates a [`z.PageData`](/stl/pagination#zpagedatai) response from the given items.
 
 > **Note**
 >

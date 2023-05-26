@@ -76,8 +76,8 @@ properties).
 ## Automatic Prisma integration
 
 The `@stl-api/prisma` plugin will automatically generate the necessary
-`include` for prisma queries via [`ctx.prisma`](/docs/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/docs/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
-you have [declared a `.prismaModel(...)`](/docs/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
+`include` for prisma queries via [`ctx.prisma`](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/stl/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
+you have [declared a `.prismaModel(...)`](/stl/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
 
 For other use cases, you will need to manually include the expanded paths in
 your response.

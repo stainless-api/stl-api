@@ -96,14 +96,14 @@ console.log(openapi.components.schemas.User);
 
 ## Getting started
 
-See [`stainless` package docs](/docs/getting-started) to get started!
+See [`stainless` package docs](/stl/getting-started) to get started!
 
 ## Packages
 
-- [stainless](/docs/getting-started)
-- [@stl-api/next](/docs/next/getting-started)
-- [@stl-api/next-auth](/docs/next-auth/getting-started)
-- [@stl-api/prisma](/docs/prisma/getting-started)
+- [stainless](/stl/getting-started)
+- [@stl-api/next](/stl/next/getting-started)
+- [@stl-api/next-auth](/stl/next-auth/getting-started)
+- [@stl-api/prisma](/stl/prisma/getting-started)
 
 ## Pristine
 
@@ -128,9 +128,9 @@ you can gradually adopt Pristine standards and tooling. In the future, we plan t
 
 Here is a list of Pristine API design conventions:
 
-- [Pagination](/docs/pagination#pristine-convention)
-- [Expansion](/docs/expansion)
-- [Selection](/docs/selection#pristine-convention)
+- [Pagination](/stl/pagination#pristine-convention)
+- [Expansion](/stl/expansion)
+- [Selection](/stl/selection#pristine-convention)
 
 ## Using Stainless in an existing codebase
 

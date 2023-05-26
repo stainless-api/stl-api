@@ -5,7 +5,8 @@ sidebar_position: 4
 # Endpoints
 
 A Stainless API endpoint declares a method and URL, request and response parameter schemas, and
-a handler function that handles the request. Here's a basic example:
+a handler function that handles the request. Endpoints are grouped into [resources](/stl/resources),
+which are in turn grouped into an entire API definition. Here's a basic example:
 
 ```ts
 // ~/api/users/retrieve.ts
@@ -42,19 +43,19 @@ URL for this endpoint.
 
 ### `response`
 
-The [schema](/docs/schemas) for the HTTP response.
+The [schema](/stl/schemas) for the HTTP response.
 
 ### `path`
 
-The [schema](/docs/schemas) for the path parameters.
+The [schema](/stl/schemas) for the path parameters.
 
 ### `query`
 
-The [schema](/docs/schemas) for the query (search) parameters.
+The [schema](/stl/schemas) for the query (search) parameters.
 
 ### `body`
 
-The [schema](/docs/schemas) for the request body parameters.
+The [schema](/stl/schemas) for the request body parameters.
 
 ### `handler(params, context)`
 

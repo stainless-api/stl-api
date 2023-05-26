@@ -21,23 +21,23 @@ In addition to all of the usual Zod schema types, we provide the following speci
 
 ### `.prismaModel(model)`
 
-> **Note**: this is only available if using the [`@stl-api/prisma`](/docs/prisma/getting-started) plugin.
+> **Note**: this is only available if using the [`@stl-api/prisma`](/stl/prisma/getting-started) plugin.
 
 > **Warning**
 >
 > Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
 
 Allows you to declare the Prisma model associated with a response schema. In an endpoint whose
-response schema has a Prisma model declared, [special conveniences](/docs/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
+response schema has a Prisma model declared, [special conveniences](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
 
 ### `.expandable()`
 
-Marks an object property as being [expandable](/docs/expansion) via an `expand` query parameter.
+Marks an object property as being [expandable](/stl/expansion) via an `expand` query parameter.
 This is only useful object or array of object types.
 
 ### `.selectable()`
 
-Marks an object property as being [selectable](/docs/selection) via a `select` query parameter.
+Marks an object property as being [selectable](/stl/selection) via a `select` query parameter.
 This is only useful object or array of object types.
 
 ### `.selection()`
@@ -104,7 +104,7 @@ A helper for declaring response schemas with circular references.
 
 #### Example
 
-[See here](/docs/expansion#implementing-expansion-with-circular-associations) for a
+[See here](/stl/expansion#implementing-expansion-with-circular-associations) for a
 more complete example.
 
 ```ts

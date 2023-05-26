@@ -19,7 +19,7 @@ $ curl localhost:3000/api/posts/5 -G -d 'select=user_fields.name'
 ## Pristine convention
 
 The pristine convention is to have a selectable property as a sibling of an
-[expandable](/docs/expansion) property. So in the above example
+[expandable](/stl/expansion) property. So in the above example
 there would be an expandable `user` property, whose type has some properties
 always defined, and a selectable `user_fields` property, whose type has all properties
 optional.
@@ -102,8 +102,8 @@ properties).
 ## Automatic Prisma integration
 
 The `@stl-api/prisma` plugin will automatically generate the necessary
-`include` for prisma queries via [`ctx.prisma`](/docs/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/docs/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
-you have [declared a `.prismaModel(...)`](/docs/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
+`include` for prisma queries via [`ctx.prisma`](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/stl/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
+you have [declared a `.prismaModel(...)`](/stl/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
 
 For other use cases, you will need to manually include the expanded paths in
 your response.

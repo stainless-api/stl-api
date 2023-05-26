@@ -79,4 +79,4 @@ A Zod schema for `sortDirection` (`"asc" | "desc"`).
 ## Prisma integration
 
 The `@stl-api/prisma` plugin makes it easy to implement [paginated
-list endpoints from Prisma schemas](/docs/prisma/pagination).
+list endpoints from Prisma schemas](/stl/prisma/pagination).

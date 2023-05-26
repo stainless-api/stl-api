@@ -52,12 +52,12 @@ export const Post = z.response({
 
 Any endpoint whose `response` has a `prismaModel` declared with have `ctx.prisma`
 available in its `handler`. `ctx.prisma` provides wrappers for the following methods
-that magically inject options for [`expand`](/docs/expansion)
-and [`select`](/docs/selection) params as necessary:
+that magically inject options for [`expand`](/stl/expansion)
+and [`select`](/stl/selection) params as necessary:
 
 - `findUnique`
 - `findUniqueOrThrow`
-- `findMany` (also magically [injects pagination options](/docs/prisma/pagination#lower-level-ctxprismafindmanyoptions) from parameters)
+- `findMany` (also magically [injects pagination options](/stl/prisma/pagination#lower-level-ctxprismafindmanyoptions) from parameters)
 - `create`
 - `update`
 - `delete`

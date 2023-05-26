@@ -5,7 +5,7 @@ sidebar_position: 5
 # Resources
 
 A Stainless API resource declares a group of related response models and
-[endpoints](/docs/endpoints). Here's a basic example:
+[endpoints](/stl/endpoints). Here's a basic example:
 
 ```ts
 // ~/api/posts/index.ts
@@ -33,11 +33,11 @@ export const posts = stl.resource({
 ```
 
 In this example, the imported `Post`, `PostPage`, and `PostSelection` are
-response [schemas](/docs/schemas); declaring them in `models` causes the OpenAPI
+response [schemas](/stl/schemas); declaring them in `models` causes the OpenAPI
 endpoint to declare them in `#/components/schemas` and use `$ref`s to refer
 to them elsewhere in the OpenAPI spec.
 
-The imported `create`, `list`, and `retrieve` are [endpoints](/docs/endpoints).
+The imported `create`, `list`, and `retrieve` are [endpoints](/stl/endpoints).
 In the client they will be accessible as `client.posts.create(...)` etc.
 (assuming the API declares the `posts` resource as top level).
 
@@ -45,13 +45,13 @@ In the client they will be accessible as `client.posts.create(...)` etc.
 
 ### `models`
 
-An object of named models; values must be response [schemas](/docs/schemas). The
+An object of named models; values must be response [schemas](/stl/schemas). The
 OpenAPI endpoint will declare named models in `#/components/schemas`, named by the
 keys in `models`.
 
 ### `actions`
 
-An object of [endpoints](/docs/endpoints).
+An object of [endpoints](/stl/endpoints).
 In the client they will be accessible as `client.posts.create(...)` etc.
 
 ### `namespacedResources`
