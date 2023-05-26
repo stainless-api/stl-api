@@ -31,10 +31,14 @@ export const stl = makeStl<StlUserContext, typeof plugins>({
 
 ## Declare `prismaModel` on a response type
 
+> **Warning**
+>
+> Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
+
 ```diff
 // ~/api/posts/models.ts
 
-import z from "zod";
+import { z } from "stainless";
 +import prisma from "~/libs/prisma";
 
 export const Post = z.response({
@@ -67,7 +71,7 @@ and [`select`](/docs/selection) params as necessary:
 // ~/api/posts/retrieve.ts
 
 import { stl } from "~/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { Post } from "./models";
 
@@ -92,7 +96,7 @@ export const retrieve = stl.endpoint({
 // ~/api/posts/create.ts
 
 import { stl } from "~/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import { Post } from "./models";
 
 export const create = stl.endpoint({
@@ -128,7 +132,7 @@ the `handler`.
 // ~/api/posts/retrieve.ts
 
 import { stl } from "@/libs/stl";
-import z from "zod";
+import { z } from "stainless";
 import prisma from "@/libs/prismadb";
 import { Post } from "./models";
 

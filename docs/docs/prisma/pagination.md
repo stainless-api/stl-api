@@ -24,7 +24,7 @@ and additional options you provide:
 ```ts
 // ~/api/posts/list.ts
 
-import z from "zod";
+import { z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { stl } from "~/libs/stl";
 import { Post } from "./models";

@@ -27,7 +27,7 @@ import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { authOptions } from "~/pages/api/auth/[...nextauth]";
 import prisma from "~/libs/prisma";
-import z from "zod";
+import { z } from "stainless";
 
 const plugins = {
   next: makeNextPlugin(),

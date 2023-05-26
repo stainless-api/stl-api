@@ -1,5 +1,5 @@
 ---
-sidebar_position: 5
+sidebar_position: 3
 ---
 
 # Schemas
@@ -11,6 +11,10 @@ available via the following import:
 import { z } from "stainless";
 ```
 
+> **Warning**
+>
+> Make sure to use the above import instead of importing directly `from "zod"`.
+
 In addition to all of the usual Zod schema types, we provide the following specialty types and methods:
 
 ## Zod Extensions
@@ -18,6 +22,10 @@ In addition to all of the usual Zod schema types, we provide the following speci
 ### `.prismaModel(model)`
 
 > **Note**: this is only available if using the [`@stl-api/prisma`](/docs/prisma/getting-started) plugin.
+
+> **Warning**
+>
+> Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
 
 Allows you to declare the Prisma model associated with a response schema. In an endpoint whose
 response schema has a Prisma model declared, [special conveniences](/docs/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
