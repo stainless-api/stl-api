@@ -222,7 +222,8 @@ z.ZodObject.prototype._parse = function _parse<T>(
     parsed,
     omitBy(
       (v, key) =>
-        (extractStlMetadata(this.shape[key]) as any).expandable &&
+        this.shape[key] && // I don't know why this would be undefined but it happened...
+        (extractStlMetadata(this.shape[key]) as any)?.expandable &&
         expand &&
         !zodPathIsExpanded([...path, key], expand)
     )
@@ -379,12 +380,13 @@ declare module "zod" {
       params?: Partial<StlParseParams>
     ): Promise<Output>;
 
-    transform<NewOut>(
+    transform<T extends z.ZodTypeAny, NewOut>(
+      this: T,
       transform: (
         arg: Output,
         ctx: StlRefinementCtx
       ) => NewOut | Promise<NewOut>
-    ): z.ZodEffects<this, NewOut>;
+    ): z.ZodEffects<T, NewOut>;
 
     /**
      * Like `.transform()`, but passes the StlContext and ParseContext
@@ -392,9 +394,10 @@ declare module "zod" {
      * Currently this is used to implement `.prismaModelLoader()` in the
      * Prisma plugin.
      */
-    stlTransform<NewOut>(
+    stlTransform<T extends z.ZodTypeAny, NewOut>(
+      this: T,
       transform: StlTransform<Output, NewOut>
-    ): z.ZodEffects<this, NewOut>;
+    ): z.ZodEffects<T, NewOut>;
   }
 }
 
@@ -507,7 +510,7 @@ z.ZodEffects.prototype._parse = function _parse(
   input: z.ParseInput
 ): z.ParseReturnType<any> {
   const effect: any = this._def.effect || null;
-  if (effect.type === "stlTransform") {
+  if (effect[stlMetadataSymbol]?.stlTransform) {
     const stlContext = getStlParseContext(input.parent);
     if (!stlContext) {
       throw new Error(`missing stlContext in .stlTransform effect`);
@@ -534,7 +537,11 @@ z.ZodType.prototype.stlTransform = function stlTransform(
     description: this._def.description,
     schema: this,
     typeName: ZodFirstPartyTypeKind.ZodEffects,
-    effect: { type: "stlTransform", transform } as any,
+    effect: {
+      type: "transform",
+      transform,
+      [stlMetadataSymbol]: { stlTransform: true },
+    } as any,
   }) as any;
 };
 //////////////////////////////////////////////////

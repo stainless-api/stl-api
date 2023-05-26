@@ -50,14 +50,18 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
   this: T,
   prismaModel: M
 ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
-  return this.stlTransform(async (id: z.infer<T>, ctx: StlContext<any>) => {
-    const query = { where: { id } };
-    const prisma: PrismaContext<any> = (ctx as any).prisma;
-    if (prisma && prismaModel === prisma.prismaModel) {
-      return await prisma.findUniqueOrThrow(query);
+  const result = this.stlTransform(
+    async (id: z.infer<T>, ctx: StlContext<any>) => {
+      const query = { where: { id } };
+      const prisma: PrismaContext<any> = (ctx as any).prisma;
+      if (prisma && prismaModel === prisma.prismaModel) {
+        return await prisma.findUniqueOrThrow(query);
+      }
+      return await prismaModel.findUniqueOrThrow(query);
     }
-    return await prismaModel.findUniqueOrThrow(query);
-  });
+  );
+  // tsc -b is generating spurious errors here...
+  return (result as any).openapi({ effectType: "input" }) as typeof result;
 };
 
 z.ZodType.prototype.prismaModel = function prismaModel<
@@ -457,7 +461,9 @@ export const makePrismaPlugin =
         params: Params,
         context: PartialStlContext<any, EC>
       ) {
-        const model = z.extractStlMetadata(endpoint.response)?.prismaModel;
+        const model = (
+          endpoint.response ? z.extractStlMetadata(endpoint.response) : null
+        )?.prismaModel;
         function getModel(): PrismaModel {
           if (!model)
             throw new Error(`response doesn't have a prisma model configured`);
