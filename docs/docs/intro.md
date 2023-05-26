@@ -1,4 +1,8 @@
-# Stainless: a framework for robust & polished REST APIs
+---
+sidebar_position: 0
+---
+
+# Intro
 
 Stainless helps you ship quality, typesafe REST APIs from any TypeScript backend.
 
@@ -90,18 +94,18 @@ console.log(openapi.paths["/users/:id"].post);
 console.log(openapi.components.schemas.User);
 ```
 
-# Getting started
+## Getting started
 
-See [`stainless` package docs](/packages/stainless/README.md#getting-started) to get started!
+See [`stainless` package docs](/docs/getting-started) to get started!
 
-# Packages
+## Packages
 
-- [stainless](/packages/stainless)
-- [@stl-api/next](/packages/next)
-- [@stl-api/next-auth](/packages/next-auth)
-- [@stl-api/prisma](/packages/prisma)
+- [stainless](/docs/getting-started)
+- [@stl-api/next](/docs/next/getting-started)
+- [@stl-api/next-auth](/docs/next-auth/getting-started)
+- [@stl-api/prisma](/docs/prisma/getting-started)
 
-# Pristine
+## Pristine
 
 Pristine is an API Standard by Stainless, providing opinions on API design so teams don't have to bikeshed, and so tools can expect consistent API shapes.
 
@@ -120,15 +124,15 @@ If you're starting with an existing API and don't want to go straight to a v2,
 you can gradually adopt Pristine standards and tooling. In the future, we plan to offer lint rules for your OpenAPI spec and an overall "Lighthouse score" indicating the degree of compliance your API offers.
  -->
 
-## Pristine Conventions
+### Pristine Conventions
 
 Here is a list of Pristine API design conventions:
 
-- [Pagination](/packages/stainless/docs/pagination.md)
-- [Expansion](/packages/stainless/docs/expansion.md)
-- [Selection](/packages/stainless/docs/selection.md)
+- [Pagination](/docs/pagination#pristine-convention)
+- [Expansion](/docs/expansion)
+- [Selection](/docs/selection#pristine-convention)
 
-# Using Stainless in an existing codebase
+## Using Stainless in an existing codebase
 
 If you'd like a maintainable way of declaring your OpenAPI spec
 in TypeScript, right alongside your application code, and getting
