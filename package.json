@@ -22,7 +22,7 @@
     "build": "tsc -b packages/*/tsconfig.build.json && (cd demo && pnpm build)",
     "build:watch": "tsc -b --watch packages/*/tsconfig.build.json demo/tsconfig.json",
     "watch": "pnpm run build:watch",
-    "clean": "pnpm -r run clean"
+    "clean": "pnpm -r run clean && rm -rf packages/*/{package,*.tgz}"
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",

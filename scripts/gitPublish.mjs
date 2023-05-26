@@ -6,6 +6,10 @@ import { rimraf } from "rimraf";
 import { URL } from "url";
 import { isMainModule } from "./isMainModule.mjs";
 
+/**
+ * Publishes a subpackages in packages/ to a branch in the git repo.
+ */
+
 if (isMainModule(import.meta)) {
   function booleanArg(name) {
     const index = process.argv.indexOf(name);
@@ -37,11 +41,11 @@ export async function gitPublish(packageDir, options) {
     );
   }
 
-  const pack = execa("pnpm", ["pack"], { stdio: "pipe", encoding: "utf8" });
+  const pack = execa("npm", ["pack"], { stdio: "pipe", encoding: "utf8" });
   pack.stderr.pipe(process.stderr);
   pack.stdout.pipe(process.stdout);
   const tarball = (await pack).stdout.trim();
-  const branch = tarball.replace(/\.tgz$/, "");
+  const branch = tarball.replace(/^stl-api-/, "").replace(/\.tgz$/, "");
 
   await rimraf("package");
   await execa("tar", ["xzf", tarball], { stdio: "inherit" });

@@ -4,6 +4,9 @@ import { gitPublish } from "./gitPublish.mjs";
 import * as url from "node:url";
 import path from "path";
 import fs from "fs/promises";
+import { setDependencyVersions } from "./setDependencyVersions.mjs";
+
+await setDependencyVersions();
 
 const rootDir = path.dirname(path.dirname(url.fileURLToPath(import.meta.url)));
 
