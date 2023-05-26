@@ -21,7 +21,7 @@ declare module "zod" {
      * key is the input value.  Throws if the primary key wasn't found.
      * This should only be used on path or body params; the Prisma model
      * is determined by the `prismaModel` passed to `stl.response` or
-     * `stl.pageResponse`.
+     * `z.pageResponse`.
      */
     prismaModelLoader<M extends PrismaModel>(
       prismaModel: M
@@ -74,7 +74,7 @@ z.ZodType.prototype.prismaModel = function prismaModel<
 export type PrismaContext<M extends PrismaModel> = {
   /**
    * The `prismaModel` passed to `stl.response` or
-   * `stl.pageResponse`.
+   * `z.pageResponse`.
    */
   prismaModel: M;
   /**
