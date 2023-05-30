@@ -182,22 +182,16 @@ export type ExpandableZodArrayType<T extends z.ZodTypeAny> = z.ZodType<
   ExpandableInput<z.input<T>[]>
 >;
 
-class StlExpandable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
-  _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
-    const ctx = getStlParseContext(input.parent);
-    const expand = ctx ? getExpands(ctx) : undefined;
-
-    if (!expand || !zodPathIsExpanded(input.path, expand)) {
-      return z.OK(undefined);
-    }
-    return super._parse(input);
-  }
-}
-
 z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
-  return new StlExpandable(
-    this.optional().stlMetadata({ expandable: true })._def
-  );
+  return this.optional()
+    .stlTransform(
+      (input: StlTransformInput<any>, stlContext: StlContext<any>) => {
+        const { data, path } = input;
+        const expand = getExpands(stlContext);
+        return expand && zodPathIsExpanded(path, expand) ? data : undefined;
+      }
+    )
+    .stlMetadata({ expandable: true });
 };
 
 function zodPathIsExpanded(
@@ -207,28 +201,6 @@ function zodPathIsExpanded(
   const zodPathStr = zodPath.filter((p) => typeof p === "string").join(".");
   return expand.some((e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`));
 }
-
-const zodObjectSuperParse = z.ZodObject.prototype._parse;
-z.ZodObject.prototype._parse = function _parse<T>(
-  input: z.ParseInput
-): z.ParseReturnType<T> {
-  const { path } = input;
-  const expand: string[] | undefined = getStlParseContext(input.parent)
-    ?.parsedParams?.query?.expand;
-
-  const parsed = zodObjectSuperParse.call(this, input);
-  // @ts-expect-error only expandable (optional) props are getting omitted
-  return convertParseReturn(
-    parsed,
-    omitBy(
-      (v, key) =>
-        this.shape[key] && // I don't know why this would be undefined but it happened...
-        (extractStlMetadata(this.shape[key]) as any)?.expandable &&
-        expand &&
-        !zodPathIsExpanded([...path, key], expand)
-    )
-  );
-};
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
@@ -401,11 +373,14 @@ declare module "zod" {
   }
 }
 
-export type StlTransform<Output, NewOut> = (
-  arg: Output,
-  ctx: StlContext<any>,
-  parseContext: ParseContext
-) => NewOut | Promise<NewOut>;
+export type StlTransformInput<Input> = z.ParseInput & {
+  data: Input;
+};
+
+export type StlTransform<Input, Output> = (
+  input: StlTransformInput<Input>,
+  ctx: StlContext<any>
+) => Output | Promise<Output>;
 
 export interface StlParseContext extends z.ParseContext {
   stlContext?: StlContext<any>;
@@ -522,7 +497,10 @@ z.ZodEffects.prototype._parse = function _parse(
         if (!isValid(base)) return base;
 
         return Promise.resolve(
-          effect.transform(base.value, stlContext, input.parent)
+          effect.transform(
+            { data: base.value, path: input.path, parent: input.parent },
+            stlContext
+          )
         ).then((result) => ({ status: status.value, value: result }));
       });
   }

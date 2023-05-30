@@ -51,7 +51,8 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
   prismaModel: M
 ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
   const result = this.stlTransform(
-    async (id: z.infer<T>, ctx: StlContext<any>) => {
+    async (input: z.StlTransformInput<z.output<T>>, ctx: StlContext<any>) => {
+      const id = input.data;
       const query = { where: { id } };
       const prisma: PrismaContext<any> = (ctx as any).prisma;
       if (prisma && prismaModel === prisma.prismaModel) {
