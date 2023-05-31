@@ -6,7 +6,6 @@ import {
 } from "zod-openapi";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 import { snakeCase } from "lodash";
-import { doc } from "prettier";
 
 function allModels(
   resource:
@@ -75,8 +74,6 @@ export function openapiSpec(apiDescription: AnyAPIDescription): OpenAPIObject {
     paths[path] ??= {};
     paths[path][lowerMethod] = operation;
   }
-
-  console.log(1, Object.keys(models));
 
   const document = createDocument({
     openapi: "3.1.0",

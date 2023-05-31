@@ -182,6 +182,24 @@ export type ExpandableZodArrayType<T extends z.ZodTypeAny> = z.ZodType<
   ExpandableInput<z.input<T>[]>
 >;
 
+export type IsExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
+  any,
+  z.ZodTypeDef,
+  any
+> extends T
+  ? false
+  : T["_def"] extends {
+      [stlMetadataSymbol]: { expandable: true };
+    }
+  ? true
+  : T extends z.ZodOptional<infer U>
+  ? IsExpandableZodType<U>
+  : T extends z.ZodNullable<infer U>
+  ? IsExpandableZodType<U>
+  : T extends z.ZodDefault<infer U>
+  ? IsExpandableZodType<U>
+  : false;
+
 z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
   return this.optional()
     .stlTransform(
@@ -191,6 +209,7 @@ z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
         return expand && zodPathIsExpanded(path, expand) ? data : undefined;
       }
     )
+    .openapi({ effectType: "input" })
     .stlMetadata({ expandable: true });
 };
 
@@ -261,6 +280,24 @@ export type SelectableZodArrayType<T extends z.ZodTypeAny> = z.ZodType<
   SelectableInput<z.input<T>[]>
 >;
 
+export type IsSelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
+  any,
+  z.ZodTypeDef,
+  any
+> extends T
+  ? false
+  : T["_def"] extends {
+      [stlMetadataSymbol]: { selectable: true };
+    }
+  ? true
+  : T extends z.ZodOptional<infer U>
+  ? IsSelectableZodType<U>
+  : T extends z.ZodNullable<infer U>
+  ? IsSelectableZodType<U>
+  : T extends z.ZodDefault<infer U>
+  ? IsSelectableZodType<U>
+  : false;
+
 export type Selection<T> = T extends Array<infer E extends object>
   ? Partial<E>[]
   : T extends object
@@ -329,9 +366,10 @@ z.ZodType.prototype.selection = function selection(
 };
 
 z.ZodType.prototype.selectable = function selectable(this: z.ZodTypeAny) {
-  return new StlSelectable(
-    this.optional().stlMetadata({ selectable: true })._def
-  );
+  return this.optional().stlMetadata({ selectable: true });
+  // return new StlSelectable(
+  //   this.optional().stlMetadata({ selectable: true })._def
+  // );
 };
 
 //////////////////////////////////////////////////
@@ -522,6 +560,7 @@ z.ZodType.prototype.stlTransform = function stlTransform(
     } as any,
   }) as any;
 };
+
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 /////////////// REST Types ///////////////////////

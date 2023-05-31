@@ -235,7 +235,7 @@ export type ExtractStatics<Plugins extends AnyPlugins> = {
 type ExtractExecuteResponse<EC extends AnyEndpoint> =
   EC["response"] extends z.ZodTypeAny ? z.infer<EC["response"]> : undefined;
 
-export const OpenAPIResponse = z.object({}).passthrough();
+export const OpenAPIResponse = z.object({ openapi: z.string() }).passthrough();
 export type OpenAPIResponse = z.infer<typeof OpenAPIResponse>;
 
 export type OpenAPIEndpoint = Endpoint<
