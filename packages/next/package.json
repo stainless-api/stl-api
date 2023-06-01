@@ -28,7 +28,8 @@
   },
   "devDependencies": {
     "@types/node": "^20.2.3",
-    "@types/qs": "^6.9.7"
+    "@types/qs": "^6.9.7",
+    "typescript": "^5.0.4"
   },
   "dependencies": {
     "stainless": "workspace:*",

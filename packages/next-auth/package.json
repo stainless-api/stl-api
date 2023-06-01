@@ -28,7 +28,8 @@
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {
-    "@types/node": "^20.2.3"
+    "@types/node": "^20.2.3",
+    "typescript": "^5.0.4"
   },
   "dependencies": {
     "stainless": "workspace:*",

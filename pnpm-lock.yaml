@@ -220,6 +220,9 @@ importers:
       '@types/qs':
         specifier: ^6.9.7
         version: 6.9.7
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
 
   packages/next-auth:
     dependencies:
@@ -239,6 +242,9 @@ importers:
       '@types/node':
         specifier: ^20.2.3
         version: 20.2.3
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
 
   packages/prisma:
     dependencies:
@@ -261,6 +267,9 @@ importers:
       '@types/node':
         specifier: ^20.2.3
         version: 20.2.3
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
 
   packages/stainless:
     dependencies:
@@ -286,6 +295,9 @@ importers:
       '@types/qs':
         specifier: ^6.9.7
         version: 6.9.7
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
 
 packages:
 
