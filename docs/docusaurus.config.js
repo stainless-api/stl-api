@@ -77,7 +77,7 @@ const config = {
           },
           // { to: "/blog", label: "Blog", position: "left" },
           {
-            href: "https://github.com/facebook/docusaurus",
+            href: "https://github.com/stainless-api/stl-api",
             label: "GitHub",
             position: "right",
           },
@@ -126,7 +126,7 @@ const config = {
             ],
           },
         ],
-        copyright: `Copyright © ${new Date().getFullYear()} My Project, Inc. Built with Docusaurus.`,
+        copyright: `Copyright © ${new Date().getFullYear()} Stainless. Built with Docusaurus.`,
       },
       prism: {
         theme: lightCodeTheme,
