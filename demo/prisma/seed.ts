@@ -2,30 +2,18 @@ import { PrismaClient } from ".prisma/client";
 import { faker } from "@faker-js/faker";
 import { range, sample, sampleSize } from "lodash";
 import testdata from "./testdata.json";
-import { omit } from "lodash";
 
 const prisma = new PrismaClient();
 async function main() {
   await prisma.$transaction(async (prisma) => {
-    const testusers = testdata.items;
     await prisma.user.createMany({
-      data: testusers.map((user) => omit(user, "posts")),
+      data: testdata.users,
     });
     await prisma.post.createMany({
-      data: testusers.flatMap(
-        (user) => user.posts?.map((post) => omit(post, "comments")) || []
-      ),
+      data: testdata.posts,
     });
     await prisma.comment.createMany({
-      data: testusers.flatMap(
-        (user) =>
-          user.posts?.flatMap(
-            (post) =>
-              post.comments?.filter((c) =>
-                testusers.find((u) => u.id === c.userId)
-              ) || []
-          ) || []
-      ),
+      data: testdata.comments,
     });
 
     await prisma.user.createMany({
@@ -35,7 +23,12 @@ async function main() {
         email: faker.internet.email(),
       })),
     });
-    const users = await prisma.user.findMany();
+
+    const users = await prisma.user.findMany({
+      where: {
+        id: { notIn: testdata.users.map((u) => u.id) },
+      },
+    });
     for (const user of users) {
       await prisma.user.update({
         where: { id: user.id },
