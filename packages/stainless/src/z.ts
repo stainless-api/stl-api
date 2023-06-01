@@ -183,14 +183,15 @@ export type ExpandableZodArrayType<T extends z.ZodTypeAny> = z.ZodType<
 >;
 
 z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
-  return this.optional()
-    .stlTransform(
-      (input: StlTransformInput<any>, stlContext: StlContext<any>) => {
-        const { data, path } = input;
-        const expand = getExpands(stlContext);
-        return expand && zodPathIsExpanded(path, expand) ? data : undefined;
-      }
-    )
+  return stlPreprocess(
+    (input: StlTransformInput<any>, stlContext: StlContext<any>) => {
+      const { data, path } = input;
+      const expand = getExpands(stlContext);
+      return expand && zodPathIsExpanded(path, expand) ? data : undefined;
+    },
+    this.optional()
+  )
+    .openapi({ effectType: "input" })
     .stlMetadata({ expandable: true });
 };
 
@@ -485,6 +486,39 @@ z.ZodEffects.prototype._parse = function _parse(
   input: z.ParseInput
 ): z.ParseReturnType<any> {
   const effect: any = this._def.effect || null;
+  if (effect[stlMetadataSymbol]?.stlPreprocess) {
+    const stlContext = getStlParseContext(input.parent);
+    if (!stlContext) {
+      throw new Error(`missing stlContext in .stlTransform effect`);
+    }
+    const { ctx } = this._processInputParams(input);
+    const processed = effect.transform(
+      { data: ctx.data, path: ctx.path, parent: ctx },
+      stlContext
+    );
+    if (ctx.common.issues.length) {
+      return {
+        status: "dirty",
+        value: ctx.data,
+      };
+    }
+
+    if (ctx.common.async) {
+      return Promise.resolve(processed).then((processed) => {
+        return this._def.schema._parseAsync({
+          data: processed,
+          path: ctx.path,
+          parent: ctx,
+        });
+      });
+    } else {
+      return this._def.schema._parseSync({
+        data: processed,
+        path: ctx.path,
+        parent: ctx,
+      });
+    }
+  }
   if (effect[stlMetadataSymbol]?.stlTransform) {
     const stlContext = getStlParseContext(input.parent);
     if (!stlContext) {
@@ -522,6 +556,28 @@ z.ZodType.prototype.stlTransform = function stlTransform(
     } as any,
   }) as any;
 };
+
+export type StlPreprocess = (
+  input: StlTransformInput<unknown>,
+  ctx: StlContext<any>
+) => unknown;
+
+export function stlPreprocess<I extends z.ZodTypeAny>(
+  preprocess: StlPreprocess,
+  schema: I
+): z.ZodEffects<I, I["_output"], unknown> {
+  return new z.ZodEffects({
+    description: schema._def.description,
+    schema,
+    typeName: ZodFirstPartyTypeKind.ZodEffects,
+    effect: {
+      type: "preprocess",
+      transform: preprocess,
+      [stlMetadataSymbol]: { stlPreprocess: true },
+    } as any,
+  }) as any;
+}
+
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 /////////////// REST Types ///////////////////////
