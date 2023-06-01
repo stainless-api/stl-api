@@ -38,5 +38,10 @@
     "rimraf": "^5.0.1",
     "ts-jest": "^29.1.0",
     "typescript": "^5.0.4"
+  },
+  "pnpm": {
+    "overrides": {
+      "zod": "stainless-api/zod#releases/object-from-2"
+    }
   }
 }

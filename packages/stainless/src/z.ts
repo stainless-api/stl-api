@@ -5,6 +5,7 @@ import {
   SafeParseReturnType,
   isValid,
   ZodFirstPartyTypeKind,
+  RawCreateParams,
 } from "zod";
 import { StlContext } from "./stl";
 import { SelectTree } from "./parseSelect";
@@ -201,14 +202,14 @@ export type IsExpandableZodType<T extends z.ZodTypeAny> = z.ZodType<
   : false;
 
 z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
-  return this.optional()
-    .stlTransform(
-      (input: StlTransformInput<any>, stlContext: StlContext<any>) => {
-        const { data, path } = input;
-        const expand = getExpands(stlContext);
-        return expand && zodPathIsExpanded(path, expand) ? data : undefined;
-      }
-    )
+  return stlPreprocess(
+    (input: StlTransformInput<any>, stlContext: StlContext<any>) => {
+      const { data, path } = input;
+      const expand = getExpands(stlContext);
+      return expand && zodPathIsExpanded(path, expand) ? data : undefined;
+    },
+    this.optional()
+  )
     .openapi({ effectType: "input" })
     .stlMetadata({ expandable: true });
 };
@@ -241,7 +242,7 @@ declare module "zod" {
      * This should only be used on object or array of object property schemas.
      * The property must have the name of a sibling property + `_fields`.
      */
-    selectable(): SelectableZodType<this>;
+    selectable(from: string): SelectableZodType<this>;
   }
 }
 
@@ -304,72 +305,39 @@ export type Selection<T> = T extends Array<infer E extends object>
   ? Partial<T>
   : T;
 
-/**
- * A .selectable() property like `comments_fields`
- * actually parses the parent object's `comments`
- * property as input.
- *
- * As a consequence if `.selectable()` gets wrapped with
- * `.optional()`, the optional will see that there's no
- * value for `comments_fields` and abort before
- * `StlSelectable` gets to work its magic.
- */
-class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
-  _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
-    const { path, parent } = input;
-    const ctx = getStlParseContext(parent);
-    const select = ctx ? getSelects(ctx) : undefined;
-    if (!select) return z.OK(undefined);
-    const property = path[path.length - 1];
-    if (typeof property !== "string" || !property.endsWith("_fields")) {
-      throw new Error(
-        `.selectable() property must be a string ending with _fields`
-      );
-    }
-    if (!(parent.data instanceof Object) || typeof property !== "string") {
-      return z.OK(undefined);
-    }
-    const selectionHere = path.reduce<SelectTree | undefined>(
-      (tree, elem) => (typeof elem === "number" ? tree : tree?.select?.[elem]),
-      select
-    )?.select;
-    if (!selectionHere) return z.OK(undefined);
-
-    const parsed = super._parse(
-      Object.create(input, {
-        data: { value: parent.data[property.replace(/_fields$/, "")] },
-      })
-    );
-
-    const pickSelected = pickBy((v, k) => selectionHere[k]);
-
-    return convertParseReturn(parsed, (value) =>
-      Array.isArray(value) ? value.map(pickSelected) : pickSelected(value)
-    );
-  }
-}
-
 z.ZodType.prototype.selection = function selection(
   this: z.ZodTypeAny
 ): z.ZodTypeAny {
   if (!(this instanceof z.ZodObject)) {
     throw new Error(`.selection() must be called on a ZodObject`);
   }
-  const { shape } = this;
-  // don't wrap StlSelectable fields with ZodOptional,
-  // because they don't rely on the _field property
-  // acually being present
-  const mask = mapValues(shape, (value) =>
-    value instanceof StlSelectable ? undefined : (true as const)
-  );
-  return this.partial(mask);
+  return this.partial();
 };
 
-z.ZodType.prototype.selectable = function selectable(this: z.ZodTypeAny) {
-  return this.optional().stlMetadata({ selectable: true });
-  // return new StlSelectable(
-  //   this.optional().stlMetadata({ selectable: true })._def
-  // );
+z.ZodType.prototype.selectable = function selectable(
+  this: z.ZodTypeAny,
+  from: string
+) {
+  return this.stlTransform(
+    (input: StlTransformInput<any>, ctx: StlContext<any>) => {
+      const select = ctx ? getSelects(ctx) : undefined;
+      if (!select) return undefined;
+      const { data, path } = input;
+      const selectionHere = path.reduce<SelectTree | undefined>(
+        (tree, elem) =>
+          typeof elem === "number" ? tree : tree?.select?.[elem],
+        select
+      )?.select;
+      if (!selectionHere) return undefined;
+
+      const pickSelected = pickBy((v, k) => selectionHere[k]);
+
+      return Array.isArray(data) ? data.map(pickSelected) : pickSelected(data);
+    }
+  )
+    .from(from)
+    .optional()
+    .stlMetadata({ selectable: true });
 };
 
 //////////////////////////////////////////////////
@@ -523,6 +491,39 @@ z.ZodEffects.prototype._parse = function _parse(
   input: z.ParseInput
 ): z.ParseReturnType<any> {
   const effect: any = this._def.effect || null;
+  if (effect[stlMetadataSymbol]?.stlPreprocess) {
+    const stlContext = getStlParseContext(input.parent);
+    if (!stlContext) {
+      throw new Error(`missing stlContext in .stlTransform effect`);
+    }
+    const { ctx } = this._processInputParams(input);
+    const processed = effect.transform(
+      { data: ctx.data, path: ctx.path, parent: ctx },
+      stlContext
+    );
+    if (ctx.common.issues.length) {
+      return {
+        status: "dirty",
+        value: ctx.data,
+      };
+    }
+
+    if (ctx.common.async) {
+      return Promise.resolve(processed).then((processed) => {
+        return this._def.schema._parseAsync({
+          data: processed,
+          path: ctx.path,
+          parent: ctx,
+        });
+      });
+    } else {
+      return this._def.schema._parseSync({
+        data: processed,
+        path: ctx.path,
+        parent: ctx,
+      });
+    }
+  }
   if (effect[stlMetadataSymbol]?.stlTransform) {
     const stlContext = getStlParseContext(input.parent);
     if (!stlContext) {
@@ -561,6 +562,27 @@ z.ZodType.prototype.stlTransform = function stlTransform(
   }) as any;
 };
 
+export type StlPreprocess = (
+  input: StlTransformInput<unknown>,
+  ctx: StlContext<any>
+) => unknown;
+
+export function stlPreprocess<I extends z.ZodTypeAny>(
+  preprocess: StlPreprocess,
+  schema: I
+): z.ZodEffects<I, I["_output"], unknown> {
+  return new z.ZodEffects({
+    description: schema._def.description,
+    schema,
+    typeName: ZodFirstPartyTypeKind.ZodEffects,
+    effect: {
+      type: "preprocess",
+      transform: preprocess,
+      [stlMetadataSymbol]: { stlPreprocess: true },
+    } as any,
+  }) as any;
+}
+
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 /////////////// REST Types ///////////////////////
@@ -571,6 +593,7 @@ export function path<T extends z.ZodRawShape>(
   shape: T,
   params?: z.RawCreateParams
 ): z.ZodObject<T, "strip"> {
+  // @ts-expect-error
   return z.object(shape, params);
 }
 
@@ -601,6 +624,7 @@ export function response<T extends z.ZodRawShape>(
   shape: T,
   params?: z.RawCreateParams
 ): WithStlMetadata<z.ZodObject<T, "strip">, { response: true }> {
+  // @ts-expect-error
   return z.object(shape, params).stlMetadata({ response: true });
 }
 

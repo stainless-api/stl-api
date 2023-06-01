@@ -39,13 +39,15 @@ type User1 = z.CircularModel<
 >;
 const User1: User1 = User0.extend({
   posts: z.array(z.lazy(() => Post)).expandable(),
-  posts_fields: z.array(z.lazy(() => PostSelection)).selectable(),
+  posts_fields: z.array(z.lazy(() => PostSelection)).selectable("posts"),
   comments: z.array(z.lazy(() => Comment)).expandable(),
-  comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
+  comments_fields: z
+    .array(z.lazy(() => CommentSelection))
+    .selectable("comments"),
   notifications: z.array(z.lazy(() => Notification)).expandable(),
   notifications_fields: z
     .array(z.lazy(() => NotificationSelection))
-    .selectable(),
+    .selectable("notifications"),
 });
 export const User = User1.prismaModel(prisma.user);
 

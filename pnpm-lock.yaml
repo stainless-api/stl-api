@@ -1,5 +1,8 @@
 lockfileVersion: '6.0'
 
+overrides:
+  zod: stainless-api/zod#releases/object-from-2
+
 importers:
 
   .:
@@ -113,8 +116,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/stainless
       zod:
-        specifier: ^3.21.4
-        version: 3.21.4
+        specifier: stainless-api/zod#releases/object-from-2
+        version: github.com/stainless-api/zod/a74ce2e4bf26942eb52ce886b70961313fdc7828
       zustand:
         specifier: ^4.3.5
         version: 4.3.5(react@18.2.0)
@@ -252,8 +255,8 @@ importers:
         specifier: workspace:*
         version: link:../stainless
       zod:
-        specifier: ^3.21.4
-        version: 3.21.4
+        specifier: stainless-api/zod#releases/object-from-2
+        version: github.com/stainless-api/zod/a74ce2e4bf26942eb52ce886b70961313fdc7828
     devDependencies:
       '@types/lodash':
         specifier: ^4.14.194
@@ -271,8 +274,8 @@ importers:
         specifier: ^6.11.2
         version: 6.11.2
       zod:
-        specifier: ^3.21.4
-        version: 3.21.4
+        specifier: stainless-api/zod#releases/object-from-2
+        version: github.com/stainless-api/zod/a74ce2e4bf26942eb52ce886b70961313fdc7828
       zod-openapi:
         specifier: github:stainless-api/zod-openapi#2.5.1
         version: github.com/stainless-api/zod-openapi/5817cf4167a4892b9e364ecc75e4cd6b973e474e(zod@3.21.4)
@@ -10726,10 +10729,6 @@ packages:
     resolution: {integrity: sha512-rVksvsnNCdJ/ohGc6xgPwyN8eheCxsiLM8mxuE/t/mOVqJewPuO1miLpTHQiRgTKCLexL4MeAFVagts7HmNZ2Q==}
     engines: {node: '>=10'}
 
-  /zod@3.21.4:
-    resolution: {integrity: sha512-m46AKbrzKVzOzs/DZgVnG5H55N1sv1M8qZU3A8RIKbs3mrACDNeIOeilDymVb2HdmP8uwshOCF4uJ8uM9rCqJw==}
-    dev: false
-
   /zustand@4.3.5(react@18.2.0):
     resolution: {integrity: sha512-2iPUzfwx+g3f0PagOMz2vDO9mZzEp2puFpNe7vrAymVPOEIEUjCPkC4/zy84eAscxIWmTU4j9g6upXYkJdzEFQ==}
     engines: {node: '>=12.7.0'}
@@ -10759,5 +10758,11 @@ packages:
     peerDependencies:
       zod: ^3.21.4
     dependencies:
-      zod: 3.21.4
+      zod: github.com/stainless-api/zod/a74ce2e4bf26942eb52ce886b70961313fdc7828
+    dev: false
+
+  github.com/stainless-api/zod/a74ce2e4bf26942eb52ce886b70961313fdc7828:
+    resolution: {tarball: https://codeload.github.com/stainless-api/zod/tar.gz/a74ce2e4bf26942eb52ce886b70961313fdc7828}
+    name: zod
+    version: 3.21.4
     dev: false

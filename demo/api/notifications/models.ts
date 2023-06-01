@@ -19,7 +19,7 @@ type Notification1 = z.CircularModel<
 
 const Notification1: Notification1 = Notification0.extend({
   user: z.lazy(() => User).expandable(),
-  user_fields: z.lazy(() => UserSelection).selectable(),
+  user_fields: z.lazy(() => UserSelection).selectable("user"),
 });
 export const Notification = Notification1.prismaModel(prisma.notification);
 

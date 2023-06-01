@@ -27,9 +27,9 @@ type Comment1 = z.CircularModel<
 
 const Comment1: Comment1 = Comment0.extend({
   user: z.lazy(() => User).expandable(),
-  user_fields: z.lazy(() => UserSelection).selectable(),
+  user_fields: z.lazy(() => UserSelection).selectable("user"),
   post: z.lazy(() => Post).expandable(),
-  post_fields: z.lazy(() => PostSelection).selectable(),
+  post_fields: z.lazy(() => PostSelection).selectable("post"),
 });
 
 export const Comment = Comment1.prismaModel(prisma.comment);
