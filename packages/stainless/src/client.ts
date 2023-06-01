@@ -114,7 +114,8 @@ function actionMethod(action: string): HttpMethod {
 }
 
 export function createClient<Api extends AnyAPIDescription>(
-  baseUrl: string
+  baseUrl: string,
+  options?: { fetch?: typeof fetch }
 ): StainlessClient<Api> {
   const client = createRecursiveProxy((opts) => {
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
@@ -154,7 +155,7 @@ export function createClient<Api extends AnyAPIDescription>(
     }
 
     const doFetch = async () => {
-      const json = await fetch(uri, {
+      const json = await (options?.fetch || fetch)(uri, {
         method,
         headers: {
           "Content-Type": "application/json",
@@ -252,7 +253,7 @@ export class PageImpl<D extends z.PageData<any>> {
     private clientPath: string[],
     private pathname: string,
     private params: z.infer<typeof z.PaginationParams>,
-    private data: D
+    public data: D
   ) {
     Object.assign(this, data);
   }

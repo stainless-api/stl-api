@@ -1,6 +1,13 @@
 /** @type {import('ts-jest/dist/types').InitialOptionsTsJest} */
 module.exports = {
-  preset: "ts-jest",
+  transform: {
+    "^.+\\.tsx?$": [
+      "ts-jest",
+      {
+        diagnostics: false,
+      },
+    ],
+  },
   testEnvironment: "node",
   modulePathIgnorePatterns: ["<rootDir>/node_modules/", "/dist/", ".next/"],
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "/dist/", ".next/"],
