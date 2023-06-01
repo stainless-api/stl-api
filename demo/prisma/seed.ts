@@ -1,43 +1,68 @@
 import { PrismaClient } from ".prisma/client";
 import { faker } from "@faker-js/faker";
 import { range, sample, sampleSize } from "lodash";
+import testdata from "./testdata.json";
+import { omit } from "lodash";
 
 const prisma = new PrismaClient();
 async function main() {
-  await prisma.user.createMany({
-    data: range(10).map(() => ({
-      name: faker.name.fullName(),
-      username: faker.name.firstName(),
-      email: faker.internet.email(),
-    })),
-  });
-  const users = await prisma.user.findMany();
-  for (const user of users) {
-    await prisma.user.update({
-      where: { id: user.id },
-      data: {
-        followingIds: sampleSize(users, 5).map((u) => u.id),
-      },
+  await prisma.$transaction(async (prisma) => {
+    const testusers = testdata.items;
+    await prisma.user.createMany({
+      data: testusers.map((user) => omit(user, "posts")),
     });
     await prisma.post.createMany({
-      data: range(200).map(() => ({
-        userId: user.id,
-        body: faker.lorem.sentences(),
+      data: testusers.flatMap(
+        (user) => user.posts?.map((post) => omit(post, "comments")) || []
+      ),
+    });
+    await prisma.comment.createMany({
+      data: testusers.flatMap(
+        (user) =>
+          user.posts?.flatMap(
+            (post) =>
+              post.comments?.filter((c) =>
+                testusers.find((u) => u.id === c.userId)
+              ) || []
+          ) || []
+      ),
+    });
+
+    await prisma.user.createMany({
+      data: range(10).map(() => ({
+        name: faker.name.fullName(),
+        username: faker.name.firstName(),
+        email: faker.internet.email(),
       })),
     });
-    const posts = await prisma.post.findMany({
-      where: { userId: user.id },
-    });
-    for (const post of sampleSize(posts, Math.floor(posts.length / 4))) {
-      await prisma.comment.createMany({
-        data: range(5).map(() => ({
-          postId: post.id,
-          userId: sample(users)!.id,
-          body: faker.lorem.sentence(),
+    const users = await prisma.user.findMany();
+    for (const user of users) {
+      await prisma.user.update({
+        where: { id: user.id },
+        data: {
+          followingIds: sampleSize(users, 5).map((u) => u.id),
+        },
+      });
+      await prisma.post.createMany({
+        data: range(200).map(() => ({
+          userId: user.id,
+          body: faker.lorem.sentences(),
         })),
       });
+      const posts = await prisma.post.findMany({
+        where: { userId: user.id },
+      });
+      for (const post of sampleSize(posts, Math.floor(posts.length / 4))) {
+        await prisma.comment.createMany({
+          data: range(5).map(() => ({
+            postId: post.id,
+            userId: sample(users)!.id,
+            body: faker.lorem.sentence(),
+          })),
+        });
+      }
     }
-  }
+  });
 }
 main()
   .then(async () => {
