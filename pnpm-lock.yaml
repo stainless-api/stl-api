@@ -277,6 +277,43 @@ importers:
         specifier: ^5.0.4
         version: 5.0.4
 
+  packages/react-query:
+    dependencies:
+      '@tanstack/query-core':
+        specifier: ^4.29.5
+        version: 4.29.5
+      '@tanstack/react-query':
+        specifier: ^4.29.5
+        version: 4.29.5(react-dom@18.2.0)(react@18.2.0)
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      prisma:
+        specifier: ^4.0.0
+        version: 4.14.1
+      qs:
+        specifier: ^6.11.2
+        version: 6.11.2
+      stainless:
+        specifier: workspace:*
+        version: link:../stainless
+      zod:
+        specifier: ^3.21.4
+        version: 3.21.4
+    devDependencies:
+      '@types/lodash':
+        specifier: ^4.14.194
+        version: 4.14.194
+      '@types/node':
+        specifier: ^20.2.3
+        version: 20.2.3
+      '@types/qs':
+        specifier: ^6.9.7
+        version: 6.9.7
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+
   packages/stainless:
     dependencies:
       lodash:

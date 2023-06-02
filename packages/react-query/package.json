@@ -1,0 +1,46 @@
+{
+  "name": "@stl-api/react-query",
+  "version": "0.0.1",
+  "description": "react-query client for stainless api",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/prisma"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/react-query",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api",
+    "prisma"
+  ],
+  "license": "ISC",
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "module": "dist/index.es.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "tsc -p tsconfig.build.json",
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/lodash": "^4.14.194",
+    "@types/node": "^20.2.3",
+    "@types/qs": "^6.9.7",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "@tanstack/query-core": "^4.29.5",
+    "@tanstack/react-query": "^4.29.5",
+    "stainless": "workspace:*",
+    "lodash": "^4.17.21",
+    "qs": "^6.11.2",
+    "zod": "^3.21.4"
+  },
+  "peerDependencies": {
+    "prisma": "^4.0.0"
+  }
+}
