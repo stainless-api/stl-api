@@ -9,6 +9,7 @@ import {
   createRecursiveProxy,
 } from "stainless";
 import { isEmpty, once } from "lodash";
+import { UseQueryOptions } from "@tanstack/react-query";
 
 type ValueOf<T extends object> = T[keyof T];
 
@@ -52,7 +53,7 @@ type ActionsForMethod<
 
 type ClientResource<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
-    ? ClientFunction<Action, Resource["actions"][Action]>
+    ? ClientFunction<Resource["actions"][Action]>
     : never;
 } & {
   [S in keyof Resource["namespacedResources"]]: ClientResource<
@@ -81,6 +82,59 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   : E["query"] extends z.ZodTypeAny
   ? (query: ExtractClientQuery<E>) => ExtractClientResponse<E>
   : () => ExtractClientResponse<E>;
+
+type ClientUseQueryOptions<
+  TQueryFnData = unknown,
+  TError = unknown,
+  TData = TQueryFnData
+> = Omit<
+  UseQueryOptions<TQueryFnData, TError, TData, any>,
+  "queryKey" | "queryFn"
+>;
+
+type ClientUseQuery<
+  E extends AnyEndpoint,
+  TQueryFnData = ExtractClientResponse<E>,
+  TError = unknown,
+  TData = TQueryFnData
+> = E["path"] extends z.ZodTypeAny
+  ? E["body"] extends z.ZodTypeAny
+    ? (
+        path: ExtractClientPath<E>,
+        body: ExtractClientBody<E>,
+        options?: { query?: ExtractClientQuery<E> } & ClientUseQueryOptions<
+          TQueryFnData,
+          TError,
+          TData
+        >
+      ) => ExtractClientResponse<E>
+    : E["query"] extends z.ZodTypeAny
+    ? (
+        path: ExtractClientPath<E>,
+        query: ExtractClientQuery<E>,
+        options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
+      ) => ExtractClientResponse<E>
+    : (
+        path: ExtractClientPath<E>,
+        options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
+      ) => ExtractClientResponse<E>
+  : E["body"] extends z.ZodTypeAny
+  ? (
+      body: ExtractClientBody<E>,
+      options?: { query?: ExtractClientQuery<E> } & ClientUseQueryOptions<
+        TQueryFnData,
+        TError,
+        TData
+      >
+    ) => ExtractClientResponse<E>
+  : E["query"] extends z.ZodTypeAny
+  ? (
+      query: ExtractClientQuery<E>,
+      options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
+    ) => ExtractClientResponse<E>
+  : (
+      options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
+    ) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
   if (/^(get|list)([_A-Z]|$)/.test(action)) return "get";
