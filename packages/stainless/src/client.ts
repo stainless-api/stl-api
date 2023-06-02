@@ -22,43 +22,10 @@ type ExtractClientBody<E extends AnyEndpoint> = E["body"] extends z.ZodTypeAny
   ? z.input<E["body"]>
   : undefined;
 
-type CapitalLetter =
-  | "A"
-  | "B"
-  | "C"
-  | "D"
-  | "E"
-  | "F"
-  | "G"
-  | "H"
-  | "I"
-  | "J"
-  | "K"
-  | "L"
-  | "M"
-  | "N"
-  | "O"
-  | "P"
-  | "Q"
-  | "R"
-  | "S"
-  | "T"
-  | "U"
-  | "V"
-  | "W"
-  | "X"
-  | "Y"
-  | "Z";
-
-type ListAction = `list${`${CapitalLetter | "_"}${string}` | ""}`;
-
-type ExtractClientResponse<
-  Action,
-  E extends AnyEndpoint
-> = Action extends ListAction
-  ? z.infer<E["response"]> extends z.PageData<any>
-    ? PaginatorPromise<z.infer<E["response"]>>
-    : ExtractClientResponse<unknown, E>
+type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
+  E["response"]
+> extends z.PageData<any>
+  ? PaginatorPromise<z.infer<E["response"]>>
   : E["response"] extends z.ZodTypeAny
   ? ClientPromise<z.infer<E["response"]>>
   : ClientPromise<undefined>;
@@ -73,7 +40,7 @@ export type StainlessClient<Api extends AnyAPIDescription> = ClientResource<
 
 type ClientResource<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
-    ? ClientFunction<Action, Resource["actions"][Action]>
+    ? ClientFunction<Resource["actions"][Action]>
     : never;
 } & {
   [S in keyof Resource["namespacedResources"]]: ClientResource<
@@ -81,30 +48,27 @@ type ClientResource<Resource extends AnyResourceConfig> = {
   >;
 };
 
-type ClientFunction<
-  Action,
-  E extends AnyEndpoint
-> = E["path"] extends z.ZodTypeAny
+type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
     ? (
         path: ExtractClientPath<E>,
         body: ExtractClientBody<E>,
         options?: { query?: ExtractClientQuery<E> }
-      ) => ExtractClientResponse<Action, E>
+      ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
     ? (
         path: ExtractClientPath<E>,
         query: ExtractClientQuery<E>
-      ) => ExtractClientResponse<Action, E>
-    : (path: ExtractClientPath<E>) => ExtractClientResponse<Action, E>
+      ) => ExtractClientResponse<E>
+    : (path: ExtractClientPath<E>) => ExtractClientResponse<E>
   : E["body"] extends z.ZodTypeAny
   ? (
       body: ExtractClientBody<E>,
       options?: { query?: ExtractClientQuery<E> }
-    ) => ExtractClientResponse<Action, E>
+    ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (query: ExtractClientQuery<E>) => ExtractClientResponse<Action, E>
-  : () => ExtractClientResponse<Action, E>;
+  ? (query: ExtractClientQuery<E>) => ExtractClientResponse<E>
+  : () => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
   if (/^(get|list)([_A-Z]|$)/.test(action)) return "get";
