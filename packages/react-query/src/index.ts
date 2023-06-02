@@ -72,6 +72,17 @@ export type StainlessReactQueryClient<Api extends AnyAPIDescription> =
     >
   >;
 
+type ActionsForMethod<
+  Resource extends AnyResourceConfig,
+  Method extends HttpMethod
+> = {
+  [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
+    ? Resource["actions"][Action]["endpoint"] extends `${Method} ${string}`
+      ? Action
+      : never
+    : never;
+}[keyof Resource["actions"]];
+
 type ClientResource<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
     ? ClientFunction<Action, Resource["actions"][Action]>
