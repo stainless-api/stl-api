@@ -12,7 +12,14 @@ export type {
   Page,
 } from "./client";
 
-export type HttpMethod = "get" | "post" | "put" | "patch" | "delete";
+export type HttpMethod =
+  | "get"
+  | "post"
+  | "put"
+  | "patch"
+  | "delete"
+  | "options"
+  | "head";
 export type HttpPath = `/${string}`;
 export type HttpEndpoint = `${HttpMethod} ${HttpPath}`;
 
@@ -24,6 +31,8 @@ export function parseEndpoint(endpoint: HttpEndpoint): [HttpMethod, HttpPath] {
     case "put":
     case "patch":
     case "delete":
+    case "options":
+    case "head":
       break;
     default:
       throw new Error(`invalid or unsupported http method: ${method}`);
