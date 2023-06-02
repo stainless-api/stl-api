@@ -4,6 +4,7 @@ import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31
 export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
+export { createRecursiveProxy } from "./createRecursiveProxy";
 export type {
   StainlessClient,
   ClientPromise,
@@ -69,13 +70,14 @@ export interface EndpointConfig {
 
 export type Endpoint<
   UserContext extends object,
+  MethodAndUrl extends HttpEndpoint,
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
   Response extends z.ZodTypeAny | undefined
 > = {
-  stl: Stl<StlContext<any>, any>;
-  endpoint: HttpEndpoint;
+  stl: Stl<UserContext, any>;
+  endpoint: MethodAndUrl;
   response: Response;
   config: EndpointConfig;
   path: Path;
@@ -83,7 +85,9 @@ export type Endpoint<
   body: Body;
   handler: Handler<
     UserContext &
-      StlContext<Endpoint<UserContext, Path, Query, Body, Response>>,
+      StlContext<
+        Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
+      >,
     Path,
     Query,
     Body,
@@ -91,7 +95,13 @@ export type Endpoint<
   >;
 };
 
-export type AnyEndpoint = Endpoint<any, any, any, any, any>;
+export type AnyEndpoint = Endpoint<any, any, any, any, any, any>;
+
+export type GetEndpointMethod<E extends AnyEndpoint> =
+  E["endpoint"] extends `${infer M extends HttpMethod} ${string}` ? M : never;
+
+export type GetEndpointUrl<E extends AnyEndpoint> =
+  E["endpoint"] extends `${HttpMethod} ${infer Url}` ? Url : never;
 
 export function allEndpoints(
   resource:
@@ -108,7 +118,7 @@ export function allEndpoints(
   ];
 }
 
-type AnyActionsConfig = Record<string, AnyEndpoint | null>;
+export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
@@ -241,6 +251,7 @@ export type OpenAPIResponse = z.infer<typeof OpenAPIResponse>;
 
 export type OpenAPIEndpoint = Endpoint<
   any,
+  any,
   undefined,
   undefined,
   undefined,
@@ -260,25 +271,28 @@ export type Stl<UserContext extends object, Plugins extends AnyPlugins> = {
   ) => Promise<ExtractExecuteResponse<EC>>;
 
   endpoint: <
+    MethodAndUrl extends HttpEndpoint,
     Path extends ZodObjectSchema | undefined,
     Query extends ZodObjectSchema | undefined,
     Body extends ZodObjectSchema | undefined,
     Response extends z.ZodTypeAny = z.ZodVoid
   >(options: {
-    endpoint: HttpEndpoint;
+    endpoint: MethodAndUrl;
     path?: Path;
     query?: Query;
     body?: Body;
     response?: Response;
     handler: Handler<
       UserContext &
-        StlContext<Endpoint<UserContext, Path, Query, Body, Response>>,
+        StlContext<
+          Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
+        >,
       Path,
       Query,
       Body,
       Response extends z.ZodTypeAny ? z.input<Response> : undefined
     >;
-  }) => Endpoint<UserContext, Path, Query, Body, Response>;
+  }) => Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>;
 
   resource: <
     Actions extends AnyActionsConfig | undefined,
@@ -409,6 +423,7 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
     openapiSpec,
 
     endpoint: <
+      MethodAndUrl extends HttpEndpoint,
       Path extends ZodObjectSchema | undefined,
       Query extends ZodObjectSchema | undefined,
       Body extends ZodObjectSchema | undefined,
@@ -421,7 +436,7 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
       body,
       ...rest
     }: {
-      endpoint: HttpEndpoint;
+      endpoint: MethodAndUrl;
       config?: EndpointConfig;
       response?: Response;
       path?: Path;
@@ -429,13 +444,15 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
       body?: Body;
       handler: Handler<
         UserContext &
-          StlContext<Endpoint<UserContext, Path, Query, Body, Response>>,
+          StlContext<
+            Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
+          >,
         Path,
         Query,
         Body,
         Response extends z.ZodTypeAny ? z.input<Response> : undefined
       >;
-    }): Endpoint<UserContext, Path, Query, Body, Response> => {
+    }): Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response> => {
       return {
         stl: stl as any,
         config: config as EndpointConfig,
