@@ -1,4 +1,3 @@
 import { users } from "~/api/users";
-import { stl } from "~/libs/stl";
-
-export default stl.plugins.next.pageRoute(users.actions.list);
+import { stlNextPageRoute } from "@stl-api/next";
+export default stlNextPageRoute(users.actions.list);

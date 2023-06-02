@@ -12,7 +12,7 @@ Provides highly productive ways of creating APIs with Prisma and Stainless.
 ## Installation
 
 ```
-npm i --save stainless-api/stl-api#prisma-0.0.1
+npm i --save stainless-api/stl-api#prisma-0.0.2
 ```
 
 ## Add plugin to stainless instance

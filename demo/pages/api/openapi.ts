@@ -1,4 +1,3 @@
 import { api } from "~/api/api";
-import { stl } from "~/libs/stl";
-
-export default stl.plugins.next.pageRoute(api.topLevel.actions.getOpenapi);
+import { stlNextPageRoute } from "@stl-api/next";
+export default stlNextPageRoute(api.topLevel.actions.getOpenapi);

@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/next",
-  "version": "0.0.1",
+  "version": "0.0.2",
   "license": "ISC",
   "description": "next.js plugin for stainless api",
   "author": "dev@stainlessapi.com",

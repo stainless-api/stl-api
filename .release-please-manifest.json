@@ -1,6 +1,6 @@
 {
-  "packages/next-auth": "0.0.1",
-  "packages/next": "0.0.1",
-  "packages/prisma": "0.0.1",
-  "packages/stainless": "0.0.1"
+  "packages/next-auth": "0.0.2",
+  "packages/next": "0.0.2",
+  "packages/prisma": "0.0.2",
+  "packages/stainless": "0.0.2"
 }

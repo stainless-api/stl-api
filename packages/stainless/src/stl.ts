@@ -74,6 +74,7 @@ export type Endpoint<
   Body extends ZodObjectSchema | undefined,
   Response extends z.ZodTypeAny | undefined
 > = {
+  stl: Stl<StlContext<any>, any>;
   endpoint: HttpEndpoint;
   response: Response;
   config: EndpointConfig;
@@ -436,6 +437,7 @@ export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
       >;
     }): Endpoint<UserContext, Path, Query, Body, Response> => {
       return {
+        stl: stl as any,
         config: config as EndpointConfig,
         response: (response || z.void()) as Response,
         path: path as Path,

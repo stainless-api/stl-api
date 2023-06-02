@@ -12,7 +12,7 @@ Use this plugin to serve a Stainless API in a Next.js app.
 ## Installation
 
 ```
-npm i --save stainless-api/stl-api#next-0.0.1
+npm i --save stainless-api/stl-api#next-0.0.2
 ```
 
 ## Add plugin to stainless instance
@@ -40,10 +40,10 @@ export const stl = makeStl<StlUserContext, typeof plugins>({
 // ~/app/api/[...catchall]/route.ts
 
 import { api } from "~/api/api";
-import { stl } from "~/libs/stl";
+import { stlNextAppCatchAllRouter } from "@stl-api/next";
 
 const { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS } =
-  stl.plugins.next.appCatchAllRouter(api, {
+  stlNextAppCatchAllRouter(api, {
     catchAllParam: "catchall",
   });
 
@@ -55,9 +55,9 @@ export { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS };
 ```ts
 // ~/pages/api/[...catchall].ts
 import { api } from "~/api/api";
-import { stl } from "~/libs/stl";
+import { stlNextPageCatchAllRouter } from "@stl-api/next";
 
-export default stl.plugins.next.catchAllRouter(api, {
+export default stlNextPageCatchAllRouter(api, {
   catchAllParam: "splat",
 });
 ```
@@ -67,12 +67,12 @@ export default stl.plugins.next.catchAllRouter(api, {
 ```ts
 // ~/app/api/posts/route.ts
 
-import { stl } from "~/libs/stl";
+import { stlNextAppRoute } from "@stl-api/next";
 import { create } from "~/api/posts/create";
 import { list } from "~/api/posts/list";
 
-export const GET = stl.plugins.next.appRoute(list);
-export const POST = stl.plugins.next.appRoute(create);
+export const GET = stlNextAppRoute(list);
+export const POST = stlNextAppRoute(create);
 ```
 
 ## Incremental adoption with pages router
@@ -81,12 +81,9 @@ export const POST = stl.plugins.next.appRoute(create);
 // ~/pages/api/posts/index.ts
 
 import { posts } from "~/api/posts";
-import { stl } from "~/libs/stl";
+import { stlNextPageRoute } from "@stl-api/next";
 
-export default stl.plugins.next.pageRoute(
-  posts.actions.list,
-  posts.actions.create
-);
+export default stlNextPageRoute(posts.actions.list, posts.actions.create);
 ```
 
 ## Changing the base URL of the API
@@ -100,16 +97,16 @@ export const list = stl.endpoint({
 
 And you want to serve them under `/api/v2` instead, you can
 pass `basePathMap: { "/api/": "/api/v2/" }` in the second argument
-of `pageRoute`, `catchAllRouter`, `appRoute`, or `appCatchAllRouter`:
+of `stlNextPageRoute`, `stlNextPageCatchAllRouter`, `stlNextAppRoute`, or `stlNextAppCatchAllRouter`:
 
 ```ts
 // ~/app/api/v2/[...catchall]/route.ts
 
 import { api } from "~/api/api";
-import { stl } from "~/libs/stl";
+import { stlNextAppCatchAllRouter } from "@stl-api/next";
 
 const { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS } =
-  stl.plugins.next.appCatchAllRouter(api, {
+  stlNextAppCatchAllRouter(api, {
     catchAllParam: "splat",
     basePathMap: { "/api/": "/api/v2/" },
   });
