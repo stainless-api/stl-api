@@ -1,7 +1,4 @@
 import { posts } from "~/api/posts";
-import { stl } from "~/libs/stl";
+import { stlNextPageRoute } from "@stl-api/next";
 
-export default stl.plugins.next.pageRoute(
-  posts.actions.list,
-  posts.actions.create
-);
+export default stlNextPageRoute(posts.actions.list, posts.actions.create);

@@ -1,8 +1,8 @@
 import { api } from "~/api/api";
-import { stl } from "~/libs/stl";
+import { stlNextAppCatchAllRouter } from "@stl-api/next";
 
 const { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS } =
-  stl.plugins.next.appCatchAllRouter(api, {
+  stlNextAppCatchAllRouter(api, {
     catchAllParam: "splat",
     basePathMap: { "/api/": "/api/v3/" },
   });
