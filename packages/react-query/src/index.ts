@@ -7,9 +7,11 @@ import {
   ResourceConfig,
   HttpMethod,
   createRecursiveProxy,
+  GetEndpointMethod,
 } from "stainless";
 import { isEmpty, once } from "lodash";
 import { UseQueryOptions } from "@tanstack/react-query";
+import { LowerFirst, UpperFirst } from "./util";
 
 type ValueOf<T extends object> = T[keyof T];
 
@@ -51,10 +53,22 @@ type ActionsForMethod<
     : never;
 }[keyof Resource["actions"]];
 
+type UseAction<Action extends string> = `use${UpperFirst<Action>}`;
+
+type NonUseAction<Action extends string> = Action extends `use${infer Rest}`
+  ? LowerFirst<Rest>
+  : never;
+
 type ClientResource<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
     ? ClientFunction<Resource["actions"][Action]>
     : never;
+} & {
+  [Action in UseAction<Resource["actions"] & string>]: GetEndpointMethod<
+    Resource["actions"][NonUseAction<Action>]
+  > extends "get"
+    ? ClientUseQuery<Resource["actions"][NonUseAction<Action>]>
+    : unknown;
 } & {
   [S in keyof Resource["namespacedResources"]]: ClientResource<
     Resource["namespacedResources"][S]
