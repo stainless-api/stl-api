@@ -10,7 +10,11 @@ import {
   GetEndpointMethod,
 } from "stainless";
 import { isEmpty, once } from "lodash";
-import { UseQueryOptions } from "@tanstack/react-query";
+import {
+  UseQueryOptions,
+  UseQueryResult,
+  useQuery,
+} from "@tanstack/react-query";
 import { LowerFirst, UpperFirst } from "./util";
 
 type ValueOf<T extends object> = T[keyof T];
@@ -42,17 +46,6 @@ export type StainlessReactQueryClient<Api extends AnyAPIDescription> =
     >
   >;
 
-type ActionsForMethod<
-  Resource extends AnyResourceConfig,
-  Method extends HttpMethod
-> = {
-  [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
-    ? Resource["actions"][Action]["endpoint"] extends `${Method} ${string}`
-      ? Action
-      : never
-    : never;
-}[keyof Resource["actions"]];
-
 type UseAction<Action extends string> = `use${UpperFirst<Action>}`;
 
 type NonUseAction<Action extends string> = Action extends `use${infer Rest}`
@@ -64,7 +57,7 @@ type ClientResource<Resource extends AnyResourceConfig> = {
     ? ClientFunction<Resource["actions"][Action]>
     : never;
 } & {
-  [Action in UseAction<Resource["actions"] & string>]: GetEndpointMethod<
+  [Action in UseAction<keyof Resource["actions"] & string>]: GetEndpointMethod<
     Resource["actions"][NonUseAction<Action>]
   > extends "get"
     ? ClientUseQuery<Resource["actions"][NonUseAction<Action>]>
@@ -108,7 +101,7 @@ type ClientUseQueryOptions<
 
 type ClientUseQuery<
   E extends AnyEndpoint,
-  TQueryFnData = ExtractClientResponse<E>,
+  TQueryFnData = z.infer<E["response"]>,
   TError = unknown,
   TData = TQueryFnData
 > = E["path"] extends z.ZodTypeAny
@@ -121,17 +114,17 @@ type ClientUseQuery<
           TError,
           TData
         >
-      ) => ExtractClientResponse<E>
+      ) => UseQueryResult<TData, TError>
     : E["query"] extends z.ZodTypeAny
     ? (
         path: ExtractClientPath<E>,
         query: ExtractClientQuery<E>,
         options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
-      ) => ExtractClientResponse<E>
+      ) => UseQueryResult<TData, TError>
     : (
         path: ExtractClientPath<E>,
         options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
-      ) => ExtractClientResponse<E>
+      ) => UseQueryResult<TData, TError>
   : E["body"] extends z.ZodTypeAny
   ? (
       body: ExtractClientBody<E>,
@@ -140,18 +133,19 @@ type ClientUseQuery<
         TError,
         TData
       >
-    ) => ExtractClientResponse<E>
+    ) => UseQueryResult<TData, TError>
   : E["query"] extends z.ZodTypeAny
   ? (
       query: ExtractClientQuery<E>,
       options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
-    ) => ExtractClientResponse<E>
+    ) => UseQueryResult<TData, TError>
   : (
       options?: ClientUseQueryOptions<TQueryFnData, TError, TData>
-    ) => ExtractClientResponse<E>;
+    ) => UseQueryResult<TData, TError>;
 
 function actionMethod(action: string): HttpMethod {
-  if (/^(get|list)([_A-Z]|$)/.test(action)) return "get";
+  if (/^(retrieve|get|list|useRetrieve|useList|useGet)([_A-Z]|$)/.test(action))
+    return "get";
   if (/^delete([_A-Z]|$)/.test(action)) return "delete";
   // TODO: is it possible to deal with patch/put?
   return "post";
@@ -166,6 +160,8 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
     const action = callPath.pop()!; // TODO validate
     const { args } = opts;
     let requestOptions: RequestOptions<any> | undefined;
+    // TODO extract useQueryOptions
+    let useQueryOptions: object | undefined;
 
     let path = callPath.join("/"); // eg; /issuing/cards
     if (typeof args[0] === "string" || typeof args[0] === "number") {
@@ -193,7 +189,7 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
     }
 
     let cacheKey = uri;
-    if (action === "list") {
+    if (/^(list|useList)([_A-Z]|$)/.test(action)) {
       const { pageSize, sortDirection = "asc", ...restQuery } = query;
       cacheKey = `${pathname}?${qs.stringify({ ...restQuery, sortDirection })}`;
     }
@@ -241,7 +237,15 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
       cacheKey,
     };
 
-    return action === "list"
+    if (/^use(Get|Retrieve|List)([A-Z_]|$)/.test(action)) {
+      return useQuery({
+        ...useQueryOptions,
+        queryKey: [cacheKey],
+        queryFn: doFetch,
+      });
+    }
+
+    return /^list([A-Z_]|$)/.test(action)
       ? new PaginatorPromise(doFetch, promiseProps)
       : new ClientPromise(doFetch, promiseProps);
   }, []) as StainlessReactQueryClient<Api>;

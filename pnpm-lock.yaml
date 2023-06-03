@@ -52,6 +52,9 @@ importers:
       '@stl-api/prisma':
         specifier: workspace:*
         version: link:../packages/prisma
+      '@stl-api/react-query':
+        specifier: workspace:*
+        version: link:../packages/react-query
       '@tanstack/query-core':
         specifier: ^4.29.5
         version: 4.29.5

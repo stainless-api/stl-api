@@ -20,6 +20,7 @@
     "@stl-api/next": "workspace:*",
     "@stl-api/next-auth": "workspace:*",
     "@stl-api/prisma": "workspace:*",
+    "@stl-api/react-query": "workspace:*",
     "@tanstack/query-core": "^4.29.5",
     "@tanstack/react-query": "^4.29.5",
     "axios": "^1.3.4",

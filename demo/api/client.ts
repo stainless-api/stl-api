@@ -1,4 +1,4 @@
-import { createClient } from "stainless";
 import type { api } from "./api";
+import { createReactQueryClient } from "@stl-api/react-query";
 
-export const client = createClient<typeof api>("/api");
+export const client = createReactQueryClient<typeof api>("/api");
