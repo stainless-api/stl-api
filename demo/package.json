@@ -8,7 +8,8 @@
     "build": "prisma generate && next build && tsc -b",
     "start": "next start",
     "lint": "next lint",
-    "psql": "docker compose exec db psql -U postgres"
+    "psql": "docker compose exec db psql -U postgres",
+    "prisma": "prisma"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
