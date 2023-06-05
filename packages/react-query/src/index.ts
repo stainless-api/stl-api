@@ -219,7 +219,7 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
         throw new Error(`Error: ${json.error.message}`);
       }
 
-      const parsed = z.AnyPageData.safeParse(json);
+      const parsed = await z.AnyPageData.safeParseAsync(json);
       if (parsed.success) {
         return new PageImpl(
           client,
