@@ -143,7 +143,7 @@ type ClientUseQuery<
     ) => UseQueryResult<TData, TError>;
 
 function actionMethod(action: string): HttpMethod {
-  if (/^(retrieve|get|list|useRetrieve|useList|useGet)([_A-Z]|$)/.test(action))
+  if (/^(retrieve|get|list|use(Retrieve|List|Get))([_A-Z]|$)/.test(action))
     return "get";
   if (/^delete([_A-Z]|$)/.test(action)) return "delete";
   // TODO: is it possible to deal with patch/put?
@@ -158,16 +158,21 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
     const { args } = opts;
+    const isPaginated = /^(list|useList)([_A-Z]|$)/.test(action);
+    const isHook = /^use(Get|Retrieve|List)([A-Z_]|$)/.test(action);
+
     let requestOptions: RequestOptions<any> | undefined;
-    // TODO extract useQueryOptions
-    let useQueryOptions: object | undefined;
+    let useQueryOptions: ({ query?: any } & ClientUseQueryOptions) | undefined;
 
     let path = callPath.join("/"); // eg; /issuing/cards
     if (typeof args[0] === "string" || typeof args[0] === "number") {
       path += `/${encodeURIComponent(args.shift() as string | number)}`;
     }
 
-    if (isRequestOptions(args.at(-1))) {
+    if (isHook && isUseQueryOptions(args.at(-1))) {
+      useQueryOptions = args.shift() as any;
+    }
+    if (!isHook && isRequestOptions(args.at(-1))) {
       requestOptions = args.shift() as any;
     }
     const method = actionMethod(action);
@@ -179,7 +184,7 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
 
     const query: Record<string, any> = {
       ...(method === "get" && typeof args[0] === "object" ? args[0] : null),
-      ...requestOptions?.query,
+      ...(useQueryOptions || requestOptions)?.query,
     };
     let search = "";
     if (query && Object.keys(query).length) {
@@ -188,7 +193,7 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
     }
 
     let cacheKey = uri;
-    if (/^(list|useList)([_A-Z]|$)/.test(action)) {
+    if (isPaginated) {
       const { pageSize, sortDirection = "asc", ...restQuery } = query;
       cacheKey = `${pathname}?${qs.stringify({ ...restQuery, sortDirection })}`;
     }
@@ -236,7 +241,7 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
       cacheKey,
     };
 
-    if (/^use(Get|Retrieve|List)([A-Z_]|$)/.test(action)) {
+    if (isHook) {
       return useQuery({
         ...useQueryOptions,
         queryKey: [cacheKey],
@@ -244,7 +249,7 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
       });
     }
 
-    return /^list([A-Z_]|$)/.test(action)
+    return isPaginated
       ? new PaginatorPromise(doFetch, promiseProps)
       : new ClientPromise(doFetch, promiseProps);
   }, []) as StainlessReactQueryClient<Api>;
@@ -289,6 +294,56 @@ export const isRequestOptions = (obj: unknown): obj is RequestOptions => {
     obj !== null &&
     !isEmpty(obj) &&
     Object.keys(obj).every((k) => Object.hasOwn(requestOptionsKeys, k))
+  );
+};
+
+// This is required so that we can determine if a given object matches the RequestOptions
+// type at runtime. While this requires duplication, it is enforced by the TypeScript
+// compiler such that any missing / extraneous keys will cause an error.
+const useQueryOptionsKeys: KeysEnum<{ query?: any } & ClientUseQueryOptions> = {
+  context: true,
+  retry: true,
+  retryDelay: true,
+  networkMode: true,
+  cacheTime: true,
+  isDataEqual: true,
+  queryHash: true,
+  queryKeyHashFn: true,
+  initialData: true,
+  initialDataUpdatedAt: true,
+  behavior: true,
+  structuralSharing: true,
+  getPreviousPageParam: true,
+  getNextPageParam: true,
+  _defaulted: true,
+  meta: true,
+  query: true,
+  enabled: true,
+  staleTime: true,
+  refetchInterval: true,
+  refetchIntervalInBackground: true,
+  refetchOnWindowFocus: true,
+  refetchOnReconnect: true,
+  refetchOnMount: true,
+  retryOnMount: true,
+  notifyOnChangeProps: true,
+  onSuccess: true,
+  onError: true,
+  onSettled: true,
+  useErrorBoundary: true,
+  select: true,
+  suspense: true,
+  keepPreviousData: true,
+  placeholderData: true,
+  _optimisticResults: true,
+};
+
+export const isUseQueryOptions = (obj: unknown): obj is UseQueryOptions => {
+  return (
+    typeof obj === "object" &&
+    obj !== null &&
+    !isEmpty(obj) &&
+    Object.keys(obj).every((k) => Object.hasOwn(useQueryOptionsKeys, k))
   );
 };
 
