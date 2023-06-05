@@ -21,10 +21,8 @@
   "license": "ISC",
   "source": "src/nextAuthPlugin.ts",
   "main": "dist/nextAuthPlugin.js",
-  "module": "dist/nextAuthPlugin.es.js",
   "types": "dist/nextAuthPlugin.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {

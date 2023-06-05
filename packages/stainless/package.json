@@ -19,10 +19,8 @@
   "license": "ISC",
   "source": "src/stl.ts",
   "main": "dist/stl.js",
-  "module": "dist/stl.es.js",
   "types": "dist/stl.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {

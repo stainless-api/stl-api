@@ -15,7 +15,7 @@ import {
   UseQueryResult,
   useQuery,
 } from "@tanstack/react-query";
-import { LowerFirst, UpperFirst } from "./util";
+import { UpperFirst } from "./util";
 
 type ValueOf<T extends object> = T[keyof T];
 
@@ -47,20 +47,19 @@ export type StainlessReactQueryClient<Api extends AnyAPIDescription> =
   >;
 
 type UseAction<Action extends string> = `use${UpperFirst<Action>}`;
-
-type NonUseAction<Action extends string> = Action extends `use${infer Rest}`
-  ? LowerFirst<Rest>
-  : never;
+type UseInfiniteAction<Action extends string> =
+  `useInfinite${UpperFirst<Action>}`;
 
 type ClientResource<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
     ? ClientFunction<Resource["actions"][Action]>
     : never;
 } & {
-  [Action in UseAction<keyof Resource["actions"] & string>]: GetEndpointMethod<
-    Resource["actions"][NonUseAction<Action>]
+  [Action in keyof Resource["actions"] &
+    string as UseAction<Action>]: GetEndpointMethod<
+    Resource["actions"][Action]
   > extends "get"
-    ? ClientUseQuery<Resource["actions"][NonUseAction<Action>]>
+    ? ClientUseQuery<Resource["actions"][Action]>
     : unknown;
 } & {
   [S in keyof Resource["namespacedResources"]]: ClientResource<

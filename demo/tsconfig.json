@@ -38,7 +38,7 @@
       "path": "../packages/prisma"
     },
     {
-      "path": "../packages/react-query"
+      "path": "../packages/react-query/tsconfig.esm.json"
     },
     {
       "path": "../packages/stainless"

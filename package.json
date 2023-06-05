@@ -19,8 +19,8 @@
   "license": "ISC",
   "scripts": {
     "test": "jest",
-    "build": "tsc -b packages/*/tsconfig.build.json && (cd demo && pnpm build)",
-    "build:watch": "tsc -b --watch packages/*/tsconfig.build.json demo/tsconfig.json",
+    "build": "pnpm -r run prebuild && tsc -b packages/*/tsconfig*.json && (cd demo && pnpm build)",
+    "build:watch": "pnpm -r run prebuild && tsc -b --watch packages/*/tsconfig*.json demo/tsconfig.json",
     "docs:start": "cd docs && pnpm start",
     "docs:build": "cd docs && pnpm build",
     "docs:deploy": "pnpm docs:build && netlify deploy --dir docs/build --prod",

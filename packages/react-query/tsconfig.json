@@ -2,7 +2,7 @@
   "extends": "../../tsconfig-common.json",
   "include": ["src"],
   "compilerOptions": {
-    "outDir": "dist",
+    "outDir": "dist/cjs",
     "rootDir": "src"
   },
   "references": [{ "path": "../stainless" }]
