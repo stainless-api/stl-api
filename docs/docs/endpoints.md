@@ -64,3 +64,34 @@ of the parsed `path`, `query`, and `body` parameters squashed together, a `conte
 or resolve to a raw response to be parsed by the `response` schema.
 
 The `params`, `context` and return types will be automatically mapped from the request and response schemas.
+
+## Error handling
+
+In order to indicate an unauthorized usage of or error encountered during the 
+handling of an endpoint, throw an exception within the `handler`.
+
+`stl` provides some exception types to streamline this. Each will cause the endpoint to respond with an HTTP status code. 
+Each exception's constructor also optionally accepts an record
+parameter. If provided, this parameter is encoded in JSON and included
+as the body of the response.
+
+### `stl.StlError`
+
+Takes an HTTP status code as a constructor argument. Responds with 
+that status code.
+
+### `stl.BadRequestError`
+
+Responds with HTTP status code 400.
+
+### `stl.UnauthorizedError`
+
+Responds with HTTP status code 401.
+
+### `stl.ForbiddenError`
+
+Responds with HTTP status code 403.
+
+### `stl.NotFoundError`
+
+Responds with HTTP status code 404.
