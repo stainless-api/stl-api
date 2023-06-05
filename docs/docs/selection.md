@@ -18,7 +18,7 @@ $ curl localhost:3000/api/posts/5 -G -d 'select=user_fields.name'
 
 ## Pristine convention
 
-The pristine convention is to have a selectable property as a sibling of an
+The [pristine convention](/stl/intro#pristine) is to have a selectable property as a sibling of an
 [expandable](/stl/expansion) property. So in the above example
 there would be an expandable `user` property, whose type has some properties
 always defined, and a selectable `user_fields` property, whose type has all properties
