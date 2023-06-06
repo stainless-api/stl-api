@@ -11,9 +11,12 @@ const PostView = () => {
   const { postId } = router.query;
 
   const { data: fetchedPost, isLoading } = client.posts.useRetrieve(
-    postId as string,
+    typeof postId === "string" ? postId : "",
     {
       expand: ["user", "comments.user"],
+    },
+    {
+      enabled: typeof postId === "string",
     }
   );
 

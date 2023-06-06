@@ -5,11 +5,13 @@ export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
-export type {
-  StainlessClient,
+export {
+  type StainlessClient,
   ClientPromise,
+  type ClientPromiseProps,
   PaginatorPromise,
-  Page,
+  type Page,
+  type RequestOptions,
 } from "./client";
 
 export type HttpMethod =

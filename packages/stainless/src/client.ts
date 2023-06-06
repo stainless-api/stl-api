@@ -76,7 +76,7 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
-  if (/^(get|list)([_A-Z]|$)/.test(action)) return "get";
+  if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "get";
   if (/^delete([_A-Z]|$)/.test(action)) return "delete";
   // TODO: is it possible to deal with patch/put?
   return "post";
@@ -87,9 +87,9 @@ export function createClient<Api extends AnyAPIDescription>(
   options?: { fetch?: typeof fetch }
 ): StainlessClient<Api> {
   const client = createRecursiveProxy((opts) => {
+    const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
-    const { args } = opts;
     let requestOptions: RequestOptions<any> | undefined;
 
     let path = callPath.join("/"); // eg; /issuing/cards
@@ -98,7 +98,7 @@ export function createClient<Api extends AnyAPIDescription>(
     }
 
     if (isRequestOptions(args.at(-1))) {
-      requestOptions = args.shift() as any;
+      requestOptions = args.pop() as any;
     }
     const method = actionMethod(action);
 
@@ -163,7 +163,6 @@ export function createClient<Api extends AnyAPIDescription>(
       pathname,
       search,
       query,
-      cacheKey,
     };
 
     return action === "list"
@@ -312,23 +311,21 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 }
 
-type ClientPromiseProps = {
+export type ClientPromiseProps = {
   method: HttpMethod;
   uri: string;
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 };
 
-class ClientPromise<R> implements Promise<R> {
+export class ClientPromise<R> implements Promise<R> {
   fetch: () => Promise<R>;
   method: HttpMethod;
   uri: string;
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 
   constructor(fetch: () => Promise<R>, props: ClientPromiseProps) {
     this.fetch = once(fetch);
@@ -337,7 +334,6 @@ class ClientPromise<R> implements Promise<R> {
     this.pathname = props.pathname;
     this.search = props.search;
     this.query = props.query;
-    this.cacheKey = props.cacheKey;
   }
 
   then<TResult1 = R, TResult2 = never>(
@@ -371,14 +367,12 @@ class ClientPromise<R> implements Promise<R> {
   }
 }
 
-export type { ClientPromise };
-
 /**
  * The result of client.???.list, can be awaited like a
  * Promise to get a single page, or async iterated to go through
  * all items
  */
-class PaginatorPromise<D extends z.PageData<any>>
+export class PaginatorPromise<D extends z.PageData<any>>
   extends ClientPromise<Page<D>>
   implements AsyncIterable<z.PageItemType<D>>
 {
@@ -398,5 +392,3 @@ class PaginatorPromise<D extends z.PageData<any>>
     return "PaginatorPromise";
   }
 }
-
-export type { PaginatorPromise };

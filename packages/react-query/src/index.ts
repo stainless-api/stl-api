@@ -1,4 +1,3 @@
-import qs from "qs";
 import * as React from "react";
 import {
   z,
@@ -13,8 +12,14 @@ import {
   type EndpointResponseOutput,
   createRecursiveProxy,
   type GetEndpointMethod,
+  createClient,
+  type ClientPromiseProps as BaseClientPromiseProps,
+  ClientPromise as BaseClientPromise,
+  PaginatorPromise as BasePaginatorPromise,
+  type Page,
+  type RequestOptions,
 } from "stainless";
-import { isEmpty, once } from "lodash";
+import { isEmpty, lowerFirst } from "lodash";
 import {
   type UseQueryOptions as BaseUseQueryOptions,
   type UseQueryResult,
@@ -31,14 +36,6 @@ type EndpointPathParam<E extends AnyEndpoint> =
   EndpointPathInput<E> extends object
     ? ValueOf<EndpointPathInput<E>>
     : undefined;
-
-type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
-  E["response"]
-> extends z.PageData<any>
-  ? PaginatorPromise<z.infer<E["response"]>>
-  : E["response"] extends z.ZodTypeAny
-  ? ClientPromise<z.infer<E["response"]>>
-  : ClientPromise<undefined>;
 
 export type StainlessReactQueryClient<Api extends AnyAPIDescription> =
   ClientResource<
@@ -97,6 +94,14 @@ export type ClientResource<Resource extends AnyResourceConfig> = {
   >;
 };
 
+type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
+  E["response"]
+> extends z.PageData<any>
+  ? PaginatorPromise<z.infer<E["response"]>>
+  : E["response"] extends z.ZodTypeAny
+  ? ClientPromise<z.infer<E["response"]>>
+  : ClientPromise<undefined>;
+
 type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
     ? (
@@ -128,44 +133,6 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
 
 export type Headers = Record<string, string | null | undefined>;
 export type KeysEnum<T> = { [P in keyof Required<T>]: true };
-
-export type RequestOptions<Req extends {} | undefined = undefined> = {
-  // method?: HttpMethod;
-  // path?: string;
-  query?: Req;
-  // body?: Req | undefined;
-  headers?: Headers | undefined;
-
-  // maxRetries?: number;
-  // stream?: boolean | undefined;
-  // timeout?: number;
-  // idempotencyKey?: string;
-};
-
-// This is required so that we can determine if a given object matches the RequestOptions
-// type at runtime. While this requires duplication, it is enforced by the TypeScript
-// compiler such that any missing / extraneous keys will cause an error.
-const requestOptionsKeys: KeysEnum<RequestOptions> = {
-  // method: true,
-  // path: true,
-  query: true,
-  // body: true,
-  headers: true,
-
-  // maxRetries: true,
-  // stream: true,
-  // timeout: true,
-  // idempotencyKey: true,
-};
-
-export const isRequestOptions = (obj: unknown): obj is RequestOptions => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    !isEmpty(obj) &&
-    Object.keys(obj).every((k) => Object.hasOwn(requestOptionsKeys, k))
-  );
-};
 
 type ClientUseQuery<
   E extends AnyEndpoint,
@@ -389,7 +356,7 @@ type UseInfiniteQueryResult<TData, TError> = BaseUseInfiniteQueryResult<
 
 function actionMethod(action: string): HttpMethod {
   if (
-    /^(retrieve|get|list|use(Retrieve|(Infinite)?List|Get))([_A-Z]|$)/.test(
+    /^(get|retrieve|list|use(Get|Retrieve|(Infinite)?List))([_A-Z]|$)/.test(
       action
     )
   )
@@ -403,92 +370,59 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
   baseUrl: string,
   options?: { fetch?: typeof fetch }
 ): StainlessReactQueryClient<Api> {
+  const baseClient = createClient<Api>(baseUrl, options);
+
   const client = createRecursiveProxy((opts) => {
+    const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
-    const { args } = opts;
-    const isPaginated = /^(list|use(Infinite)?List)([_A-Z]|$)/.test(action);
-    const isInfinite = /^useInfinite([_A-Z]|$)/.test(action);
     const isHook = /^use[_A-Z]/.test(action);
 
-    let requestOptions: RequestOptions<any> | undefined;
-    let useQueryOptions: ({ query?: any } & UseQueryOptions) | undefined;
-
-    let path = callPath.join("/"); // eg; /issuing/cards
-    if (typeof args[0] === "string" || typeof args[0] === "number") {
-      path += `/${encodeURIComponent(args.shift() as string | number)}`;
+    if (!isHook) {
+      const baseMethod = opts.path.reduce(
+        (acc: any, elem: string) => acc[elem],
+        baseClient
+      );
+      return baseMethod(...args);
     }
 
-    if (isHook && isUseQueryOptions(args.at(-1))) {
-      useQueryOptions = args.shift() as any;
-    }
-    if (!isHook && isRequestOptions(args.at(-1))) {
-      requestOptions = args.shift() as any;
-    }
+    const isInfinite = /^useInfinite([_A-Z]|$)/.test(action);
+
+    const baseAction = lowerFirst(action.replace(/^use(Infinite)?/, ""));
     const method = actionMethod(action);
 
-    const body = method === "get" ? undefined : args[0];
+    const useQueryOptions: ({ query?: any } & UseQueryOptions) | undefined =
+      isUseQueryOptions(args.at(-1)) ? (args.pop() as any) : undefined;
+    const query: Record<string, any> = useQueryOptions?.query;
 
-    const pathname = `${baseUrl}/${path}`;
-    let uri = pathname;
+    const queryKey = [...opts.path, ...(query ? [query] : [])];
 
-    const query: Record<string, any> = {
-      ...(method === "get" && typeof args[0] === "object" ? args[0] : null),
-      ...(useQueryOptions || requestOptions)?.query,
-    };
-    let search = "";
-    if (query && Object.keys(query).length) {
-      search = `?${qs.stringify(query)}`;
-      uri += search;
-    }
-
-    let queryKey = [...opts.path, query];
-
-    const doFetch = async (moreQuery?: object) => {
-      let finalUri = uri;
-      if (moreQuery) {
-        finalUri = `${pathname}?${qs.stringify({ ...query, ...moreQuery })}`;
-      }
-      const json = await (options?.fetch || fetch)(finalUri, {
-        method,
-        headers: {
-          "Content-Type": "application/json",
-          ...requestOptions?.headers,
-        },
-        body: body ? JSON.stringify(body) : undefined, // TODO: don't include on GET
-      }).then(async (res) => {
-        const responsebody = await res.text();
-        try {
-          return JSON.parse(responsebody);
-        } catch (e) {
-          console.error("Could not parse json", responsebody);
+    const doFetch = (moreQuery?: object): ClientPromise<any> => {
+      const finalArgs = [...args];
+      if (query || moreQuery) {
+        const lastArg = finalArgs.at(-1);
+        if (
+          method === "get" &&
+          typeof lastArg === "object" &&
+          lastArg != null
+        ) {
+          finalArgs[finalArgs.length - 1] = {
+            ...lastArg,
+            ...query,
+            ...moreQuery,
+          };
+        } else {
+          finalArgs.push({ query: { ...query, ...moreQuery } });
         }
-      });
-
-      if ("error" in json) {
-        throw new Error(`Error: ${json.error.message}`);
       }
 
-      const parsed = await z.AnyPageData.safeParseAsync(json);
-      if (parsed.success) {
-        return new PageImpl(
-          client,
-          opts.path,
-          pathname,
-          query as any,
-          parsed.data
-        );
-      }
-      return json;
-    };
+      const basePromise: BaseClientPromise<any> = callPath
+        .reduce((acc: any, elem: string) => acc[elem], baseClient)
+        [baseAction](...finalArgs);
 
-    const promiseProps = {
-      method,
-      uri,
-      pathname,
-      search,
-      query,
-      queryKey,
+      return basePromise instanceof BasePaginatorPromise
+        ? PaginatorPromise.from(basePromise, { queryKey })
+        : ClientPromise.from(basePromise, { queryKey });
     };
 
     if (isInfinite) {
@@ -559,204 +493,73 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
         [result, items, itemCount, itemAndPlaceholderCount, useItem]
       );
     }
-    if (isHook) {
-      return useQuery({
-        ...useQueryOptions,
-        queryKey,
-        queryFn: doFetch,
-      });
-    }
 
-    return isPaginated
-      ? new PaginatorPromise(doFetch, promiseProps)
-      : new ClientPromise(doFetch, promiseProps);
+    return useQuery({
+      ...useQueryOptions,
+      queryKey,
+      queryFn: () => doFetch(),
+    });
   }, []) as StainlessReactQueryClient<Api>;
   return client;
 }
 
-export type Page<D extends z.PageData<any>> = PageImpl<D> & D;
-
-export class PageImpl<D extends z.PageData<any>> {
-  constructor(
-    private client: StainlessReactQueryClient<any>,
-    private clientPath: string[],
-    private pathname: string,
-    private params: z.infer<typeof z.PaginationParams>,
-    public data: D
-  ) {
-    Object.assign(this, data);
-  }
-
-  declare items: z.PageItemType<D>[];
-  declare startCursor: string | null;
-  declare endCursor: string | null;
-  declare hasNextPage: boolean | undefined;
-  declare hasPreviousPage: boolean | undefined;
-
-  getPreviousPageParams(): z.PaginationParams {
-    const { startCursor } = this.data;
-    if (startCursor == null) {
-      throw new Error(
-        `response doesn't have startCursor, can't get previous page`
-      );
-    }
-    const {
-      pageSize,
-      sortBy,
-      sortDirection,
-      // eslint-disable-next-line no-unused-vars
-      pageAfter: _pageAfter,
-      // eslint-disable-next-line no-unused-vars
-      pageBefore: _pageBefore,
-      ...rest
-    } = this.params;
-    return {
-      ...rest,
-      pageSize,
-      sortBy,
-      sortDirection,
-      pageBefore: startCursor,
-    };
-  }
-
-  getPreviousPageParam(): string | null {
-    return this.data.startCursor;
-  }
-
-  getPreviousPageUrl(): string {
-    return `${this.pathname}/${qs.stringify(this.getPreviousPageParams())}`;
-  }
-
-  async getPreviousPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getPreviousPageParams());
-  }
-
-  getNextPageParams(): z.PaginationParams {
-    const { endCursor } = this.data;
-    if (endCursor == null) {
-      throw new Error(`response doesn't have endCursor, can't get next page`);
-    }
-    const {
-      pageSize,
-      sortBy,
-      sortDirection,
-      // eslint-disable-next-line no-unused-vars
-      pageAfter: _pageAfter,
-      // eslint-disable-next-line no-unused-vars
-      pageBefore: _pageBefore,
-      ...rest
-    } = this.params;
-    return {
-      ...rest,
-      pageSize,
-      sortBy,
-      sortDirection,
-      pageAfter: endCursor,
-    };
-  }
-
-  getNextPageParam(): string | null {
-    return this.data.endCursor;
-  }
-
-  getNextPageUrl(): string {
-    return `${this.pathname}/${qs.stringify(this.getNextPageParams())}`;
-  }
-
-  async getNextPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getNextPageParams());
-  }
-}
-
-type ClientPromiseProps = {
-  method: HttpMethod;
-  uri: string;
-  pathname: string;
-  search: string;
-  query: Record<string, any>;
-  queryKey: readonly unknown[];
+type ExtractClientPromiseProps = {
+  queryKey: unknown[];
 };
 
-class ClientPromise<R> implements Promise<R> {
-  fetch: () => Promise<R>;
-  method: HttpMethod;
-  uri: string;
-  pathname: string;
-  search: string;
-  query: Record<string, any>;
-  queryKey: readonly unknown[];
+export type ClientPromiseProps = BaseClientPromiseProps &
+  ExtractClientPromiseProps;
 
-  constructor(fetch: () => Promise<R>, props: ClientPromiseProps) {
-    this.fetch = once(fetch);
-    this.method = props.method;
-    this.uri = props.uri;
-    this.pathname = props.pathname;
-    this.search = props.search;
-    this.query = props.query;
-    this.queryKey = props.queryKey;
-  }
+export class ClientPromise<R> extends BaseClientPromise<R> {
+  queryKey: unknown[];
 
-  then<TResult1 = R, TResult2 = never>(
-    onfulfilled?:
-      | ((value: R) => TResult1 | PromiseLike<TResult1>)
-      | undefined
-      | null,
-    onrejected?:
-      | ((reason: any) => TResult2 | PromiseLike<TResult2>)
-      | undefined
-      | null
-  ): Promise<TResult1 | TResult2> {
-    return this.fetch().then(onfulfilled, onrejected);
-  }
-
-  catch<TResult = never>(
-    onrejected?:
-      | ((reason: any) => TResult | PromiseLike<TResult>)
-      | undefined
-      | null
-  ): Promise<R | TResult> {
-    return this.fetch().catch(onrejected);
-  }
-
-  finally(onfinally?: (() => void) | undefined | null): Promise<R> {
-    return this.fetch().finally(onfinally);
-  }
-
-  get [Symbol.toStringTag]() {
-    return "ClientPromise";
-  }
-}
-
-export type { ClientPromise };
-
-/**
- * The result of client.???.list, can be awaited like a
- * Promise to get a single page, or async iterated to go through
- * all items
- */
-class PaginatorPromise<D extends z.PageData<any>>
-  extends ClientPromise<Page<D>>
-  implements AsyncIterable<z.PageItemType<D>>
-{
-  constructor(fetch: () => Promise<Page<D>>, props: ClientPromiseProps) {
+  constructor(
+    fetch: () => Promise<R>,
+    { queryKey, ...props }: ClientPromiseProps
+  ) {
     super(fetch, props);
+    this.queryKey = queryKey;
   }
 
-  async *[Symbol.asyncIterator](): AsyncIterator<z.PageItemType<D>> {
-    let page: Page<D> | undefined = await this;
-    while (page) {
-      yield* page.items;
-      page = page.hasNextPage ? await page.getNextPage() : undefined;
-    }
-  }
-
-  get [Symbol.toStringTag]() {
-    return "PaginatorPromise";
+  static from<R>(
+    { fetch, method, uri, pathname, search, query }: BaseClientPromise<R>,
+    { queryKey }: ExtractClientPromiseProps
+  ): ClientPromise<R> {
+    return new ClientPromise(fetch, {
+      method,
+      uri,
+      pathname,
+      search,
+      query,
+      queryKey,
+    });
   }
 }
 
-export type { PaginatorPromise };
+export class PaginatorPromise<
+  D extends z.PageData<any>
+> extends BasePaginatorPromise<D> {
+  queryKey: unknown[];
+
+  constructor(
+    fetch: () => Promise<Page<D>>,
+    { queryKey, ...props }: ClientPromiseProps
+  ) {
+    super(fetch, props);
+    this.queryKey = queryKey;
+  }
+
+  static from<D extends z.PageData<any>>(
+    { fetch, method, uri, pathname, search, query }: BasePaginatorPromise<D>,
+    { queryKey }: ExtractClientPromiseProps
+  ): PaginatorPromise<D> {
+    return new PaginatorPromise(fetch, {
+      method,
+      uri,
+      pathname,
+      search,
+      query,
+      queryKey,
+    });
+  }
+}
