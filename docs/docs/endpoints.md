@@ -67,18 +67,16 @@ The `params`, `context` and return types will be automatically mapped from the r
 
 ## Error handling
 
-In order to indicate an unauthorized usage of or error encountered during the 
-handling of an endpoint, throw an exception within the `handler`.
+You can throw certain exceptions within the `handler` to return 4xx or 5xx HTTP error responses to the user, with well-formatted bodies.
 
 `stl` provides some exception types to streamline this. Each will cause the endpoint to respond with an HTTP status code. 
-Each exception's constructor also optionally accepts an record
-parameter. If provided, this parameter is encoded in JSON and included
-as the body of the response.
+Each exception's constructor also accepts an optional record
+parameter, which is included in the body of the response JSON.
 
 ### `stl.StlError`
 
 Takes an HTTP status code as a constructor argument. Responds with 
-that status code.
+that status code. Best used to create custom subclasses if you need HTTP status codes we don't yet provide out of the box.
 
 ### `stl.BadRequestError`
 
