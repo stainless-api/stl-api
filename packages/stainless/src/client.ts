@@ -7,20 +7,18 @@ import {
   AnyResourceConfig,
   ResourceConfig,
   HttpMethod,
+  EndpointPathInput,
+  EndpointBodyInput,
+  EndpointQueryInput,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
 type ValueOf<T extends object> = T[keyof T];
 
-type ExtractClientPath<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
-  ? ValueOf<z.input<E["path"]>>
-  : undefined;
-type ExtractClientQuery<E extends AnyEndpoint> = E["query"] extends z.ZodTypeAny
-  ? z.input<E["query"]>
-  : undefined;
-type ExtractClientBody<E extends AnyEndpoint> = E["body"] extends z.ZodTypeAny
-  ? z.input<E["body"]>
-  : undefined;
+type EndpointPathParam<E extends AnyEndpoint> =
+  EndpointPathInput<E> extends object
+    ? ValueOf<EndpointPathInput<E>>
+    : undefined;
 
 type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
   E["response"]
@@ -51,24 +49,31 @@ type ClientResource<Resource extends AnyResourceConfig> = {
 type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        body: ExtractClientBody<E>,
-        options?: { query?: ExtractClientQuery<E> }
+        path: EndpointPathParam<E>,
+        body: EndpointBodyInput<E>,
+        options?: RequestOptions<EndpointQueryInput<E>>
       ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        query: ExtractClientQuery<E>
+        path: EndpointPathParam<E>,
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
       ) => ExtractClientResponse<E>
-    : (path: ExtractClientPath<E>) => ExtractClientResponse<E>
+    : (
+        path: EndpointPathParam<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
   : E["body"] extends z.ZodTypeAny
   ? (
-      body: ExtractClientBody<E>,
-      options?: { query?: ExtractClientQuery<E> }
+      body: EndpointBodyInput<E>,
+      options?: RequestOptions<EndpointQueryInput<E>>
     ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (query: ExtractClientQuery<E>) => ExtractClientResponse<E>
-  : () => ExtractClientResponse<E>;
+  ? (
+      query: EndpointQueryInput<E>,
+      options?: RequestOptions
+    ) => ExtractClientResponse<E>
+  : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
   if (/^(get|list)([_A-Z]|$)/.test(action)) return "get";
@@ -171,33 +176,33 @@ export function createClient<Api extends AnyAPIDescription>(
 export type Headers = Record<string, string | null | undefined>;
 export type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
-export type RequestOptions<Req extends {} = Record<string, unknown>> = {
-  method?: HttpMethod;
-  path?: string;
-  query?: Req | undefined;
-  body?: Req | undefined;
+export type RequestOptions<Req extends {} | undefined = undefined> = {
+  // method?: HttpMethod;
+  // path?: string;
+  query?: Req;
+  // body?: Req | undefined;
   headers?: Headers | undefined;
 
-  maxRetries?: number;
-  stream?: boolean | undefined;
-  timeout?: number;
-  idempotencyKey?: string;
+  // maxRetries?: number;
+  // stream?: boolean | undefined;
+  // timeout?: number;
+  // idempotencyKey?: string;
 };
 
 // This is required so that we can determine if a given object matches the RequestOptions
 // type at runtime. While this requires duplication, it is enforced by the TypeScript
 // compiler such that any missing / extraneous keys will cause an error.
 const requestOptionsKeys: KeysEnum<RequestOptions> = {
-  method: true,
-  path: true,
+  // method: true,
+  // path: true,
   query: true,
-  body: true,
+  // body: true,
   headers: true,
 
-  maxRetries: true,
-  stream: true,
-  timeout: true,
-  idempotencyKey: true,
+  // maxRetries: true,
+  // stream: true,
+  // timeout: true,
+  // idempotencyKey: true,
 };
 
 export const isRequestOptions = (obj: unknown): obj is RequestOptions => {

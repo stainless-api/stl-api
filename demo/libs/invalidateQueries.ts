@@ -1,5 +1,5 @@
-import { ClientPromise } from "stainless";
 import { InvalidateOptions, QueryClient } from "@tanstack/react-query";
+import { ClientPromise } from "@stl-api/react-query";
 
 export function invalidateQueries(
   client: QueryClient,
@@ -8,6 +8,6 @@ export function invalidateQueries(
 ): Promise<void> {
   return client.invalidateQueries({
     ...options,
-    queryKey: [p.cacheKey],
+    queryKey: p.queryKey,
   });
 }

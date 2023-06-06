@@ -1,7 +1,6 @@
 import * as React from "react";
 import PostItem from "./PostItem";
 import { client } from "~/api/client";
-import { useInfiniteQuery } from "~/libs/useInfiniteQuery";
 
 interface PostFeedProps {
   userId?: string;
@@ -9,7 +8,7 @@ interface PostFeedProps {
 
 const PostFeed: React.FC<PostFeedProps> = ({ userId }) => {
   const { hasNextPage, isFetchingNextPage, fetchNextPage, items } =
-    useInfiniteQuery(client.posts, {
+    client.posts.useInfiniteList({
       userId,
       pageSize: 5,
       expand: ["items.user", "items.comments"],
