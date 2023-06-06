@@ -27,6 +27,7 @@ import {
   type UseInfiniteQueryOptions as BaseUseInfiniteQueryOptions,
   type UseInfiniteQueryResult as BaseUseInfiniteQueryResult,
   useInfiniteQuery,
+  QueryClient,
 } from "@tanstack/react-query";
 import { type UpperFirst } from "./util";
 
@@ -46,9 +47,39 @@ export type StainlessReactQueryClient<Api extends AnyAPIDescription> =
     >
   >;
 
+export type ClientResource<Resource extends AnyResourceConfig> = {
+  [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
+    ? ClientFunction<Resource["actions"][Action]>
+    : never;
+} & {
+  [Action in ActionsForMethod<
+    Resource,
+    "get"
+  > as UseAction<Action>]: ClientUseQuery<Resource["actions"][Action]>;
+} & {
+  [Action in ActionsForMethod<
+    Resource,
+    "get"
+  > as InvalidateAction<Action>]: ClientInvalidateQueries<
+    Resource["actions"][Action]
+  >;
+} & {
+  [Action in PaginatedActions<Resource> as UseInfiniteAction<Action>]: ClientUseInfiniteQuery<
+    Resource["actions"][Action]
+  >;
+} & {
+  [S in keyof Resource["namespacedResources"]]: ClientResource<
+    Resource["namespacedResources"][S]
+  >;
+} & {
+  invalidateQueries(client: QueryClient): void;
+};
+
 type UseAction<Action extends string> = `use${UpperFirst<Action>}`;
 type UseInfiniteAction<Action extends string> =
   `useInfinite${UpperFirst<Action>}`;
+type InvalidateAction<Action extends string> =
+  `invalidate${UpperFirst<Action>}`;
 
 type ActionsForMethod<
   Resource extends AnyResourceConfig,
@@ -74,25 +105,6 @@ export type PaginatedActions<Resource extends AnyResourceConfig> = {
     ? Action
     : never;
 }[keyof Resource["actions"] & string];
-
-export type ClientResource<Resource extends AnyResourceConfig> = {
-  [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
-    ? ClientFunction<Resource["actions"][Action]>
-    : never;
-} & {
-  [Action in ActionsForMethod<
-    Resource,
-    "get"
-  > as UseAction<Action>]: ClientUseQuery<Resource["actions"][Action]>;
-} & {
-  [Action in PaginatedActions<Resource> as UseInfiniteAction<Action>]: ClientUseInfiniteQuery<
-    Resource["actions"][Action]
-  >;
-} & {
-  [S in keyof Resource["namespacedResources"]]: ClientResource<
-    Resource["namespacedResources"][S]
-  >;
-};
 
 type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
   E["response"]
@@ -237,6 +249,32 @@ export const isUseQueryOptions = (obj: unknown): obj is BaseUseQueryOptions => {
   );
 };
 
+type ClientInvalidateQueries<E extends AnyEndpoint> =
+  E["path"] extends z.ZodTypeAny
+    ? E["body"] extends z.ZodTypeAny
+      ? (
+          queryClient: QueryClient,
+          path?: EndpointPathParam<E>,
+          body?: EndpointBodyInput<E>,
+          options?: { query?: EndpointQueryInput<E> }
+        ) => void
+      : E["query"] extends z.ZodTypeAny
+      ? (
+          queryClient: QueryClient,
+          path?: EndpointPathParam<E>,
+          query?: EndpointQueryInput<E>
+        ) => void
+      : (queryClient: QueryClient, path?: EndpointPathParam<E>) => void
+    : E["body"] extends z.ZodTypeAny
+    ? (
+        queryClient: QueryClient,
+        body?: EndpointBodyInput<E>,
+        options?: { query?: EndpointQueryInput<E> }
+      ) => void
+    : E["query"] extends z.ZodTypeAny
+    ? (queryClient: QueryClient, query?: EndpointQueryInput<E>) => void
+    : (queryClient: QueryClient) => void;
+
 type ClientUseInfiniteQuery<
   E extends AnyEndpoint,
   TQueryFnData = EndpointResponseOutput<E>,
@@ -376,9 +414,16 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
     const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
-    const isHook = /^use[_A-Z]/.test(action);
 
-    if (!isHook) {
+    if (action === "invalidateQueries") {
+      return (client: QueryClient) =>
+        client.invalidateQueries({ queryKey: [...callPath] });
+    }
+
+    const isHook = /^use[_A-Z]/.test(action);
+    const isInvalidate = /^invalidate[_A-Z]/.test(action);
+
+    if (!isHook && !isInvalidate) {
       const baseMethod = opts.path.reduce(
         (acc: any, elem: string) => acc[elem],
         baseClient
@@ -388,14 +433,28 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
 
     const isInfinite = /^useInfinite([_A-Z]|$)/.test(action);
 
-    const baseAction = lowerFirst(action.replace(/^use(Infinite)?/, ""));
+    const queryClient = isInvalidate ? args.shift() : undefined;
+
+    const baseAction = lowerFirst(
+      action.replace(/^invalidate|use(Infinite)?/, "")
+    );
     const method = actionMethod(action);
 
     const useQueryOptions: ({ query?: any } & UseQueryOptions) | undefined =
       isUseQueryOptions(args.at(-1)) ? (args.pop() as any) : undefined;
     const query: Record<string, any> = useQueryOptions?.query;
 
-    const queryKey = [...opts.path, ...(query ? [query] : [])];
+    const queryKey = [...callPath, ...(query ? [query] : [])];
+
+    if (isInvalidate) {
+      if (!(queryClient instanceof QueryClient)) {
+        throw new Error(
+          `the first argument to ${action} must be a QueryClient instance`
+        );
+      }
+      queryClient.invalidateQueries({ queryKey });
+      return;
+    }
 
     const doFetch = (moreQuery?: object): ClientPromise<any> => {
       const finalArgs = [...args];

@@ -7,7 +7,6 @@ import useLoginModal from "./useLoginModal";
 import usePost from "./usePost";
 import { client } from "~/api/client";
 import { useQueryClient } from "@tanstack/react-query";
-import { invalidateQueries } from "~/libs/invalidateQueries";
 
 const useLike = ({ postId, userId }: { postId: string; userId?: string }) => {
   const { data: currentUser } = useCurrentUser();
@@ -38,7 +37,7 @@ const useLike = ({ postId, userId }: { postId: string; userId?: string }) => {
 
       await request();
       mutateFetchedPost();
-      invalidateQueries(queryClient, client.posts.list({}));
+      client.posts.invalidateList(queryClient);
 
       toast.success("Success");
     } catch (error) {
