@@ -18,7 +18,9 @@ We will soon provide a `create-stl-app` API. Until then:
 ## Installation
 
 ```bash
-npm i --save stainless-api/stl-api#stainless-0.0.2 stainless-api/stl-api#next-0.0.2
+npm i --save  stainless-api/stl-api#stainless-0.0.2 \
+              stainless-api/stl-api#next-0.0.2 \
+              stainless-api/react-query#stainless-0.0.2
 
 # Optional plugins:
 npm i --save stainless-api/stl-api#next-auth-0.0.2  # If you are using next-auth
@@ -176,10 +178,10 @@ export { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS };
 ```ts
 // ~/api/client.ts
 
-import { createClient } from "stainless";
+import { createReactQueryClient } from "@stl-api/react-query";
 import type { api } from "./index";
 
-export const client = createClient<typeof api>("/api");
+export const client = createReactQueryClient<typeof api>("/api");
 ```
 
 ## Use client
@@ -189,17 +191,13 @@ export const client = createClient<typeof api>("/api");
 
 import * as React from "react";
 import client from "~/api/client.ts";
-import { useQuery } from "@tanstack/react-query";
 
 export default function UserPage({
   params: { userId },
 }: {
   params: { userId: string };
 }): React.ReactElement {
-  const { status, error, data: user } = useQuery({
-    queryKey: [`users/${userId}`],
-    queryFn: () => client.users.retrieve(userId),
-  });
+  const { status, error, data: user } = client.users.useRetrieve(userId);
 
   if (status === "loading") return <LoadingAlert>Loading user...</LoadingAlert>;
   if (error) return <ErrorAlert error={error} />;
