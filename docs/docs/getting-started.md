@@ -56,23 +56,17 @@ export const User = z
   .response({
     id: z.string().uuid(),
 
-    name: z.string().nullable().optional(),
-    username: z.string().nullable().optional(),
-    bio: z.string().nullable().optional(),
-    email: z.string().nullable().optional(),
-    emailVerified: z.date().nullable().optional(),
-    image: z.string().nullable().optional(),
-    coverImage: z.string().nullable().optional(),
-    profileImage: z.string().nullable().optional(),
+    username: z.string().nullable(),
+    email: z.string().nullable(),
+    name: z.string().nullable(),
 
-    hashedPassword: z.string().nullable().optional(),
 
     createdAt: z.date(),
     updatedAt: z.date(),
 
     followingIds: z.array(z.string().uuid()),
-    hasNotification: z.boolean().nullable().optional(),
-    followersCount: z.number().optional(),
+    hasNotification: z.boolean().nullable(),
+    followersCount: z.number(),
   })
   .prismaModel(prisma.user);
 ```

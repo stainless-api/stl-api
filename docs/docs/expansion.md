@@ -12,8 +12,9 @@ user requests them in an `expand` query parameter. Here's an example of a
 $ curl localhost:3000/api/posts/5
 {"id":5,"body":"Officia similique ipsa"}
 
-$ curl localhost:3000/api/posts/5 -G -d 'expand[]=user'
-{"id":5,"body":"Officia similique ipsa","user":{"id":7,"name":"Kim Bahringer"}}
+$ curl localhost:3000/api/posts/5 -G -d 'expand[]=user' -d 'expand[]=replies'
+{"id":5,"body":"Officia similique ipsa","user":{"id":7,"name":"Kim Bahringer"},
+"replies":[{"id":11},{"id":19}]}
 ```
 
 ## Implementing expansion without circular associations
