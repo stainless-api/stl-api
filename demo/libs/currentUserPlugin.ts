@@ -3,6 +3,7 @@ import {
   MakeStainlessPlugin,
   Params,
   PartialStlContext,
+  UnauthorizedError,
 } from "stainless";
 import { StlUserContext } from "./stl";
 import { User } from ".prisma/client";
@@ -19,7 +20,7 @@ export const makeCurrentUserPlugin =
       context.requireCurrentUser = (): User => {
         const { currentUser } = context;
         if (!currentUser) {
-          throw new stl.UnauthorizedError({ naughty: "you aint logged in!" });
+          throw new UnauthorizedError({ naughty: "you aint logged in!" });
         }
         return currentUser;
       };

@@ -1,7 +1,7 @@
 import { stl } from "~/libs/stl";
 import prisma from "~/libs/prismadb";
 import { Comment } from "./models";
-import { NotFoundError, z } from "stainless";
+import { NotFoundError, UnauthorizedError, z } from "stainless";
 
 export const create = stl.endpoint({
   endpoint: "post /api/comments",
@@ -17,7 +17,7 @@ export const create = stl.endpoint({
   async handler({ postId, body }, ctx) {
     const userId = ctx.currentUser?.id;
     if (!userId) {
-      throw new stl.UnauthorizedError({ message: "You are not logged in" });
+      throw new UnauthorizedError({ message: "You are not logged in" });
     }
 
     const post = await prisma.post.findUnique({

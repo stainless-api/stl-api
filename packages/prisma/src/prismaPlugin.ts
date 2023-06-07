@@ -5,6 +5,7 @@ import {
   PartialStlContext,
   StlContext,
   SelectTree,
+  NotFoundError,
   z,
 } from "stainless";
 import {
@@ -483,7 +484,7 @@ export const makePrismaPlugin =
               .findUniqueOrThrow(wrapQuery(args))
               .catch((e) => {
                 console.error(e.stack);
-                throw new stl.NotFoundError();
+                throw new NotFoundError();
               }),
           findMany: (args) => getModel().findMany(wrapQuery(args)),
           create: (args) => getModel().create(wrapQuery(args)),

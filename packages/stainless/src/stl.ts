@@ -94,9 +94,9 @@ export type Endpoint<
   body: Body;
   handler: Handler<
     UserContext &
-      StlContext<
-        Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
-      >,
+    StlContext<
+      Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
+    >,
     Path,
     Query,
     Body,
@@ -132,8 +132,8 @@ export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
-    | Record<string, ResourceConfig<any, any, any>>
-    | undefined,
+  | Record<string, ResourceConfig<any, any, any>>
+  | undefined,
   Models extends Record<string, z.ZodTypeAny> | undefined
 > = {
   summary: string;
@@ -234,7 +234,7 @@ export interface BaseStlContext<EC extends AnyEndpoint> {
 }
 
 export interface StlContext<EC extends AnyEndpoint>
-  extends BaseStlContext<EC> {}
+  extends BaseStlContext<EC> { }
 
 export type PartialStlContext<
   UserContext extends object,
@@ -267,87 +267,6 @@ export type OpenAPIEndpoint = Endpoint<
   typeof OpenAPIResponse
 >;
 
-export type Stl<UserContext extends object, Plugins extends AnyPlugins> = {
-  plugins: ExtractStatics<Plugins>;
-  initContext: <EC extends AnyEndpoint>(
-    c: PartialStlContext<UserContext, EC>
-  ) => PartialStlContext<UserContext, EC>;
-  initParams: (p: Params) => Params;
-  execute: <EC extends AnyEndpoint>(
-    endpoint: EC,
-    params: Params,
-    context: PartialStlContext<UserContext, EC>
-  ) => Promise<ExtractExecuteResponse<EC>>;
-
-  endpoint: <
-    MethodAndUrl extends HttpEndpoint,
-    Path extends ZodObjectSchema | undefined,
-    Query extends ZodObjectSchema | undefined,
-    Body extends ZodObjectSchema | undefined,
-    Response extends z.ZodTypeAny = z.ZodVoid
-  >(options: {
-    endpoint: MethodAndUrl;
-    path?: Path;
-    query?: Query;
-    body?: Body;
-    response?: Response;
-    handler: Handler<
-      UserContext &
-        StlContext<
-          Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
-        >,
-      Path,
-      Query,
-      Body,
-      Response extends z.ZodTypeAny ? z.input<Response> : undefined
-    >;
-  }) => Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>;
-
-  resource: <
-    Actions extends AnyActionsConfig | undefined,
-    Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
-    Models extends Record<string, z.ZodTypeAny> | undefined
-  >(config: {
-    summary: string;
-    internal?: boolean;
-    actions?: Actions;
-    namespacedResources?: Resources;
-    models?: Models;
-  }) => ResourceConfig<Actions, Resources, Models>;
-
-  api<
-    TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
-    Resources extends Record<string, AnyResourceConfig> | undefined
-  >(config: {
-    openapi: {
-      endpoint: false;
-    };
-    topLevel?: TopLevel;
-    resources?: Resources;
-  }): APIDescription<TopLevel, Resources>;
-  api<
-    TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
-    Resources extends Record<string, AnyResourceConfig> | undefined
-  >(config: {
-    openapi?: {
-      endpoint?: HttpEndpoint;
-    };
-    topLevel?: TopLevel;
-    resources?: Resources;
-  }): APIDescription<
-    TopLevel & { actions: { getOpenapi: OpenAPIEndpoint } },
-    Resources
-  >;
-
-  openapiSpec: typeof openapiSpec;
-
-  StlError: typeof StlError;
-  BadRequestError: typeof BadRequestError;
-  UnauthorizedError: typeof UnauthorizedError;
-  ForbiddenError: typeof ForbiddenError;
-  NotFoundError: typeof NotFoundError;
-};
-
 const prependZodPath = (path: string) => (error: any) => {
   if (error instanceof z.ZodError) {
     for (const issue of error.issues) {
@@ -357,198 +276,191 @@ const prependZodPath = (path: string) => (error: any) => {
   throw error;
 };
 
-export function makeStl<UserContext extends object, Plugins extends AnyPlugins>(
-  opts: StainlessOpts<Plugins>
-): Stl<UserContext, Plugins> {
-  const plugins: Record<string, StainlessPlugin<UserContext, any>> = {};
-  const stl = {
-    initContext<EC extends AnyEndpoint>(
-      c: PartialStlContext<UserContext, EC>
-    ): PartialStlContext<UserContext, EC> {
-      return c;
-    },
-    initParams(p: Params) {
-      return p;
-    },
+export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
+  // this gets filled in later, we just declare the type here.
+  plugins = {} as ExtractStatics<Plugins>;
+  private stainlessPlugins: Record<string, StainlessPlugin<UserContext, any>> = {};
 
-    // this gets filled in later, we just declare the type here.
-    plugins: {} as ExtractStatics<Plugins>,
-
-    execute: async function execute<EC extends AnyEndpoint>(
-      endpoint: EC,
-      params: Params,
-      context: PartialStlContext<UserContext, EC>
-    ): Promise<ExtractExecuteResponse<EC>> {
-      for (const plugin of Object.values(plugins)) {
-        const middleware = plugin.middleware;
-        if (middleware) await middleware(endpoint, params, context);
+  constructor(opts: StainlessOpts<Plugins>) {
+    for (const key in opts.plugins) {
+      const makePlugin = opts.plugins[key];
+      const plugin = (this.stainlessPlugins[key] = makePlugin(this));
+      if (plugin.statics) {
+        this.plugins[key] = plugin.statics;
       }
-
-      const parseParams = {
-        stlContext: context,
-      };
-
-      context.parsedParams = {
-        path: undefined,
-        query: undefined,
-        body: undefined,
-      };
-
-      try {
-        context.parsedParams.query = await endpoint.query
-          ?.parseAsync(params.query, parseParams)
-          .catch(prependZodPath("<stainless request query>"));
-        context.parsedParams.path = await endpoint.path
-          ?.parseAsync(params.path, parseParams)
-          .catch(prependZodPath("<stainless request path>"));
-        context.parsedParams.body = await endpoint.body
-          ?.parseAsync(params.body, parseParams)
-          .catch(prependZodPath("<stainless request body>"));
-      } catch (error) {
-        if (error instanceof z.ZodError) {
-          throw new BadRequestError({ issues: error.issues });
-        }
-        throw error;
-      }
-
-      const { query, path, body } = context.parsedParams;
-      const responseInput = await endpoint.handler(
-        { ...body, ...path, ...query },
-        context as any as StlContext<EC>
-      );
-      const response = endpoint.response
-        ? await endpoint.response.parseAsync(responseInput, parseParams)
-        : undefined;
-
-      return response;
-    },
-
-    StlError,
-    BadRequestError,
-    UnauthorizedError,
-    ForbiddenError,
-    NotFoundError,
-
-    openapiSpec,
-
-    endpoint: <
-      MethodAndUrl extends HttpEndpoint,
-      Path extends ZodObjectSchema | undefined,
-      Query extends ZodObjectSchema | undefined,
-      Body extends ZodObjectSchema | undefined,
-      Response extends z.ZodTypeAny = z.ZodVoid
-    >({
-      config,
-      response,
-      path,
-      query,
-      body,
-      ...rest
-    }: {
-      endpoint: MethodAndUrl;
-      config?: EndpointConfig;
-      response?: Response;
-      path?: Path;
-      query?: Query;
-      body?: Body;
-      handler: Handler<
-        UserContext &
-          StlContext<
-            Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
-          >,
-        Path,
-        Query,
-        Body,
-        Response extends z.ZodTypeAny ? z.input<Response> : undefined
-      >;
-    }): Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response> => {
-      return {
-        stl: stl as any,
-        config: config as EndpointConfig,
-        response: (response || z.void()) as Response,
-        path: path as Path,
-        query: query as Query,
-        body: body as Body,
-        ...rest,
-      };
-    },
-
-    resource: <
-      Actions extends AnyActionsConfig | undefined,
-      Resources extends
-        | Record<string, ResourceConfig<any, any, any>>
-        | undefined,
-      Models extends Record<string, z.ZodTypeAny> | undefined
-    >({
-      actions,
-      namespacedResources,
-      models,
-      ...config
-    }: {
-      summary: string;
-      internal?: boolean;
-      actions?: Actions;
-      namespacedResources?: Resources;
-      models?: Models;
-    }): ResourceConfig<Actions, Resources, Models> => {
-      return {
-        ...config,
-        actions: actions || {},
-        namespacedResources: namespacedResources || {},
-        models: models || {},
-      } as ResourceConfig<Actions, Resources, Models>;
-    },
-
-    api: <
-      TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
-      Resources extends Record<string, AnyResourceConfig> | undefined
-    >({
-      openapi,
-      topLevel,
-      resources,
-    }: {
-      openapi?: {
-        endpoint?: HttpEndpoint | false;
-      };
-      topLevel?: TopLevel;
-      resources?: Resources;
-    }): APIDescription<TopLevel, Resources> => {
-      const openapiEndpoint = openapi?.endpoint ?? "get /api/openapi";
-      const topLevelActions = topLevel?.actions || {};
-      const apiDescription = {
-        openapi: {
-          endpoint: openapiEndpoint,
-          get spec() {
-            // TODO memoize
-            return stl.openapiSpec(apiDescription);
-          },
-        },
-        topLevel: {
-          ...topLevel,
-          actions: topLevelActions,
-        },
-        resources: resources || {},
-      } as APIDescription<TopLevel, Resources>;
-
-      if (openapiEndpoint !== false) {
-        (topLevelActions as any).getOpenapi = stl.endpoint({
-          endpoint: openapiEndpoint,
-          response: OpenAPIResponse,
-          async handler() {
-            return stl.openapiSpec(apiDescription) as any;
-          },
-        });
-      }
-
-      return apiDescription;
-    },
-  };
-  for (const key in opts.plugins) {
-    const makePlugin = opts.plugins[key];
-    const plugin = (plugins[key] = makePlugin(stl));
-    if (plugin.statics) {
-      stl.plugins[key] = plugin.statics;
     }
+
   }
-  return stl;
-}
+  initContext<EC extends AnyEndpoint>(
+    c: PartialStlContext<UserContext, EC>
+  ): PartialStlContext<UserContext, EC> {
+    return c;
+  }
+
+  initParams(p: Params) {
+    return p;
+  }
+
+  async execute<EC extends AnyEndpoint>(
+    endpoint: EC,
+    params: Params,
+    context: PartialStlContext<UserContext, EC>
+  ): Promise<ExtractExecuteResponse<EC>> {
+    for (const plugin of Object.values(this.stainlessPlugins)) {
+      const middleware = plugin.middleware;
+      if (middleware) await middleware(endpoint, params, context);
+    }
+
+    const parseParams = {
+      stlContext: context,
+    };
+
+    context.parsedParams = {
+      path: undefined,
+      query: undefined,
+      body: undefined,
+    };
+
+    try {
+      context.parsedParams.query = await endpoint.query
+        ?.parseAsync(params.query, parseParams)
+        .catch(prependZodPath("<stainless request query>"));
+      context.parsedParams.path = await endpoint.path
+        ?.parseAsync(params.path, parseParams)
+        .catch(prependZodPath("<stainless request path>"));
+      context.parsedParams.body = await endpoint.body
+        ?.parseAsync(params.body, parseParams)
+        .catch(prependZodPath("<stainless request body>"));
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        throw new BadRequestError({ issues: error.issues });
+      }
+      throw error;
+    }
+
+    const { query, path, body } = context.parsedParams;
+    const responseInput = await endpoint.handler(
+      { ...body, ...path, ...query },
+      context as any as StlContext<EC>
+    );
+    const response = endpoint.response
+      ? await endpoint.response.parseAsync(responseInput, parseParams)
+      : undefined;
+
+    return response;
+  }
+
+  endpoint<
+    MethodAndUrl extends HttpEndpoint,
+    Path extends ZodObjectSchema | undefined,
+    Query extends ZodObjectSchema | undefined,
+    Body extends ZodObjectSchema | undefined,
+    Response extends z.ZodTypeAny = z.ZodVoid
+  >({
+    config,
+    response,
+    path,
+    query,
+    body,
+    ...rest
+  }: {
+    endpoint: MethodAndUrl;
+    config?: EndpointConfig;
+    response?: Response;
+    path?: Path;
+    query?: Query;
+    body?: Body;
+    handler: Handler<
+      UserContext &
+      StlContext<
+        Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
+      >,
+      Path,
+      Query,
+      Body,
+      Response extends z.ZodTypeAny ? z.input<Response> : undefined
+    >;
+  }): Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response> {
+    return {
+      stl: this as any,
+      config: config as EndpointConfig,
+      response: (response || z.void()) as Response,
+      path: path as Path,
+      query: query as Query,
+      body: body as Body,
+      ...rest,
+    };
+  }
+
+  resource<
+    Actions extends AnyActionsConfig | undefined,
+    Resources extends
+    | Record<string, ResourceConfig<any, any, any>>
+    | undefined,
+    Models extends Record<string, z.ZodTypeAny> | undefined
+  >({
+    actions,
+    namespacedResources,
+    models,
+    ...config
+  }: {
+    summary: string;
+    internal?: boolean;
+    actions?: Actions;
+    namespacedResources?: Resources;
+    models?: Models;
+  }): ResourceConfig<Actions, Resources, Models> {
+    return {
+      ...config,
+      actions: actions || {},
+      namespacedResources: namespacedResources || {},
+      models: models || {},
+    } as ResourceConfig<Actions, Resources, Models>;
+  }
+
+  api<
+    TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
+    Resources extends Record<string, AnyResourceConfig> | undefined
+  >({
+    openapi,
+    topLevel,
+    resources,
+  }: {
+    openapi?: {
+      endpoint?: HttpEndpoint | false;
+    };
+    topLevel?: TopLevel;
+    resources?: Resources;
+  }): APIDescription<TopLevel & (typeof openapi extends { endpoint: false } ? {} : { actions: { getOpenapi: OpenAPIEndpoint } }), Resources> {
+    const openapiEndpoint = openapi?.endpoint ?? "get /api/openapi";
+    const topLevelActions = topLevel?.actions || {};
+    const apiDescription = {
+      openapi: {
+        endpoint: openapiEndpoint,
+        get spec() {
+          // TODO memoize
+          return openapiSpec(apiDescription);
+        },
+      },
+      topLevel: {
+        ...topLevel,
+        actions: topLevelActions,
+      },
+      resources: resources || {},
+    } as APIDescription<TopLevel, Resources>;
+
+    if (openapiEndpoint !== false) {
+      (topLevelActions as any).getOpenapi = this.endpoint({
+        endpoint: openapiEndpoint,
+        response: OpenAPIResponse,
+        async handler() {
+          return openapiSpec(apiDescription) as any;
+        },
+      });
+    }
+
+    // Type system is not powerful enough to understand that if statement above 
+    // ensures if openApi.endpoint !== false, then getOpenapi is provided
+    return apiDescription as APIDescription<TopLevel & (typeof openapi extends { endpoint: false } ? {} : { actions: { getOpenapi: OpenAPIEndpoint } }), Resources>;
+  }
+};

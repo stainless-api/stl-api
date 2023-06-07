@@ -17,7 +17,7 @@ For example:
 
 ```ts
 // server.ts
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
@@ -31,7 +31,7 @@ const plugins = {
   prisma: makePrismaPlugin(),
 };
 
-export const stl = makeStl<{}, typeof plugins>({
+export const stl = new Stl<{}, typeof plugins>({
   plugins,
 });
 
@@ -197,7 +197,7 @@ app.post("/users", async (req, rsp) => {
 
 Doing this helps TypeScript ensure that your OpenAPI spec is an accurate reflection of your runtime behavior. It can also help return consistent response shapes and validation error messages to the user.
 
-Note that `validateParams` raises `stl.BadRequestError` if params don't match.
+Note that `validateParams` raises `BadRequestError` if params don't match.
 
 To handle errors like this, add middleware:
 
