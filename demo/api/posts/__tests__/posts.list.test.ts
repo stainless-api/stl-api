@@ -2518,3 +2518,10 @@ describe("/api/posts", function () {
     `);
   });
 });
+describe("authenticated create /api/posts", function () {
+  it('no authentication', async function() {
+    expect(async () => (await testClient.posts.create({
+      body: "nefarious post"
+    }))).rejects.toThrow();
+  });
+});
