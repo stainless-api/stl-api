@@ -7,7 +7,7 @@ export const create = stl.endpoint({
   response: Post,
 
   query: z.query({
-    expand: z.expands(Post, 3).optional(),
+    include: z.includes(Post, 3).optional(),
   }),
   body: z.body({
     body: z.string(),

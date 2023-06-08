@@ -6,7 +6,7 @@ const usePost = (postId: string) => {
   const { data, error, isLoading, mutate } = useSWR(
     postId
       ? `/api/posts/${postId}?${qs.stringify({
-          expand: ["user", "comments.user"],
+          include: ["user", "comments.user"],
         })}`
       : null,
     fetcher

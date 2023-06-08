@@ -11,7 +11,7 @@ export const retrieve = stl.endpoint({
     post: z.string().prismaModelLoader(prisma.post),
   }),
   query: z.query({
-    expand: z.expands(Post, 3).optional(),
+    include: z.includes(Post, 3).optional(),
     select: z.selects(Post, 3).optional(),
   }),
 

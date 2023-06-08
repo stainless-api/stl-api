@@ -12,7 +12,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ userId }) => {
     useInfiniteQuery(client.posts, {
       userId,
       pageSize: 5,
-      expand: ["items.user", "items.comments"],
+      include: ["items.user", "items.comments"],
     });
 
   return (

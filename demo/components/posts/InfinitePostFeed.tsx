@@ -11,7 +11,7 @@ interface PostFeedProps {
 const InfinitePostFeed: React.FC<PostFeedProps> = ({ userId }) => {
   const { itemAndPlaceholderCount, useItem } = useInfiniteQuery(client.posts, {
     userId,
-    expand: ["items.user", "items.comments"],
+    include: ["items.user", "items.comments"],
   });
 
   return (

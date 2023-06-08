@@ -1,13 +1,13 @@
 import { z } from "stainless";
 
 /**
- * Given an zod schema from `expands`, extracts the possible options
+ * Given an zod schema from `includes`, extracts the possible options
  */
-export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
+export function includesOptions<V extends string[]>(param: z.ZodType<V>): V {
   if (param instanceof z.ZodOptional || param instanceof z.ZodNullable)
-    return expandsOptions(param.unwrap());
+    return includesOptions(param.unwrap());
   if (param instanceof z.ZodDefault)
-    return expandsOptions(param._def.innerType);
+    return includesOptions(param._def.innerType);
   if (!(param instanceof z.ZodArray)) {
     throw new Error(`param must be a ZodArray of a ZodEnum of string`);
   }
@@ -18,26 +18,26 @@ export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
   return element.options;
 }
 
-type ExpandSubPaths<
+type IncludeSubPaths<
   E extends string,
   Path extends string
 > = E extends `${Path}.${infer SubPath}` ? SubPath : never;
 
-export function expandSubPaths<S extends string[], P extends string>(
-  expand: S,
+export function includeSubPaths<S extends string[], P extends string>(
+  include: S,
   path: P
-): ExpandSubPaths<S[number], P>[] {
+): IncludeSubPaths<S[number], P>[] {
   const prefix = `${path}.`;
-  return expand.flatMap((path) =>
+  return include.flatMap((path) =>
     path.startsWith(prefix) ? [path.substring(prefix.length)] : []
   ) as any;
 }
 /**
- * Given a set of expands like `['items.user', 'items.comments.user']`, adds
+ * Given a set of includes like `['items.user', 'items.comments.user']`, adds
  * parent paths, so the result is
  * `new Set(['items', 'items.user', 'items.comments', 'items.comments.user'])`
  */
-export function addExpandParents(expand: string[]): Set<string> {
+export function addIncludeParents(include: string[]): Set<string> {
   const result: Set<string> = new Set();
   function add(path: string) {
     result.add(path);
@@ -46,6 +46,6 @@ export function addExpandParents(expand: string[]): Set<string> {
       add(path.slice(0, lastDot));
     }
   }
-  expand.forEach(add);
+  include.forEach(add);
   return result;
 }

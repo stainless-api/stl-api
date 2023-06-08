@@ -9,10 +9,10 @@ export const list = stl.endpoint({
   query: z.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
-    expand: z.expands(PostPage).optional(),
+    include: z.includes(PostPage).optional(),
     select: z.selects(PostPage).optional(),
   }),
-  async handler({ userId, expand, ...params }, ctx) {
+  async handler({ userId, include, ...params }, ctx) {
     if (userId && typeof userId === "string") {
       const page = await ctx.prisma.paginate({
         where: { userId },

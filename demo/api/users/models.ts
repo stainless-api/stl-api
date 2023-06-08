@@ -29,20 +29,20 @@ const User0 = z.response({
 type User1 = z.CircularModel<
   typeof User0,
   {
-    posts?: z.ExpandableZodType<z.ZodArray<typeof Post>>;
+    posts?: z.IncludableZodType<z.ZodArray<typeof Post>>;
     posts_fields?: z.SelectableZodType<z.ZodArray<typeof Post>>;
-    comments?: z.ExpandableZodType<z.ZodArray<typeof Comment>>;
+    comments?: z.IncludableZodType<z.ZodArray<typeof Comment>>;
     comments_fields?: z.SelectableZodType<z.ZodArray<typeof Comment>>;
-    notifications?: z.ExpandableZodType<z.ZodArray<typeof Notification>>;
+    notifications?: z.IncludableZodType<z.ZodArray<typeof Notification>>;
     notifications_fields?: z.SelectableZodType<z.ZodArray<typeof Notification>>;
   }
 >;
 const User1: User1 = User0.extend({
-  posts: z.array(z.lazy(() => Post)).expandable(),
+  posts: z.array(z.lazy(() => Post)).includable(),
   posts_fields: z.array(z.lazy(() => PostSelection)).selectable(),
-  comments: z.array(z.lazy(() => Comment)).expandable(),
+  comments: z.array(z.lazy(() => Comment)).includable(),
   comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
-  notifications: z.array(z.lazy(() => Notification)).expandable(),
+  notifications: z.array(z.lazy(() => Notification)).includable(),
   notifications_fields: z
     .array(z.lazy(() => NotificationSelection))
     .selectable(),

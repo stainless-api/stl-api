@@ -7,7 +7,7 @@ and get an OpenAPI spec, docs, and typed frontend client without a build step.
 
 You can use it as a pluggable, batteries-included web framework for APIs (managing auth, pagination, observability, etc) or sprinkle it on top of your existing API in any framework for better OpenAPI support and/or full-stack typesafety.
 
-You can also opt into Stainless's Stripe-inspired [pristine API design conventions](#pristine) and get rich pagination, consistent errors, field expansion & selection, and (WIP) normalized caching on the frontend for free.
+You can also opt into Stainless's Stripe-inspired [pristine API design conventions](#pristine) and get rich pagination, consistent errors, field inclusion & selection, and (WIP) normalized caching on the frontend for free.
 
 Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, and (heavily) from the internal API Framework we worked on at Stripe.
 
@@ -125,7 +125,7 @@ you can gradually adopt Pristine standards and tooling. In the future, we plan t
 Here is a list of Pristine API design conventions:
 
 - [Pagination](/packages/stainless/docs/pagination.md)
-- [Expansion](/packages/stainless/docs/expansion.md)
+- [Inclusion](/packages/stainless/docs/inclusion.md)
 - [Selection](/packages/stainless/docs/selection.md)
 
 # Using Stainless in an existing codebase

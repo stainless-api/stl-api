@@ -16,16 +16,16 @@ const Post0 = z.response({
 type Post1 = z.CircularModel<
   typeof Post0,
   {
-    user?: z.ExpandableZodType<typeof User>;
+    user?: z.IncludableZodType<typeof User>;
     user_fields?: z.SelectableZodType<typeof User>;
-    comments?: z.ExpandableZodType<z.ZodArray<typeof Comment>>;
+    comments?: z.IncludableZodType<z.ZodArray<typeof Comment>>;
     comments_fields?: z.SelectableZodType<z.ZodArray<typeof Comment>>;
   }
 >;
 const Post1: Post1 = Post0.extend({
-  user: z.lazy(() => User).expandable(),
+  user: z.lazy(() => User).includable(),
   user_fields: z.lazy(() => UserSelection).selectable(),
-  comments: z.array(z.lazy(() => Comment)).expandable(),
+  comments: z.array(z.lazy(() => Comment)).includable(),
   comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
 });
 

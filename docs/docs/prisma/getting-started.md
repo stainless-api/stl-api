@@ -61,7 +61,7 @@ export const Post = z.response({
 
 Any endpoint whose `response` has a `prismaModel` declared with have `ctx.prisma`
 available in its `handler`. `ctx.prisma` provides wrappers for the following methods
-that magically inject options for [`expand`](/stl/expansion)
+that magically inject options for [`include`](/stl/inclusion)
 and [`select`](/stl/selection) params as necessary:
 
 - `findUnique`
@@ -93,11 +93,11 @@ export const retrieve = stl.endpoint({
     postId: z.string(),
   }),
   query: z.object({
-    expand: z.expands(Post, 3).optional(),
+    include: z.includes(Post, 3).optional(),
     select: z.selects(Post, 3).optional(),
   }),
   async handler({ postId }, ctx) {
-    // Prisma plugin magically injects options for expand and select!
+    // Prisma plugin magically injects options for include and select!
     return await ctx.prisma.findUniqueOrThrow({ where: { id: postId } });
   },
 });

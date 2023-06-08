@@ -19,7 +19,7 @@ const FeatureList = [
     description: (
       <>
         Provides plugins for Next.js, NextAuth.js, and Prisma, and powerful
-        tools for implementing pagination, expansion, and field selection.
+        tools for implementing pagination, inclusion, and field selection.
       </>
     ),
   },
