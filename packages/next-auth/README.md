@@ -87,7 +87,7 @@ export default NextAuth(authOptions);
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 +import { makeNextAuthPlugin } from "@stl-api/next-auth";
 +import { authOptions } from "~/pages/api/auth/[...nextauth]";
@@ -99,7 +99,7 @@ const plugins = {
 +  nextAuth: makeNextAuthPlugin({ authOptions }),
 };
 
-export const stl = makeStl<StlUserContext, typeof plugins>({
+export const stl = new Stl<StlUserContext, typeof plugins>({
   plugins,
 });
 ```
@@ -136,7 +136,7 @@ export const makeCurrentUserPlugin =
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { makeCurrentUserPlugin } from "./currentUserPlugin";
@@ -153,7 +153,7 @@ const plugins = {
 +  currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = makeStl<StlUserContext, typeof plugins>({
+export const stl = new Stl<StlUserContext, typeof plugins>({
   plugins,
 });
 ```

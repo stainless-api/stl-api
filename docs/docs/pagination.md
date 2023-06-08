@@ -4,8 +4,8 @@ sidebar_position: 6
 
 # Pagination
 
-Stainless provides helpers for easily implementing pagination that follows the pristine
-convention.
+Stainless provides helpers for easily implementing pagination that follows the [pristine
+convention](/stl/intro#pristine).
 
 ## Pristine convention
 

@@ -20,12 +20,12 @@ jobs:
           command: manifest
 
       # The logic below handles the npm publication:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v3
         # these if statements ensure that a publication only occurs when
         # a new release is created:
         if: ${{ steps.release.outputs.release_created }}
 
-      - uses: actions/setup-node@v1
+      - uses: actions/setup-node@v3
         with:
           node-version: 16
           registry-url: "https://registry.npmjs.org"

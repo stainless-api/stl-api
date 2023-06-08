@@ -4,6 +4,7 @@ import {
   MakeStainlessPlugin,
   Params,
   StlContext,
+  UnauthorizedError,
 } from "stainless";
 import { IncomingMessage, ServerResponse } from "http";
 import { NextServerContext } from "@stl-api/next";
@@ -11,18 +12,20 @@ import { AuthOptions, Session, getServerSession } from "next-auth";
 
 /** An authenticated session, with user data available. */
 export interface UserSession extends Session {
-  user: Session['user']
+  user: Session["user"];
 }
 
 declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
     /** If a route is authenticated, handlers will always have access to a valid user session.
     Otherwise, a session is provided if a user is logged in. */
-    session: EC['config'] extends { authenticated: true } ? UserSession : UserSession | undefined;
+    session: EC["config"] extends { authenticated: true }
+      ? UserSession
+      : UserSession | undefined;
   }
 
   interface EndpointConfig {
-    authenticated?: boolean,
+    authenticated?: boolean;
   }
 }
 
@@ -32,38 +35,38 @@ function isUserSession(session: Session): session is UserSession {
 
 export const makeNextAuthPlugin =
   ({ authOptions }: { authOptions: AuthOptions }): MakeStainlessPlugin<any> =>
-    (stl) => ({
-      async middleware<EC extends AnyEndpoint>(
-        endpoint: EC,
-        params: Params,
-        context: PartialStlContext<any, EC>
-      ) {
-        const {
-          args: [req, res],
-        } = requireNextServerContext(context);
+  (stl) => ({
+    async middleware<EC extends AnyEndpoint>(
+      endpoint: EC,
+      params: Params,
+      context: PartialStlContext<any, EC>
+    ) {
+      const {
+        args: [req, res],
+      } = requireNextServerContext(context);
 
-        // TODO catch invalid credentials errors,
-        // send appropriate error response,
-        // and somehow signal to stl.execute to early
-        // exit
+      // TODO catch invalid credentials errors,
+      // send appropriate error response,
+      // and somehow signal to stl.execute to early
+      // exit
 
-        let session: Session | null | undefined;
+      let session: Session | null | undefined;
 
-        if (req instanceof IncomingMessage && res instanceof ServerResponse) {
-          session = await getServerSession(req, res, authOptions);
-        } else {
-          session = await getServerSession(authOptions);
-        }
+      if (req instanceof IncomingMessage && res instanceof ServerResponse) {
+        session = await getServerSession(req, res, authOptions);
+      } else {
+        session = await getServerSession(authOptions);
+      }
 
-        if (session && isUserSession(session)) context.session = session;
+      if (session && isUserSession(session)) context.session = session;
 
-        // If the endpoint requires authentication, but no user is logged in,
-        // throw unauthorized
-        if (endpoint?.config?.authenticated) {
-          if (!context.session) throw new stl.UnauthorizedError();
-        }
-      },
-    });
+      // If the endpoint requires authentication, but no user is logged in,
+      // throw unauthorized
+      if (endpoint?.config?.authenticated) {
+        if (!context.session) throw new UnauthorizedError();
+      }
+    },
+  });
 
 function requireNextServerContext(
   context: PartialStlContext<any, any>

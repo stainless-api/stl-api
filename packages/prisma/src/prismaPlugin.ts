@@ -5,6 +5,7 @@ import {
   PartialStlContext,
   StlContext,
   SelectTree,
+  NotFoundError,
   z,
 } from "stainless";
 import {
@@ -155,9 +156,15 @@ function wrapQuery<Q>(
   return {
     ...query,
     cursor,
-    skip: 1,
+    skip: cursor ? 1 : 0,
     take: pageSize + 1,
-    orderBy: { [sortBy]: sortDirection },
+    orderBy: {
+      [sortBy]: pageBefore
+        ? sortDirection === "desc"
+          ? "asc"
+          : "desc"
+        : sortDirection,
+    },
   };
 }
 
@@ -166,18 +173,24 @@ function makeResponse<I>(
   items: I[]
 ): z.PageData<I> {
   const { pageAfter, pageBefore, pageSize, sortBy } = params;
+  const itemCount = items.length;
+  if (pageBefore) {
+    debugger;
+  }
+  items = items.slice(0, pageSize);
+  if (pageBefore) items.reverse();
   const start = items[0];
-  const end = items[Math.min(items.length, pageSize) - 1];
+  const end = items[items.length - 1];
   return {
-    items: items.slice(0, pageSize),
+    items,
     // @ts-expect-error TODO
     startCursor: stringifyCursor(start?.[sortBy]) ?? null,
     // @ts-expect-error TODO
     endCursor: stringifyCursor(end?.[sortBy]) ?? null,
-    hasPreviousPage: pageBefore != null ? items.length > pageSize : undefined,
+    hasPreviousPage: pageBefore != null ? itemCount > pageSize : undefined,
     hasNextPage:
       pageAfter != null || pageBefore == null
-        ? items.length > pageSize
+        ? itemCount > pageSize
         : undefined,
   };
 }
@@ -278,21 +291,9 @@ function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
   if (z.extractStlMetadata(response)?.pageResponse) {
-    const { pageAfter, pageBefore, pageSize, sortBy, sortDirection } =
-      context.parsedParams?.query || {};
-    const cursorString = pageAfter ?? pageBefore;
-    const cursor =
-      cursorString != null
-        ? { [sortBy]: parseCursor(cursorString) }
-        : undefined;
-
     return {
-      ...prismaQuery,
+      ...wrapQuery(context.parsedParams?.query || {}, prismaQuery),
       ...includeSelect,
-      cursor,
-      skip: 1,
-      take: pageSize + 1,
-      orderBy: { [sortBy]: sortDirection },
     };
   }
   return {
@@ -483,7 +484,7 @@ export const makePrismaPlugin =
               .findUniqueOrThrow(wrapQuery(args))
               .catch((e) => {
                 console.error(e.stack);
-                throw new stl.NotFoundError();
+                throw new NotFoundError();
               }),
           findMany: (args) => getModel().findMany(wrapQuery(args)),
           create: (args) => getModel().create(wrapQuery(args)),
