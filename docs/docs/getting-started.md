@@ -30,7 +30,7 @@ npm i --save stainless-api/stl-api#prisma-0.0.2     # If you are using Prisma
 ```ts
 // ~/libs/stl.ts
 
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 
 export type Context = {};
@@ -39,7 +39,7 @@ const plugins = {
   next: makeNextPlugin(),
 };
 
-export const stl = makeStl<Context, typeof plugins>({
+export const stl = new Stl<Context, typeof plugins>({
   plugins,
 });
 ```
@@ -60,7 +60,6 @@ export const User = z
     email: z.string().nullable(),
     name: z.string().nullable(),
 
-
     createdAt: z.date(),
     updatedAt: z.date(),
 
@@ -77,7 +76,7 @@ export const User = z
 // ~/api/users/retrieve.ts
 
 import { stl } from "~/libs/stl";
-import { z } from "stainless";
+import { NotFoundError, z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
@@ -93,7 +92,7 @@ export const retrieve = stl.endpoint({
         id: userId,
       },
     });
-    if (!user) throw new stl.NotFoundError();
+    if (!user) throw new NotFoundError();
     return user;
   },
 });
