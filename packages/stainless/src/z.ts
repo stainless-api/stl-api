@@ -60,8 +60,7 @@ declare module "zod" {
 }
 
 export interface ZodMetadataDef<T extends z.ZodTypeAny, M extends object>
-  extends z.ZodTypeDef {
-  typeName: "ZodMetadata";
+  extends z.ZodEffectsDef {
   innerType: T;
   metadata: M;
 }
@@ -69,17 +68,13 @@ export interface ZodMetadataDef<T extends z.ZodTypeAny, M extends object>
 export class ZodMetadata<
   T extends z.ZodTypeAny,
   M extends object
-> extends z.ZodType<z.output<T>, ZodMetadataDef<T, M>, z.input<T>> {
+> extends z.ZodEffects<T> {
+  constructor(def: z.ZodEffectsDef<T>, public metadata: M) {
+    super(def);
+  }
+
   unwrap() {
-    return this._def.innerType;
-  }
-
-  get metadata(): M {
-    return this._def.metadata;
-  }
-
-  _parse(input: z.ParseInput): z.ParseReturnType<z.output<T>> {
-    return this._def.innerType._parse(input);
+    return this._def.schema;
   }
 
   static create = <T extends z.ZodTypeAny, M extends object>(
@@ -87,12 +82,7 @@ export class ZodMetadata<
     metadata: M,
     params?: z.RawCreateParams
   ): ZodMetadata<T, M> => {
-    return new ZodMetadata({
-      innerType,
-      metadata,
-      typeName: "ZodMetadata",
-      ...processCreateParams(params),
-    });
+    return new ZodMetadata(innerType.refine((x) => true)._def, metadata);
   };
 }
 
