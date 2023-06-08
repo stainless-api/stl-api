@@ -10,6 +10,18 @@ name: build
 jobs:
   build:
     runs-on: ubuntu-latest
+
+    services:
+      postgres:
+        image: postgres
+        env:
+          POSTGRES_PASSWORD: prisma
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -25,5 +37,11 @@ jobs:
       - name: Build
         run: pnpm build
 
+      - name: Set up db
+        run: |
+          cd demo
+          cp .env-ci .env
+          pnpm prisma migrate dev
+
       - name: Test
-        run: pnpm test
+        run: (cd demo; pnpm dev) & pnpm test
