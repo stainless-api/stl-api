@@ -3,7 +3,6 @@ import {
   PartialStlContext,
   MakeStainlessPlugin,
   Params,
-  StlContext,
   UnauthorizedError,
 } from "stainless";
 import { IncomingMessage, ServerResponse } from "http";
