@@ -11,6 +11,11 @@ You can also opt into Stainless's Stripe-inspired [pristine API design conventio
 
 Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, and (heavily) from the internal API Framework we worked on at Stripe.
 
+> **Note**
+> This project is currently in its **alpha stage of development**.
+> Features may be changed or removed at any time without warning, and production use is not recommended. 
+> Hobbyists welcome!
+
 For example:
 
 <!-- TODO: this is too long / too much code… -->
