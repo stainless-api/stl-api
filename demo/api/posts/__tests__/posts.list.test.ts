@@ -210,6 +210,8 @@ describe("/api/posts", function () {
         "startCursor": "IjAwMzAzMWI1LTYxNTctNGIzNS05ZDExLTNlOGI5Yjg3NDVmMyI=",
       }
     `);
+  });
+  it("expansion + selection 2", async function () {
     expect(
       (
         await testClient.posts.list({
