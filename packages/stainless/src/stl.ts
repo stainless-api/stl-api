@@ -94,9 +94,9 @@ export type Endpoint<
   body: Body;
   handler: Handler<
     UserContext &
-    StlContext<
-      Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
-    >,
+      StlContext<
+        Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
+      >,
     Path,
     Query,
     Body,
@@ -132,8 +132,8 @@ export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
-  | Record<string, ResourceConfig<any, any, any>>
-  | undefined,
+    | Record<string, ResourceConfig<any, any, any>>
+    | undefined,
   Models extends Record<string, z.ZodTypeAny> | undefined
 > = {
   summary: string;
@@ -146,14 +146,16 @@ export type ResourceConfig<
 
 export type AnyResourceConfig = ResourceConfig<any, any, any>;
 
+type OpenAPIConfig = {
+  endpoint: string | false;
+  spec: OpenAPIObject;
+};
+
 export type APIDescription<
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > = {
-  openapi: {
-    endpoint: string | false;
-    spec: OpenAPIObject;
-  };
+  openapi: OpenAPIConfig;
   topLevel: TopLevel;
   resources: Resources;
 };
@@ -234,7 +236,7 @@ export interface BaseStlContext<EC extends AnyEndpoint> {
 }
 
 export interface StlContext<EC extends AnyEndpoint>
-  extends BaseStlContext<EC> { }
+  extends BaseStlContext<EC> {}
 
 export type PartialStlContext<
   UserContext extends object,
@@ -249,13 +251,18 @@ export interface Params {
 }
 
 type ExtractStatics<Plugins extends AnyPlugins> = {
-  [Name in PluginsWithStaticsKeys<Plugins>]: NonNullable<ReturnType<Plugins[Name]>["statics"]>;
+  [Name in PluginsWithStaticsKeys<Plugins>]: NonNullable<
+    ReturnType<Plugins[Name]>["statics"]
+  >;
 };
 
 export type PluginsWithStaticsKeys<Plugins extends AnyPlugins> = {
-  [k in keyof Plugins]: NonNullable<ReturnType<Plugins[k]>["statics"]> extends never ? never : k
+  [k in keyof Plugins]: NonNullable<
+    ReturnType<Plugins[k]>["statics"]
+  > extends never
+    ? never
+    : k;
 }[keyof Plugins];
-
 
 type ExtractExecuteResponse<EC extends AnyEndpoint> =
   EC["response"] extends z.ZodTypeAny ? z.infer<EC["response"]> : undefined;
@@ -281,10 +288,23 @@ const prependZodPath = (path: string) => (error: any) => {
   throw error;
 };
 
+type OpenAPITopLevel<
+  openapi extends
+    | {
+        endpoint?: HttpEndpoint | false;
+      }
+    | undefined
+> = openapi extends {
+  endpoint: false;
+}
+  ? {}
+  : { actions: { getOpenapi: OpenAPIEndpoint } };
+
 export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
   plugins = {} as ExtractStatics<Plugins>;
-  private stainlessPlugins: Record<string, StainlessPlugin<UserContext, any>> = {};
+  private stainlessPlugins: Record<string, StainlessPlugin<UserContext, any>> =
+    {};
 
   constructor(opts: StainlessOpts<Plugins>) {
     for (const key in opts.plugins) {
@@ -298,7 +318,6 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
         this.plugins[key] = plugin.statics;
       }
     }
-
   }
   initContext<EC extends AnyEndpoint>(
     c: PartialStlContext<UserContext, EC>
@@ -381,9 +400,9 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     body?: Body;
     handler: Handler<
       UserContext &
-      StlContext<
-        Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
-      >,
+        StlContext<
+          Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
+        >,
       Path,
       Query,
       Body,
@@ -403,9 +422,7 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
 
   resource<
     Actions extends AnyActionsConfig | undefined,
-    Resources extends
-    | Record<string, ResourceConfig<any, any, any>>
-    | undefined,
+    Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
     Models extends Record<string, z.ZodTypeAny> | undefined
   >({
     actions,
@@ -440,7 +457,7 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     };
     topLevel?: TopLevel;
     resources?: Resources;
-  }): APIDescription<TopLevel & (typeof openapi extends { endpoint: false } ? {} : { actions: { getOpenapi: OpenAPIEndpoint } }), Resources> {
+  }): APIDescription<TopLevel & OpenAPITopLevel<typeof openapi>, Resources> {
     const openapiEndpoint = openapi?.endpoint ?? "get /api/openapi";
     const topLevelActions = topLevel?.actions || {};
     const apiDescription = {
@@ -468,8 +485,11 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
       });
     }
 
-    // Type system is not powerful enough to understand that if statement above 
+    // Type system is not powerful enough to understand that if statement above
     // ensures if openApi.endpoint !== false, then getOpenapi is provided
-    return apiDescription as APIDescription<TopLevel & (typeof openapi extends { endpoint: false } ? {} : { actions: { getOpenapi: OpenAPIEndpoint } }), Resources>;
+    return apiDescription as APIDescription<
+      TopLevel & OpenAPITopLevel<typeof openapi>,
+      Resources
+    >;
   }
-};
+}
