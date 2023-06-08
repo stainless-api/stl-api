@@ -60,7 +60,6 @@ export const User = z
     email: z.string().nullable(),
     name: z.string().nullable(),
 
-
     createdAt: z.date(),
     updatedAt: z.date(),
 
