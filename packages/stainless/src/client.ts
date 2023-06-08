@@ -263,9 +263,10 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   async getPreviousPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getPreviousPageParams());
+    return await this.clientPath.reduce(
+      (client: any, path) => client[path],
+      this.client
+    )(this.getPreviousPageParams());
   }
 
   getNextPageParams(): z.PaginationParams {
@@ -301,9 +302,10 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   async getNextPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getNextPageParams());
+    return await this.clientPath.reduce(
+      (client: any, path) => client[path],
+      this.client
+    )(this.getNextPageParams());
   }
 }
 
