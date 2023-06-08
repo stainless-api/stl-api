@@ -92,7 +92,6 @@ export type Endpoint<
   query: Query;
   body: Body;
   handler: Handler<
-    StlCustomContext &
     StlContext<
       Endpoint<MethodAndUrl, Path, Query, Body, Response>
     >,
@@ -235,11 +234,11 @@ export interface BaseStlContext<EC extends AnyEndpoint> {
 }
 
 export interface StlContext<EC extends AnyEndpoint>
-  extends BaseStlContext<EC> { }
+  extends BaseStlContext<EC>, StlCustomContext { }
 
 export type PartialStlContext<
   EC extends AnyEndpoint
-> = BaseStlContext<EC> & Partial<StlCustomContext> & Partial<StlContext<EC>>;
+> = BaseStlContext<EC> & Partial<StlContext<EC>>;
 
 export interface Params {
   path: any;
@@ -396,7 +395,6 @@ export class Stl<Plugins extends AnyPlugins> {
     query?: Query;
     body?: Body;
     handler: Handler<
-      StlCustomContext &
       StlContext<
         Endpoint<MethodAndUrl, Path, Query, Body, Response>
       >,

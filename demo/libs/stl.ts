@@ -20,6 +20,6 @@ const plugins = {
   currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = new Stl({
+export const stl = new Stl<typeof plugins>({
   plugins,
 });
