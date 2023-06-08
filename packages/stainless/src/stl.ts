@@ -77,7 +77,7 @@ export interface EndpointConfig {
   // auth etc goes here.
 }
 
-export type Endpoint<
+export interface BaseEndpoint<
   UserContext extends object,
   Config extends EndpointConfig | undefined,
   MethodAndUrl extends HttpEndpoint,
@@ -85,7 +85,7 @@ export type Endpoint<
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
   Response extends z.ZodTypeAny | undefined
-> = {
+> {
   stl: Stl<UserContext, any>;
   endpoint: MethodAndUrl;
   response: Response;
@@ -93,17 +93,46 @@ export type Endpoint<
   path: Path;
   query: Query;
   body: Body;
+}
+
+export type AnyBaseEndpoint = BaseEndpoint<any, any, any, any, any, any, any>;
+
+export interface Endpoint<
+  UserContext extends object,
+  Config extends EndpointConfig | undefined,
+  MethodAndUrl extends HttpEndpoint,
+  Path extends ZodObjectSchema | undefined,
+  Query extends ZodObjectSchema | undefined,
+  Body extends ZodObjectSchema | undefined,
+  Response extends z.ZodTypeAny | undefined
+> extends BaseEndpoint<
+    UserContext,
+    Config,
+    MethodAndUrl,
+    Path,
+    Query,
+    Body,
+    Response
+  > {
   handler: Handler<
     UserContext &
       StlContext<
-        Endpoint<UserContext, Config, MethodAndUrl, Path, Query, Body, Response>
+        BaseEndpoint<
+          UserContext,
+          Config,
+          MethodAndUrl,
+          Path,
+          Query,
+          Body,
+          Response
+        >
       >,
     Path,
     Query,
     Body,
     Response extends z.ZodTypeAny ? z.input<Response> : undefined
   >;
-};
+}
 
 export type AnyEndpoint = Endpoint<any, any, any, any, any, any, any>;
 
@@ -221,7 +250,7 @@ export type StainlessOpts<Plugins extends AnyPlugins> = {
 
 export type StainlessHeaders = Record<string, string | string[] | undefined>; // TODO
 
-export interface BaseStlContext<EC extends AnyEndpoint> {
+export interface BaseStlContext<EC extends AnyBaseEndpoint> {
   endpoint: EC; // what is the config?
   // url: URL;
   headers: StainlessHeaders;
@@ -236,12 +265,12 @@ export interface BaseStlContext<EC extends AnyEndpoint> {
   };
 }
 
-export interface StlContext<EC extends AnyEndpoint>
+export interface StlContext<EC extends AnyBaseEndpoint>
   extends BaseStlContext<EC> {}
 
 export type PartialStlContext<
   UserContext extends object,
-  EC extends AnyEndpoint
+  EC extends AnyBaseEndpoint
 > = BaseStlContext<EC> & Partial<UserContext> & Partial<StlContext<EC>>;
 
 export interface Params {
@@ -404,7 +433,7 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     handler: Handler<
       UserContext &
         StlContext<
-          Endpoint<
+          BaseEndpoint<
             UserContext,
             Config,
             MethodAndUrl,
