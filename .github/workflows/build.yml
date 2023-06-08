@@ -37,6 +37,9 @@ jobs:
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
 
+      - name: Build
+        run: pnpm build
+
       - name: Set up db
         run: |
           cd demo
@@ -45,6 +48,3 @@ jobs:
 
       - name: Test
         run: (cd demo; pnpm dev) & pnpm test
-
-      - name: Build
-        run: pnpm build
