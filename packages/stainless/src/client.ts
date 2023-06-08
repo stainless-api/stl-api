@@ -71,7 +71,7 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   : () => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
-  if (/^(get|list)([_A-Z]|$)/.test(action)) return "get";
+  if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "get";
   if (/^delete([_A-Z]|$)/.test(action)) return "delete";
   // TODO: is it possible to deal with patch/put?
   return "post";
