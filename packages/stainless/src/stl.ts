@@ -248,9 +248,14 @@ export interface Params {
   headers: any;
 }
 
-export type ExtractStatics<Plugins extends AnyPlugins> = {
-  [Name in keyof Plugins]: NonNullable<ReturnType<Plugins[Name]>["statics"]>;
+type ExtractStatics<Plugins extends AnyPlugins> = {
+  [Name in PluginsWithStaticsKeys<Plugins>]: NonNullable<ReturnType<Plugins[Name]>["statics"]>;
 };
+
+export type PluginsWithStaticsKeys<Plugins extends AnyPlugins> = {
+  [k in keyof Plugins]: NonNullable<ReturnType<Plugins[k]>["statics"]> extends never ? never : k
+}[keyof Plugins];
+
 
 type ExtractExecuteResponse<EC extends AnyEndpoint> =
   EC["response"] extends z.ZodTypeAny ? z.infer<EC["response"]> : undefined;
@@ -286,6 +291,10 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
       const makePlugin = opts.plugins[key];
       const plugin = (this.stainlessPlugins[key] = makePlugin(this));
       if (plugin.statics) {
+        // PluginStatics only allows keys with non-nullable values
+        // We ensure this is the case by checking that plugin.statics is
+        // not falsy
+        // @ts-expect-error
         this.plugins[key] = plugin.statics;
       }
     }
