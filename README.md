@@ -36,7 +36,7 @@ const plugins = {
   prisma: makePrismaPlugin(),
 };
 
-export const stl = new Stl<{}, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 

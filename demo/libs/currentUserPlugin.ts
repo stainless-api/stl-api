@@ -5,15 +5,14 @@ import {
   PartialStlContext,
   UnauthorizedError,
 } from "stainless";
-import { StlUserContext } from "./stl";
 import { User } from ".prisma/client";
 
 export const makeCurrentUserPlugin =
-  (): MakeStainlessPlugin<StlUserContext> => (stl) => ({
+  (): MakeStainlessPlugin => (stl) => ({
     async middleware<EC extends AnyEndpoint>(
       endpoint: EC,
       params: Params,
-      context: PartialStlContext<StlUserContext, EC>
+      context: PartialStlContext<EC>
     ) {
       const { session } = context;
 

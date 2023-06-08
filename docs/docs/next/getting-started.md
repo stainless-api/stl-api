@@ -31,13 +31,11 @@ npm i --save stainless-api/stl-api#next-0.0.1
 import { Stl } from "stainless";
 +import { makeNextPlugin } from "@stl-api/next";
 
-export type StlUserContext = {};
-
 const plugins = {
 +  next: makeNextPlugin(),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```

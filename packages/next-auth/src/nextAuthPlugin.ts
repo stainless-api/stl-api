@@ -20,7 +20,7 @@ export const makeNextAuthPlugin =
     async middleware<EC extends AnyEndpoint>(
       endpoint: EC,
       params: Params,
-      context: PartialStlContext<any, EC>
+      context: PartialStlContext< EC>
     ) {
       const {
         args: [req, res],
@@ -38,9 +38,8 @@ export const makeNextAuthPlugin =
   });
 
 function requireNextServerContext(
-  context: PartialStlContext<any, any>
+  context: PartialStlContext<any>
 ): NextServerContext {
-  context.prisma;
   const { server } = context;
   if (server?.type !== "nextjs") {
     throw new Error("next-auth plugin only works with nextjs server plugin");

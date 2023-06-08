@@ -78,14 +78,13 @@ export interface EndpointConfig {
 }
 
 export type Endpoint<
-  UserContext extends object,
   MethodAndUrl extends HttpEndpoint,
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
   Response extends z.ZodTypeAny | undefined
 > = {
-  stl: Stl<UserContext, any>;
+  stl: Stl<any>;
   endpoint: MethodAndUrl;
   response: Response;
   config: EndpointConfig;
@@ -93,10 +92,10 @@ export type Endpoint<
   query: Query;
   body: Body;
   handler: Handler<
-    UserContext &
-      StlContext<
-        Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
-      >,
+    StlCustomContext &
+    StlContext<
+      Endpoint<MethodAndUrl, Path, Query, Body, Response>
+    >,
     Path,
     Query,
     Body,
@@ -104,7 +103,7 @@ export type Endpoint<
   >;
 };
 
-export type AnyEndpoint = Endpoint<any, any, any, any, any, any>;
+export type AnyEndpoint = Endpoint<any, any, any, any, any>;
 
 export type GetEndpointMethod<E extends AnyEndpoint> =
   E["endpoint"] extends `${infer M extends HttpMethod} ${string}` ? M : never;
@@ -132,8 +131,8 @@ export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
-    | Record<string, ResourceConfig<any, any, any>>
-    | undefined,
+  | Record<string, ResourceConfig<any, any, any>>
+  | undefined,
   Models extends Record<string, z.ZodTypeAny> | undefined
 > = {
   summary: string;
@@ -195,22 +194,20 @@ export class NotFoundError extends StlError {
 type AnyStatics = Record<string, any>; // TODO?
 
 export type StainlessPlugin<
-  UserContext extends object,
   Statics extends AnyStatics | undefined = undefined
 > = {
   statics?: Statics;
   middleware?: <EC extends AnyEndpoint>(
     endpoint: EC,
     params: Params,
-    context: PartialStlContext<UserContext, EC>
+    context: PartialStlContext<EC>
   ) => void | Promise<void>;
 };
 
 export type MakeStainlessPlugin<
-  UserContext extends object,
   Statics extends AnyStatics | undefined = undefined,
   Plugins extends AnyPlugins = {}
-> = (stl: Stl<UserContext, Plugins>) => StainlessPlugin<UserContext, Statics>;
+> = (stl: Stl<Plugins>) => StainlessPlugin<Statics>;
 
 type AnyPlugins = Record<string, MakeStainlessPlugin<any, any>>;
 
@@ -219,6 +216,8 @@ export type StainlessOpts<Plugins extends AnyPlugins> = {
 };
 
 export type StainlessHeaders = Record<string, string | string[] | undefined>; // TODO
+
+export interface StlCustomContext { }
 
 export interface BaseStlContext<EC extends AnyEndpoint> {
   endpoint: EC; // what is the config?
@@ -236,12 +235,11 @@ export interface BaseStlContext<EC extends AnyEndpoint> {
 }
 
 export interface StlContext<EC extends AnyEndpoint>
-  extends BaseStlContext<EC> {}
+  extends BaseStlContext<EC> { }
 
 export type PartialStlContext<
-  UserContext extends object,
   EC extends AnyEndpoint
-> = BaseStlContext<EC> & Partial<UserContext> & Partial<StlContext<EC>>;
+> = BaseStlContext<EC> & Partial<StlCustomContext> & Partial<StlContext<EC>>;
 
 export interface Params {
   path: any;
@@ -260,8 +258,8 @@ export type PluginsWithStaticsKeys<Plugins extends AnyPlugins> = {
   [k in keyof Plugins]: NonNullable<
     ReturnType<Plugins[k]>["statics"]
   > extends never
-    ? never
-    : k;
+  ? never
+  : k;
 }[keyof Plugins];
 
 type ExtractExecuteResponse<EC extends AnyEndpoint> =
@@ -271,7 +269,6 @@ export const OpenAPIResponse = z.object({}).passthrough();
 export type OpenAPIResponse = z.infer<typeof OpenAPIResponse>;
 
 export type OpenAPIEndpoint = Endpoint<
-  any,
   any,
   undefined,
   undefined,
@@ -290,20 +287,20 @@ const prependZodPath = (path: string) => (error: any) => {
 
 type OpenAPITopLevel<
   openapi extends
-    | {
-        endpoint?: HttpEndpoint | false;
-      }
-    | undefined
+  | {
+    endpoint?: HttpEndpoint | false;
+  }
+  | undefined
 > = openapi extends {
   endpoint: false;
 }
   ? {}
   : { actions: { getOpenapi: OpenAPIEndpoint } };
 
-export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
+export class Stl<Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
   plugins = {} as ExtractStatics<Plugins>;
-  private stainlessPlugins: Record<string, StainlessPlugin<UserContext, any>> =
+  private stainlessPlugins: Record<string, StainlessPlugin<any>> =
     {};
 
   constructor(opts: StainlessOpts<Plugins>) {
@@ -320,8 +317,8 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     }
   }
   initContext<EC extends AnyEndpoint>(
-    c: PartialStlContext<UserContext, EC>
-  ): PartialStlContext<UserContext, EC> {
+    c: PartialStlContext<EC>
+  ): PartialStlContext<EC> {
     return c;
   }
 
@@ -332,7 +329,7 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
   async execute<EC extends AnyEndpoint>(
     endpoint: EC,
     params: Params,
-    context: PartialStlContext<UserContext, EC>
+    context: PartialStlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
@@ -399,16 +396,16 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     query?: Query;
     body?: Body;
     handler: Handler<
-      UserContext &
-        StlContext<
-          Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response>
-        >,
+      StlCustomContext &
+      StlContext<
+        Endpoint<MethodAndUrl, Path, Query, Body, Response>
+      >,
       Path,
       Query,
       Body,
       Response extends z.ZodTypeAny ? z.input<Response> : undefined
     >;
-  }): Endpoint<UserContext, MethodAndUrl, Path, Query, Body, Response> {
+  }): Endpoint<MethodAndUrl, Path, Query, Body, Response> {
     return {
       stl: this as any,
       config: config as EndpointConfig,

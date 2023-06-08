@@ -4,12 +4,14 @@ import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { authOptions } from "~/pages/api/auth/[...nextauth]";
 import { makeCurrentUserPlugin } from "./currentUserPlugin";
-import { User } from ".prisma/client";
+import { User } from "@prisma/client";
 
-export type StlUserContext = {
-  currentUser?: User;
-  requireCurrentUser: () => User;
-};
+declare module "stainless" {
+  interface StlCustomContext {
+    currentUser?: User;
+    requireCurrentUser: () => User;
+  }
+}
 
 const plugins = {
   next: makeNextPlugin(),
@@ -18,6 +20,6 @@ const plugins = {
   currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
