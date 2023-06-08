@@ -174,9 +174,6 @@ function makeResponse<I>(
 ): z.PageData<I> {
   const { pageAfter, pageBefore, pageSize, sortBy } = params;
   const itemCount = items.length;
-  if (pageBefore) {
-    debugger;
-  }
   items = items.slice(0, pageSize);
   if (pageBefore) items.reverse();
   const start = items[0];
