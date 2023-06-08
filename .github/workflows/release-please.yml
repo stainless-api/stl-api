@@ -39,6 +39,4 @@ jobs:
               args: [--frozen-lockfile, --strict-peer-dependencies]
 
       - name: publish dry run
-        run: node ./scripts/publish.mjs '${{toJSON(steps.release.outputs)}}' --dry-run
-        env:
-          NODE_AUTH_TOKEN: ${{secrets.NPM_TOKEN}}
+        run: node ./scripts/gitPublish.mjs --dry-run
