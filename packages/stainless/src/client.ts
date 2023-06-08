@@ -71,7 +71,7 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   : () => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
-  if (/^(get|list)([_A-Z]|$)/.test(action)) return "get";
+  if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "get";
   if (/^delete([_A-Z]|$)/.test(action)) return "delete";
   // TODO: is it possible to deal with patch/put?
   return "post";
@@ -263,9 +263,10 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   async getPreviousPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getPreviousPageParams());
+    return await this.clientPath.reduce(
+      (client: any, path) => client[path],
+      this.client
+    )(this.getPreviousPageParams());
   }
 
   getNextPageParams(): z.PaginationParams {
@@ -301,9 +302,10 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   async getNextPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getNextPageParams());
+    return await this.clientPath.reduce(
+      (client: any, path) => client[path],
+      this.client
+    )(this.getNextPageParams());
   }
 }
 
