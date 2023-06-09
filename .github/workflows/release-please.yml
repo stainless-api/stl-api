@@ -13,11 +13,11 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
-      - uses: google-github-actions/release-please-action@v3
-        id: release
-        with:
-          release-type: node
-          command: manifest
+      # - uses: google-github-actions/release-please-action@v3
+      #   id: release
+      #   with:
+      #     release-type: node
+      #     command: manifest
 
       # The logic below handles the npm publication:
       - uses: actions/checkout@v3
