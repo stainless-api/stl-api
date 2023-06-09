@@ -2,7 +2,7 @@ on:
   push:
     branches:
       - main
-
+      - debug-ci
 permissions:
   contents: write
   pull-requests: write
@@ -13,6 +13,11 @@ jobs:
   release-please:
     runs-on: ubuntu-latest
     steps:
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+        with:
+          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
+          limit-access-to-actor: true
       - uses: google-github-actions/release-please-action@v3
         id: release
         with:
