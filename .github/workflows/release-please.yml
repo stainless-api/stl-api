@@ -21,15 +21,11 @@ jobs:
 
       # The logic below handles the npm publication:
       - uses: actions/checkout@v3
-        # these if statements ensure that a publication only occurs when
-        # a new release is created:
-        if: ${{ steps.release.outputs.release_created }}
 
       - uses: actions/setup-node@v3
         with:
           node-version: 16
           registry-url: "https://registry.npmjs.org"
-        if: ${{ steps.release.outputs.release_created }}
 
       - uses: pnpm/action-setup@v2
         with:
@@ -38,10 +34,10 @@ jobs:
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
 
+      - name: publish dry run
+        run: node ./scripts/gitPublish.mjs --dry-run
+
       - uses: lhotari/action-upterm@v1
         with:
           ## limits ssh access and adds the ssh public key for the user which triggered the workflow
           limit-access-to-actor: true
-
-      - name: publish dry run
-        run: node ./scripts/gitPublish.mjs --dry-run
