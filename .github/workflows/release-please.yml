@@ -35,9 +35,4 @@ jobs:
               args: [--frozen-lockfile, --strict-peer-dependencies]
 
       - name: publish dry run
-        run: node ./scripts/gitPublish.mjs --dry-run
-
-      - uses: lhotari/action-upterm@v1
-        with:
-          ## limits ssh access and adds the ssh public key for the user which triggered the workflow
-          limit-access-to-actor: true
+        run: node ./scripts/publish.mjs --dry-run
