@@ -155,3 +155,25 @@ export function getExpands(ctx: StlContext<any>): string[] | null | undefined {
   }
   return expand;
 }
+
+export type parseInclude<I extends string> = {
+  include: {
+    [k in IncludePrefix<I>]: parseIncludeChildren<I, k>;
+  };
+};
+
+type IncludePrefix<I extends string> = I extends `${infer Prefix}.${string}`
+  ? Prefix
+  : I;
+
+type parseIncludeChildren<I extends string, k extends string> = StripPrefix<
+  I,
+  k
+> extends never
+  ? {}
+  : parseInclude<StripPrefix<I, k>>;
+
+type StripPrefix<
+  I extends string,
+  Prefix extends string
+> = I extends `${Prefix}.${infer Rest}` ? Rest : never;
