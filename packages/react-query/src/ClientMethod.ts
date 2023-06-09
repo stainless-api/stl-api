@@ -1,14 +1,12 @@
 import {
   AnyEndpoint,
   z,
-  PaginatorPromise,
-  ClientPromise,
   EndpointBodyInput,
   RequestOptions,
   EndpointQueryInput,
   AnyResourceConfig,
 } from "stainless";
-import { EndpointPathParam } from ".";
+import { ClientPromise, PaginatorPromise, EndpointPathParam } from ".";
 
 export type ClientMethods<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
