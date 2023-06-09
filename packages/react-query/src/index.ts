@@ -19,7 +19,7 @@ import {
   type Page,
   type RequestOptions,
 } from "stainless";
-import { isEmpty, lowerFirst } from "lodash";
+import { isEmpty, lowerFirst, isPlainObject } from "lodash";
 import {
   type UseQueryOptions as BaseUseQueryOptions,
   type UseQueryResult,
@@ -447,7 +447,10 @@ type UseInfiniteQueryOptions<
 // This is required so that we can determine if a given object matches the RequestOptions
 // type at runtime. While this requires duplication, it is enforced by the TypeScript
 // compiler such that any missing / extraneous keys will cause an error.
-const useInfiniteQueryOptionsKeys: KeysEnum<UseInfiniteQueryOptions> = {
+const useInfiniteQueryOptionsKeys: KeysEnum<
+  { query: any } & UseInfiniteQueryOptions
+> = {
+  query: true,
   context: true,
   retry: true,
   retryDelay: true,
@@ -567,7 +570,11 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
       (isInfinite ? isUseInfiniteQueryOptions : isUseQueryOptions)(args.at(-1))
         ? (args.pop() as any)
         : undefined;
-    const query: Record<string, any> = reactQueryOptions?.query;
+    const query: Record<string, any> =
+      reactQueryOptions?.query ||
+      (isPlainObject(args.at(-1))
+        ? (args.pop() as Record<string, any>)
+        : undefined);
 
     const firstArg = args[0];
     const path =
