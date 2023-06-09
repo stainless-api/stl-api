@@ -37,6 +37,8 @@ jobs:
           run_install: |
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
+        if: ${{ steps.release.outputs.release_created }}
 
-      - name: publish dry run
-        run: node ./scripts/gitPublish.mjs --dry-run
+      - name: publish
+        run: node ./scripts/publish.mjs
+        if: ${{ steps.release.outputs.release_created }}

@@ -12,3 +12,5 @@ next-env.d.ts
 /packages/*/*.tgz
 # Local Netlify folder
 .netlify
+
+/demo/.vscode

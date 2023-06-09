@@ -31,15 +31,34 @@ declare module "zod" {
 
     prismaModel<M extends PrismaModel>(
       prismaModel: M
-    ): z.ZodMetadata<this, { prismaModel: M }>;
+    ): z.ZodMetadata<this, { stainless: { prismaModel: M } }>;
   }
+}
+
+export type extractPrismaModel<T extends z.ZodTypeAny> = z.extractDeepMetadata<
+  T,
+  { stainless: { prismaModel: PrismaModel } }
+> extends { stainless: { prismaModel: infer P extends PrismaModel } }
+  ? P
+  : never;
+
+export function extractPrismaModel<T extends z.ZodTypeAny>(
+  schema: T
+): extractPrismaModel<T> {
+  const metadata = z.extractDeepMetadata(schema, {
+    stainless: { prismaModel: {} },
+  });
+  if (metadata) {
+    return (metadata as any)?.stainless?.prismaModel;
+  }
+  return undefined as never;
 }
 
 declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
-    prisma: z.extractDeepMetadata<EC["response"]> extends {
-      prismaModel: infer M extends PrismaModel;
-    }
+    prisma: extractPrismaModel<
+      EC["response"]
+    > extends infer M extends PrismaModel
       ? PrismaContext<M>
       : unknown;
   }
@@ -70,8 +89,11 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
 z.ZodType.prototype.prismaModel = function prismaModel<
   T extends z.ZodTypeAny,
   M extends PrismaModel
->(this: T, prismaModel: M): z.ZodMetadata<T, { prismaModel: M }> {
-  return this.withMetadata({ prismaModel });
+>(
+  this: T,
+  prismaModel: M
+): z.ZodMetadata<T, { stainless: { prismaModel: M } }> {
+  return this.withMetadata({ stainless: { prismaModel } });
 };
 
 export type PrismaContext<M extends PrismaModel> = {
@@ -288,7 +310,7 @@ function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
-  if ((z.extractDeepMetadata(response) as any)?.pageResponse) {
+  if (z.isPageResponse(response)) {
     return {
       ...wrapQuery(context.parsedParams?.query || {}, prismaQuery),
       ...includeSelect,
@@ -335,9 +357,7 @@ function createIncludeSelect<
   ) {
     throw new Error(`invalid expand query param`);
   }
-  const isPage = (z.extractDeepMetadata(endpoint.response) as any)
-    ?.pageResponse;
-  if (isPage) {
+  if (z.isPageResponse(endpoint.response)) {
     expand = expand ? expandSubPaths(expand, "items") : undefined;
     select = select?.select?.items;
   }
@@ -462,11 +482,9 @@ export const makePrismaPlugin =
         params: Params,
         context: PartialStlContext<any, EC>
       ) {
-        const model = (
-          endpoint.response
-            ? (z.extractDeepMetadata(endpoint.response) as any)
-            : null
-        )?.prismaModel;
+        const model = endpoint.response
+          ? (extractPrismaModel(endpoint.response) as any)
+          : null;
         function getModel(): PrismaModel {
           if (!model)
             throw new Error(`response doesn't have a prisma model configured`);

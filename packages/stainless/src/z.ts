@@ -82,93 +82,137 @@ z.ZodType.prototype.withMetadata = function withMetadata<
 
 export const withMetadata = ZodMetadata.create;
 
-export type extractMetadata<T extends z.ZodTypeAny> = z.ZodType<
-  any,
-  z.ZodTypeDef,
-  any
-> extends T
+export type extractMetadata<
+  T extends z.ZodTypeAny,
+  Satisfying extends object = object
+> = z.ZodType<any, z.ZodTypeDef, any> extends T
   ? never // bail if T is too generic, to prevent combinatorial explosion
-  : T extends ZodMetadata<any, infer M>
-  ? M
+  : T extends ZodMetadata<infer U, infer M>
+  ? M extends Satisfying
+    ? M
+    : extractMetadata<U, Satisfying>
   : T extends z.ZodOptional<infer U>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodNullable<infer U>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodDefault<infer U>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodLazy<infer U>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodEffects<infer U, any, any>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodCatch<infer U>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodBranded<infer U, any>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodPipeline<any, infer U>
-  ? extractMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : T extends z.ZodPromise<infer U>
-  ? extractDeepMetadata<U>
+  ? extractMetadata<U, Satisfying>
   : never;
 
-export function extractMetadata<T extends z.ZodTypeAny>(
-  schema: T
-): extractMetadata<T> {
-  if (schema instanceof ZodMetadata) return schema.metadata;
-  if (schema instanceof z.ZodOptional) return extractMetadata(schema.unwrap());
-  if (schema instanceof z.ZodNullable) return extractMetadata(schema.unwrap());
+function satisfies(a: unknown, b: unknown): boolean {
+  if (Array.isArray(b)) {
+    return (
+      Array.isArray(a) &&
+      a.length === b.length &&
+      a.every((elem, i) => satisfies(elem, b[i]))
+    );
+  }
+  if (b != null && typeof b === "object") {
+    return (
+      a != null &&
+      typeof a === "object" &&
+      Object.entries(b).every(([key, value]) =>
+        satisfies((a as Record<string, unknown>)[key], value)
+      )
+    );
+  }
+  return Object.is(a, b);
+}
+
+export function extractMetadata<
+  T extends z.ZodTypeAny,
+  Satisfying extends object = object
+>(
+  schema: T,
+  satisfying: Satisfying = {} as Satisfying
+): extractMetadata<T, Satisfying> {
+  if (schema instanceof ZodMetadata) {
+    if (satisfies(schema.metadata, satisfying)) {
+      return schema.metadata;
+    }
+    return extractMetadata(schema.unwrap(), satisfying);
+  }
+  if (schema instanceof z.ZodOptional)
+    return extractMetadata(schema.unwrap(), satisfying);
+  if (schema instanceof z.ZodNullable)
+    return extractMetadata(schema.unwrap(), satisfying);
   if (schema instanceof z.ZodDefault)
-    return extractMetadata(schema.removeDefault());
-  if (schema instanceof z.ZodLazy) return extractMetadata(schema.schema);
+    return extractMetadata(schema.removeDefault(), satisfying);
+  if (schema instanceof z.ZodLazy)
+    return extractMetadata(schema.schema, satisfying);
   if (schema instanceof z.ZodEffects)
-    return extractMetadata(schema._def.schema);
+    return extractMetadata(schema._def.schema, satisfying);
   if (schema instanceof z.ZodCatch)
-    return extractMetadata(schema.removeCatch());
-  if (schema instanceof z.ZodBranded) return extractMetadata(schema.unwrap());
-  if (schema instanceof z.ZodPipeline) return extractMetadata(schema._def.out);
+    return extractMetadata(schema.removeCatch(), satisfying);
+  if (schema instanceof z.ZodBranded)
+    return extractMetadata(schema.unwrap(), satisfying);
+  if (schema instanceof z.ZodPipeline)
+    return extractMetadata(schema._def.out, satisfying);
   if (schema instanceof z.ZodPromise)
-    return extractDeepMetadata(schema.unwrap());
+    return extractMetadata(schema.unwrap(), satisfying);
   return undefined as never;
 }
 
-export type extractDeepMetadata<T extends z.ZodTypeAny> = z.ZodType<
-  any,
-  z.ZodTypeDef,
-  any
-> extends T
+export type extractDeepMetadata<
+  T extends z.ZodTypeAny,
+  Satisfying extends object = object
+> = z.ZodType<any, z.ZodTypeDef, any> extends T
   ? never // bail if T is too generic, to prevent combinatorial explosion
-  : T extends ZodMetadata<any, infer M>
-  ? M
+  : T extends ZodMetadata<infer U, infer M>
+  ? M extends Satisfying
+    ? M
+    : extractDeepMetadata<U, Satisfying>
   : T extends z.ZodOptional<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodNullable<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodDefault<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodLazy<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodEffects<infer U, any, any>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodCatch<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodBranded<infer U, any>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodPipeline<any, infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodPromise<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodArray<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : T extends z.ZodSet<infer U>
-  ? extractDeepMetadata<U>
+  ? extractDeepMetadata<U, Satisfying>
   : never;
 
-export function extractDeepMetadata<T extends z.ZodTypeAny>(
-  schema: T
-): extractDeepMetadata<T> {
-  if (schema instanceof z.ZodArray) return extractDeepMetadata(schema.element);
+export function extractDeepMetadata<
+  T extends z.ZodTypeAny,
+  Satisfying extends object = object
+>(
+  schema: T,
+  satisfying: Satisfying = {} as Satisfying
+): extractDeepMetadata<T, Satisfying> {
+  if (schema instanceof z.ZodArray)
+    return extractDeepMetadata(schema.element, satisfying);
   if (schema instanceof z.ZodSet)
-    return extractDeepMetadata(schema._def.valueType);
-  return extractMetadata(schema) as extractDeepMetadata<T>;
+    return extractDeepMetadata(schema._def.valueType, satisfying);
+  return extractMetadata(schema, satisfying) as extractDeepMetadata<
+    T,
+    Satisfying
+  >;
 }
 
 //////////////////////////////////////////////////
@@ -204,7 +248,7 @@ export type ExpandableZodType<T extends z.ZodTypeAny> = ZodMetadata<
     T["_def"],
     ExpandableInput<z.input<T>>
   >,
-  { expandable: true }
+  { stainless: { expandable: true } }
 >;
 
 z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
@@ -217,8 +261,22 @@ z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
     this.optional()
   )
     .openapi({ effectType: "input" })
-    .withMetadata({ expandable: true });
+    .withMetadata({ stainless: { expandable: true } });
 };
+
+export type isExpandable<T extends z.ZodTypeAny> = extractDeepMetadata<
+  T,
+  { stainless: { expandable: true } }
+> extends { stainless: { expandable: true } }
+  ? true
+  : false;
+
+export function isExpandable<T extends z.ZodTypeAny>(
+  schema: T
+): isExpandable<T> {
+  return (extractDeepMetadata(schema, { stainless: { expandable: true } }) !=
+    null) as isExpandable<T>;
+}
 
 function zodPathIsExpanded(
   zodPath: (string | number)[],
@@ -662,15 +720,33 @@ export function pageResponse<I extends z.ZodTypeAny>(
   item: I
 ): ZodMetadata<
   ReturnType<PageResponseWrapper<I>["wrapped"]>,
-  extractMetadata<I> & { pageResponse: true }
+  extractDeepMetadata<I> & { stainless: { pageResponse: true } }
 > {
+  const baseMetadata: any = extractDeepMetadata(item);
   return response({
     ...commonPageResponseFields,
     items: z.array(item),
   }).withMetadata({
-    ...extractMetadata(item),
-    pageResponse: true,
+    ...baseMetadata,
+    stainless: {
+      ...baseMetadata?.stainless,
+      pageResponse: true,
+    },
   });
+}
+
+export type isPageResponse<T extends z.ZodTypeAny> = extractMetadata<
+  T,
+  { stainless: { pageResponse: true } }
+> extends { stainless: { pageResponse: true } }
+  ? true
+  : false;
+
+export function isPageResponse<T extends z.ZodTypeAny>(
+  schema: T
+): isPageResponse<T> {
+  return (extractMetadata(schema, { stainless: { pageResponse: true } }) !=
+    null) as isPageResponse<T>;
 }
 
 export type PageData<I> = {
