@@ -9,9 +9,9 @@ export function includes<
 >(
   schema: T,
   depth: Depth = 3 as any
-): z.WithStlMetadata<
+): z.ZodMetadata<
   z.ZodType<IncludablePaths<z.output<T>, Depth>[]>,
-  { includes: true }
+  { stainless: { includes: true } }
 > {
   const values: string[] = [];
 
@@ -27,7 +27,7 @@ export function includes<
       const obj = unwrapIncludable(value);
       if (!obj) continue;
       const subpath = path ? `${path}.${key}` : key;
-      if (isIncludable(value)) values.push(subpath);
+      if (z.isIncludable(value)) values.push(subpath);
       add(subpath, obj, depth - 1);
     }
   }
@@ -41,14 +41,18 @@ export function includes<
     z.array(z.enum([first, ...rest])) as any as z.ZodType<
       IncludablePaths<z.output<T>, Depth>[]
     >
-  ).stlMetadata({ includes: true });
+  ).withMetadata({ stainless: { includes: true } });
 }
 
 /**
  * Given an zod schema from `includes`, extracts the possible options
  */
 export function includesOptions<V extends string[]>(param: z.ZodType<V>): V {
-  if (param instanceof z.ZodOptional || param instanceof z.ZodNullable)
+  if (
+    param instanceof z.ZodOptional ||
+    param instanceof z.ZodNullable ||
+    param instanceof z.ZodMetadata
+  )
     return includesOptions(param.unwrap());
   if (param instanceof z.ZodDefault)
     return includesOptions(param._def.innerType);
@@ -62,15 +66,15 @@ export function includesOptions<V extends string[]>(param: z.ZodType<V>): V {
   return element.options;
 }
 
-function isIncludable<T extends z.ZodTypeAny>(e: T): boolean {
-  return z.extractStlMetadata(e)?.includable ?? false;
-}
-
 function unwrapIncludable(e: z.ZodTypeAny): z.AnyZodObject | undefined {
   if (e instanceof z.ZodObject) {
     return e;
   }
-  if (e instanceof z.ZodOptional || e instanceof z.ZodNullable) {
+  if (
+    e instanceof z.ZodOptional ||
+    e instanceof z.ZodNullable ||
+    e instanceof z.ZodMetadata
+  ) {
     return unwrapIncludable(e.unwrap());
   }
   if (e instanceof z.ZodDefault) {

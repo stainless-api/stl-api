@@ -92,14 +92,12 @@ import { makeNextPlugin } from "@stl-api/next";
 +import { makeNextAuthPlugin } from "@stl-api/next-auth";
 +import { authOptions } from "~/pages/api/auth/[...nextauth]";
 
-export type StlUserContext = {};
-
 const plugins = {
   next: makeNextPlugin(),
 +  nextAuth: makeNextAuthPlugin({ authOptions }),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```
@@ -115,14 +113,13 @@ import {
   Params,
   PartialStlContext,
 } from "stainless";
-import { StlUserContext } from "./stl";
 
 export const makeCurrentUserPlugin =
-  (): MakeStainlessPlugin<StlUserContext> => (stl) => ({
+  (): MakeStainlessPlugin => (stl) => ({
     async middleware<EC extends AnyEndpoint>(
       endpoint: EC,
       params: Params,
-      context: PartialStlContext<StlUserContext, EC>
+      context: PartialStlContext<EC>
     ) {
       const { session } = context;
 
@@ -142,10 +139,11 @@ import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { makeCurrentUserPlugin } from "./currentUserPlugin";
 import { authOptions } from "~/pages/api/auth/[...nextauth]";
 
--export type StlUserContext = {};
-+export type StlUserContext = {
-+  currentUser?: User;
-+};
+declare module "stainless" {
+  interface StlCustomContext {
+    currentUser?: User,
+  }
+}
 
 const plugins = {
   next: makeNextPlugin(),
@@ -153,7 +151,7 @@ const plugins = {
 +  currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```

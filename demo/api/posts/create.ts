@@ -5,7 +5,9 @@ import { Post } from "./models";
 export const create = stl.endpoint({
   endpoint: "post /api/posts",
   response: Post,
-
+  config: {
+    authenticated: true,
+  },
   query: z.query({
     include: z.includes(Post, 3).optional(),
   }),

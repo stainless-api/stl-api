@@ -25,13 +25,11 @@ npm i --save stainless-api/stl-api#prisma-0.0.2
 import { Stl } from "stainless";
 +import { makePrismaPlugin } from "@stl-api/prisma";
 
-export type StlUserContext = {};
-
 const plugins = {
 +  prisma: makePrismaPlugin(),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```

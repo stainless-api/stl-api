@@ -4,7 +4,11 @@ import { z } from "stainless";
  * Given an zod schema from `includes`, extracts the possible options
  */
 export function includesOptions<V extends string[]>(param: z.ZodType<V>): V {
-  if (param instanceof z.ZodOptional || param instanceof z.ZodNullable)
+  if (
+    param instanceof z.ZodOptional ||
+    param instanceof z.ZodNullable ||
+    param instanceof z.ZodMetadata
+  )
     return includesOptions(param.unwrap());
   if (param instanceof z.ZodDefault)
     return includesOptions(param._def.innerType);

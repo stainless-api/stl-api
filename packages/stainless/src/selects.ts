@@ -11,9 +11,9 @@ export function selects<
 >(
   schema: T,
   depth: Depth = 3 as any
-): z.WithStlMetadata<
+): z.ZodMetadata<
   z.ZodType<SelectTree | null | undefined, z.ZodEffectsDef, string>,
-  { selects: true }
+  { stainless: { selects: true } }
 > {
   return z
     .string()
@@ -28,7 +28,7 @@ export function selects<
         });
       }
     })
-    .stlMetadata({ selects: true });
+    .withMetadata({ stainless: { selects: true } });
 }
 
 function validateSelectTree(
@@ -66,7 +66,11 @@ function validateSelectTree(
     }
     return selectTree;
   }
-  if (schema instanceof z.ZodNullable || schema instanceof z.ZodOptional) {
+  if (
+    schema instanceof z.ZodNullable ||
+    schema instanceof z.ZodOptional ||
+    schema instanceof z.ZodMetadata
+  ) {
     return validateSelectTree(selectTree, schema.unwrap(), depth, path);
   }
   if (schema instanceof z.ZodDefault) {
