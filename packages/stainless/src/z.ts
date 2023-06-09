@@ -44,6 +44,14 @@ export interface ZodMetadataDef<T extends z.ZodTypeAny, M extends object>
   metadata: M;
 }
 
+/**
+ * Class for storing custom metadata like `prismaModel`,
+ * `pageResponse: true`, `expandable: true`, etc.
+ *
+ * zod-openapi errors out on any new class that extends the base
+ * ZodType, so I made this extend a no-op refinement for compatibility.
+ * Extending ZodLazy would be another option
+ */
 export class ZodMetadata<
   T extends z.ZodTypeAny,
   M extends object
