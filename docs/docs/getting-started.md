@@ -32,7 +32,7 @@ npm i --save stainless-api/stl-api#prisma-0.0.2     # If you are using Prisma
 ```ts
 // ~/libs/stl.ts
 
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 
 export type Context = {};
@@ -41,7 +41,7 @@ const plugins = {
   next: makeNextPlugin(),
 };
 
-export const stl = makeStl<Context, typeof plugins>({
+export const stl = new Stl<Context, typeof plugins>({
   plugins,
 });
 ```
@@ -58,23 +58,16 @@ export const User = z
   .response({
     id: z.string().uuid(),
 
-    name: z.string().nullable().optional(),
-    username: z.string().nullable().optional(),
-    bio: z.string().nullable().optional(),
-    email: z.string().nullable().optional(),
-    emailVerified: z.date().nullable().optional(),
-    image: z.string().nullable().optional(),
-    coverImage: z.string().nullable().optional(),
-    profileImage: z.string().nullable().optional(),
-
-    hashedPassword: z.string().nullable().optional(),
+    username: z.string().nullable(),
+    email: z.string().nullable(),
+    name: z.string().nullable(),
 
     createdAt: z.date(),
     updatedAt: z.date(),
 
     followingIds: z.array(z.string().uuid()),
-    hasNotification: z.boolean().nullable().optional(),
-    followersCount: z.number().optional(),
+    hasNotification: z.boolean().nullable(),
+    followersCount: z.number(),
   })
   .prismaModel(prisma.user);
 ```
@@ -85,7 +78,7 @@ export const User = z
 // ~/api/users/retrieve.ts
 
 import { stl } from "~/libs/stl";
-import { z } from "stainless";
+import { NotFoundError, z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
@@ -101,7 +94,7 @@ export const retrieve = stl.endpoint({
         id: userId,
       },
     });
-    if (!user) throw new stl.NotFoundError();
+    if (!user) throw new NotFoundError();
     return user;
   },
 });

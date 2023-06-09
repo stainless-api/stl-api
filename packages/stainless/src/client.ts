@@ -82,10 +82,25 @@ function actionMethod(action: string): HttpMethod {
   return "post";
 }
 
+class HTTPResponseError extends Error {
+  constructor(public response: Response) {
+    super(`HTTP Error Response: ${response.status} ${response.statusText}`);
+  }
+}
+
 export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
   options?: { fetch?: typeof fetch }
 ): StainlessClient<Api> {
+  const checkStatus = (response: Response) => {
+    if (response.ok) {
+      // response.status >= 200 && response.status < 300
+      return response;
+    } else {
+      throw new HTTPResponseError(response);
+    }
+  };
+
   const client = createRecursiveProxy((opts) => {
     const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
@@ -124,23 +139,24 @@ export function createClient<Api extends AnyAPIDescription>(
     }
 
     const doFetch = async () => {
-      const json = await (options?.fetch || fetch)(uri, {
+      const res = await (options?.fetch || fetch)(uri, {
         method,
         headers: {
           "Content-Type": "application/json",
           ...requestOptions?.headers,
         },
         body: body ? JSON.stringify(body) : undefined, // TODO: don't include on GET
-      }).then(async (res) => {
-        const responsebody = await res.text();
-        try {
-          return JSON.parse(responsebody);
-        } catch (e) {
-          console.error("Could not parse json", responsebody);
-        }
       });
+      checkStatus(res);
+      const responsebody = await res.text();
+      let json;
+      try {
+        json = JSON.parse(responsebody);
+      } catch (e) {
+        console.error("Could not parse json", responsebody);
+      }
 
-      if ("error" in json) {
+      if (json && "error" in json) {
         throw new Error(`Error: ${json.error.message}`);
       }
 
@@ -267,9 +283,10 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   async getPreviousPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getPreviousPageParams());
+    return await this.clientPath.reduce(
+      (client: any, path) => client[path],
+      this.client
+    )(this.getPreviousPageParams());
   }
 
   getNextPageParams(): z.PaginationParams {
@@ -305,9 +322,10 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   async getNextPage(): Promise<Page<D>> {
-    return await this.clientPath
-      .reduce((client: any, path) => client[path], this.client)
-      .list(this.getNextPageParams());
+    return await this.clientPath.reduce(
+      (client: any, path) => client[path],
+      this.client
+    )(this.getNextPageParams());
   }
 }
 

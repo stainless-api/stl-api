@@ -88,7 +88,7 @@ export default NextAuth(authOptions);
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 +import { makeNextAuthPlugin } from "@stl-api/next-auth";
 +import { authOptions } from "~/pages/api/auth/[...nextauth]";
@@ -100,7 +100,49 @@ const plugins = {
 +  nextAuth: makeNextAuthPlugin({ authOptions }),
 };
 
-export const stl = makeStl<StlUserContext, typeof plugins>({
+export const stl = new Stl<StlUserContext, typeof plugins>({
   plugins,
 });
 ```
+
+## Setting a route to be authenticated
+
+If you have an endpoint where you only want to respond when incoming 
+requests are authenticated, you can mark it as `authenticated`:
+
+```diff
+// ~/api/users/retrieve.ts
+
+import { stl } from "~/libs/stl";
+import { z } from "stainless";
+import prisma from "~/libs/prismadb";
+import { User } from "./models";
+
+export const retrieve = stl.endpoint({
+  endpoint: "get /api/users/{userId}",
+
++  config: {
++    authenticated: true,
++  }
+
+  response: User,
+  path: z.object({
+    userId: z.string(),
+  }),
+  async handler({ userId }, ctx) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) throw new stl.NotFoundError();
+    return user;
+  },
+});
+```
+
+Now, if an unauthenticated request hits the endpoint, the plugin will 
+automatically raise an `UnauthorizedError`, causing the request to resolve
+to an HTTP 401 status. `ctx.session` and `ctx.session.user` are also made 
+available to the `handler`, so handling authenticated request session
+information is easier.

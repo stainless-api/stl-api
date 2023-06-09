@@ -37,7 +37,7 @@ export const makeCurrentUserPlugin =
 ```diff
 // ~/libs/stl.ts
 
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { makeCurrentUserPlugin } from "./currentUserPlugin";
@@ -54,7 +54,7 @@ const plugins = {
 +  currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = makeStl<StlUserContext, typeof plugins>({
+export const stl = new Stl<StlUserContext, typeof plugins>({
   plugins,
 });
 ```

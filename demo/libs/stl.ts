@@ -1,4 +1,4 @@
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
@@ -18,6 +18,6 @@ const plugins = {
   currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = makeStl<StlUserContext, typeof plugins>({
+export const stl = new Stl<StlUserContext, typeof plugins>({
   plugins,
 });

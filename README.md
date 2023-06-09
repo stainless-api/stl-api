@@ -11,13 +11,18 @@ You can also opt into Stainless's Stripe-inspired [pristine API design conventio
 
 Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, and (heavily) from the internal API Framework we worked on at Stripe.
 
+> **Note**
+> This project is currently in its **alpha stage of development**.
+> Features may be changed or removed at any time without warning, and production use is not recommended. 
+> Hobbyists welcome!
+
 For example:
 
 <!-- TODO: this is too long / too much code… -->
 
 ```ts
 // server.ts
-import { makeStl } from "stainless";
+import { Stl } from "stainless";
 import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
@@ -31,7 +36,7 @@ const plugins = {
   prisma: makePrismaPlugin(),
 };
 
-export const stl = makeStl<{}, typeof plugins>({
+export const stl = new Stl<{}, typeof plugins>({
   plugins,
 });
 
@@ -197,7 +202,7 @@ app.post("/users", async (req, rsp) => {
 
 Doing this helps TypeScript ensure that your OpenAPI spec is an accurate reflection of your runtime behavior. It can also help return consistent response shapes and validation error messages to the user.
 
-Note that `validateParams` raises `stl.BadRequestError` if params don't match.
+Note that `validateParams` raises `BadRequestError` if params don't match.
 
 To handle errors like this, add middleware:
 

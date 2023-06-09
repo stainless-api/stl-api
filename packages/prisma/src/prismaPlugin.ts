@@ -5,6 +5,7 @@ import {
   PartialStlContext,
   StlContext,
   SelectTree,
+  NotFoundError,
   z,
 } from "stainless";
 import {
@@ -13,6 +14,7 @@ import {
   addExpandParents,
 } from "./expandsUtils";
 import { isPlainObject } from "lodash";
+import { inspect } from "util";
 
 declare module "zod" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
@@ -29,13 +31,13 @@ declare module "zod" {
 
     prismaModel<M extends PrismaModel>(
       prismaModel: M
-    ): z.WithStlMetadata<this, { prismaModel: M }>;
+    ): z.ZodMetadata<this, { prismaModel: M }>;
   }
 }
 
 declare module "stainless" {
   interface StlContext<EC extends AnyEndpoint> {
-    prisma: z.ExtractStlMetadata<EC["response"]> extends {
+    prisma: z.extractDeepMetadata<EC["response"]> extends {
       prismaModel: infer M extends PrismaModel;
     }
       ? PrismaContext<M>
@@ -68,8 +70,8 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
 z.ZodType.prototype.prismaModel = function prismaModel<
   T extends z.ZodTypeAny,
   M extends PrismaModel
->(this: T, prismaModel: M): z.WithStlMetadata<T, { prismaModel: M }> {
-  return this.stlMetadata({ prismaModel });
+>(this: T, prismaModel: M): z.ZodMetadata<T, { prismaModel: M }> {
+  return this.withMetadata({ prismaModel });
 };
 
 export type PrismaContext<M extends PrismaModel> = {
@@ -155,9 +157,15 @@ function wrapQuery<Q>(
   return {
     ...query,
     cursor,
-    skip: 1,
+    skip: cursor ? 1 : 0,
     take: pageSize + 1,
-    orderBy: { [sortBy]: sortDirection },
+    orderBy: {
+      [sortBy]: pageBefore
+        ? sortDirection === "desc"
+          ? "asc"
+          : "desc"
+        : sortDirection,
+    },
   };
 }
 
@@ -166,18 +174,21 @@ function makeResponse<I>(
   items: I[]
 ): z.PageData<I> {
   const { pageAfter, pageBefore, pageSize, sortBy } = params;
+  const itemCount = items.length;
+  items = items.slice(0, pageSize);
+  if (pageBefore) items.reverse();
   const start = items[0];
-  const end = items[Math.min(items.length, pageSize) - 1];
+  const end = items[items.length - 1];
   return {
-    items: items.slice(0, pageSize),
+    items,
     // @ts-expect-error TODO
     startCursor: stringifyCursor(start?.[sortBy]) ?? null,
     // @ts-expect-error TODO
     endCursor: stringifyCursor(end?.[sortBy]) ?? null,
-    hasPreviousPage: pageBefore != null ? items.length > pageSize : undefined,
+    hasPreviousPage: pageBefore != null ? itemCount > pageSize : undefined,
     hasNextPage:
       pageAfter != null || pageBefore == null
-        ? items.length > pageSize
+        ? itemCount > pageSize
         : undefined,
   };
 }
@@ -277,22 +288,10 @@ function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
-  if (z.extractStlMetadata(response)?.pageResponse) {
-    const { pageAfter, pageBefore, pageSize, sortBy, sortDirection } =
-      context.parsedParams?.query || {};
-    const cursorString = pageAfter ?? pageBefore;
-    const cursor =
-      cursorString != null
-        ? { [sortBy]: parseCursor(cursorString) }
-        : undefined;
-
+  if ((z.extractDeepMetadata(response) as any)?.pageResponse) {
     return {
-      ...prismaQuery,
+      ...wrapQuery(context.parsedParams?.query || {}, prismaQuery),
       ...includeSelect,
-      cursor,
-      skip: 1,
-      take: pageSize + 1,
-      orderBy: { [sortBy]: sortDirection },
     };
   }
   return {
@@ -336,7 +335,8 @@ function createIncludeSelect<
   ) {
     throw new Error(`invalid expand query param`);
   }
-  const isPage = z.extractStlMetadata(endpoint.response).pageResponse;
+  const isPage = (z.extractDeepMetadata(endpoint.response) as any)
+    ?.pageResponse;
   if (isPage) {
     expand = expand ? expandSubPaths(expand, "items") : undefined;
     select = select?.select?.items;
@@ -463,7 +463,9 @@ export const makePrismaPlugin =
         context: PartialStlContext<any, EC>
       ) {
         const model = (
-          endpoint.response ? z.extractStlMetadata(endpoint.response) : null
+          endpoint.response
+            ? (z.extractDeepMetadata(endpoint.response) as any)
+            : null
         )?.prismaModel;
         function getModel(): PrismaModel {
           if (!model)
@@ -483,7 +485,7 @@ export const makePrismaPlugin =
               .findUniqueOrThrow(wrapQuery(args))
               .catch((e) => {
                 console.error(e.stack);
-                throw new stl.NotFoundError();
+                throw new NotFoundError();
               }),
           findMany: (args) => getModel().findMany(wrapQuery(args)),
           create: (args) => getModel().create(wrapQuery(args)),
