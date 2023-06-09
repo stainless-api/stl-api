@@ -1,6 +1,7 @@
 import {
   AnyAPIDescription,
   AnyEndpoint,
+  AnyBaseEndpoint,
   MakeStainlessPlugin,
   NotFoundError,
   StlError,
@@ -13,7 +14,7 @@ import { endpointToHono } from "./endpointToHono";
 import { NextRequest, NextResponse } from "next/server";
 
 declare module "stainless" {
-  interface StlContext<EC extends AnyEndpoint> {
+  interface StlContext<EC extends AnyBaseEndpoint> {
     server: NextServerContext;
   }
 }

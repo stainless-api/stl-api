@@ -1,5 +1,6 @@
 import {
   AnyEndpoint,
+  AnyBaseEndpoint,
   MakeStainlessPlugin,
   Params,
   PartialStlContext,
@@ -55,7 +56,7 @@ export function extractPrismaModel<T extends z.ZodTypeAny>(
 }
 
 declare module "stainless" {
-  interface StlContext<EC extends AnyEndpoint> {
+  interface StlContext<EC extends AnyBaseEndpoint> {
     prisma: extractPrismaModel<
       EC["response"]
     > extends infer M extends PrismaModel
@@ -302,11 +303,10 @@ async function paginate<D extends PrismaModel>(
   );
 }
 
-function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
-  endpoint: EC,
-  context: PartialStlContext<any, EC>,
-  prismaQuery: Q
-): Q {
+function endpointWrapQuery<
+  EC extends AnyBaseEndpoint,
+  Q extends { include?: any }
+>(endpoint: EC, context: PartialStlContext<any, EC>, prismaQuery: Q): Q {
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
@@ -334,7 +334,7 @@ type AnyInclude = Record<
 >;
 
 function createIncludeSelect<
-  EC extends AnyEndpoint,
+  EC extends AnyBaseEndpoint,
   Q extends { include?: any }
 >(
   endpoint: EC,

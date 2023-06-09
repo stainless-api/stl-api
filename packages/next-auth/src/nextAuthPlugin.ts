@@ -1,5 +1,6 @@
 import {
   AnyEndpoint,
+  AnyBaseEndpoint,
   PartialStlContext,
   MakeStainlessPlugin,
   Params,
@@ -15,7 +16,7 @@ export interface UserSession extends Session {
 }
 
 declare module "stainless" {
-  interface StlContext<EC extends AnyEndpoint> {
+  interface StlContext<EC extends AnyBaseEndpoint> {
     /** If a route is authenticated, handlers will always have access to a valid user session.
     Otherwise, a session is provided if a user is logged in. */
     session: EC["config"] extends { authenticated: true }
