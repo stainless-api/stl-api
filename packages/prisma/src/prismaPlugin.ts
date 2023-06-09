@@ -341,7 +341,7 @@ function createIncludeSelect<
   let result: IncludeSelect | null | undefined = { include: callerInclude };
   if (include) {
     result = mergeIncludeSelect(result, {
-      include: convertIncludeToPrisma(include) as AnyInclude,
+      include: includeFromQuery(include) as AnyInclude,
     });
   }
   const convertedSelect = select ? convertSelect(select) : undefined;
@@ -490,7 +490,7 @@ const x =
  *   comments: { include: { user: true } },
  * }
  */
-function convertIncludeToPrisma<T extends string[]>(
+function includeFromQuery<T extends string[]>(
   include: T
 ): ExpandToInclude<T[number]> {
   const result: any = {};
