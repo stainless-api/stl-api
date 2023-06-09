@@ -141,8 +141,8 @@ export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
-    | Record<string, ResourceConfig<any, any, any>>
-    | undefined,
+  | Record<string, ResourceConfig<any, any, any>>
+  | undefined,
   Models extends Record<string, z.ZodTypeAny> | undefined
 > = {
   summary: string;
@@ -208,7 +208,6 @@ export type StainlessPlugin<
 > = {
   statics?: Statics;
   middleware?: <EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
     context: StlContext<EC>
   ) => void | Promise<void>;
@@ -227,7 +226,7 @@ export type StainlessOpts<Plugins extends AnyPlugins> = {
 
 export type StainlessHeaders = Record<string, string | string[] | undefined>; // TODO
 
-export interface StlCustomContext {}
+export interface StlCustomContext { }
 
 export interface BaseStlContext<EC extends AnyBaseEndpoint> {
   endpoint: EC; // what is the config?
@@ -246,7 +245,7 @@ export interface BaseStlContext<EC extends AnyBaseEndpoint> {
 
 export interface StlContext<EC extends AnyBaseEndpoint>
   extends BaseStlContext<EC>,
-    StlCustomContext {}
+  StlCustomContext { }
 
 export interface Params {
   path: any;
@@ -265,8 +264,8 @@ export type PluginsWithStaticsKeys<Plugins extends AnyPlugins> = {
   [k in keyof Plugins]: NonNullable<
     ReturnType<Plugins[k]>["statics"]
   > extends never
-    ? never
-    : k;
+  ? never
+  : k;
 }[keyof Plugins];
 
 type ExtractExecuteResponse<EC extends AnyEndpoint> =
@@ -295,10 +294,10 @@ const prependZodPath = (path: string) => (error: any) => {
 
 type OpenAPITopLevel<
   openapi extends
-    | {
-        endpoint?: HttpEndpoint | false;
-      }
-    | undefined
+  | {
+    endpoint?: HttpEndpoint | false;
+  }
+  | undefined
 > = openapi extends {
   endpoint: false;
 }
@@ -332,13 +331,12 @@ export class Stl<Plugins extends AnyPlugins> {
   }
 
   async execute<EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
     context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
-      if (middleware) await middleware(endpoint, params, context);
+      if (middleware) await middleware(params, context);
     }
 
     const parseParams = {
@@ -352,13 +350,13 @@ export class Stl<Plugins extends AnyPlugins> {
     };
 
     try {
-      context.parsedParams.query = await endpoint.query
+      context.parsedParams.query = await context.endpoint.query
         ?.parseAsync(params.query, parseParams)
         .catch(prependZodPath("<stainless request query>"));
-      context.parsedParams.path = await endpoint.path
+      context.parsedParams.path = await context.endpoint.path
         ?.parseAsync(params.path, parseParams)
         .catch(prependZodPath("<stainless request path>"));
-      context.parsedParams.body = await endpoint.body
+      context.parsedParams.body = await context.endpoint.body
         ?.parseAsync(params.body, parseParams)
         .catch(prependZodPath("<stainless request body>"));
     } catch (error) {
@@ -369,12 +367,12 @@ export class Stl<Plugins extends AnyPlugins> {
     }
 
     const { query, path, body } = context.parsedParams;
-    const responseInput = await endpoint.handler(
+    const responseInput = await context.endpoint.handler(
       { ...body, ...path, ...query },
       context as any as StlContext<EC>
     );
-    const response = endpoint.response
-      ? await endpoint.response.parseAsync(responseInput, parseParams)
+    const response = context.endpoint.response
+      ? await context.endpoint.response.parseAsync(responseInput, parseParams)
       : undefined;
 
     return response;

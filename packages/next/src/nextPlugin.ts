@@ -28,8 +28,8 @@ export const makeNextPlugin = (): MakeStainlessPlugin<any, {}> => () => ({
 export type NextServerContext = {
   type: "nextjs";
   args:
-    | [NextApiRequest, NextApiResponse]
-    | [NextRequest, { params: Record<string, any> }];
+  | [NextApiRequest, NextApiResponse]
+  | [NextRequest, { params: Record<string, any> }];
 };
 
 type RouterOptions = {
@@ -159,7 +159,7 @@ function makeRouter(
         headers: req.headers,
       });
 
-      const result = await stl.execute(endpoint, params, context);
+      const result = await stl.execute(params, context);
       return NextResponse.json(result);
     } catch (error) {
       if (error instanceof StlError) {
@@ -236,7 +236,7 @@ function makeRouter(
         headers: req.headers,
       });
 
-      const result = await stl.execute(endpoint, params, context);
+      const result = await stl.execute(params, context);
       res.status(200).send(result);
     } catch (error) {
       if (error instanceof StlError) {

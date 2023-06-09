@@ -10,7 +10,6 @@ import { User } from ".prisma/client";
 export const makeCurrentUserPlugin =
   (): MakeStainlessPlugin => (stl) => ({
     async middleware<EC extends AnyEndpoint>(
-      endpoint: EC,
       params: Params,
       context: StlContext<EC>
     ) {
