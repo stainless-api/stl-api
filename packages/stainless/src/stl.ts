@@ -141,8 +141,8 @@ export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
-  | Record<string, ResourceConfig<any, any, any>>
-  | undefined,
+    | Record<string, ResourceConfig<any, any, any>>
+    | undefined,
   Models extends Record<string, z.ZodTypeAny> | undefined
 > = {
   summary: string;
@@ -226,7 +226,7 @@ export type StainlessOpts<Plugins extends AnyPlugins> = {
 
 export type StainlessHeaders = Record<string, string | string[] | undefined>; // TODO
 
-export interface StlCustomContext { }
+export interface StlCustomContext {}
 
 export interface BaseStlContext<EC extends AnyBaseEndpoint> {
   endpoint: EC; // what is the config?
@@ -245,7 +245,7 @@ export interface BaseStlContext<EC extends AnyBaseEndpoint> {
 
 export interface StlContext<EC extends AnyBaseEndpoint>
   extends BaseStlContext<EC>,
-  StlCustomContext { }
+    StlCustomContext {}
 
 export interface Params {
   path: any;
@@ -264,8 +264,8 @@ export type PluginsWithStaticsKeys<Plugins extends AnyPlugins> = {
   [k in keyof Plugins]: NonNullable<
     ReturnType<Plugins[k]>["statics"]
   > extends never
-  ? never
-  : k;
+    ? never
+    : k;
 }[keyof Plugins];
 
 type ExtractExecuteResponse<EC extends AnyEndpoint> =
@@ -294,10 +294,10 @@ const prependZodPath = (path: string) => (error: any) => {
 
 type OpenAPITopLevel<
   openapi extends
-  | {
-    endpoint?: HttpEndpoint | false;
-  }
-  | undefined
+    | {
+        endpoint?: HttpEndpoint | false;
+      }
+    | undefined
 > = openapi extends {
   endpoint: false;
 }

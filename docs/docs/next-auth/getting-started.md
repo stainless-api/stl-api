@@ -105,7 +105,7 @@ export const stl = new Stl({
 
 ## Setting a route to be authenticated
 
-If you have an endpoint where you only want to respond when incoming 
+If you have an endpoint where you only want to respond when incoming
 requests are authenticated, you can mark it as `authenticated`:
 
 ```diff
@@ -139,8 +139,8 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-Now, if an unauthenticated request hits the endpoint, the plugin will 
+Now, if an unauthenticated request hits the endpoint, the plugin will
 automatically raise an `UnauthorizedError`, causing the request to resolve
-to an HTTP 401 status. `ctx.session` and `ctx.session.user` are also made 
+to an HTTP 401 status. `ctx.session` and `ctx.session.user` are also made
 available to the `handler`, so handling authenticated request session
 information is easier.

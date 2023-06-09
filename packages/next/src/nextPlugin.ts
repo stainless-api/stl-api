@@ -28,8 +28,8 @@ export const makeNextPlugin = (): MakeStainlessPlugin<any, {}> => () => ({
 export type NextServerContext = {
   type: "nextjs";
   args:
-  | [NextApiRequest, NextApiResponse]
-  | [NextRequest, { params: Record<string, any> }];
+    | [NextApiRequest, NextApiResponse]
+    | [NextRequest, { params: Record<string, any> }];
 };
 
 type RouterOptions = {

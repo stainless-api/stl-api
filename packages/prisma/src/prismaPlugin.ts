@@ -59,8 +59,8 @@ declare module "stainless" {
     prisma: extractPrismaModel<
       EC["response"]
     > extends infer M extends PrismaModel
-    ? PrismaContext<M>
-    : unknown;
+      ? PrismaContext<M>
+      : unknown;
   }
 }
 
@@ -363,10 +363,10 @@ function createIncludeSelect<
   const include =
     userInclude && expandSchema
       ? removeUnexpandedIncludes(
-        userInclude,
-        expandsOptions(expandSchema),
-        addExpandParents(expand || [])
-      )
+          userInclude,
+          expandsOptions(expandSchema),
+          addExpandParents(expand || [])
+        )
       : userInclude;
   let result: IncludeSelect | null | undefined = { include };
   if (expand) {
@@ -396,11 +396,11 @@ function removeUnexpandedIncludes(
       result[key] =
         value instanceof Object && value.include
           ? removeUnexpandedIncludes(
-            value.include,
-            possibleExpands,
-            expand,
-            keyPath
-          )
+              value.include,
+              possibleExpands,
+              expand,
+              keyPath
+            )
           : value;
     }
   }
@@ -525,10 +525,10 @@ type NextLevel<
 
 type ExpandToInclude<T extends string> = {
   [K in TopLevel<T>]?:
-  | boolean
-  | (NextLevel<T, K> extends string
-    ? { include: ExpandToInclude<NextLevel<T, K>> }
-    : never);
+    | boolean
+    | (NextLevel<T, K> extends string
+        ? { include: ExpandToInclude<NextLevel<T, K>> }
+        : never);
 };
 
 function expandToInclude<T extends string[]>(
