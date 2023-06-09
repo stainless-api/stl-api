@@ -169,8 +169,8 @@ type parseIncludeHelper<I extends string> = InvalidIncludeError<I> extends never
 
 type InvalidIncludeError<I extends string> = [I] extends [never]
   ? never
-  : I extends `.${string}` | `${string}.` | `${string}..${string}`
-  ? { ERROR: `invalid include: ${I}` }
+  : I extends `.${string}` | `${string}.` | `${string}..${string}` | ""
+  ? { ERROR: `invalid include: ${I extends "" ? "<empty string>" : I}` }
   : never;
 
 type parseIncludeHelper2<I extends string> = {
@@ -197,7 +197,8 @@ type StripPrefix<
 
 export function parseInclude<I extends string[]>(include: I): parseInclude<I> {
   for (const term of include) {
-    if (/^\.|\.$|\.\./.test(term)) throw new Error(`invalid include: ${term}`);
+    if (/(^|\.)(\.|$)/.test(term))
+      throw new Error(`invalid include: ${term || "<empty string>"}`);
   }
   return parseIncludeHelper(include);
 }

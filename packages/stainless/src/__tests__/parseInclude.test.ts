@@ -95,4 +95,16 @@ describe("parseInclude", () => {
       `invalid include: ${invalid4[1]}`
     );
   });
+
+  const invalid5 = ["" as const];
+
+  it(`${JSON.stringify(invalid5)} -> (error)`, () => {
+    assertEqual<
+      parseInclude<typeof invalid5>,
+      { ERROR: `invalid include: <empty string>` }
+    >(true);
+    expect(() => parseInclude(invalid5)).toThrow(
+      `invalid include: <empty string>`
+    );
+  });
 });
