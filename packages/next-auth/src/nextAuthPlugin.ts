@@ -1,6 +1,6 @@
 import {
   AnyEndpoint,
-  PartialStlContext,
+  StlContext,
   MakeStainlessPlugin,
   Params,
   UnauthorizedError,
@@ -38,7 +38,7 @@ export const makeNextAuthPlugin =
     async middleware<EC extends AnyEndpoint>(
       endpoint: EC,
       params: Params,
-      context: PartialStlContext< EC>
+      context: StlContext< EC>
     ) {
       const {
         args: [req, res],
@@ -68,7 +68,7 @@ export const makeNextAuthPlugin =
   });
 
 function requireNextServerContext(
-  context: PartialStlContext<any>
+  context: StlContext<any>
 ): NextServerContext {
   const { server } = context;
   if (server?.type !== "nextjs") {

@@ -2,7 +2,6 @@ import {
   AnyEndpoint,
   MakeStainlessPlugin,
   Params,
-  PartialStlContext,
   StlContext,
   SelectTree,
   NotFoundError,
@@ -282,7 +281,7 @@ async function paginate<D extends PrismaModel>(
 
 function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   endpoint: EC,
-  context: PartialStlContext<EC>,
+  context: StlContext<EC>,
   prismaQuery: Q
 ): Q {
   const { response } = endpoint;
@@ -316,7 +315,7 @@ function createIncludeSelect<
   Q extends { include?: any }
 >(
   endpoint: EC,
-  context: PartialStlContext<EC>,
+  context: StlContext<EC>,
   prismaQuery: Q
 ): IncludeSelect | null | undefined {
   const queryShape = endpoint.query?.shape;
@@ -460,7 +459,7 @@ export const makePrismaPlugin =
       middleware<EC extends AnyEndpoint>(
         endpoint: EC,
         params: Params,
-        context: PartialStlContext<EC>
+        context: StlContext<EC>
       ) {
         const model = (
           endpoint.response

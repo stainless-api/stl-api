@@ -198,7 +198,7 @@ export type StainlessPlugin<
   middleware?: <EC extends AnyEndpoint>(
     endpoint: EC,
     params: Params,
-    context: PartialStlContext<EC>
+    context: StlContext<EC>
   ) => void | Promise<void>;
 };
 
@@ -235,9 +235,6 @@ export interface BaseStlContext<EC extends AnyEndpoint> {
 export interface StlContext<EC extends AnyEndpoint>
   extends BaseStlContext<EC>,
     StlCustomContext {}
-
-export type PartialStlContext<EC extends AnyEndpoint> = BaseStlContext<EC> &
-  Partial<StlContext<EC>>;
 
 export interface Params {
   path: any;
@@ -315,8 +312,8 @@ export class Stl<Plugins extends AnyPlugins> {
     }
   }
   initContext<EC extends AnyEndpoint>(
-    c: PartialStlContext<EC>
-  ): PartialStlContext<EC> {
+    c: StlContext<EC>
+  ): StlContext<EC> {
     return c;
   }
 
@@ -327,7 +324,7 @@ export class Stl<Plugins extends AnyPlugins> {
   async execute<EC extends AnyEndpoint>(
     endpoint: EC,
     params: Params,
-    context: PartialStlContext<EC>
+    context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
