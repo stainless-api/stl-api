@@ -26,27 +26,6 @@ export { expands } from "./expands";
  */
 extendZodWithOpenApi(z); // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
 
-function processCreateParams(
-  params: z.RawCreateParams
-): z.ProcessedCreateParams {
-  if (!params) return {};
-  const { errorMap, invalid_type_error, required_error, description } = params;
-  if (errorMap && (invalid_type_error || required_error)) {
-    throw new Error(
-      `Can't use "invalid_type_error" or "required_error" in conjunction with custom error map.`
-    );
-  }
-  if (errorMap) return { errorMap: errorMap, description };
-  const customMap: z.ZodErrorMap = (iss, ctx) => {
-    if (iss.code !== "invalid_type") return { message: ctx.defaultError };
-    if (typeof ctx.data === "undefined") {
-      return { message: required_error ?? ctx.defaultError };
-    }
-    return { message: invalid_type_error ?? ctx.defaultError };
-  };
-  return { errorMap: customMap, description };
-}
-
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 /////////////// Metadata //////////////////////
