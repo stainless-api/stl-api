@@ -47,4 +47,4 @@ jobs:
           pnpm prisma migrate dev
 
       - name: Test
-        run: (cd demo; pnpm dev) & pnpm test
+        run: (cd demo; pnpm start) & pnpm test
