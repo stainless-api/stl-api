@@ -25,7 +25,8 @@
     "docs:build": "cd docs && pnpm build",
     "docs:deploy": "pnpm docs:build && netlify deploy --dir docs/build --prod",
     "watch": "pnpm run build:watch",
-    "clean": "pnpm -r run clean && rm -rf packages/*/{package,*.tgz}"
+    "clean": "pnpm -r run clean && rm -rf packages/*/{package,*.tgz}",
+    "format": "prettier --write ."
   },
   "devDependencies": {
     "@types/jest": "^29.5.1",
