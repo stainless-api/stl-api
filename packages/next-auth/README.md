@@ -8,7 +8,7 @@ context.
 > **Warning**
 >
 > This is alpha software, and we may make significant changes in the coming months.
-> But we're eager for you to try it out and let us know what you think!
+> We're eager for you to try it out and let us know what you think!
 
 This guide assumes you've already set up [@stl-api/next](/packages/next).
 
