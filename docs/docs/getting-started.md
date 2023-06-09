@@ -17,7 +17,7 @@ We will soon provide a `create-stl-app` API. Until then:
 
 ## Installation
 
-Install packages from versioned GitHub tags, like so:
+For now, you can install packages from versioned GitHub branches, like so:
 
 ```bash
 npm i --save 'stainless-api/stl-api#stainless-0.0.2' 'stainless-api/stl-api#next-0.0.2'
