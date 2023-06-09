@@ -288,13 +288,10 @@ export type SelectableInput<T> =
   | null
   | undefined;
 
-export type SelectableZodType<T extends z.ZodTypeAny> = ZodMetadata<
-  z.ZodType<
-    SelectableOutput<z.output<T>>,
-    T["_def"],
-    SelectableInput<z.input<T>>
-  >,
-  { selectable: true }
+export type SelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
+  SelectableOutput<z.output<T>>,
+  T["_def"],
+  SelectableInput<z.input<T>>
 >;
 
 export type Selection<T> = T extends Array<infer E extends object>
@@ -325,7 +322,8 @@ class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
         `.selectable() property must be a string ending with _fields`
       );
     }
-    if (!(parent.data instanceof Object) || typeof property !== "string") {
+    const parentData = parent.data;
+    if (!(parentData instanceof Object) || typeof property !== "string") {
       return z.OK(undefined);
     }
     const selectionHere = path.reduce<SelectTree | undefined>(
@@ -336,7 +334,7 @@ class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
 
     const parsed = super._parse(
       Object.create(input, {
-        data: { value: parent.data[property.replace(/_fields$/, "")] },
+        data: { value: parentData[property.replace(/_fields$/, "")] },
       })
     );
 
@@ -368,9 +366,7 @@ z.ZodType.prototype.selection = function selection(
 };
 
 z.ZodType.prototype.selectable = function selectable(this: z.ZodTypeAny) {
-  return new StlSelectable(this.optional()._def).withMetadata({
-    selectable: true,
-  });
+  return new StlSelectable(this.optional()._def);
 };
 
 //////////////////////////////////////////////////

@@ -202,15 +202,6 @@ interface PrismaModel {
   delete(args: any): Promise<any>;
 }
 
-interface Crud {
-  retrieve(args: any): Promise<any>;
-  retrieveOrThrow(args: any): Promise<any>;
-  list(args: any): Promise<any>;
-  create(args: any): Promise<any>;
-  update(args: any): Promise<any>;
-  delete(args: any): Promise<any>;
-}
-
 type FindUnique<D extends PrismaModel> = D extends {
   findUnique: infer Fn extends (args: any) => any;
 }
@@ -297,7 +288,7 @@ function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
-  if ((z.extractMetadata(response) as any)?.pageResponse) {
+  if ((z.extractDeepMetadata(response) as any)?.pageResponse) {
     return {
       ...wrapQuery(context.parsedParams?.query || {}, prismaQuery),
       ...includeSelect,
@@ -344,7 +335,8 @@ function createIncludeSelect<
   ) {
     throw new Error(`invalid expand query param`);
   }
-  const isPage = (z.extractMetadata(endpoint.response) as any)?.pageResponse;
+  const isPage = (z.extractDeepMetadata(endpoint.response) as any)
+    ?.pageResponse;
   if (isPage) {
     expand = expand ? expandSubPaths(expand, "items") : undefined;
     select = select?.select?.items;
