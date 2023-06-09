@@ -5,6 +5,7 @@ import path from "path";
 import { rimraf } from "rimraf";
 import { URL } from "url";
 import { isMainModule } from "./isMainModule.mjs";
+import { once } from "lodash";
 
 /**
  * Publishes a subpackages in packages/ to a branch in the git repo.
@@ -26,12 +27,26 @@ if (isMainModule(import.meta)) {
   await gitPublish(packageDir, { dryRun });
 }
 
+const setupGitIdentity = once(async () => {
+  if (process.env.CI) {
+    await execa(
+      "git",
+      ["config", "--global", "user.email", "dev@stainlessapi.com"],
+      {
+        stdio: "inherit",
+      }
+    );
+    await execa("git", ["config", "--global", "user.name", "Stainless Bot"], {
+      stdio: "inherit",
+    });
+  }
+});
+
 const rootDir = path.dirname(path.dirname(new URL(import.meta.url).pathname));
 
 export async function gitPublish(packageDir, options) {
   const dryRun = options?.dryRun;
   process.chdir(packageDir);
-  console.log({ packageDir });
 
   const packageJson = JSON.parse(await fs.readFile("package.json", "utf8"));
 
@@ -63,6 +78,7 @@ export async function gitPublish(packageDir, options) {
   await execa("git", ["remote", "add", "origin", origin], { stdio: "inherit" });
   await execa("git", ["checkout", "--orphan", branch], { stdio: "inherit" });
   await execa("git", ["add", "."], { stdio: "inherit" });
+  await setupGitIdentity();
   await execa("git", ["commit", "-m", `chore: release ${tarball} [ci skip]`], {
     stdio: "inherit",
   });
