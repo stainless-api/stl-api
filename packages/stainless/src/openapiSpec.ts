@@ -76,8 +76,6 @@ export function openapiSpec(apiDescription: AnyAPIDescription): OpenAPIObject {
     paths[path][lowerMethod] = operation;
   }
 
-  console.log(1, Object.keys(models));
-
   const document = createDocument({
     openapi: "3.1.0",
     info: {
