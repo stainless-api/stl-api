@@ -3,7 +3,6 @@ import {
   AnyBaseEndpoint,
   MakeStainlessPlugin,
   Params,
-  PartialStlContext,
   StlContext,
   SelectTree,
   NotFoundError,
@@ -306,7 +305,7 @@ async function paginate<D extends PrismaModel>(
 function endpointWrapQuery<
   EC extends AnyBaseEndpoint,
   Q extends { include?: any }
->(endpoint: EC, context: PartialStlContext<any, EC>, prismaQuery: Q): Q {
+>(endpoint: EC, context: StlContext<EC>, prismaQuery: Q): Q {
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
@@ -338,7 +337,7 @@ function createIncludeSelect<
   Q extends { include?: any }
 >(
   endpoint: EC,
-  context: PartialStlContext<any, EC>,
+  context: StlContext<EC>,
   prismaQuery: Q
 ): IncludeSelect | null | undefined {
   const queryShape = endpoint.query?.shape;
@@ -467,7 +466,7 @@ function* subselKeys(select: IncludeSelect["select"]): Iterable<string> {
 }
 
 export const makePrismaPlugin =
-  (): MakeStainlessPlugin<any, PrismaStatics> => (stl) => {
+  (): MakeStainlessPlugin<PrismaStatics> => (stl) => {
     return {
       statics: {
         pagination: {
@@ -480,7 +479,7 @@ export const makePrismaPlugin =
       middleware<EC extends AnyEndpoint>(
         endpoint: EC,
         params: Params,
-        context: PartialStlContext<any, EC>
+        context: StlContext<EC>
       ) {
         const model = endpoint.response
           ? (extractPrismaModel(endpoint.response) as any)

@@ -1,7 +1,7 @@
 import {
   AnyEndpoint,
+  StlContext,
   AnyBaseEndpoint,
-  PartialStlContext,
   MakeStainlessPlugin,
   Params,
   UnauthorizedError,
@@ -39,7 +39,7 @@ export const makeNextAuthPlugin =
     async middleware<EC extends AnyEndpoint>(
       endpoint: EC,
       params: Params,
-      context: PartialStlContext<any, EC>
+      context: StlContext<EC>
     ) {
       const {
         args: [req, res],
@@ -68,10 +68,7 @@ export const makeNextAuthPlugin =
     },
   });
 
-function requireNextServerContext(
-  context: PartialStlContext<any, any>
-): NextServerContext {
-  context.prisma;
+function requireNextServerContext(context: StlContext<any>): NextServerContext {
   const { server } = context;
   if (server?.type !== "nextjs") {
     throw new Error("next-auth plugin only works with nextjs server plugin");

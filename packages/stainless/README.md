@@ -74,7 +74,7 @@ const plugins = {
   next: makeNextPlugin(),
 };
 
-export const stl = new Stl<Context, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```

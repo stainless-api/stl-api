@@ -93,14 +93,12 @@ import { makeNextPlugin } from "@stl-api/next";
 +import { makeNextAuthPlugin } from "@stl-api/next-auth";
 +import { authOptions } from "~/pages/api/auth/[...nextauth]";
 
-export type StlUserContext = {};
-
 const plugins = {
   next: makeNextPlugin(),
 +  nextAuth: makeNextAuthPlugin({ authOptions }),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```
