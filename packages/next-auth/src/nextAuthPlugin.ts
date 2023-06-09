@@ -61,7 +61,7 @@ export const makeNextAuthPlugin =
 
       // If the endpoint requires authentication, but no user is logged in,
       // throw unauthorized
-      if (context.endpoint?.config?.authenticated) {
+      if (context.endpoint.config?.authenticated) {
         if (!context.session) throw new UnauthorizedError();
       }
     },
