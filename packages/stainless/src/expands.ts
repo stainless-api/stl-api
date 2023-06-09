@@ -1,3 +1,4 @@
+import { mapValues } from "lodash";
 import { z, StlContext } from "./stl";
 
 /**
@@ -156,7 +157,23 @@ export function getExpands(ctx: StlContext<any>): string[] | null | undefined {
   return expand;
 }
 
-export type parseInclude<I extends string> = {
+export type parseInclude<I extends string | string[]> = [I] extends [string[]]
+  ? parseIncludeHelper<I[number]>
+  : [I] extends [string]
+  ? parseIncludeHelper<I>
+  : never;
+
+type parseIncludeHelper<I extends string> = InvalidIncludeError<I> extends never
+  ? parseIncludeHelper2<I>
+  : InvalidIncludeError<I>;
+
+type InvalidIncludeError<I extends string> = [I] extends [never]
+  ? never
+  : I extends `.${string}` | `${string}.` | `${string}..${string}`
+  ? { ERROR: `invalid include: ${I}` }
+  : never;
+
+type parseIncludeHelper2<I extends string> = {
   include: {
     [k in IncludePrefix<I>]: parseIncludeChildren<I, k>;
   };
@@ -171,9 +188,30 @@ type parseIncludeChildren<I extends string, k extends string> = StripPrefix<
   k
 > extends never
   ? {}
-  : parseInclude<StripPrefix<I, k>>;
+  : parseIncludeHelper2<StripPrefix<I, k>>;
 
 type StripPrefix<
   I extends string,
   Prefix extends string
 > = I extends `${Prefix}.${infer Rest}` ? Rest : never;
+
+export function parseInclude<I extends string[]>(include: I): parseInclude<I> {
+  for (const term of include) {
+    if (/^\.|\.$|\.\./.test(term)) throw new Error(`invalid include: ${term}`);
+  }
+  return parseIncludeHelper(include);
+}
+
+function parseIncludeHelper<I extends string[]>(include: I): parseInclude<I> {
+  const groups: Record<string, string[]> = {};
+  for (const term of include) {
+    const [, prefix, rest] = /^([^.]+)(?:\.(.+))?$/.exec(term) || [, term];
+    const group = groups[prefix] || (groups[prefix] = []);
+    if (rest) group.push(rest);
+  }
+  return {
+    include: mapValues(groups, (child) =>
+      child.length ? parseIncludeHelper(child) : {}
+    ),
+  } as any;
+}
