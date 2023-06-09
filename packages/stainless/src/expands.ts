@@ -9,7 +9,7 @@ export function expands<
 >(
   schema: T,
   depth: Depth = 3 as any
-): z.WithStlMetadata<
+): z.ZodMetadata<
   z.ZodType<ExpandablePaths<z.output<T>, Depth>[]>,
   { expands: true }
 > {
@@ -41,14 +41,18 @@ export function expands<
     z.array(z.enum([first, ...rest])) as any as z.ZodType<
       ExpandablePaths<z.output<T>, Depth>[]
     >
-  ).stlMetadata({ expands: true });
+  ).withMetadata({ expands: true });
 }
 
 /**
  * Given an zod schema from `expands`, extracts the possible options
  */
 export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
-  if (param instanceof z.ZodOptional || param instanceof z.ZodNullable)
+  if (
+    param instanceof z.ZodOptional ||
+    param instanceof z.ZodNullable ||
+    param instanceof z.ZodMetadata
+  )
     return expandsOptions(param.unwrap());
   if (param instanceof z.ZodDefault)
     return expandsOptions(param._def.innerType);
@@ -63,14 +67,18 @@ export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
 }
 
 function isExpandable<T extends z.ZodTypeAny>(e: T): boolean {
-  return z.extractStlMetadata(e)?.expandable ?? false;
+  return (z.extractMetadata(e) as any)?.expandable ?? false;
 }
 
 function unwrapExpandable(e: z.ZodTypeAny): z.AnyZodObject | undefined {
   if (e instanceof z.ZodObject) {
     return e;
   }
-  if (e instanceof z.ZodOptional || e instanceof z.ZodNullable) {
+  if (
+    e instanceof z.ZodOptional ||
+    e instanceof z.ZodNullable ||
+    e instanceof z.ZodMetadata
+  ) {
     return unwrapExpandable(e.unwrap());
   }
   if (e instanceof z.ZodDefault) {
