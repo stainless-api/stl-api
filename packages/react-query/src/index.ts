@@ -7,36 +7,46 @@ import {
   type ResourceConfig,
   type HttpMethod,
   type EndpointPathInput,
-  type EndpointBodyInput,
-  type EndpointQueryInput,
-  type EndpointResponseOutput,
   createRecursiveProxy,
   type GetEndpointMethod,
   createClient,
-  type ClientPromiseProps as BaseClientPromiseProps,
   ClientPromise as BaseClientPromise,
   PaginatorPromise as BasePaginatorPromise,
-  type Page,
-  type RequestOptions,
 } from "stainless";
-import { isEmpty, lowerFirst, isPlainObject } from "lodash";
+import { lowerFirst, isPlainObject } from "lodash";
 import {
-  type UseQueryOptions as BaseUseQueryOptions,
-  type UseQueryResult,
   useQuery,
-  type UseInfiniteQueryOptions as BaseUseInfiniteQueryOptions,
-  type UseInfiniteQueryResult as BaseUseInfiniteQueryResult,
   useInfiniteQuery,
-  QueryClient,
-  UseMutationOptions as BaseUseMutationOptions,
   useMutation,
-  MutationObserverResult,
+  QueryClient,
 } from "@tanstack/react-query";
 import { type UpperFirst } from "./util";
+import { ClientUseQuery, UseQueryOptions, isUseQueryOptions } from "./useQuery";
+import { ClientUseMutation } from "./useMutation";
+import { ClientInvalidateQueriesMethods } from "./invalidateQueries";
+import {
+  ClientUseInfiniteQueryHooks,
+  UseInfiniteQueryOptions,
+  UseItem,
+  UseItemResult,
+  isUseInfiniteQueryOptions,
+} from "./useInfiniteQuery";
+import { ClientPromise, ClientPromiseProps } from "./ClientPromise";
+import { PaginatorPromise } from "./PaginatorPromise";
+import { ClientMethods } from "./ClientMethod";
+export {
+  ClientPromise,
+  ClientPromiseProps,
+  PaginatorPromise,
+  UseQueryOptions,
+  UseInfiniteQueryOptions,
+  UseItem,
+  UseItemResult,
+};
 
-type ValueOf<T extends object> = T[keyof T];
+export type ValueOf<T extends object> = T[keyof T];
 
-type EndpointPathParam<E extends AnyEndpoint> =
+export type EndpointPathParam<E extends AnyEndpoint> =
   EndpointPathInput<E> extends object
     ? ValueOf<EndpointPathInput<E>>
     : undefined;
@@ -50,43 +60,28 @@ export type StainlessReactQueryClient<Api extends AnyAPIDescription> =
     >
   >;
 
-export type ClientResource<Resource extends AnyResourceConfig> = {
-  [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
-    ? ClientFunction<Resource["actions"][Action]>
-    : never;
-} & {
+export type ClientResource<Resource extends AnyResourceConfig> =
+  ClientMethods<Resource> &
+    ClientUseQueryAndMutationHooks<Resource> &
+    ClientInvalidateQueriesMethods<Resource> &
+    ClientUseInfiniteQueryHooks<Resource> & {
+      [S in keyof Resource["namespacedResources"]]: ClientResource<
+        Resource["namespacedResources"][S]
+      >;
+    };
+
+type ClientUseQueryAndMutationHooks<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"] &
     string as UseAction<Action>]: GetEndpointMethod<
     Resource["actions"][Action]
   > extends "get"
     ? ClientUseQuery<Resource["actions"][Action]>
     : ClientUseMutation<Resource["actions"][Action]>;
-} & {
-  [Action in ActionsForMethod<
-    Resource,
-    "get"
-  > as InvalidateAction<Action>]: ClientInvalidateQueries<
-    Resource["actions"][Action]
-  >;
-} & {
-  [Action in PaginatedActions<Resource> as UseInfiniteAction<Action>]: ClientUseInfiniteQuery<
-    Resource["actions"][Action]
-  >;
-} & {
-  [S in keyof Resource["namespacedResources"]]: ClientResource<
-    Resource["namespacedResources"][S]
-  >;
-} & {
-  invalidateQueries(client: QueryClient): void;
 };
 
 type UseAction<Action extends string> = `use${UpperFirst<Action>}`;
-type UseInfiniteAction<Action extends string> =
-  `useInfinite${UpperFirst<Action>}`;
-type InvalidateAction<Action extends string> =
-  `invalidate${UpperFirst<Action>}`;
 
-type ActionsForMethod<
+export type ActionsForMethod<
   Resource extends AnyResourceConfig,
   Method extends HttpMethod
 > = {
@@ -111,412 +106,8 @@ export type PaginatedActions<Resource extends AnyResourceConfig> = {
     : never;
 }[keyof Resource["actions"] & string];
 
-type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
-  E["response"]
-> extends z.PageData<any>
-  ? PaginatorPromise<z.infer<E["response"]>>
-  : E["response"] extends z.ZodTypeAny
-  ? ClientPromise<z.infer<E["response"]>>
-  : ClientPromise<undefined>;
-
-type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
-  ? E["body"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        body: EndpointBodyInput<E>,
-        options?: RequestOptions<EndpointQueryInput<E>>
-      ) => ExtractClientResponse<E>
-    : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: RequestOptions
-      ) => ExtractClientResponse<E>
-    : (
-        path: EndpointPathParam<E>,
-        options?: RequestOptions
-      ) => ExtractClientResponse<E>
-  : E["body"] extends z.ZodTypeAny
-  ? (
-      body: EndpointBodyInput<E>,
-      options?: RequestOptions<EndpointQueryInput<E>>
-    ) => ExtractClientResponse<E>
-  : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: RequestOptions
-    ) => ExtractClientResponse<E>
-  : (options?: RequestOptions) => ExtractClientResponse<E>;
-
 export type Headers = Record<string, string | null | undefined>;
 export type KeysEnum<T> = { [P in keyof Required<T>]: true };
-
-type ClientUseQuery<
-  E extends AnyEndpoint,
-  TQueryFnData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TData = TQueryFnData
-> = E["path"] extends z.ZodTypeAny
-  ? E["body"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        body: EndpointBodyInput<E>,
-        options?: { query?: EndpointQueryInput<E> } & UseQueryOptions<
-          TQueryFnData,
-          TError,
-          TData
-        >
-      ) => UseQueryResult<TData, TError>
-    : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: UseQueryOptions<TQueryFnData, TError, TData>
-      ) => UseQueryResult<TData, TError>
-    : (
-        path: EndpointPathParam<E>,
-        options?: UseQueryOptions<TQueryFnData, TError, TData>
-      ) => UseQueryResult<TData, TError>
-  : E["body"] extends z.ZodTypeAny
-  ? (
-      body: EndpointBodyInput<E>,
-      options?: { query?: EndpointQueryInput<E> } & UseQueryOptions<
-        TQueryFnData,
-        TError,
-        TData
-      >
-    ) => UseQueryResult<TData, TError>
-  : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: UseQueryOptions<TQueryFnData, TError, TData>
-    ) => UseQueryResult<TData, TError>
-  : (
-      options?: UseQueryOptions<TQueryFnData, TError, TData>
-    ) => UseQueryResult<TData, TError>;
-
-type UseQueryOptions<
-  TQueryFnData = unknown,
-  TError = unknown,
-  TData = TQueryFnData
-> = Omit<
-  BaseUseQueryOptions<TQueryFnData, TError, TData, any>,
-  "queryKey" | "queryFn"
->;
-
-// This is required so that we can determine if a given object matches the RequestOptions
-// type at runtime. While this requires duplication, it is enforced by the TypeScript
-// compiler such that any missing / extraneous keys will cause an error.
-const useQueryOptionsKeys: KeysEnum<{ query?: any } & UseQueryOptions> = {
-  context: true,
-  retry: true,
-  retryDelay: true,
-  networkMode: true,
-  cacheTime: true,
-  isDataEqual: true,
-  queryHash: true,
-  queryKeyHashFn: true,
-  initialData: true,
-  initialDataUpdatedAt: true,
-  behavior: true,
-  structuralSharing: true,
-  getPreviousPageParam: true,
-  getNextPageParam: true,
-  _defaulted: true,
-  meta: true,
-  query: true,
-  enabled: true,
-  staleTime: true,
-  refetchInterval: true,
-  refetchIntervalInBackground: true,
-  refetchOnWindowFocus: true,
-  refetchOnReconnect: true,
-  refetchOnMount: true,
-  retryOnMount: true,
-  notifyOnChangeProps: true,
-  onSuccess: true,
-  onError: true,
-  onSettled: true,
-  useErrorBoundary: true,
-  select: true,
-  suspense: true,
-  keepPreviousData: true,
-  placeholderData: true,
-  _optimisticResults: true,
-};
-
-export const isUseQueryOptions = (obj: unknown): obj is BaseUseQueryOptions => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    !isEmpty(obj) &&
-    Object.keys(obj).every((k) => Object.hasOwn(useQueryOptionsKeys, k))
-  );
-};
-
-type ClientUseMutation<
-  E extends AnyEndpoint,
-  TData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TContext = unknown
-> = (
-  options?: UseMutationOptions<E, TData, TError, TContext>
-) => ClientUseMutationResult<E, TData, TError, TContext>;
-
-type UseMutationOptions<
-  E extends AnyEndpoint,
-  TData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TContext = unknown
-> = Omit<BaseUseMutationOptions<TData, TError, void, TContext>, "mutationFn">;
-
-type ClientMutateFunction<
-  E extends AnyEndpoint,
-  TData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TContext = unknown
-> = E["path"] extends z.ZodTypeAny
-  ? E["body"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        body: EndpointBodyInput<E>,
-        options?: { query?: EndpointQueryInput<E> } & MutateOptions<
-          TData,
-          TError,
-          TContext
-        >
-      ) => Promise<TData>
-    : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: MutateOptions<TData, TError, TContext>
-      ) => Promise<TData>
-    : (
-        path: EndpointPathParam<E>,
-        options?: MutateOptions<TData, TError, TContext>
-      ) => Promise<TData>
-  : E["body"] extends z.ZodTypeAny
-  ? (
-      body: EndpointBodyInput<E>,
-      options?: { query?: EndpointQueryInput<E> } & MutateOptions<
-        TData,
-        TError,
-        TContext
-      >
-    ) => Promise<TData>
-  : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: MutateOptions<TData, TError, TContext>
-    ) => Promise<TData>
-  : (options?: MutateOptions<TData, TError, TContext>) => Promise<TData>;
-
-type ClientUseMutateFunction<
-  E extends AnyEndpoint,
-  TData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TContext = unknown
-> = (
-  ...args: Parameters<ClientMutateFunction<E, TData, TError, TContext>>
-) => void;
-
-type ClientUseMutateAsyncFunction<
-  E extends AnyEndpoint,
-  TData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TContext = unknown
-> = ClientMutateFunction<E, TData, TError, TContext>;
-
-type Override<A, B> = { [K in keyof A]: K extends keyof B ? B[K] : A[K] };
-
-export type ClientUseMutationResult<
-  E extends AnyEndpoint,
-  TData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TContext = unknown
-> = Override<
-  MutationObserverResult<E, TData, TError, TContext>,
-  { mutate: ClientUseMutateFunction<E, TData, TError, TContext> }
-> & { mutateAsync: ClientUseMutateAsyncFunction<E, TData, TError, TContext> };
-
-export interface MutateOptions<
-  TData = unknown,
-  TError = unknown,
-  TContext = unknown
-> {
-  onSuccess?: (data: TData, context: TContext) => void;
-  onError?: (error: TError, context: TContext | undefined) => void;
-  onSettled?: (
-    data: TData | undefined,
-    error: TError | null,
-    context: TContext | undefined
-  ) => void;
-}
-
-// This is required so that we can determine if a given object matches the RequestOptions
-// type at runtime. While this requires duplication, it is enforced by the TypeScript
-// compiler such that any missing / extraneous keys will cause an error.
-const mutateOptionsKeys: KeysEnum<MutateOptions> = {
-  onSuccess: true,
-  onError: true,
-  onSettled: true,
-};
-
-export const isMutateOptions = (obj: unknown): obj is MutateOptions => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    !isEmpty(obj) &&
-    Object.keys(obj).every((k) => Object.hasOwn(mutateOptionsKeys, k))
-  );
-};
-
-type ClientInvalidateQueries<E extends AnyEndpoint> =
-  E["path"] extends z.ZodTypeAny
-    ? E["body"] extends z.ZodTypeAny
-      ? (
-          queryClient: QueryClient,
-          path?: EndpointPathParam<E>,
-          body?: EndpointBodyInput<E>,
-          options?: { query?: EndpointQueryInput<E> }
-        ) => void
-      : E["query"] extends z.ZodTypeAny
-      ? (
-          queryClient: QueryClient,
-          path?: EndpointPathParam<E>,
-          query?: EndpointQueryInput<E>
-        ) => void
-      : (queryClient: QueryClient, path?: EndpointPathParam<E>) => void
-    : E["body"] extends z.ZodTypeAny
-    ? (
-        queryClient: QueryClient,
-        body?: EndpointBodyInput<E>,
-        options?: { query?: EndpointQueryInput<E> }
-      ) => void
-    : E["query"] extends z.ZodTypeAny
-    ? (queryClient: QueryClient, query?: EndpointQueryInput<E>) => void
-    : (queryClient: QueryClient) => void;
-
-type ClientUseInfiniteQuery<
-  E extends AnyEndpoint,
-  TQueryFnData = EndpointResponseOutput<E>,
-  TError = unknown,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData
-> = E["path"] extends z.ZodTypeAny
-  ? E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: UseInfiniteQueryOptions<
-          TQueryFnData,
-          TError,
-          TData,
-          TQueryData
-        >
-      ) => UseInfiniteQueryResult<TData, TError>
-    : (
-        path: EndpointPathParam<E>,
-        options?: UseInfiniteQueryOptions<
-          TQueryFnData,
-          TError,
-          TData,
-          TQueryData
-        >
-      ) => UseInfiniteQueryResult<TData, TError>
-  : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: UseInfiniteQueryOptions<TQueryFnData, TError, TData, TQueryData>
-    ) => UseInfiniteQueryResult<TData, TError>
-  : (
-      options?: UseInfiniteQueryOptions<TQueryFnData, TError, TData, TQueryData>
-    ) => UseInfiniteQueryResult<TData, TError>;
-
-type UseInfiniteQueryOptions<
-  TQueryFnData = unknown,
-  TError = unknown,
-  TData = TQueryFnData,
-  TQueryData = TQueryFnData
-> = Omit<
-  BaseUseInfiniteQueryOptions<TQueryFnData, TError, TData, TQueryData>,
-  "queryKey" | "queryFn" | "getNextPageParam" | "getPreviousPageParam"
->;
-
-// This is required so that we can determine if a given object matches the RequestOptions
-// type at runtime. While this requires duplication, it is enforced by the TypeScript
-// compiler such that any missing / extraneous keys will cause an error.
-const useInfiniteQueryOptionsKeys: KeysEnum<
-  { query: any } & UseInfiniteQueryOptions
-> = {
-  query: true,
-  context: true,
-  retry: true,
-  retryDelay: true,
-  networkMode: true,
-  cacheTime: true,
-  isDataEqual: true,
-  queryHash: true,
-  queryKeyHashFn: true,
-  initialData: true,
-  initialDataUpdatedAt: true,
-  behavior: true,
-  structuralSharing: true,
-  _defaulted: true,
-  meta: true,
-  enabled: true,
-  staleTime: true,
-  refetchInterval: true,
-  refetchIntervalInBackground: true,
-  refetchOnWindowFocus: true,
-  refetchOnReconnect: true,
-  refetchOnMount: true,
-  retryOnMount: true,
-  notifyOnChangeProps: true,
-  onSuccess: true,
-  onError: true,
-  onSettled: true,
-  useErrorBoundary: true,
-  select: true,
-  suspense: true,
-  keepPreviousData: true,
-  placeholderData: true,
-  _optimisticResults: true,
-};
-
-export const isUseInfiniteQueryOptions = (
-  obj: unknown
-): obj is BaseUseInfiniteQueryOptions => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    !isEmpty(obj) &&
-    Object.keys(obj).every((k) => Object.hasOwn(useInfiniteQueryOptionsKeys, k))
-  );
-};
-
-export type UseItemResult<Item> =
-  | { status: "loading" }
-  | { status: "loaded"; data: Item }
-  | { status: "error"; error: Error }
-  | undefined;
-
-export type UseItem<Item> = (index: number) => UseItemResult<Item>;
-
-type UseInfiniteQueryResult<TData, TError> = BaseUseInfiniteQueryResult<
-  TData,
-  TError
-> & {
-  itemCount: number;
-  /**
-   * This is the itemCount + 1 if hasNextPage, else just
-   * the itemCount.
-   */
-  itemAndPlaceholderCount: number;
-  items: z.PageItemType<TData>[];
-  useItem: UseItem<z.PageItemType<TData>>;
-};
 
 function actionMethod(action: string): HttpMethod {
   if (
@@ -702,65 +293,4 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
     });
   }, []) as StainlessReactQueryClient<Api>;
   return client;
-}
-
-type ExtractClientPromiseProps = {
-  queryKey: unknown[];
-};
-
-export type ClientPromiseProps = BaseClientPromiseProps &
-  ExtractClientPromiseProps;
-
-export class ClientPromise<R> extends BaseClientPromise<R> {
-  queryKey: unknown[];
-
-  constructor(
-    fetch: () => Promise<R>,
-    { queryKey, ...props }: ClientPromiseProps
-  ) {
-    super(fetch, props);
-    this.queryKey = queryKey;
-  }
-
-  static from<R>(
-    { fetch, method, uri, pathname, search, query }: BaseClientPromise<R>,
-    { queryKey }: ExtractClientPromiseProps
-  ): ClientPromise<R> {
-    return new ClientPromise(fetch, {
-      method,
-      uri,
-      pathname,
-      search,
-      query,
-      queryKey,
-    });
-  }
-}
-
-export class PaginatorPromise<
-  D extends z.PageData<any>
-> extends BasePaginatorPromise<D> {
-  queryKey: unknown[];
-
-  constructor(
-    fetch: () => Promise<Page<D>>,
-    { queryKey, ...props }: ClientPromiseProps
-  ) {
-    super(fetch, props);
-    this.queryKey = queryKey;
-  }
-
-  static from<D extends z.PageData<any>>(
-    { fetch, method, uri, pathname, search, query }: BasePaginatorPromise<D>,
-    { queryKey }: ExtractClientPromiseProps
-  ): PaginatorPromise<D> {
-    return new PaginatorPromise(fetch, {
-      method,
-      uri,
-      pathname,
-      search,
-      query,
-      queryKey,
-    });
-  }
 }
