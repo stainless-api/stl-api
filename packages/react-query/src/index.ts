@@ -55,7 +55,8 @@ export type ClientResource<Resource extends AnyResourceConfig> = {
     ? ClientFunction<Resource["actions"][Action]>
     : never;
 } & {
-  [Action in keyof Resource & string as UseAction<Action>]: GetEndpointMethod<
+  [Action in keyof Resource["actions"] &
+    string as UseAction<Action>]: GetEndpointMethod<
     Resource["actions"][Action]
   > extends "get"
     ? ClientUseQuery<Resource["actions"][Action]>
@@ -568,7 +569,17 @@ export function createReactQueryClient<Api extends AnyAPIDescription>(
         : undefined;
     const query: Record<string, any> = reactQueryOptions?.query;
 
-    const queryKey = [...callPath, ...(query ? [query] : [])];
+    const firstArg = args[0];
+    const path =
+      typeof firstArg === "string" || typeof firstArg === "number"
+        ? firstArg
+        : undefined;
+
+    const queryKey = [
+      ...callPath,
+      ...(path ? [path] : []),
+      ...(query ? [query] : []),
+    ];
 
     if (isInvalidate) {
       if (!(queryClient instanceof QueryClient)) {
