@@ -5,7 +5,7 @@ import path from "path";
 import { rimraf } from "rimraf";
 import { URL } from "url";
 import { isMainModule } from "./isMainModule.mjs";
-import { once } from "lodash";
+import _ from "lodash";
 
 /**
  * Publishes a subpackages in packages/ to a branch in the git repo.
@@ -27,7 +27,7 @@ if (isMainModule(import.meta)) {
   await gitPublish(packageDir, { dryRun });
 }
 
-const setupGitIdentity = once(async () => {
+const setupGitIdentity = _.once(async () => {
   if (process.env.CI) {
     await execa(
       "git",
