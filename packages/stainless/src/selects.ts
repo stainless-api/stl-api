@@ -13,7 +13,7 @@ export function selects<
   depth: Depth = 3 as any
 ): z.ZodMetadata<
   z.ZodType<SelectTree | null | undefined, z.ZodEffectsDef, string>,
-  { selects: true }
+  { stainless: { selects: true } }
 > {
   return z
     .string()
@@ -28,7 +28,7 @@ export function selects<
         });
       }
     })
-    .withMetadata({ selects: true });
+    .withMetadata({ stainless: { selects: true } });
 }
 
 function validateSelectTree(

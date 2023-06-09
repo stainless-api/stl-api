@@ -11,7 +11,7 @@ export function expands<
   depth: Depth = 3 as any
 ): z.ZodMetadata<
   z.ZodType<ExpandablePaths<z.output<T>, Depth>[]>,
-  { expands: true }
+  { stainless: { expands: true } }
 > {
   const values: string[] = [];
 
@@ -27,7 +27,7 @@ export function expands<
       const obj = unwrapExpandable(value);
       if (!obj) continue;
       const subpath = path ? `${path}.${key}` : key;
-      if (isExpandable(value)) values.push(subpath);
+      if (z.isExpandable(value)) values.push(subpath);
       add(subpath, obj, depth - 1);
     }
   }
@@ -41,7 +41,7 @@ export function expands<
     z.array(z.enum([first, ...rest])) as any as z.ZodType<
       ExpandablePaths<z.output<T>, Depth>[]
     >
-  ).withMetadata({ expands: true });
+  ).withMetadata({ stainless: { expands: true } });
 }
 
 /**
@@ -64,10 +64,6 @@ export function expandsOptions<V extends string[]>(param: z.ZodType<V>): V {
     throw new Error(`param must be a ZodArray of a ZodEnum of string`);
   }
   return element.options;
-}
-
-function isExpandable<T extends z.ZodTypeAny>(e: T): boolean {
-  return (z.extractMetadata(e) as any)?.expandable ?? false;
 }
 
 function unwrapExpandable(e: z.ZodTypeAny): z.AnyZodObject | undefined {
