@@ -219,7 +219,6 @@ export type StainlessPlugin<
 > = {
   statics?: Statics;
   middleware?: <EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
     context: StlContext<EC>
   ) => void | Promise<void>;
@@ -343,13 +342,12 @@ export class Stl<Plugins extends AnyPlugins> {
   }
 
   async execute<EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
     context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
-      if (middleware) await middleware(endpoint, params, context);
+      if (middleware) await middleware(params, context);
     }
 
     const parseParams = {
@@ -363,13 +361,13 @@ export class Stl<Plugins extends AnyPlugins> {
     };
 
     try {
-      context.parsedParams.query = await endpoint.query
+      context.parsedParams.query = await context.endpoint.query
         ?.parseAsync(params.query, parseParams)
         .catch(prependZodPath("<stainless request query>"));
-      context.parsedParams.path = await endpoint.path
+      context.parsedParams.path = await context.endpoint.path
         ?.parseAsync(params.path, parseParams)
         .catch(prependZodPath("<stainless request path>"));
-      context.parsedParams.body = await endpoint.body
+      context.parsedParams.body = await context.endpoint.body
         ?.parseAsync(params.body, parseParams)
         .catch(prependZodPath("<stainless request body>"));
     } catch (error) {
@@ -380,12 +378,12 @@ export class Stl<Plugins extends AnyPlugins> {
     }
 
     const { query, path, body } = context.parsedParams;
-    const responseInput = await endpoint.handler(
+    const responseInput = await context.endpoint.handler(
       { ...body, ...path, ...query },
       context as any as StlContext<EC>
     );
-    const response = endpoint.response
-      ? await endpoint.response.parseAsync(responseInput, parseParams)
+    const response = context.endpoint.response
+      ? await context.endpoint.response.parseAsync(responseInput, parseParams)
       : undefined;
 
     return response;

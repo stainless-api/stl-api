@@ -5,7 +5,7 @@ sidebar_position: 1
 # Add user to Stainless context
 
 You may wish to set a current user property on the Stainless context.
-The Stainless context can be extended by declaring an interface with 
+The Stainless context can be extended by declaring an interface with
 the name `StlCustomContext` in the `stainless` module.
 Here's how you can create a custom plugin to do that:
 
@@ -19,20 +19,19 @@ import {
   PartialStlContext,
 } from "stainless";
 
-export const makeCurrentUserPlugin =
-  (): MakeStainlessPlugin => (stl) => ({
-    async middleware<EC extends AnyEndpoint>(
-      endpoint: EC,
-      params: Params,
-      context: PartialStlContext<EC>
-    ) {
-      const { session } = context;
+export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
+  async middleware<EC extends AnyEndpoint>(
+    endpoint: EC,
+    params: Params,
+    context: PartialStlContext<EC>
+  ) {
+    const { session } = context;
 
-      // session?.user is exactly what was returned from authorize(),
-      // but doesn't have complete type information
-      context.currentUser = session?.user as any;
-    },
-  });
+    // session?.user is exactly what was returned from authorize(),
+    // but doesn't have complete type information
+    context.currentUser = session?.user as any;
+  },
+});
 ```
 
 ```diff
