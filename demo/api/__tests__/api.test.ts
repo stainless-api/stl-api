@@ -16,7 +16,6 @@ it("getApiMetadata(api)", () => {
               "endpoint": "post /api/comments",
             },
           },
-          "namespacedResources": {},
         },
         "posts": {
           "actions": {
@@ -30,7 +29,6 @@ it("getApiMetadata(api)", () => {
               "endpoint": "get /api/posts/{post}",
             },
           },
-          "namespacedResources": {},
         },
         "users": {
           "actions": {
@@ -41,7 +39,6 @@ it("getApiMetadata(api)", () => {
               "endpoint": "get /api/users/{userId}",
             },
           },
-          "namespacedResources": {},
         },
       },
     }

@@ -1,4 +1,4 @@
-import { mapValues } from "lodash";
+import { isEmpty, mapValues } from "lodash";
 import {
   APIDescription,
   APIMetadata,
@@ -7,24 +7,11 @@ import {
 } from "../stl";
 
 export function getApiMetadata({
-  openapi,
   topLevel,
   resources,
 }: APIDescription<any, any>): APIMetadata {
   return getResourceMetadata({
-    actions: {
-      ...topLevel?.actions,
-      ...(openapi?.endpoint !== false
-        ? {
-            getOpenapi: {
-              endpoint:
-                typeof openapi.endpoint === "string"
-                  ? openapi.endpoint
-                  : "get /TODO",
-            },
-          }
-        : null),
-    },
+    actions: topLevel.actions,
     namespacedResources: resources,
   });
 }
@@ -39,10 +26,17 @@ export function getResourceMetadata({
   namespacedResources,
 }: ResourceForGetMetadata): APIMetadata {
   return {
-    actions: actions ? mapValues(actions, getActionMetadata) : undefined,
-    namespacedResources: namespacedResources
-      ? mapValues(namespacedResources, getResourceMetadata)
-      : undefined,
+    ...(!isEmpty(actions)
+      ? { actions: mapValues(actions, getActionMetadata) }
+      : null),
+    ...(!isEmpty(namespacedResources)
+      ? {
+          namespacedResources: mapValues(
+            namespacedResources,
+            getResourceMetadata
+          ),
+        }
+      : null),
   };
 }
 
