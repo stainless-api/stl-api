@@ -37,8 +37,6 @@ In the future, we will publish to npm packages like `stainless`, `@stl-api/next`
 import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
 
-export type Context = {};
-
 const plugins = {
   next: makeNextPlugin(),
 };
