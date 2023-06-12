@@ -68,9 +68,6 @@ export type ZodObjectSchema = z.ZodType<object, any, object>;
 
 /**
  * Endpoints take in `handler` methods of this type.
- *
- * @param {RequestData<Path, Query, Body>} request   request object with parsed params
- * @param {Ctx}                            ctx       context with stainless, plugin, and user-provided data
  */
 export type Handler<
   Ctx,
@@ -79,7 +76,9 @@ export type Handler<
   Body extends ZodObjectSchema | undefined,
   Response
 > = (
+  /** request object with parsed params */
   request: RequestData<Path, Query, Body>,
+  /** context with stainless, plugin, and user-provided data */
   ctx: Ctx
 ) => Response | Promise<Response>;
 
@@ -95,20 +94,32 @@ type RequestData<
   (Body extends z.ZodTypeAny ? z.infer<Body> : {});
 
 /**
- * An interface for plugins to optionally accept configuration
- * options on endpoints.
+ * An interface for per-endpoint configuration, accessible to and extendable by
+ * plugins/middleware.
  *
- * When creating endpoints, users can
- * specify a `config` object of type `EndpointConfig`.
- * This allows plugins to accept custom properties.
+ * When creating endpoints, users can specify a `config` object of 
+ * type `EndpointConfig`. This allows plugins to accept custom properties.
  *
  * ```ts
  * // example-plugin.ts
  * declare module "stainless" {
+ *   // This interface must be declared within the "stainless" module
  *   interface EndpointConfig {
- *     // custom configuration properties here
+   *   rateLimit?: number,
  *   }
  * }
+ * 
+ * // api/users/retrieve.ts
+ *
+ * stl.endpoint(
+ *   endpoint: "get /api/users/{userId}",
+ *   response: User,
+ *   config: {
+ *     rateLimit: 10,
+ *   },
+ *   ...
+ *   }
+ * )
  * ```
  */
 export interface EndpointConfig {
@@ -245,10 +256,11 @@ export type AnyAPIDescription = APIDescription<any, any>;
  */
 export class StlError extends Error {
   /**
-   * @param statusCode the HTTP status code to resolve the request with
+   * @paramx statusCode 
    * @param response optional data included in the body of the response JSON.
    */
   constructor(
+    /** testing */
     public statusCode: number,
     public response?: Record<string, any>
   ) {
@@ -298,9 +310,6 @@ export class NotFoundError extends StlError {
 
 type AnyStatics = Record<string, any>; // TODO?
 
-/**
- * The type of a `stainless` plugin.
- */
 export type StainlessPlugin<
   Statics extends AnyStatics | undefined = undefined
 > = {
@@ -470,7 +479,7 @@ interface EndpointParams<
 > {
   /**
    * a string declaring the HTTP method
-   * and URL for this endpoint
+   * and URL for this endpoint, e.g. `"get /items/{id}"`
    */
   endpoint: MethodAndUrl;
   /** Optional plugin configuration specific to the endpoint. */
@@ -557,7 +566,8 @@ interface ApiParams<
  * export const stl = new Stl({})
  * ```
  *
- * For more advanced usage, see <TODO>.
+ * For a higher-level overview of how to use `Stl` to build APIs, 
+ * see [the docs](https://stainlessapi.com/stl/getting-started).
  */
 export class Stl<Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
