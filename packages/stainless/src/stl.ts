@@ -12,6 +12,8 @@ export type {
   Page,
 } from "./client";
 
+export { getApiMetadata } from "./gen/getApiMetadata";
+
 export type HttpMethod =
   | "get"
   | "post"
@@ -156,7 +158,7 @@ export type ResourceConfig<
 export type AnyResourceConfig = ResourceConfig<any, any, any>;
 
 type OpenAPIConfig = {
-  endpoint: string | false;
+  endpoint: HttpEndpoint | false;
   spec: OpenAPIObject;
 };
 
@@ -167,6 +169,15 @@ export type APIDescription<
   openapi: OpenAPIConfig;
   topLevel: TopLevel;
   resources: Resources;
+};
+
+export type APIMetadata = {
+  actions?: Record<string, ActionMetadata>;
+  namespacedResources?: Record<string, APIMetadata>;
+};
+
+export type ActionMetadata = {
+  endpoint: HttpEndpoint;
 };
 
 export type AnyAPIDescription = APIDescription<any, any>;

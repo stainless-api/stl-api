@@ -1,7 +1,7 @@
 import React from "react";
 
-import FollowBar from "~/components/layout/FollowBar";
-import Sidebar from "~/components/layout/Sidebar";
+import FollowBar from "./layout/FollowBar";
+import Sidebar from "./layout/Sidebar";
 
 const Layout: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   return (
