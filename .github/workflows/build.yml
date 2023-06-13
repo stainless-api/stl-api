@@ -47,4 +47,4 @@ jobs:
           pnpm prisma migrate dev
 
       - name: Test
-        run: node scripts/ciTest.mjs
+        run: pnpm test:ci
