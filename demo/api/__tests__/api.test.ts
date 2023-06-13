@@ -30,6 +30,13 @@ it("getApiMetadata(api)", () => {
             },
           },
         },
+        "test": {
+          "actions": {
+            "foo": {
+              "endpoint": "put /api/foo/{value}",
+            },
+          },
+        },
         "users": {
           "actions": {
             "list": {

@@ -18,9 +18,21 @@
   ],
   "license": "ISC",
   "source": "src/stl.ts",
+  "bin": {
+    "gen-stl-api-metadata": "./dist/cli/gen-stl-api-metadata.js"
+  },
   "main": "dist/stl.js",
-  "module": "dist/stl.es.js",
   "types": "dist/stl.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/stl.d.ts",
+      "default": "./dist/stl.js"
+    },
+    "./genApiMetadata": {
+      "types": "./dist/gen/genApiMetadata.d.ts",
+      "default": "./dist/gen/genApiMetadata.js"
+    }
+  },
   "scripts": {
     "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist *.tsbuildinfo"

@@ -5,13 +5,8 @@ export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
-export type {
-  StainlessClient,
-  ClientPromise,
-  PaginatorPromise,
-  Page,
-} from "./client";
-
+export { ClientPromise, PaginatorPromise } from "./client";
+export type { StainlessClient, Page } from "./client";
 export { getApiMetadata } from "./gen/getApiMetadata";
 
 export type HttpMethod =
@@ -162,10 +157,19 @@ type OpenAPIConfig = {
   spec: OpenAPIObject;
 };
 
+export const apiSymbol = Symbol("api");
+
+export function isAPIDescription(
+  value: unknown
+): value is APIDescription<any, any> {
+  return (value as any)?.[apiSymbol] === true;
+}
+
 export type APIDescription<
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > = {
+  [apiSymbol]: true;
   openapi: OpenAPIConfig;
   topLevel: TopLevel;
   resources: Resources;
@@ -474,6 +478,7 @@ export class Stl<Plugins extends AnyPlugins> {
     const openapiEndpoint = openapi?.endpoint ?? "get /api/openapi";
     const topLevelActions = topLevel?.actions || {};
     const apiDescription = {
+      [apiSymbol]: true,
       openapi: {
         endpoint: openapiEndpoint,
         get spec() {

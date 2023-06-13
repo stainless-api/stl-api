@@ -7,6 +7,7 @@ import {
   AnyResourceConfig,
   ResourceConfig,
   HttpMethod,
+  APIMetadata,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
@@ -85,8 +86,25 @@ class HTTPResponseError extends Error {
 
 export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
-  options?: { fetch?: typeof fetch }
+  options?: {
+    fetch?: typeof fetch;
+    metadata?: APIMetadata;
+    basePathMap?: Record<string, string>;
+  }
 ): StainlessClient<Api> {
+  const metadata = options?.metadata;
+  const basePathMap = options?.basePathMap;
+
+  function mapPathname(pathname: string): string {
+    if (!basePathMap) return pathname;
+    for (const k in basePathMap) {
+      if (pathname.startsWith(k)) {
+        return pathname.replace(k, basePathMap[k]);
+      }
+    }
+    return pathname;
+  }
+
   const checkStatus = (response: Response) => {
     if (response.ok) {
       // response.status >= 200 && response.status < 300
@@ -96,26 +114,69 @@ export function createClient<Api extends AnyAPIDescription>(
     }
   };
 
+  function getMethodAndUri(
+    callPath: string[],
+    action: string,
+    args: unknown[]
+  ): {
+    method: HttpMethod;
+    pathname: string;
+    uri: string;
+  } {
+    if (metadata) {
+      const endpoint = callPath.reduce(
+        (
+          resource: APIMetadata | undefined,
+          name: string
+        ): APIMetadata | undefined => resource?.namespacedResources?.[name],
+        metadata
+      )?.actions?.[action]?.endpoint;
+
+      const match = endpoint ? /^([a-z]+)\s+(.+)/i.exec(endpoint) : null;
+      if (match) {
+        const method = match[1];
+        const pathname = mapPathname(
+          match[2]
+            .split("/")
+            .map((part) =>
+              part.startsWith("{") && part.endsWith("}")
+                ? encodeURIComponent(args.shift() as string | number)
+                : part
+            )
+            .join("/")
+        );
+        const url = new URL(baseUrl);
+        url.pathname = pathname;
+        const uri = url.toString();
+        return { method: method as HttpMethod, pathname, uri };
+      }
+    }
+    let path = callPath.join("/"); // eg; /issuing/cards
+    if (typeof args[0] === "string" || typeof args[0] === "number") {
+      path += `/${encodeURIComponent(args.shift() as string | number)}`;
+    }
+    const method = actionMethod(action);
+    const pathname = mapPathname(`${baseUrl}/${path}`);
+    return {
+      method,
+      pathname,
+      uri: pathname,
+    };
+  }
+
   const client = createRecursiveProxy((opts) => {
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
     const { args } = opts;
     let requestOptions: RequestOptions<any> | undefined;
 
-    let path = callPath.join("/"); // eg; /issuing/cards
-    if (typeof args[0] === "string" || typeof args[0] === "number") {
-      path += `/${encodeURIComponent(args.shift() as string | number)}`;
-    }
+    let { method, pathname, uri } = getMethodAndUri(callPath, action, args);
 
     if (isRequestOptions(args.at(-1))) {
       requestOptions = args.shift() as any;
     }
-    const method = actionMethod(action);
 
     const body = method === "get" ? undefined : args[0];
-
-    const pathname = `${baseUrl}/${path}`;
-    let uri = pathname;
 
     const query: Record<string, any> = {
       ...(method === "get" && typeof args[0] === "object" ? args[0] : null),
@@ -334,7 +395,7 @@ type ClientPromiseProps = {
   cacheKey: string;
 };
 
-class ClientPromise<R> implements Promise<R> {
+export class ClientPromise<R> {
   fetch: () => Promise<R>;
   method: HttpMethod;
   uri: string;
@@ -384,14 +445,12 @@ class ClientPromise<R> implements Promise<R> {
   }
 }
 
-export type { ClientPromise };
-
 /**
  * The result of client.???.list, can be awaited like a
  * Promise to get a single page, or async iterated to go through
  * all items
  */
-class PaginatorPromise<D extends z.PageData<any>>
+export class PaginatorPromise<D extends z.PageData<any>>
   extends ClientPromise<Page<D>>
   implements AsyncIterable<z.PageItemType<D>>
 {
@@ -411,5 +470,3 @@ class PaginatorPromise<D extends z.PageData<any>>
     return "PaginatorPromise";
   }
 }
-
-export type { PaginatorPromise };
