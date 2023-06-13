@@ -5,7 +5,9 @@
   "scripts": {
     "mongo": "yarn prisma generate",
     "dev": "next dev",
-    "build": "prisma generate && next build && tsc -b",
+    "build": "prisma generate && pnpm build:api-metadata && next build && tsc -b",
+    "build:api-metadata": "gen-stl-api-metadata api/api.ts",
+    "watch:api-metadata": "nodemon -e js,json,ts --ignore *-metadata.ts --exec pnpm build:api-metadata",
     "start": "next start",
     "lint": "next lint",
     "psql": "docker compose exec db psql -U postgres",
@@ -58,6 +60,7 @@
     "autoprefixer": "^10.4.13",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.11",
+    "nodemon": "^2.0.22",
     "postcss": "^8.4.21",
     "swr": "^2.0.4",
     "tailwindcss": "^3.2.7",

@@ -6,7 +6,9 @@ import "../util/fetch-polyfill";
 export async function genApiMetadata(apiSourceFile: string) {
   const metadataFile = apiSourceFile.replace(/(\.[^.]+)$/, `-metadata$1`);
   if (metadataFile === apiSourceFile) return;
-  const loaded = await import(apiSourceFile);
+  const loaded = await import(
+    apiSourceFile.startsWith("./") ? apiSourceFile : path.resolve(apiSourceFile)
+  );
   const metadata: [string, APIMetadata][] = [];
   for (const key of Object.keys(loaded)) {
     const api = loaded[key];

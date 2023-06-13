@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 
 import { genApiMetadata } from "../gen/genApiMetadata";
+import "ts-node/register/transpile-only";
 
 async function go() {
   const requires = [];
