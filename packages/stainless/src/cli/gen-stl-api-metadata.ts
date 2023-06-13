@@ -2,6 +2,7 @@
 
 import { genApiMetadata } from "../gen/genApiMetadata";
 import "ts-node/register/transpile-only";
+import dedent from "dedent-js";
 
 async function go() {
   const requires = [];
@@ -18,6 +19,17 @@ async function go() {
     } else {
       files.push(process.argv[i]);
     }
+  }
+
+  if (!files.length) {
+    // eslint-disable-next-line no-console
+    console.error(dedent`
+      Usage: gen-stl-api-metadata <api files>
+
+      Options:
+        -r, --require <path>      require the given path before loading api files
+    `);
+    process.exit(1);
   }
 
   for (const require of requires) {
