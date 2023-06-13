@@ -4,8 +4,8 @@
   "description": "",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "watch": "nodemon -e js,ts --exec ts-node index.ts"
+    "start": "ts-node index.ts",
+    "watch": "nodemon -e js,ts --exec ts-node watchIndex.ts"
   },
   "keywords": [],
   "author": "",
