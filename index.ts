@@ -2,8 +2,6 @@ import { Project, ts, printNode } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
 import * as path from "path";
-import { inspect } from "util";
-import { Schema } from "inspector";
 
 function main(fileName: string, compilerOptions: ts.CompilerOptions) {
   const project = new Project();
@@ -14,31 +12,19 @@ function main(fileName: string, compilerOptions: ts.CompilerOptions) {
   };
   resolveTypeSandbox(
     ctx,
-    sourceFile.getTypeAlias("Conditional")?.getType() ||
+    sourceFile.getTypeAlias("Mapped")?.getType() ||
       ((): tm.Type => {
-        throw new Error("missing Conditional type");
-      })(),
-    sourceFile.getTypeAlias("Conditional")
+        throw new Error("missing Mapped type");
+      })()
   );
   const type = sourceFile.getTypeAlias("StringOrNumber")?.getType();
   if (!type) throw new Error(`type not found`);
   console.log(printNode(processType(ctx, type)));
 }
 
-function resolveTypeSandbox(
-  ctx: SchemaGenContext,
-  ty: tm.Type,
-  node: tm.Node | undefined
-) {
-  const test = ctx.typeChecker.getApparentType(ty);
-  console.log("test", test)
-  console.log("ty.getText()", ty.getText());
-  console.log(
-    ty
-      .getAliasSymbol()
-      ?.getTypeAtLocation(node as any)
-      .getText()
-  );
+function resolveTypeSandbox(ctx: SchemaGenContext, ty: tm.Type) {
+  // console.log(ty);
+  // console.log(ty.getText(ty.getAliasSymbol()!.getDeclarations()![0]));
 }
 
 /* visit nodes declaring interfaces and types */
@@ -256,8 +242,9 @@ function createZodShape(
 }
 
 function getTypeOfSymbol(ctx: SchemaGenContext, symbol: tm.Symbol): tm.Type {
+  console.log(symbol.getDeclarations());
   return ctx.typeChecker.getTypeOfSymbolAtLocation(
     symbol,
-    symbol.getValueDeclarationOrThrow()
+    symbol.getDeclarations()![0]
   );
 }
