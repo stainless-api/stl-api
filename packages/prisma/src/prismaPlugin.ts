@@ -1,8 +1,8 @@
 import {
   AnyEndpoint,
+  AnyBaseEndpoint,
   MakeStainlessPlugin,
   Params,
-  PartialStlContext,
   StlContext,
   SelectTree,
   NotFoundError,
@@ -55,7 +55,7 @@ export function extractPrismaModel<T extends z.ZodTypeAny>(
 }
 
 declare module "stainless" {
-  interface StlContext<EC extends AnyEndpoint> {
+  interface StlContext<EC extends AnyBaseEndpoint> {
     prisma: extractPrismaModel<
       EC["response"]
     > extends infer M extends PrismaModel
@@ -302,11 +302,10 @@ async function paginate<D extends PrismaModel>(
   );
 }
 
-function endpointWrapQuery<EC extends AnyEndpoint, Q extends { include?: any }>(
-  endpoint: EC,
-  context: PartialStlContext<any, EC>,
-  prismaQuery: Q
-): Q {
+function endpointWrapQuery<
+  EC extends AnyBaseEndpoint,
+  Q extends { include?: any }
+>(endpoint: EC, context: StlContext<EC>, prismaQuery: Q): Q {
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
 
@@ -334,11 +333,11 @@ type AnyInclude = Record<
 >;
 
 function createIncludeSelect<
-  EC extends AnyEndpoint,
+  EC extends AnyBaseEndpoint,
   Q extends { include?: any }
 >(
   endpoint: EC,
-  context: PartialStlContext<any, EC>,
+  context: StlContext<EC>,
   prismaQuery: Q
 ): IncludeSelect | null | undefined {
   const queryShape = endpoint.query?.shape;
@@ -467,7 +466,7 @@ function* subselKeys(select: IncludeSelect["select"]): Iterable<string> {
 }
 
 export const makePrismaPlugin =
-  (): MakeStainlessPlugin<any, PrismaStatics> => (stl) => {
+  (): MakeStainlessPlugin<PrismaStatics> => (stl) => {
     return {
       statics: {
         pagination: {
@@ -478,12 +477,11 @@ export const makePrismaPlugin =
         expandToInclude: expandToInclude,
       },
       middleware<EC extends AnyEndpoint>(
-        endpoint: EC,
         params: Params,
-        context: PartialStlContext<any, EC>
+        context: StlContext<EC>
       ) {
-        const model = endpoint.response
-          ? (extractPrismaModel(endpoint.response) as any)
+        const model = context.endpoint.response
+          ? (extractPrismaModel(context.endpoint.response) as any)
           : null;
         function getModel(): PrismaModel {
           if (!model)
@@ -491,7 +489,7 @@ export const makePrismaPlugin =
           return model;
         }
         function wrapQuery<Q extends { include?: any }>(prismaQuery: Q): Q {
-          return endpointWrapQuery(endpoint, context, prismaQuery);
+          return endpointWrapQuery(context.endpoint, context, prismaQuery);
         }
 
         const prismaContext: PrismaContext<PrismaModel> = {

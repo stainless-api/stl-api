@@ -5,7 +5,7 @@ import { toast } from "react-hot-toast";
 import useCurrentUser from "./useCurrentUser";
 import useLoginModal from "./useLoginModal";
 import usePost from "./usePost";
-import { client } from "~/api/client";
+import { client } from "../api/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const useLike = ({ postId, userId }: { postId: string; userId?: string }) => {

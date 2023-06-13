@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import fetcher from "~/libs/fetcher";
+import fetcher from "../libs/fetcher";
 import qs from "qs";
 
 const usePost = (postId: string) => {

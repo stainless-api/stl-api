@@ -7,7 +7,7 @@ sidebar_position: 0
 :::caution
 
 This is alpha software, and we may make significant changes in the coming months.
-But we're eager for you to try it out and let us know what you think!
+We're eager for you to try it out and let us know what you think!
 
 :::
 
@@ -31,13 +31,11 @@ npm i --save stainless-api/stl-api#next-0.0.1
 import { Stl } from "stainless";
 +import { makeNextPlugin } from "@stl-api/next";
 
-export type StlUserContext = {};
-
 const plugins = {
 +  next: makeNextPlugin(),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```

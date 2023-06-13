@@ -1,4 +1,4 @@
-import { api } from "~/api/api";
+import { api } from "../../../../api/api";
 import { stlNextAppCatchAllRouter } from "@stl-api/next";
 
 const { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS } =

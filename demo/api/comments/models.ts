@@ -1,7 +1,7 @@
 import { User, UserSelection } from "../users/models";
 import { Post, PostSelection } from "../posts/models";
 import { z } from "stainless";
-import prisma from "~/libs/prismadb";
+import prisma from "../../libs/prismadb";
 
 const Comment0 = z.response({
   id: z.string().uuid(),

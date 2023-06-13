@@ -12,7 +12,7 @@ module.exports = {
   modulePathIgnorePatterns: ["<rootDir>/node_modules/", "/dist/", ".next/"],
   testPathIgnorePatterns: ["<rootDir>/node_modules/", "/dist/", ".next/"],
   testMatch: ["**/__tests__/**/*.test.[jt]s?(x)"],
-  setupFilesAfterEnv: [],
+  setupFilesAfterEnv: ["<rootDir>/jest.setup.ts"],
   watchPathIgnorePatterns: ["<rootDir>/node_modules/"],
   watchPlugins: [
     "jest-watch-typeahead/filename",

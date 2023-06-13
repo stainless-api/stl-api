@@ -7,7 +7,7 @@ sidebar_position: 0
 :::caution
 
 This is alpha software, and we may make significant changes in the coming months.
-But we're eager for you to try it out and let us know what you think!
+We're eager for you to try it out and let us know what you think!
 
 :::
 
@@ -25,13 +25,11 @@ npm i --save stainless-api/stl-api#prisma-0.0.2
 import { Stl } from "stainless";
 +import { makePrismaPlugin } from "@stl-api/prisma";
 
-export type StlUserContext = {};
-
 const plugins = {
 +  prisma: makePrismaPlugin(),
 };
 
-export const stl = new Stl<StlUserContext, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```

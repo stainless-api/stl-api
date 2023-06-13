@@ -14,6 +14,8 @@ export {
   type RequestOptions,
 } from "./client";
 
+export { getApiMetadata } from "./gen/getApiMetadata";
+
 export type HttpMethod =
   | "get"
   | "post"
@@ -79,35 +81,43 @@ export interface EndpointConfig {
   // auth etc goes here.
 }
 
-export type Endpoint<
-  UserContext extends object,
+export interface BaseEndpoint<
   Config extends EndpointConfig | undefined,
   MethodAndUrl extends HttpEndpoint,
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
   Response extends z.ZodTypeAny | undefined
-> = {
-  stl: Stl<UserContext, any>;
+> {
+  stl: Stl<any>;
   endpoint: MethodAndUrl;
   response: Response;
   config: Config;
   path: Path;
   query: Query;
   body: Body;
+}
+
+export type AnyBaseEndpoint = BaseEndpoint<any, any, any, any, any, any>;
+
+export interface Endpoint<
+  Config extends EndpointConfig | undefined,
+  MethodAndUrl extends HttpEndpoint,
+  Path extends ZodObjectSchema | undefined,
+  Query extends ZodObjectSchema | undefined,
+  Body extends ZodObjectSchema | undefined,
+  Response extends z.ZodTypeAny | undefined
+> extends BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
   handler: Handler<
-    UserContext &
-      StlContext<
-        Endpoint<UserContext, Config, MethodAndUrl, Path, Query, Body, Response>
-      >,
+    StlContext<BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>>,
     Path,
     Query,
     Body,
     Response extends z.ZodTypeAny ? z.input<Response> : undefined
   >;
-};
+}
 
-export type AnyEndpoint = Endpoint<any, any, any, any, any, any, any>;
+export type AnyEndpoint = Endpoint<any, any, any, any, any, any>;
 
 export type EndpointPathInput<E extends AnyEndpoint> =
   E["path"] extends z.ZodTypeAny ? z.input<E["path"]> : undefined;
@@ -170,7 +180,7 @@ export type ResourceConfig<
 export type AnyResourceConfig = ResourceConfig<any, any, any>;
 
 type OpenAPIConfig = {
-  endpoint: string | false;
+  endpoint: HttpEndpoint | false;
   spec: OpenAPIObject;
 };
 
@@ -181,6 +191,15 @@ export type APIDescription<
   openapi: OpenAPIConfig;
   topLevel: TopLevel;
   resources: Resources;
+};
+
+export type APIMetadata = {
+  actions?: Record<string, ActionMetadata>;
+  namespacedResources?: Record<string, APIMetadata>;
+};
+
+export type ActionMetadata = {
+  endpoint: HttpEndpoint;
 };
 
 export type AnyAPIDescription = APIDescription<any, any>;
@@ -218,22 +237,19 @@ export class NotFoundError extends StlError {
 type AnyStatics = Record<string, any>; // TODO?
 
 export type StainlessPlugin<
-  UserContext extends object,
   Statics extends AnyStatics | undefined = undefined
 > = {
   statics?: Statics;
   middleware?: <EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
-    context: PartialStlContext<UserContext, EC>
+    context: StlContext<EC>
   ) => void | Promise<void>;
 };
 
 export type MakeStainlessPlugin<
-  UserContext extends object,
   Statics extends AnyStatics | undefined = undefined,
   Plugins extends AnyPlugins = {}
-> = (stl: Stl<UserContext, Plugins>) => StainlessPlugin<UserContext, Statics>;
+> = (stl: Stl<Plugins>) => StainlessPlugin<Statics>;
 
 type AnyPlugins = Record<string, MakeStainlessPlugin<any, any>>;
 
@@ -243,7 +259,9 @@ export type StainlessOpts<Plugins extends AnyPlugins> = {
 
 export type StainlessHeaders = Record<string, string | string[] | undefined>; // TODO
 
-export interface BaseStlContext<EC extends AnyEndpoint> {
+export interface StlCustomContext {}
+
+export interface BaseStlContext<EC extends AnyBaseEndpoint> {
   endpoint: EC; // what is the config?
   // url: URL;
   headers: StainlessHeaders;
@@ -258,13 +276,9 @@ export interface BaseStlContext<EC extends AnyEndpoint> {
   };
 }
 
-export interface StlContext<EC extends AnyEndpoint>
-  extends BaseStlContext<EC> {}
-
-export type PartialStlContext<
-  UserContext extends object,
-  EC extends AnyEndpoint
-> = BaseStlContext<EC> & Partial<UserContext> & Partial<StlContext<EC>>;
+export interface StlContext<EC extends AnyBaseEndpoint>
+  extends BaseStlContext<EC>,
+    StlCustomContext {}
 
 export interface Params {
   path: any;
@@ -296,7 +310,6 @@ export type OpenAPIResponse = z.infer<typeof OpenAPIResponse>;
 export type OpenAPIEndpoint = Endpoint<
   any,
   any,
-  any,
   undefined,
   undefined,
   undefined,
@@ -324,11 +337,10 @@ type OpenAPITopLevel<
   ? {}
   : { actions: { getOpenapi: OpenAPIEndpoint } };
 
-export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
+export class Stl<Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
   plugins = {} as ExtractStatics<Plugins>;
-  private stainlessPlugins: Record<string, StainlessPlugin<UserContext, any>> =
-    {};
+  private stainlessPlugins: Record<string, StainlessPlugin<any>> = {};
 
   constructor(opts: StainlessOpts<Plugins>) {
     for (const key in opts.plugins) {
@@ -343,9 +355,7 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
       }
     }
   }
-  initContext<EC extends AnyEndpoint>(
-    c: PartialStlContext<UserContext, EC>
-  ): PartialStlContext<UserContext, EC> {
+  initContext<EC extends AnyEndpoint>(c: StlContext<EC>): StlContext<EC> {
     return c;
   }
 
@@ -354,13 +364,12 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
   }
 
   async execute<EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
-    context: PartialStlContext<UserContext, EC>
+    context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
-      if (middleware) await middleware(endpoint, params, context);
+      if (middleware) await middleware(params, context);
     }
 
     const parseParams = {
@@ -374,13 +383,13 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     };
 
     try {
-      context.parsedParams.query = await endpoint.query
+      context.parsedParams.query = await context.endpoint.query
         ?.parseAsync(params.query, parseParams)
         .catch(prependZodPath("<stainless request query>"));
-      context.parsedParams.path = await endpoint.path
+      context.parsedParams.path = await context.endpoint.path
         ?.parseAsync(params.path, parseParams)
         .catch(prependZodPath("<stainless request path>"));
-      context.parsedParams.body = await endpoint.body
+      context.parsedParams.body = await context.endpoint.body
         ?.parseAsync(params.body, parseParams)
         .catch(prependZodPath("<stainless request body>"));
     } catch (error) {
@@ -391,12 +400,12 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     }
 
     const { query, path, body } = context.parsedParams;
-    const responseInput = await endpoint.handler(
+    const responseInput = await context.endpoint.handler(
       { ...body, ...path, ...query },
       context as any as StlContext<EC>
     );
-    const response = endpoint.response
-      ? await endpoint.response.parseAsync(responseInput, parseParams)
+    const response = context.endpoint.response
+      ? await context.endpoint.response.parseAsync(responseInput, parseParams)
       : undefined;
 
     return response;
@@ -424,24 +433,15 @@ export class Stl<UserContext extends object, Plugins extends AnyPlugins> {
     query?: Query;
     body?: Body;
     handler: Handler<
-      UserContext &
-        StlContext<
-          Endpoint<
-            UserContext,
-            Config,
-            MethodAndUrl,
-            Path,
-            Query,
-            Body,
-            Response
-          >
-        >,
+      StlContext<
+        BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>
+      >,
       Path,
       Query,
       Body,
       Response extends z.ZodTypeAny ? z.input<Response> : undefined
     >;
-  }): Endpoint<UserContext, Config, MethodAndUrl, Path, Query, Body, Response> {
+  }): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
     return {
       stl: this as any,
       config: config as Config,

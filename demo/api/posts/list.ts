@@ -1,5 +1,5 @@
 import { z } from "stainless";
-import { stl } from "~/libs/stl";
+import { stl } from "../../libs/stl";
 import { PostPage } from "./models";
 
 export const list = stl.endpoint({

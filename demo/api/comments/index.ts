@@ -1,4 +1,4 @@
-import { stl } from "~/libs/stl";
+import { stl } from "../../libs/stl";
 import { create } from "./create";
 import { Comment, CommentSelection } from "./models";
 

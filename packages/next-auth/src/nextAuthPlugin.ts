@@ -1,6 +1,7 @@
 import {
   AnyEndpoint,
-  PartialStlContext,
+  StlContext,
+  AnyBaseEndpoint,
   MakeStainlessPlugin,
   Params,
   UnauthorizedError,
@@ -15,7 +16,7 @@ export interface UserSession extends Session {
 }
 
 declare module "stainless" {
-  interface StlContext<EC extends AnyEndpoint> {
+  interface StlContext<EC extends AnyBaseEndpoint> {
     /** If a route is authenticated, handlers will always have access to a valid user session.
     Otherwise, a session is provided if a user is logged in. */
     session: EC["config"] extends { authenticated: true }
@@ -36,9 +37,8 @@ export const makeNextAuthPlugin =
   ({ authOptions }: { authOptions: AuthOptions }): MakeStainlessPlugin<any> =>
   (stl) => ({
     async middleware<EC extends AnyEndpoint>(
-      endpoint: EC,
       params: Params,
-      context: PartialStlContext<any, EC>
+      context: StlContext<EC>
     ) {
       const {
         args: [req, res],
@@ -61,16 +61,13 @@ export const makeNextAuthPlugin =
 
       // If the endpoint requires authentication, but no user is logged in,
       // throw unauthorized
-      if (endpoint?.config?.authenticated) {
+      if (context.endpoint.config?.authenticated) {
         if (!context.session) throw new UnauthorizedError();
       }
     },
   });
 
-function requireNextServerContext(
-  context: PartialStlContext<any, any>
-): NextServerContext {
-  context.prisma;
+function requireNextServerContext(context: StlContext<any>): NextServerContext {
   const { server } = context;
   if (server?.type !== "nextjs") {
     throw new Error("next-auth plugin only works with nextjs server plugin");

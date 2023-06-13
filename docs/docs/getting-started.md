@@ -7,7 +7,7 @@ sidebar_position: 1
 :::caution
 
 This is alpha software, and we may make significant changes in the coming months.
-But we're eager for you to try it out and let us know what you think!
+We're eager for you to try it out and let us know what you think!
 
 :::
 
@@ -17,15 +17,19 @@ We will soon provide a `create-stl-app` API. Until then:
 
 ## Installation
 
+For now, you can install packages from versioned GitHub branches, like so:
+
 ```bash
 npm i --save  stainless-api/stl-api#stainless-0.0.2 \
               stainless-api/stl-api#next-0.0.2 \
               stainless-api/react-query#stainless-0.0.2
 
 # Optional plugins:
-npm i --save stainless-api/stl-api#next-auth-0.0.2  # If you are using next-auth
-npm i --save stainless-api/stl-api#prisma-0.0.2     # If you are using Prisma
+npm i --save 'stainless-api/stl-api#next-auth-0.0.2'  # If you are using next-auth
+npm i --save 'stainless-api/stl-api#prisma-0.0.2'     # If you are using Prisma
 ```
+
+In the future, we will publish to npm packages like `stainless`, `@stl-api/next`, etc.
 
 ## Create Stainless instance
 
@@ -41,7 +45,7 @@ const plugins = {
   next: makeNextPlugin(),
 };
 
-export const stl = new Stl<Context, typeof plugins>({
+export const stl = new Stl({
   plugins,
 });
 ```

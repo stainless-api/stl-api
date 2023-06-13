@@ -1,6 +1,6 @@
 import * as React from "react";
 import PostItem from "./PostItem";
-import { client } from "~/api/client";
+import { client } from "../../api/client";
 import InfiniteScroll, { LoadingProps, ErrorProps } from "../InfiniteScroll";
 
 interface PostFeedProps {
