@@ -19,8 +19,8 @@
   "license": "ISC",
   "scripts": {
     "test": "jest",
-    "test:ci": "start-server-and-test start-test-server http://localhost:3000 test",
-    "start-test-server": "cd demo && pnpm start",
+    "test:ci": "start-server-and-test start-test-server http://0.0.0.0:3005 test",
+    "start-test-server": "cd demo && pnpm start -- -p 3005",
     "build": "pnpm -r run prebuild && tsc -b packages/*/tsconfig*.json && (cd demo && pnpm build)",
     "build:watch": "pnpm -r run prebuild && tsc -b --watch packages/*/tsconfig*.json demo/tsconfig.json",
     "docs:start": "cd docs && pnpm start",
