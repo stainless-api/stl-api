@@ -114,20 +114,19 @@ import {
   PartialStlContext,
 } from "stainless";
 
-export const makeCurrentUserPlugin =
-  (): MakeStainlessPlugin => (stl) => ({
-    async middleware<EC extends AnyEndpoint>(
-      endpoint: EC,
-      params: Params,
-      context: PartialStlContext<EC>
-    ) {
-      const { session } = context;
+export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
+  async middleware<EC extends AnyEndpoint>(
+    endpoint: EC,
+    params: Params,
+    context: PartialStlContext<EC>
+  ) {
+    const { session } = context;
 
-      // session?.user is exactly what was returned from authorize(),
-      // but doesn't have complete type information
-      context.currentUser = session?.user as any;
-    },
-  });
+    // session?.user is exactly what was returned from authorize(),
+    // but doesn't have complete type information
+    context.currentUser = session?.user as any;
+  },
+});
 ```
 
 ```diff

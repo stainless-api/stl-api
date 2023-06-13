@@ -4,6 +4,7 @@
     { "path": "packages/next-auth" },
     { "path": "packages/next" },
     { "path": "packages/prisma" },
+    { "path": "packages/react-query" },
     { "path": "packages/stainless" }
   ]
 }

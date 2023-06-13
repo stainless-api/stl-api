@@ -34,8 +34,8 @@
     }
   },
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
-    "clean": "rimraf dist *.tsbuildinfo"
+    "clean": "rimraf dist *.tsbuildinfo",
+    "prebuild": "mkdir -p dist/esm && echo '{\"type\": \"module\"}' > dist/esm/package.json"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.194",

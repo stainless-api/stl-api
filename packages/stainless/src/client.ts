@@ -8,20 +8,18 @@ import {
   ResourceConfig,
   HttpMethod,
   APIMetadata,
+  EndpointPathInput,
+  EndpointBodyInput,
+  EndpointQueryInput,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
 type ValueOf<T extends object> = T[keyof T];
 
-type ExtractClientPath<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
-  ? ValueOf<z.input<E["path"]>>
-  : undefined;
-type ExtractClientQuery<E extends AnyEndpoint> = E["query"] extends z.ZodTypeAny
-  ? z.input<E["query"]>
-  : undefined;
-type ExtractClientBody<E extends AnyEndpoint> = E["body"] extends z.ZodTypeAny
-  ? z.input<E["body"]>
-  : undefined;
+type EndpointPathParam<E extends AnyEndpoint> =
+  EndpointPathInput<E> extends object
+    ? ValueOf<EndpointPathInput<E>>
+    : undefined;
 
 type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
   E["response"]
@@ -52,24 +50,31 @@ type ClientResource<Resource extends AnyResourceConfig> = {
 type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        body: ExtractClientBody<E>,
-        options?: { query?: ExtractClientQuery<E> }
+        path: EndpointPathParam<E>,
+        body: EndpointBodyInput<E>,
+        options?: RequestOptions<EndpointQueryInput<E>>
       ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        query: ExtractClientQuery<E>
+        path: EndpointPathParam<E>,
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
       ) => ExtractClientResponse<E>
-    : (path: ExtractClientPath<E>) => ExtractClientResponse<E>
+    : (
+        path: EndpointPathParam<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
   : E["body"] extends z.ZodTypeAny
   ? (
-      body: ExtractClientBody<E>,
-      options?: { query?: ExtractClientQuery<E> }
+      body: EndpointBodyInput<E>,
+      options?: RequestOptions<EndpointQueryInput<E>>
     ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (query: ExtractClientQuery<E>) => ExtractClientResponse<E>
-  : () => ExtractClientResponse<E>;
+  ? (
+      query: EndpointQueryInput<E>,
+      options?: RequestOptions
+    ) => ExtractClientResponse<E>
+  : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
   if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "get";
@@ -84,13 +89,15 @@ class HTTPResponseError extends Error {
   }
 }
 
+export type CreateClientOptions = {
+  fetch?: typeof fetch;
+  metadata?: APIMetadata;
+  basePathMap?: Record<string, string>;
+};
+
 export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
-  options?: {
-    fetch?: typeof fetch;
-    metadata?: APIMetadata;
-    basePathMap?: Record<string, string>;
-  }
+  options?: CreateClientOptions
 ): StainlessClient<Api> {
   const metadata = options?.metadata;
   const basePathMap = options?.basePathMap;
@@ -165,15 +172,15 @@ export function createClient<Api extends AnyAPIDescription>(
   }
 
   const client = createRecursiveProxy((opts) => {
+    const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
-    const { args } = opts;
     let requestOptions: RequestOptions<any> | undefined;
 
     let { method, pathname, uri } = getMethodAndUri(callPath, action, args);
 
     if (isRequestOptions(args.at(-1))) {
-      requestOptions = args.shift() as any;
+      requestOptions = args.pop() as any;
     }
 
     const body = method === "get" ? undefined : args[0];
@@ -235,7 +242,6 @@ export function createClient<Api extends AnyAPIDescription>(
       pathname,
       search,
       query,
-      cacheKey,
     };
 
     return action === "list"
@@ -248,33 +254,33 @@ export function createClient<Api extends AnyAPIDescription>(
 export type Headers = Record<string, string | null | undefined>;
 export type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
-export type RequestOptions<Req extends {} = Record<string, unknown>> = {
-  method?: HttpMethod;
-  path?: string;
-  query?: Req | undefined;
-  body?: Req | undefined;
+export type RequestOptions<Req extends {} | undefined = undefined> = {
+  // method?: HttpMethod;
+  // path?: string;
+  query?: Req;
+  // body?: Req | undefined;
   headers?: Headers | undefined;
 
-  maxRetries?: number;
-  stream?: boolean | undefined;
-  timeout?: number;
-  idempotencyKey?: string;
+  // maxRetries?: number;
+  // stream?: boolean | undefined;
+  // timeout?: number;
+  // idempotencyKey?: string;
 };
 
 // This is required so that we can determine if a given object matches the RequestOptions
 // type at runtime. While this requires duplication, it is enforced by the TypeScript
 // compiler such that any missing / extraneous keys will cause an error.
 const requestOptionsKeys: KeysEnum<RequestOptions> = {
-  method: true,
-  path: true,
+  // method: true,
+  // path: true,
   query: true,
-  body: true,
+  // body: true,
   headers: true,
 
-  maxRetries: true,
-  stream: true,
-  timeout: true,
-  idempotencyKey: true,
+  // maxRetries: true,
+  // stream: true,
+  // timeout: true,
+  // idempotencyKey: true,
 };
 
 export const isRequestOptions = (obj: unknown): obj is RequestOptions => {
@@ -386,13 +392,12 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 }
 
-type ClientPromiseProps = {
+export type ClientPromiseProps = {
   method: HttpMethod;
   uri: string;
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 };
 
 export class ClientPromise<R> {
@@ -402,7 +407,6 @@ export class ClientPromise<R> {
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 
   constructor(fetch: () => Promise<R>, props: ClientPromiseProps) {
     this.fetch = once(fetch);
@@ -411,7 +415,6 @@ export class ClientPromise<R> {
     this.pathname = props.pathname;
     this.search = props.search;
     this.query = props.query;
-    this.cacheKey = props.cacheKey;
   }
 
   then<TResult1 = R, TResult2 = never>(

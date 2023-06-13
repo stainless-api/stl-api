@@ -37,7 +37,6 @@ export const makeNextAuthPlugin =
   ({ authOptions }: { authOptions: AuthOptions }): MakeStainlessPlugin<any> =>
   (stl) => ({
     async middleware<EC extends AnyEndpoint>(
-      endpoint: EC,
       params: Params,
       context: StlContext<EC>
     ) {
@@ -62,7 +61,7 @@ export const makeNextAuthPlugin =
 
       // If the endpoint requires authentication, but no user is logged in,
       // throw unauthorized
-      if (endpoint?.config?.authenticated) {
+      if (context.endpoint.config?.authenticated) {
         if (!context.session) throw new UnauthorizedError();
       }
     },

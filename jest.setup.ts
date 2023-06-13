@@ -1,1 +1,1 @@
-import "./demo/util/fetch-polyfill";
+import "./packages/stainless/src/util/fetch-polyfill";

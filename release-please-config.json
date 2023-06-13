@@ -9,6 +9,7 @@
     "packages/next": {},
     "packages/next-auth": {},
     "packages/prisma": {},
+    "packages/react-query": {},
     "packages/stainless": {}
   },
   "plugins": ["node-workspace"],

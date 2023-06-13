@@ -5,8 +5,15 @@ export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
-export { ClientPromise, PaginatorPromise } from "./client";
-export type { StainlessClient, Page } from "./client";
+export {
+  type StainlessClient,
+  type CreateClientOptions,
+  ClientPromise,
+  type ClientPromiseProps,
+  PaginatorPromise,
+  type Page,
+  type RequestOptions,
+} from "./client";
 export { getApiMetadata } from "./gen/getApiMetadata";
 
 export type HttpMethod =
@@ -111,6 +118,26 @@ export interface Endpoint<
 }
 
 export type AnyEndpoint = Endpoint<any, any, any, any, any, any>;
+
+export type EndpointPathInput<E extends AnyEndpoint> =
+  E["path"] extends z.ZodTypeAny ? z.input<E["path"]> : undefined;
+export type EndpointPathOutput<E extends AnyEndpoint> =
+  E["path"] extends z.ZodTypeAny ? z.output<E["path"]> : undefined;
+
+export type EndpointQueryInput<E extends AnyEndpoint> =
+  E["query"] extends z.ZodTypeAny ? z.input<E["query"]> : undefined;
+export type EndpointQueryOutput<E extends AnyEndpoint> =
+  E["query"] extends z.ZodTypeAny ? z.output<E["query"]> : undefined;
+
+export type EndpointBodyInput<E extends AnyEndpoint> =
+  E["body"] extends z.ZodTypeAny ? z.input<E["body"]> : undefined;
+export type EndpointBodyOutput<E extends AnyEndpoint> =
+  E["body"] extends z.ZodTypeAny ? z.output<E["body"]> : undefined;
+
+export type EndpointResponseInput<E extends AnyEndpoint> =
+  E["response"] extends z.ZodTypeAny ? z.input<E["response"]> : undefined;
+export type EndpointResponseOutput<E extends AnyEndpoint> =
+  E["response"] extends z.ZodTypeAny ? z.output<E["response"]> : undefined;
 
 export type GetEndpointMethod<E extends AnyEndpoint> =
   E["endpoint"] extends `${infer M extends HttpMethod} ${string}` ? M : never;
@@ -223,7 +250,6 @@ export type StainlessPlugin<
 > = {
   statics?: Statics;
   middleware?: <EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
     context: StlContext<EC>
   ) => void | Promise<void>;
@@ -347,13 +373,12 @@ export class Stl<Plugins extends AnyPlugins> {
   }
 
   async execute<EC extends AnyEndpoint>(
-    endpoint: EC,
     params: Params,
     context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
-      if (middleware) await middleware(endpoint, params, context);
+      if (middleware) await middleware(params, context);
     }
 
     const parseParams = {
@@ -367,13 +392,13 @@ export class Stl<Plugins extends AnyPlugins> {
     };
 
     try {
-      context.parsedParams.query = await endpoint.query
+      context.parsedParams.query = await context.endpoint.query
         ?.parseAsync(params.query, parseParams)
         .catch(prependZodPath("<stainless request query>"));
-      context.parsedParams.path = await endpoint.path
+      context.parsedParams.path = await context.endpoint.path
         ?.parseAsync(params.path, parseParams)
         .catch(prependZodPath("<stainless request path>"));
-      context.parsedParams.body = await endpoint.body
+      context.parsedParams.body = await context.endpoint.body
         ?.parseAsync(params.body, parseParams)
         .catch(prependZodPath("<stainless request body>"));
     } catch (error) {
@@ -384,12 +409,12 @@ export class Stl<Plugins extends AnyPlugins> {
     }
 
     const { query, path, body } = context.parsedParams;
-    const responseInput = await endpoint.handler(
+    const responseInput = await context.endpoint.handler(
       { ...body, ...path, ...query },
       context as any as StlContext<EC>
     );
-    const response = endpoint.response
-      ? await endpoint.response.parseAsync(responseInput, parseParams)
+    const response = context.endpoint.response
+      ? await context.endpoint.response.parseAsync(responseInput, parseParams)
       : undefined;
 
     return response;

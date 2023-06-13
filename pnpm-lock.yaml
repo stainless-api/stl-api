@@ -58,6 +58,9 @@ importers:
       '@stl-api/prisma':
         specifier: workspace:*
         version: link:../packages/prisma
+      '@stl-api/react-query':
+        specifier: workspace:*
+        version: link:../packages/react-query
       '@tanstack/query-core':
         specifier: ^4.29.5
         version: 4.29.5
@@ -282,6 +285,46 @@ importers:
       '@types/node':
         specifier: ^20.2.3
         version: 20.2.3
+      typescript:
+        specifier: ^5.0.4
+        version: 5.0.4
+
+  packages/react-query:
+    dependencies:
+      lodash:
+        specifier: ^4.17.21
+        version: 4.17.21
+      prisma:
+        specifier: ^4.0.0
+        version: 4.14.1
+      qs:
+        specifier: ^6.11.2
+        version: 6.11.2
+      stainless:
+        specifier: workspace:*
+        version: link:../stainless
+    devDependencies:
+      '@tanstack/query-core':
+        specifier: ^4.29.5
+        version: 4.29.5
+      '@tanstack/react-query':
+        specifier: ^4.29.5
+        version: 4.29.5(react-dom@18.2.0)(react@18.2.0)
+      '@types/lodash':
+        specifier: ^4.14.194
+        version: 4.14.194
+      '@types/node':
+        specifier: ^20.2.3
+        version: 20.2.3
+      '@types/qs':
+        specifier: ^6.9.7
+        version: 6.9.7
+      '@types/react':
+        specifier: 18.0.28
+        version: 18.0.28
+      react:
+        specifier: ^18.2.0
+        version: 18.2.0
       typescript:
         specifier: ^5.0.4
         version: 5.0.4
@@ -3471,7 +3514,6 @@ packages:
 
   /@tanstack/query-core@4.29.5:
     resolution: {integrity: sha512-xXIiyQ/4r9KfaJ3k6kejqcaqFXXBTzN2aOJ5H1J6aTJE9hl/nbgAdfF6oiIu0CD5xowejJEJ6bBg8TO7BN4NuQ==}
-    dev: false
 
   /@tanstack/react-query@4.29.5(react-dom@18.2.0)(react@18.2.0):
     resolution: {integrity: sha512-F87cibC3s3eG0Q90g2O+hqntpCrudKFnR8P24qkH9uccEhXErnJxBC/AAI4cJRV2bfMO8IeGZQYf3WyYgmSg0w==}
@@ -3489,7 +3531,6 @@ packages:
       react: 18.2.0
       react-dom: 18.2.0(react@18.2.0)
       use-sync-external-store: 1.2.0(react@18.2.0)
-    dev: false
 
   /@trysound/sax@0.2.0:
     resolution: {integrity: sha512-L7z9BgrNEcYyUYtF+HaEfiS5ebkh9jXqbszz7pC0hRBPaatV0XjSD3+eHrpqFemQfgwiFF0QPIarnIihIDn7OA==}
@@ -8974,7 +9015,6 @@ packages:
       loose-envify: 1.4.0
       react: 18.2.0
       scheduler: 0.23.0
-    dev: false
 
   /react-dropzone@14.2.3(react@18.2.0):
     resolution: {integrity: sha512-O3om8I+PkFKbxCukfIR3QAGftYXDZfOE2N1mr/7qebQJHs7U+/RSL/9xomJNpRg9kM5h9soQSdf0Gc7OHF5Fug==}
@@ -9506,7 +9546,6 @@ packages:
     resolution: {integrity: sha512-CtuThmgHNg7zIZWAXi3AsyIzA3n4xx7aNyjwC2VJldO2LMVDhFK+63xGqq6CsJH4rTAt6/M+N4GhZiDYPx9eUw==}
     dependencies:
       loose-envify: 1.4.0
-    dev: false
 
   /schema-utils@2.7.0:
     resolution: {integrity: sha512-0ilKFI6QQF5nxDZLFn2dMjvc4hjg/Wkg7rHd3jK6/A4a1Hl9VFdQWvgB1UMGoU94pad1P/8N7fMcEnLnSiju8A==}

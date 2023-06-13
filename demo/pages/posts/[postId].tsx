@@ -1,18 +1,25 @@
 import { useRouter } from "next/router";
 import { ClipLoader } from "react-spinners";
 
-import usePost from "../../hooks/usePost";
-
 import Header from "../../components/Header";
 import Form from "../../components/Form";
 import PostItem from "../../components/posts/PostItem";
 import CommentFeed from "../../components/posts/CommentFeed";
+import { client } from "../../api/client";
 
 const PostView = () => {
   const router = useRouter();
   const { postId } = router.query;
 
-  const { data: fetchedPost, isLoading } = usePost(postId as string);
+  const { data: fetchedPost, isLoading } = client.posts.useRetrieve(
+    typeof postId === "string" ? postId : "",
+    {
+      expand: ["user", "comments.user"],
+    },
+    {
+      enabled: typeof postId === "string",
+    }
+  );
 
   if (isLoading || !fetchedPost) {
     return (
@@ -21,6 +28,8 @@ const PostView = () => {
       </div>
     );
   }
+
+  const { comments } = fetchedPost;
 
   return (
     <>
@@ -31,7 +40,7 @@ const PostView = () => {
         isComment
         placeholder="Tweet your reply"
       />
-      <CommentFeed comments={fetchedPost?.comments} />
+      {comments && <CommentFeed comments={comments} />}
     </>
   );
 };
