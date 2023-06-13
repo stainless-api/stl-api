@@ -21,7 +21,8 @@
   "main": "dist/stl.js",
   "types": "dist/stl.d.ts",
   "scripts": {
-    "clean": "rimraf dist *.tsbuildinfo"
+    "clean": "rimraf dist *.tsbuildinfo",
+    "prebuild": "mkdir -p dist/esm && echo '{\"type\": \"module\"}' > dist/esm/package.json"
   },
   "devDependencies": {
     "@types/lodash": "^4.14.194",
