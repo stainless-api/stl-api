@@ -3,28 +3,16 @@ const { factory } = ts;
 import * as tm from "ts-morph";
 import * as path from "path";
 
-function main(fileName: string, compilerOptions: ts.CompilerOptions) {
+function main(fileName: string) {
   const project = new Project();
   const sourceFile = project.addSourceFileAtPath(fileName);
   const ctx = {
     project,
     typeChecker: project.getTypeChecker(),
   };
-  resolveTypeSandbox(
-    ctx,
-    sourceFile.getTypeAlias("Mapped")?.getType() ||
-      ((): tm.Type => {
-        throw new Error("missing Mapped type");
-      })()
-  );
   const type = sourceFile.getTypeAlias("StringOrNumber")?.getType();
   if (!type) throw new Error(`type not found`);
   console.log(printNode(processType(ctx, type)));
-}
-
-function resolveTypeSandbox(ctx: SchemaGenContext, ty: tm.Type) {
-  // console.log(ty);
-  // console.log(ty.getText(ty.getAliasSymbol()!.getDeclarations()![0]));
 }
 
 /* visit nodes declaring interfaces and types */
@@ -40,9 +28,7 @@ function visit(node: ts.Node) {
   // }
 }
 
-main(path.resolve(__dirname, "test_code/simple.ts"), {
-  noImplicitAny: true,
-});
+main(path.resolve(__dirname, "test_code/simple.ts"));
 
 interface SchemaGenContext {
   project: tm.Project;
@@ -50,8 +36,6 @@ interface SchemaGenContext {
 }
 
 // steps to do
-// visit all nodes in a file
-// visit typealias declarations and interface declarations
 // build up map: process a type if it is not already in map, in order to avoid infinitely recursing
 //    think about how to avoid this infinite recursion, probably need to use zod.lazy()... at first don't worry about thisd
 // for type aliases: things to process:
@@ -60,19 +44,28 @@ interface SchemaGenContext {
 //   - else recursively process types, utilize zod.union()
 // - enum
 //   - utilize zod.nativeEnum
-// - intersection:
-//   - recursively process involved types, then ensure they're objects
-//   - if involved types objects, utilize zod merge facilities
-//   - otherwise either error out or emit zod.any for the intersection
-// -
-// - basic types: trivial
 //
 //
 function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
+  if (ty.isBoolean()) {
+    return zodConstructor("boolean");
+  }
   if (ty.isUnion()) {
+    const unionTypes = ty.getUnionTypes();
+    // Internally booleans seem to be represented as unions of true or false
+    // in some cases, which results in slightly worse codegen, so we simplify
+    // in case that both true and false are found
+    const hasSyntheticBoolean =
+      unionTypes.some(isTrueLiteral) && unionTypes.some(isFalseLiteral);
     return zodConstructor("union", [
       factory.createArrayLiteralExpression(
-        ty.getUnionTypes().map((t) => processType(ctx, t)),
+        [
+          ...(hasSyntheticBoolean
+            ? unionTypes.filter((t) => !t.isBooleanLiteral() && !t.isBoolean())
+            : unionTypes
+          ).map((t) => processType(ctx, t)),
+          ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
+        ],
         false
       ),
     ]);
@@ -151,10 +144,7 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
   }
   if (ty.isBooleanLiteral()) {
     return zodConstructor("boolean", [
-      // @ts-expect-error not in the types but found in the debugger
-      ty.compilerType.intrinsicName === "true"
-        ? factory.createTrue()
-        : factory.createFalse(),
+      isTrueLiteral(ty) ? factory.createTrue() : factory.createFalse(),
     ]);
   }
   if (ty.compilerType.flags === ts.TypeFlags.BigIntLiteral) {
@@ -176,9 +166,6 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
   }
   if (ty.compilerType.flags & ts.TypeFlags.BigInt) {
     return zodConstructor("bigint");
-  }
-  if (ty.isBoolean()) {
-    return zodConstructor("boolean");
   }
   if (ty.isUndefined()) {
     return zodConstructor("undefined");
@@ -246,5 +233,21 @@ function getTypeOfSymbol(ctx: SchemaGenContext, symbol: tm.Symbol): tm.Type {
   return ctx.typeChecker.getTypeOfSymbolAtLocation(
     symbol,
     symbol.getDeclarations()![0]
+  );
+}
+
+function isTrueLiteral(type: tm.Type): boolean {
+  return (
+    type.isBooleanLiteral() &&
+    // @ts-expect-error untyped api
+    type.compilerType.intrinsicName === "true"
+  );
+}
+
+function isFalseLiteral(type: tm.Type): boolean {
+  return (
+    type.isBooleanLiteral() &&
+    // @ts-expect-error untyped api
+    type.compilerType.intrinsicName === "false"
   );
 }
