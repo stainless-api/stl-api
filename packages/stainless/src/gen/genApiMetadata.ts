@@ -1,8 +1,7 @@
-import fs from "fs/promises";
 import path from "path";
-import "../util/fetch-polyfill";
 import { APIMetadata, isAPIDescription } from "../stl";
 import { getApiMetadata } from "./getApiMetadata";
+import "../util/fetch-polyfill";
 
 export async function genApiMetadata(apiSourceFile: string) {
   const metadataFile = apiSourceFile.replace(/(\.[^.]+)$/, `-metadata$1`);
@@ -16,6 +15,7 @@ export async function genApiMetadata(apiSourceFile: string) {
     }
   }
   if (!metadata.length) return;
+  const fs = await import(/* webpackIgnore */ "fs/promises");
   await fs.writeFile(
     metadataFile,
     [
