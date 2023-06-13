@@ -46,5 +46,8 @@ jobs:
           cp .env-ci .env
           pnpm prisma migrate dev
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Test
         run: node scripts/ciTest.mjs
