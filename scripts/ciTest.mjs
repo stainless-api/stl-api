@@ -19,10 +19,12 @@ nextProc.on("close", (code, signal) => {
   process.exit(1);
 });
 
-const testProc = spawn("pnpm", ["test"], {
-  stdio: "inherit",
-});
-testProc.on("close", (code, signal) => {
-  if (code != null) process.exit(code);
-  else process.exit(1);
-});
+setTimeout(() => {
+  const testProc = spawn("pnpm", ["test"], {
+    stdio: "inherit",
+  });
+  testProc.on("close", (code, signal) => {
+    if (code != null) process.exit(code);
+    else process.exit(1);
+  });
+}, 2000);
