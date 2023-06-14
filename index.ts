@@ -127,12 +127,37 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
     return zodConstructor("array", [processType(ctx, elemType)]);
   }
   if (ty.isTuple()) {
-    const tupleTypes = ty.getTupleElements();
-    return zodConstructor("tuple", [
+    let tupleTypes = ty.getTupleElements();
+    // check for tuple rest element
+    // @ts-expect-error compilerType.target is untyped
+    const restIndex = ty.compilerType.target.elementFlags.findIndex(
+      (flag: ts.ElementFlags) => flag === ts.ElementFlags.Rest
+    );
+
+    let restType;
+
+    if (restIndex >= 0) {
+      if (restIndex != tupleTypes.length - 1) {
+        throw new Error(
+          "zod only supports rest elements at the end of tuples."
+        );
+      }
+
+      restType = tupleTypes.at(-1);
+      // don't include rest type in tuple args
+      tupleTypes = tupleTypes.slice(0, -1);
+    }
+
+    let schema = zodConstructor("tuple", [
       factory.createArrayLiteralExpression(
         tupleTypes.map((ty) => processType(ctx, ty))
       ),
     ]);
+
+    if (restIndex >= 0) {
+      schema = methodCall(schema, "rest", [processType(ctx, restType!)]);
+    }
+    return schema;
   }
   if (ty.isObject()) {
     if (isNativeObject(ty)) {
