@@ -10,7 +10,8 @@ function main(fileName: string) {
     project,
     typeChecker: project.getTypeChecker(),
   };
-  const type = sourceFile.getTypeAlias("StringOrNumber")?.getType();
+  const typeAlias = sourceFile.getTypeAlias("StringOrNumber");
+  const type = typeAlias?.getType();
   if (!type) throw new Error(`type not found`);
   console.log(printNode(processType(ctx, type)));
 }
@@ -50,39 +51,69 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
   }
-  if (ty.isUnion()) {
-    const unionTypes = ty.getUnionTypes();
-    // Internally booleans seem to be represented as unions of true or false
-    // in some cases, which results in slightly worse codegen, so we simplify
-    // in case that both true and false are found
-    const hasSyntheticBoolean =
-      unionTypes.some(isTrueLiteral) && unionTypes.some(isFalseLiteral);
-    return zodConstructor("union", [
-      factory.createArrayLiteralExpression(
-        [
-          ...(hasSyntheticBoolean
-            ? unionTypes.filter((t) => !t.isBooleanLiteral() && !t.isBoolean())
-            : unionTypes
-          ).map((t) => processType(ctx, t)),
-          ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
-        ],
-        false
+  if (ty.isEnum()) {
+    return zodConstructor("enum", [
+      factory.createIdentifier(
+        ty.compilerType.getSymbol()?.escapedName as string
       ),
     ]);
+  }
+  if (ty.isUnion()) {
+    let unionTypes = ty.getUnionTypes();
+
+    const isOptional = unionTypes.some((unionType) => unionType.isUndefined());
+    const isNullable = unionTypes.some((unionType) => unionType.isNull());
+
+    if (isOptional || isNullable) {
+      unionTypes = unionTypes.filter(
+        (unionType) => !unionType.isUndefined() && !unionType.isNull()
+      );
+    }
+
+    let schema = (() => {
+      if (unionTypes.every((unionType) => unionType.isStringLiteral())) {
+        return zodConstructor("enum", [
+          factory.createArrayLiteralExpression(
+            unionTypes.map((unionType) =>
+              factory.createStringLiteral(
+                unionType.getLiteralValueOrThrow() as string
+              )
+            )
+          ),
+        ]);
+      }
+
+      // Internally booleans seem to be represented as unions of true or false
+      // in some cases, which results in slightly worse codegen, so we simplify
+      // in case that both true and false are found
+      const hasSyntheticBoolean =
+        unionTypes.some(isTrueLiteral) && unionTypes.some(isFalseLiteral);
+      return zodConstructor("union", [
+        factory.createArrayLiteralExpression(
+          [
+            ...(hasSyntheticBoolean
+              ? unionTypes.filter(
+                  (t) => !t.isBooleanLiteral() && !t.isBoolean()
+                )
+              : unionTypes
+            ).map((t) => processType(ctx, t)),
+            ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
+          ],
+          false
+        ),
+      ]);
+    })();
+
+    if (isNullable) schema = methodCall(schema, "nullable");
+    if (isOptional) schema = methodCall(schema, "optional");
+    return schema;
   }
   if (ty.isIntersection()) {
     if (ty.getIntersectionTypes().every((t) => t.isObject())) {
       const [first, ...rest] = ty.getIntersectionTypes();
       return rest.reduce(
         (schema, shapeType) =>
-          factory.createCallExpression(
-            factory.createPropertyAccessExpression(
-              schema,
-              factory.createIdentifier("merge")
-            ),
-            undefined,
-            [createZodShape(ctx, shapeType)]
-          ),
+          methodCall(schema, "merge", [createZodShape(ctx, shapeType)]),
         processType(ctx, first)
       );
     }
@@ -197,6 +228,21 @@ function zodConstructor(
     factory.createPropertyAccessExpression(
       factory.createIdentifier("z"),
       factory.createIdentifier(ty)
+    ),
+    undefined,
+    args
+  );
+}
+
+function methodCall(
+  target: ts.Expression,
+  name: string,
+  args: readonly ts.Expression[] = []
+): ts.Expression {
+  return factory.createCallExpression(
+    factory.createPropertyAccessExpression(
+      target,
+      factory.createIdentifier(name)
     ),
     undefined,
     args
