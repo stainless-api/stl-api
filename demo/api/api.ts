@@ -5,6 +5,7 @@ import { posts } from "./posts";
 import { comments } from "./comments";
 
 export const api = stl.api({
+  basePath: "/api",
   openapi: {
     endpoint: "get /api/openapi",
   },

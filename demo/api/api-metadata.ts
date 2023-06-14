@@ -7,36 +7,6 @@ export const api: APIMetadata = {
     }
   },
   "namespacedResources": {
-    "users": {
-      "actions": {
-        "list": {
-          "endpoint": "get /api/users"
-        },
-        "retrieve": {
-          "endpoint": "get /api/users/{userId}"
-        }
-      }
-    },
-    "posts": {
-      "actions": {
-        "create": {
-          "endpoint": "post /api/posts"
-        },
-        "list": {
-          "endpoint": "get /api/posts"
-        },
-        "retrieve": {
-          "endpoint": "get /api/posts/{post}"
-        }
-      }
-    },
-    "comments": {
-      "actions": {
-        "create": {
-          "endpoint": "post /api/comments"
-        }
-      }
-    },
     "test": {
       "actions": {
         "foo": {

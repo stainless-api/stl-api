@@ -11,6 +11,8 @@ import {
   EndpointPathInput,
   EndpointBodyInput,
   EndpointQueryInput,
+  HttpPath,
+  HttpEndpoint,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
@@ -94,6 +96,14 @@ export type CreateClientOptions = {
   metadata?: APIMetadata;
   basePathMap?: Record<string, string>;
 };
+
+export function guessRequestEndpoint(
+  baseUrl: HttpPath,
+  callPath: string[],
+  action: string
+): HttpEndpoint {
+  return `${actionMethod(action)} ${baseUrl}/${callPath.join("/")}`;
+}
 
 export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
