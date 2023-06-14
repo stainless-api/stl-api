@@ -9,7 +9,7 @@ function main(fileName: string) {
     tsConfigFilePath: path.resolve(__dirname, "tsconfig.json"),
   });
   const sourceFile = project.addSourceFileAtPath(fileName);
-  const typeAlias = sourceFile.getTypeAlias("StringOrNumber");
+  const typeAlias = sourceFile.getInterfaceOrThrow("Test");
   if (!typeAlias) throw new Error("failed to find type alias to generate");
   const ctx = {
     project,
