@@ -2,20 +2,23 @@ import { Project, ts, printNode } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
 import * as path from "path";
+import { groupBy } from "lodash";
 
 function main(fileName: string) {
   const project = new Project({
     tsConfigFilePath: path.resolve(__dirname, "tsconfig.json"),
   });
   const sourceFile = project.addSourceFileAtPath(fileName);
+  const typeAlias = sourceFile.getTypeAlias("StringOrNumber");
+  if (!typeAlias) throw new Error("failed to find type alias to generate");
   const ctx = {
     project,
     typeChecker: project.getTypeChecker(),
+    node: typeAlias,
   };
-  const typeAlias = sourceFile.getTypeAlias("StringOrNumber");
-  const type = typeAlias?.getType();
+  const type = typeAlias.getType();
   if (!type) throw new Error(`type not found`);
-  console.log(printNode(processType(ctx, type)));
+  console.log(printNode(convertType(ctx, type)));
 }
 
 /* visit nodes declaring interfaces and types */
@@ -36,6 +39,7 @@ main(path.resolve(__dirname, "test_code/simple.ts"));
 interface SchemaGenContext {
   project: tm.Project;
   typeChecker: tm.TypeChecker;
+  node: tm.Node;
 }
 
 function getTypeOrigin(type: ts.Type): ts.Type | undefined;
@@ -54,6 +58,14 @@ function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
   return ctxProvider._context.compilerFactory.getType(type);
 }
 
+function getSymbolWrapper(
+  ctxProvider: tm.Symbol,
+  symbol: ts.Symbol
+): tm.Symbol {
+  // @ts-expect-error
+  return ctxProvider._context.compilerFactory.getSymbol(symbol);
+}
+
 // steps to do
 // build up map: process a type if it is not already in map, in order to avoid infinitely recursing
 //    think about how to avoid this infinite recursion, probably need to use zod.lazy()... at first don't worry about thisd
@@ -65,9 +77,9 @@ function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
 //   - utilize zod.nativeEnum
 //
 //
-function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
+function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
   const origin = getTypeOrigin(ty);
-  if (origin) return processType(ctx, origin);
+  if (origin) return convertType(ctx, origin);
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
   }
@@ -80,55 +92,7 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
   }
   if (ty.isUnion()) {
     let unionTypes = ty.getUnionTypes();
-
-    const isOptional = unionTypes.some((unionType) => unionType.isUndefined());
-    const isNullable = unionTypes.some((unionType) => unionType.isNull());
-
-    if (isOptional || isNullable) {
-      unionTypes = unionTypes.filter(
-        (unionType) => !unionType.isUndefined() && !unionType.isNull()
-      );
-    }
-
-    let schema = (() => {
-      if (unionTypes.length === 1) return processType(ctx, unionTypes[0]);
-
-      if (unionTypes.every((unionType) => unionType.isStringLiteral())) {
-        return zodConstructor("enum", [
-          factory.createArrayLiteralExpression(
-            unionTypes.map((unionType) =>
-              factory.createStringLiteral(
-                unionType.getLiteralValueOrThrow() as string
-              )
-            )
-          ),
-        ]);
-      }
-
-      // Internally booleans seem to be represented as unions of true or false
-      // in some cases, which results in slightly worse codegen, so we simplify
-      // in case that both true and false are found
-      const hasSyntheticBoolean =
-        unionTypes.some(isTrueLiteral) && unionTypes.some(isFalseLiteral);
-      return zodConstructor("union", [
-        factory.createArrayLiteralExpression(
-          [
-            ...(hasSyntheticBoolean
-              ? unionTypes.filter(
-                  (t) => !t.isBooleanLiteral() && !t.isBoolean()
-                )
-              : unionTypes
-            ).map((t) => processType(ctx, t)),
-            ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
-          ],
-          false
-        ),
-      ]);
-    })();
-
-    if (isNullable) schema = methodCall(schema, "nullable");
-    if (isOptional) schema = methodCall(schema, "optional");
-    return schema;
+    return convertUnionTypes(ctx, unionTypes);
   }
   if (ty.isIntersection()) {
     if (ty.getIntersectionTypes().every((t) => t.isObject())) {
@@ -136,13 +100,13 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
       return rest.reduce(
         (schema, shapeType) =>
           methodCall(schema, "extend", [createZodShape(ctx, shapeType)]),
-        processType(ctx, first)
+        convertType(ctx, first)
       );
     }
   }
   if (ty.isArray()) {
     const elemType = ty.getArrayElementTypeOrThrow();
-    return zodConstructor("array", [processType(ctx, elemType)]);
+    return zodConstructor("array", [convertType(ctx, elemType)]);
   }
   if (ty.isTuple()) {
     let tupleTypes = ty.getTupleElements();
@@ -168,12 +132,12 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
 
     let schema = zodConstructor("tuple", [
       factory.createArrayLiteralExpression(
-        tupleTypes.map((ty) => processType(ctx, ty))
+        tupleTypes.map((ty) => convertType(ctx, ty))
       ),
     ]);
 
     if (restIndex >= 0) {
-      schema = methodCall(schema, "rest", [processType(ctx, restType!)]);
+      schema = methodCall(schema, "rest", [convertType(ctx, restType!)]);
     }
     return schema;
   }
@@ -186,7 +150,7 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
           const args = ty.getTypeArguments();
           if (args.length !== 1)
             throw new Error(`expected one Set<> type argument`);
-          return zodConstructor("set", [processType(ctx, args[0])]);
+          return zodConstructor("set", [convertType(ctx, args[0])]);
         }
         case "Map": {
           const args = ty.getTypeArguments();
@@ -194,23 +158,52 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
             throw new Error(`expected two Map<> type arguments`);
           return zodConstructor(
             "map",
-            args.map((arg) => processType(ctx, arg))
+            args.map((arg) => convertType(ctx, arg))
           );
         }
         case "Promise": {
           const args = ty.getTypeArguments();
           if (args.length !== 1)
             throw new Error(`expected one Promise<> type argument`);
-          return zodConstructor("promise", [processType(ctx, args[0])]);
+          return zodConstructor("promise", [convertType(ctx, args[0])]);
         }
         case "Pick": {
           const args = ty.getTypeArguments();
           if (args.length !== 2)
             throw new Error(`expected two Pick<> type arguments`);
 
-          return zodConstructor("promise", [processType(ctx, args[0])]);
+          return zodConstructor("promise", [convertType(ctx, args[0])]);
         }
       }
+    }
+    // if the object is an indexed access type
+    const indexInfos = ctx.typeChecker.compilerObject.getIndexInfosOfType(
+      ty.compilerType
+    );
+    if (indexInfos.length) {
+      const valueGroups = Object.values(
+        groupBy(
+          indexInfos,
+          (info) =>
+            // @ts-expect-error why would they not expose id property...
+            info.type.id
+        )
+      );
+      const recordTypes = valueGroups.map((indexInfos) => {
+        const keyTypes = indexInfos.map((indexInfo) =>
+          getTypeWrapper(ty, indexInfo.keyType)
+        );
+        const keyType = convertUnionTypes(ctx, keyTypes);
+        const valueType = convertType(ctx, getTypeWrapper(ty, indexInfos[0].type));
+        
+        return zodConstructor('record', [keyType, valueType])
+      });
+
+      return recordTypes.length === 1
+        ? recordTypes[0]
+        : zodConstructor("union", [
+            factory.createArrayLiteralExpression(recordTypes),
+          ]);
     }
     return zodConstructor("object", [createZodShape(ctx, ty)]);
   }
@@ -312,10 +305,11 @@ function createZodShape(
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
     ty.getProperties().map((property) => {
-      const ty = getTypeOfSymbol(ctx, property);
+      // const ty = getTypeOfSymbol(ctx, property);
+      const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
       return factory.createPropertyAssignment(
         property.getName(),
-        processType(ctx, ty)
+        convertType(ctx, ty)
       );
     })
   );
@@ -343,4 +337,56 @@ function isFalseLiteral(type: tm.Type): boolean {
     // @ts-expect-error untyped api
     type.compilerType.intrinsicName === "false"
   );
+}
+
+function convertUnionTypes(
+  ctx: SchemaGenContext,
+  unionTypes: tm.Type[]
+): ts.Expression {
+  const isOptional = unionTypes.some((unionType) => unionType.isUndefined());
+  const isNullable = unionTypes.some((unionType) => unionType.isNull());
+
+  if (isOptional || isNullable) {
+    unionTypes = unionTypes.filter(
+      (unionType) => !unionType.isUndefined() && !unionType.isNull()
+    );
+  }
+
+  let schema = (() => {
+    if (unionTypes.length === 1) return convertType(ctx, unionTypes[0]);
+
+    if (unionTypes.every((unionType) => unionType.isStringLiteral())) {
+      return zodConstructor("enum", [
+        factory.createArrayLiteralExpression(
+          unionTypes.map((unionType) =>
+            factory.createStringLiteral(
+              unionType.getLiteralValueOrThrow() as string
+            )
+          )
+        ),
+      ]);
+    }
+
+    // Internally booleans seem to be represented as unions of true or false
+    // in some cases, which results in slightly worse codegen, so we simplify
+    // in case that both true and false are found
+    const hasSyntheticBoolean =
+      unionTypes.some(isTrueLiteral) && unionTypes.some(isFalseLiteral);
+    return zodConstructor("union", [
+      factory.createArrayLiteralExpression(
+        [
+          ...(hasSyntheticBoolean
+            ? unionTypes.filter((t) => !t.isBooleanLiteral() && !t.isBoolean())
+            : unionTypes
+          ).map((t) => convertType(ctx, t)),
+          ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
+        ],
+        false
+      ),
+    ]);
+  })();
+
+  if (isNullable) schema = methodCall(schema, "nullable");
+  if (isOptional) schema = methodCall(schema, "optional");
+  return schema;
 }
