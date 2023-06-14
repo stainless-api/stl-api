@@ -1,69 +1,12 @@
-import { Project, ts, printNode } from "ts-morph";
+import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
-import * as path from "path";
 import { groupBy } from "lodash";
 
-function main(fileName: string) {
-  const project = new Project({
-    tsConfigFilePath: path.resolve(__dirname, "tsconfig.json"),
-  });
-  const sourceFile = project.addSourceFileAtPath(fileName);
-  const typeAlias = sourceFile.getInterfaceOrThrow("Test");
-  if (!typeAlias) throw new Error("failed to find type alias to generate");
-  const ctx = {
-    project,
-    typeChecker: project.getTypeChecker(),
-    node: typeAlias,
-  };
-  const type = typeAlias.getType();
-  if (!type) throw new Error(`type not found`);
-  console.log(printNode(convertType(ctx, type)));
-}
-
-/* visit nodes declaring interfaces and types */
-function visit(node: ts.Node) {
-  if (ts.isInterfaceDeclaration(node)) {
-    console.log("interface:", node.name.getText());
-  }
-  // Only consider exported nodes
-  // TODO
-
-  // if (ts.isExportDeclaration(node)) {
-  // console.log(node);
-  // }
-}
-
-main(path.resolve(__dirname, "test_code/simple.ts"));
-
-interface SchemaGenContext {
+export interface SchemaGenContext {
   project: tm.Project;
   typeChecker: tm.TypeChecker;
   node: tm.Node;
-}
-
-function getTypeOrigin(type: ts.Type): ts.Type | undefined;
-function getTypeOrigin(type: tm.Type): tm.Type | undefined;
-function getTypeOrigin(type: ts.Type | tm.Type): ts.Type | tm.Type | undefined {
-  if (type instanceof tm.Type) {
-    const origin = getTypeOrigin(type.compilerType);
-    return origin ? getTypeWrapper(type, origin) : undefined;
-  }
-  //@ts-expect-error
-  return type.origin;
-}
-
-function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
-  // @ts-expect-error
-  return ctxProvider._context.compilerFactory.getType(type);
-}
-
-function getSymbolWrapper(
-  ctxProvider: tm.Symbol,
-  symbol: ts.Symbol
-): tm.Symbol {
-  // @ts-expect-error
-  return ctxProvider._context.compilerFactory.getSymbol(symbol);
 }
 
 // steps to do
@@ -75,9 +18,7 @@ function getSymbolWrapper(
 //   - else recursively process types, utilize zod.union()
 // - enum
 //   - utilize zod.nativeEnum
-//
-//
-function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
+export function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
   const origin = getTypeOrigin(ty);
   if (origin) return convertType(ctx, origin);
   if (ty.isBoolean()) {
@@ -167,13 +108,6 @@ function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
             throw new Error(`expected one Promise<> type argument`);
           return zodConstructor("promise", [convertType(ctx, args[0])]);
         }
-        case "Pick": {
-          const args = ty.getTypeArguments();
-          if (args.length !== 2)
-            throw new Error(`expected two Pick<> type arguments`);
-
-          return zodConstructor("promise", [convertType(ctx, args[0])]);
-        }
       }
     }
     // if the object is an indexed access type
@@ -194,9 +128,12 @@ function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
           getTypeWrapper(ty, indexInfo.keyType)
         );
         const keyType = convertUnionTypes(ctx, keyTypes);
-        const valueType = convertType(ctx, getTypeWrapper(ty, indexInfos[0].type));
-        
-        return zodConstructor('record', [keyType, valueType])
+        const valueType = convertType(
+          ctx,
+          getTypeWrapper(ty, indexInfos[0].type)
+        );
+
+        return zodConstructor("record", [keyType, valueType]);
       });
 
       return recordTypes.length === 1
@@ -214,21 +151,21 @@ function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
     return zodConstructor("number");
   }
   if (ty.isBooleanLiteral()) {
-    return zodConstructor("boolean", [
+    return zodConstructor("literal", [
       isTrueLiteral(ty) ? factory.createTrue() : factory.createFalse(),
     ]);
   }
   if (ty.compilerType.flags === ts.TypeFlags.BigIntLiteral) {
     const value = ty.getLiteralValue() as ts.PseudoBigInt;
-    return zodConstructor("bigint", [factory.createBigIntLiteral(value)]);
+    return zodConstructor("literal", [factory.createBigIntLiteral(value)]);
   }
   if (ty.isStringLiteral()) {
-    return zodConstructor("string", [
+    return zodConstructor("literal", [
       factory.createStringLiteral(ty.getLiteralValue() as string),
     ]);
   }
   if (ty.isNumberLiteral()) {
-    return zodConstructor("number", [
+    return zodConstructor("literal", [
       factory.createNumericLiteral(ty.getLiteralValue() as number),
     ]);
   }
@@ -292,6 +229,30 @@ function methodCall(
 /** The file in which a type was declared. Likely unsuitable for use for interfaces that might be extended. */
 function typeSourceFile(ty: ts.Type): string | undefined {
   return ty.getSymbol()?.declarations?.[0]?.getSourceFile().fileName;
+}
+
+function getTypeOrigin(type: ts.Type): ts.Type | undefined;
+function getTypeOrigin(type: tm.Type): tm.Type | undefined;
+function getTypeOrigin(type: ts.Type | tm.Type): ts.Type | tm.Type | undefined {
+  if (type instanceof tm.Type) {
+    const origin = getTypeOrigin(type.compilerType);
+    return origin ? getTypeWrapper(type, origin) : undefined;
+  }
+  //@ts-expect-error
+  return type.origin;
+}
+
+function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
+  // @ts-expect-error
+  return ctxProvider._context.compilerFactory.getType(type);
+}
+
+function getSymbolWrapper(
+  ctxProvider: tm.Symbol,
+  symbol: ts.Symbol
+): tm.Symbol {
+  // @ts-expect-error
+  return ctxProvider._context.compilerFactory.getSymbol(symbol);
 }
 
 function isNativeObject(ty: ts.Type | tm.Type): boolean {

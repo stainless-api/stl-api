@@ -1,10 +1,9 @@
 export interface A {}
 
-
 export type Obj = { a: 1; b: "foo" };
 export type Mapped = { [K in keyof Obj]: { value: Obj[K] } };
 
-export type StringOrNumber =
+export type T =
   // | Mapped
   // | number
   // | string
@@ -22,8 +21,6 @@ export type StringOrNumber =
       : { other: Obj[K] };
   };
 //
-
-type T = Array<number> | number[] | ReadonlyArray<number> | readonly number[];
 
 export interface Base {}
 
