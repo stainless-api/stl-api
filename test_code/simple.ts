@@ -1,6 +1,5 @@
 export interface A {}
 
-export type Conditional = { a: 1 } & { b: 2 };
 
 export type Obj = { a: 1; b: "foo" };
 export type Mapped = { [K in keyof Obj]: { value: Obj[K] } };
