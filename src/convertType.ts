@@ -12,12 +12,6 @@ export interface SchemaGenContext {
 // steps to do
 // build up map: process a type if it is not already in map, in order to avoid infinitely recursing
 //    think about how to avoid this infinite recursion, probably need to use zod.lazy()... at first don't worry about thisd
-// for type aliases: things to process:
-// - union
-//   - if all elements are string literals, utilize zod.enum
-//   - else recursively process types, utilize zod.union()
-// - enum
-//   - utilize zod.nativeEnum
 export function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
   const origin = getTypeOrigin(ty);
   if (origin) return convertType(ctx, origin);
@@ -273,14 +267,6 @@ function createZodShape(
         convertType(ctx, ty)
       );
     })
-  );
-}
-
-function getTypeOfSymbol(ctx: SchemaGenContext, symbol: tm.Symbol): tm.Type {
-  console.log(symbol.getDeclarations());
-  return ctx.typeChecker.getTypeOfSymbolAtLocation(
-    symbol,
-    symbol.getDeclarations()![0]
   );
 }
 
