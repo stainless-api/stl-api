@@ -38,6 +38,22 @@ interface SchemaGenContext {
   typeChecker: tm.TypeChecker;
 }
 
+function getTypeOrigin(type: ts.Type): ts.Type | undefined;
+function getTypeOrigin(type: tm.Type): tm.Type | undefined;
+function getTypeOrigin(type: ts.Type | tm.Type): ts.Type | tm.Type | undefined {
+  if (type instanceof tm.Type) {
+    const origin = getTypeOrigin(type.compilerType);
+    return origin ? getTypeWrapper(type, origin) : undefined;
+  }
+  //@ts-expect-error
+  return type.origin;
+}
+
+function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
+  // @ts-expect-error
+  return ctxProvider._context.compilerFactory.getType(type);
+}
+
 // steps to do
 // build up map: process a type if it is not already in map, in order to avoid infinitely recursing
 //    think about how to avoid this infinite recursion, probably need to use zod.lazy()... at first don't worry about thisd
@@ -50,6 +66,8 @@ interface SchemaGenContext {
 //
 //
 function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
+  const origin = getTypeOrigin(ty);
+  if (origin) return processType(ctx, origin);
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
   }
@@ -117,7 +135,7 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
       const [first, ...rest] = ty.getIntersectionTypes();
       return rest.reduce(
         (schema, shapeType) =>
-          methodCall(schema, "merge", [createZodShape(ctx, shapeType)]),
+          methodCall(schema, "extend", [createZodShape(ctx, shapeType)]),
         processType(ctx, first)
       );
     }
