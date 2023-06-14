@@ -54,7 +54,7 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
     return zodConstructor("boolean");
   }
   if (ty.isEnum()) {
-    return zodConstructor("enum", [
+    return zodConstructor("nativeEnum", [
       factory.createIdentifier(
         ty.compilerType.getSymbol()?.escapedName as string
       ),
@@ -73,6 +73,8 @@ function processType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
     }
 
     let schema = (() => {
+      if (unionTypes.length === 1) return processType(ctx, unionTypes[0]);
+
       if (unionTypes.every((unionType) => unionType.isStringLiteral())) {
         return zodConstructor("enum", [
           factory.createArrayLiteralExpression(
