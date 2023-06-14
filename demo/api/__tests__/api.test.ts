@@ -10,40 +10,10 @@ it("getApiMetadata(api)", () => {
         },
       },
       "namespacedResources": {
-        "comments": {
-          "actions": {
-            "create": {
-              "endpoint": "post /api/comments",
-            },
-          },
-        },
-        "posts": {
-          "actions": {
-            "create": {
-              "endpoint": "post /api/posts",
-            },
-            "list": {
-              "endpoint": "get /api/posts",
-            },
-            "retrieve": {
-              "endpoint": "get /api/posts/{post}",
-            },
-          },
-        },
         "test": {
           "actions": {
             "foo": {
               "endpoint": "put /api/foo/{value}",
-            },
-          },
-        },
-        "users": {
-          "actions": {
-            "list": {
-              "endpoint": "get /api/users",
-            },
-            "retrieve": {
-              "endpoint": "get /api/users/{userId}",
             },
           },
         },
