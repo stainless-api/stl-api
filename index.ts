@@ -4,7 +4,9 @@ import * as tm from "ts-morph";
 import * as path from "path";
 
 function main(fileName: string, compilerOptions: ts.CompilerOptions) {
-  const project = new Project();
+  const project = new Project({
+    tsConfigFilePath: path.resolve(__dirname, "tsconfig.json"),
+  });
   const sourceFile = project.addSourceFileAtPath(fileName);
   const ctx = {
     project,
