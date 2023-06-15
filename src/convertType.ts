@@ -135,7 +135,8 @@ export function convertType(
 ): ts.Expression {
   if (!ctx.isRoot) {
     const symbol =
-      ty.getAliasSymbol() || (ty.isInterface() ? ty.getSymbol() : null);
+      ty.getAliasSymbol() ||
+      (ty.isInterface() && !isNativeObject(ty) ? ty.getSymbol() : null);
     if (symbol) return convertSymbol(ctx, symbol);
   }
   ctx.isRoot = false;
@@ -499,16 +500,14 @@ export function generateFiles(
 
     for (const [relativePath, entries] of Object.entries(importGroups)) {
       const importSpecifiers = entries.map(([symbol, { as }]) => {
-        
         if (as === symbol.getName()) as = undefined;
 
         return factory.createImportSpecifier(
           false,
           as ? factory.createIdentifier(symbol.getName()) : undefined,
           factory.createIdentifier(as || symbol.getName())
-        )
-      }
-      );
+        );
+      });
       const importClause = factory.createImportClause(
         false,
         undefined,
