@@ -1,3 +1,5 @@
+import z from "zod";
+
 export const TransformSymbol = Symbol("Transform");
 
 export abstract class Transform<O, I> {
@@ -28,6 +30,8 @@ export type output<T> = T extends Transform<infer O, any>
   ? Promise<output<E>>
   : T;
 
+export type toZod<T> = z.ZodType<output<T>, z.ZodTypeDef, input<T>>;
+
 class ParseFloat<I extends string = string> extends Transform<number, I> {
   transform(value: string): number {
     return parseFloat(value);
@@ -47,9 +51,10 @@ class ToBigInt<I = number> extends Transform<bigint, I> {
 }
 
 type Schema = {
-  a: ToBigInt<ParseFloat>;
+  a: ToBigInt<ToString<ParseFloat>> | null;
   b?: string;
 };
 
 type SchemaInput = input<Schema>;
 type SchemaOutput = output<Schema>;
+type SchemaZod = toZod<Schema>;
