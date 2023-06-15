@@ -1,6 +1,7 @@
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
+import * as Path from "path";
 import { groupBy } from "lodash";
 
 export interface SchemaGenContext {
@@ -31,6 +32,7 @@ interface InternalSchemaGenContext extends SchemaGenContext {
 
 export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
   if (!ctx.symbols.has(symbol)) {
+    symbol.getExportSymbol
     ctx.symbols.add(symbol);
     const declaration = symbol.getDeclarations()[0];
     const internalCtx = {
@@ -425,4 +427,67 @@ function mapGetOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
   }
 
   return value;
+}
+
+export function generateFiles(
+  ctx: SchemaGenContext
+): Map<string, ts.SourceFile> {
+  const outputMap = new Map();
+  for (const [path, info] of ctx.files.entries()) {
+    const generatedPath = path;
+
+    const statements = [];
+
+    const importGroups = groupBy([...info.imports], (i) =>
+      i.getDeclarations()[0].getSourceFile().getFilePath().toString()
+    );
+
+    for (const [source, symbols] of Object.entries(importGroups)) {
+      let relativePath = Path.relative(Path.dirname(path), source);
+      if (!relativePath.startsWith(".")) relativePath = `./${relativePath}`;
+
+      const importSpecifiers = symbols.map((symbol) =>
+        factory.createImportSpecifier(
+          false,
+          undefined,
+          factory.createIdentifier(symbol.getName())
+        )
+      );
+      const importClause = factory.createImportClause(
+        false,
+        undefined,
+        factory.createNamedImports(importSpecifiers)
+      );
+      const importDeclaration = factory.createImportDeclaration(
+        undefined,
+        importClause,
+        factory.createStringLiteral(relativePath),
+        undefined
+      );
+      statements.push(importDeclaration);
+    }
+
+    for (const schema of info.generatedSchemas) {
+      const declaration = factory.createVariableDeclaration(
+        schema.symbol.getName(),
+        undefined,
+        undefined,
+        schema.expression
+      );
+      const variableStatement = factory.createVariableStatement(
+        schema.isExported
+          ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
+          : [],
+        factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
+      );
+      statements.push(variableStatement);
+    }
+    const sourceFile = factory.createSourceFile(
+      statements,
+      factory.createToken(ts.SyntaxKind.EndOfFileToken),
+      0
+    );
+    outputMap.set(generatedPath, sourceFile);
+  }
+  return outputMap;
 }
