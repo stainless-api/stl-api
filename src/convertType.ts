@@ -6,13 +6,92 @@ import { groupBy } from "lodash";
 export interface SchemaGenContext {
   project: tm.Project;
   typeChecker: tm.TypeChecker;
+
+  files: Map<string, FileInfo>;
+  /** Set of symbols that have been processed */
+  symbols: Set<tm.Symbol>;
+}
+
+interface FileInfo {
+  imports: Set<tm.Symbol>;
+  generatedSchemas: GeneratedSchema[];
+}
+
+interface GeneratedSchema {
+  symbol: tm.Symbol;
+  expression: ts.Expression;
+  isExported: boolean;
+}
+
+interface InternalSchemaGenContext extends SchemaGenContext {
+  /** current type alias or interface being processed */
   node: tm.Node;
+  isRoot: boolean;
+}
+
+export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
+  if (!ctx.symbols.has(symbol)) {
+    ctx.symbols.add(symbol);
+    const declaration = symbol.getDeclarations()[0];
+    const internalCtx = {
+      ...ctx,
+      node: declaration,
+      isRoot: true,
+    };
+    const type = declaration.getType();
+    const generated = convertType(internalCtx, type);
+    const generatedSchema = {
+      symbol,
+      expression: generated,
+      isExported: symbol.getExports().length > 0,
+    };
+
+    const fileName = declaration.getSourceFile().getFilePath().toString();
+    mapGetOrCreate(ctx.files, fileName, () => ({
+      imports: new Set<tm.Symbol>(),
+      generatedSchemas: [],
+    })).generatedSchemas.push(generatedSchema);
+  }
+
+  return zodConstructor("lazy", [
+    factory.createArrowFunction(
+      [],
+      [],
+      [],
+      undefined,
+      undefined,
+      factory.createIdentifier(symbol.getName())
+    ),
+  ]);
 }
 
 // steps to do
 // build up map: process a type if it is not already in map, in order to avoid infinitely recursing
 //    think about how to avoid this infinite recursion, probably need to use zod.lazy()... at first don't worry about thisd
-export function convertType(ctx: SchemaGenContext, ty: tm.Type): ts.Expression {
+export function convertType(
+  ctx: InternalSchemaGenContext,
+  ty: tm.Type
+): ts.Expression {
+  if (!ctx.isRoot) {
+    const symbol = ty.getAliasSymbol();
+    if (symbol) {
+      const fileName = ctx.node.getSourceFile().getFilePath().toString();
+      const symbolFileName = symbol
+        .getDeclarations()[0]
+        .getSourceFile()
+        .getFilePath()
+        .toString();
+      if (fileName !== symbolFileName) {
+        mapGetOrCreate(ctx.files, fileName, () => ({
+          imports: new Set<tm.Symbol>(),
+          generatedSchemas: [],
+        })).imports.add(symbol);
+      }
+      return convertSymbol(ctx, symbol);
+    }
+  }
+  ctx.isRoot = false;
+
   const origin = getTypeOrigin(ty);
   if (origin) return convertType(ctx, origin);
   if (ty.isBoolean()) {
@@ -255,7 +334,7 @@ function isNativeObject(ty: ts.Type | tm.Type): boolean {
   return sourceFile?.match(/typescript\/lib\/.*\.d\.ts$/) != null;
 }
 function createZodShape(
-  ctx: SchemaGenContext,
+  ctx: InternalSchemaGenContext,
   ty: tm.Type<ts.Type>
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
@@ -287,7 +366,7 @@ function isFalseLiteral(type: tm.Type): boolean {
 }
 
 function convertUnionTypes(
-  ctx: SchemaGenContext,
+  ctx: InternalSchemaGenContext,
   unionTypes: tm.Type[]
 ): ts.Expression {
   const isOptional = unionTypes.some((unionType) => unionType.isUndefined());
@@ -336,4 +415,14 @@ function convertUnionTypes(
   if (isNullable) schema = methodCall(schema, "nullable");
   if (isOptional) schema = methodCall(schema, "optional");
   return schema;
+}
+
+function mapGetOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
+  let value = map.get(key);
+  if (!value) {
+    value = init();
+    map.set(key, value);
+  }
+
+  return value;
 }

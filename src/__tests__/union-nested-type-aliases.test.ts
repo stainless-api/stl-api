@@ -9,6 +9,6 @@ it(
   `Foo | Bar | null`,
   testCase({
     __filename,
-    expected: `z.union([z.enum(["a", "b"]), z.enum(["c", "d"])]).nullable()`,
+    expected: "z.union([z.lazy(() => Foo), z.lazy(() => Bar)]).nullable()",
   })
 );

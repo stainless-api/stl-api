@@ -36,6 +36,9 @@ export const testCase =
       project,
       typeChecker: project.getTypeChecker(),
       node,
+      isRoot: true,
+      files: new Map(),
+      symbols: new Set<tm.Symbol>(),
     };
     const actual = convertType(ctx, type);
     expect(tm.printNode(actual)).toEqual(options.expected);
