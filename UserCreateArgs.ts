@@ -1067,6 +1067,7 @@ export const PostCreateManyUserInputEnvelope = z.object({
   ]),
   skipDuplicates: z.boolean().optional(),
 });
+
 export const PostCreateNestedManyWithoutUserInput = z.object({
   create: z
     .union([
@@ -1690,3 +1691,37 @@ const UserCreateArgs = z.object({
     z.object({}).and(z.lazy(() => UserCreateInput)),
   ]),
 });
+
+// works!!!
+console.log(
+  UserCreateArgs.parse({
+    data: {
+      id: "foo",
+      name: "dude",
+      posts: {
+        create: {
+          body: "blah",
+        },
+      },
+    },
+  })
+);
+
+// doesn't work because the way XOR is implemented relies
+// on the fact that Array<whatever> extends object; but
+// z.object() doesn't accept an array
+console.log(
+  UserCreateArgs.parse({
+    data: {
+      id: "foo",
+      name: "blah",
+      posts: {
+        create: [
+          {
+            body: "blah",
+          },
+        ],
+      },
+    },
+  })
+);
