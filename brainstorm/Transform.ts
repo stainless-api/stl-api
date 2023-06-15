@@ -9,6 +9,8 @@ export abstract class Transform<O, I> {
 
 export type input<T> = T extends Transform<any, infer I>
   ? input<I>
+  : T extends Date
+  ? Date
   : T extends object
   ? { [k in keyof T]: input<T[k]> }
   : T extends Array<infer E>
@@ -20,6 +22,8 @@ export type input<T> = T extends Transform<any, infer I>
   : T;
 export type output<T> = T extends Transform<infer O, any>
   ? output<O>
+  : T extends Date
+  ? Date
   : T extends object
   ? { [k in keyof T]: output<T[k]> }
   : T extends Array<infer E>
@@ -30,23 +34,43 @@ export type output<T> = T extends Transform<infer O, any>
   ? Promise<output<E>>
   : T;
 
+export type TypeSchema<T> = T | Transform<T, any>;
+
 export type toZod<T> = z.ZodType<output<T>, z.ZodTypeDef, input<T>>;
 
-class ParseFloat<I extends string = string> extends Transform<number, I> {
-  transform(value: string): number {
+class ParseFloat<I extends TypeSchema<string> = string> extends Transform<
+  number,
+  I
+> {
+  transform(value: input<I>): number {
     return parseFloat(value);
   }
 }
 
-class ToString<I> extends Transform<string, I> {
+class ToString<I = unknown> extends Transform<string, I> {
   transform(value: input<I>): string {
     return String(value);
   }
 }
 
-class ToBigInt<I = number> extends Transform<bigint, I> {
+class ToDate<I extends TypeSchema<string | number | Date>> extends Transform<
+  Date,
+  I
+> {
+  transform(value: input<I>): Date {
+    return new Date(value);
+  }
+}
+
+class ToBigInt<
+  I extends TypeSchema<string | number | bigint | boolean> =
+    | string
+    | number
+    | bigint
+    | boolean
+> extends Transform<bigint, I> {
   transform(value: input<I>): bigint {
-    return BigInt(value as any);
+    return BigInt(value);
   }
 }
 
@@ -58,3 +82,11 @@ type Schema = {
 type SchemaInput = input<Schema>;
 type SchemaOutput = output<Schema>;
 type SchemaZod = toZod<Schema>;
+
+type BadSchema = {
+  a: ToBigInt<
+    // @ts-expect-error can't input Date to ToBigInt
+    ToDate<ParseFloat>
+  > | null;
+  b?: string;
+};
