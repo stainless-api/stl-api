@@ -1,13 +1,13 @@
 import { testCase } from "./testCase";
 
-type Obj = {
-  a: number;
+type Obj<X> = {
+  a: X;
   b?: "x";
 };
 type T = {
-  [k in keyof Obj]: NonNullable<Obj[k]> extends string
-    ? { string: NonNullable<Obj[k]> }
-    : { other: NonNullable<Obj[k]> };
+  [k in keyof Obj<number>]: NonNullable<Obj<number>[k]> extends string
+    ? { string: NonNullable<Obj<number>[k]> }
+    : { other: NonNullable<Obj<number>[k]> };
 };
 
 it(
