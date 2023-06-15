@@ -1,6 +1,6 @@
 import * as tm from "ts-morph";
 import * as path from "path";
-import { convertSymbol, generateFiles } from "../convertType";
+import { SchemaGenContext, convertSymbol, generateFiles } from "../convertType";
 
 const root = path.resolve(__dirname, "..", "..");
 
@@ -31,12 +31,7 @@ export const genMultipleFiles = (options: {
   if (!symbol) {
     throw new Error(`failed to get Symbol from SourceFile`);
   }
-  const ctx = {
-    project,
-    typeChecker: project.getTypeChecker(),
-    files: new Map(),
-    symbols: new Set<tm.Symbol>(),
-  };
+  const ctx = new SchemaGenContext(project);
   convertSymbol(ctx, symbol);
   const result: Record<string, string> = {};
   for (const [file, sourceFile] of generateFiles(ctx)) {

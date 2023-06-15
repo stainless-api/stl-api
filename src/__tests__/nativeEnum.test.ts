@@ -9,6 +9,6 @@ it(
   `enum T { a = 'a', b = 'b' }`,
   testCase({
     __filename,
-    expected: `z.nativeEnum(T)`,
+    expected: `z.nativeEnum(__enum_T)`,
   })
 );

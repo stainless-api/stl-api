@@ -3,18 +3,60 @@ const { factory } = ts;
 import * as tm from "ts-morph";
 import * as Path from "path";
 import { groupBy } from "lodash";
+import { inherits } from "util";
 
-export interface SchemaGenContext {
-  project: tm.Project;
-  typeChecker: tm.TypeChecker;
+export class SchemaGenContext {
+  constructor(
+    public project: tm.Project,
+    public typeChecker = project.getTypeChecker(),
+    public files: Map<string, FileInfo> = new Map(),
+    public symbols: Set<tm.Symbol> = new Set()
+  ) {}
 
-  files: Map<string, FileInfo>;
-  /** Set of symbols that have been processed */
-  symbols: Set<tm.Symbol>;
+  getFileInfo(filePath: string): FileInfo {
+    return mapGetOrCreate(this.files, filePath, () => ({
+      imports: new Map(),
+      generatedSchemas: [],
+    }));
+  }
+
+  // addImportToFile(symbol: tm.Symbol, filePath: string, importInfo: ImportInfo = {}) {
+  // this.getFileInfo(filePath).imports.set(symbol, importInfo);
+  // }
+}
+
+export class InternalSchemaGenContext extends SchemaGenContext {
+  constructor(ctx: SchemaGenContext, public node: tm.Node) {
+    super(ctx.project, ctx.typeChecker, ctx.files, ctx.symbols);
+    this.isRoot = true;
+    this.currentFilePath = this.node.getSourceFile().getFilePath();
+  }
+
+  isRoot: boolean;
+  currentFilePath: string;
+
+  isSymbolImported(symbol: tm.Symbol): boolean {
+    const symbolFileName: string = symbol
+      .getDeclarations()[0]
+      .getSourceFile()
+      .getFilePath();
+    return this.currentFilePath !== symbolFileName;
+  }
+}
+
+interface ImportInfo {
+  as?: string;
+  /**
+   * If true, the output code will import from
+   * the original file associated with the import's symbol; otherwise
+   * it will import from the generated file associated with
+   * `symbol`.
+   */
+  importFromUserFile?: boolean;
 }
 
 interface FileInfo {
-  imports: Set<tm.Symbol>;
+  imports: Map<tm.Symbol, ImportInfo>;
   generatedSchemas: GeneratedSchema[];
 }
 
@@ -24,34 +66,23 @@ interface GeneratedSchema {
   isExported: boolean;
 }
 
-interface InternalSchemaGenContext extends SchemaGenContext {
-  /** current type alias or interface being processed */
-  node: tm.Node;
-  isRoot: boolean;
-}
-
 export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
   if (!ctx.symbols.has(symbol)) {
     symbol.getExportSymbol;
     ctx.symbols.add(symbol);
     const declaration = symbol.getDeclarations()[0];
-    const internalCtx = {
-      ...ctx,
-      node: declaration,
-      isRoot: true,
-    };
+    const internalCtx = new InternalSchemaGenContext(ctx, declaration);
     const type = declaration.getType();
     const generated = convertType(internalCtx, type);
     const generatedSchema = {
       symbol,
       expression: generated,
-      // @ts-expect-error
-      isExported: declaration.compilerNode.localSymbol?.exportSymbol != null,
+      isExported: isDeclarationExported(declaration),
     };
 
-    const fileName = declaration.getSourceFile().getFilePath().toString();
+    const fileName = declaration.getSourceFile().getFilePath();
     mapGetOrCreate(ctx.files, fileName, () => ({
-      imports: new Set<tm.Symbol>(),
+      imports: new Map(),
       generatedSchemas: [],
     })).generatedSchemas.push(generatedSchema);
   }
@@ -76,19 +107,11 @@ export function convertType(
   ty: tm.Type
 ): ts.Expression {
   if (!ctx.isRoot) {
-    const symbol = ty.getAliasSymbol();
+    const symbol =
+      ty.getAliasSymbol() || (ty.isInterface() ? ty.getSymbol() : null);
     if (symbol) {
-      const fileName = ctx.node.getSourceFile().getFilePath().toString();
-      const symbolFileName = symbol
-        .getDeclarations()[0]
-        .getSourceFile()
-        .getFilePath()
-        .toString();
-      if (fileName !== symbolFileName) {
-        mapGetOrCreate(ctx.files, fileName, () => ({
-          imports: new Set<tm.Symbol>(),
-          generatedSchemas: [],
-        })).imports.add(symbol);
+      if (ctx.isSymbolImported(symbol)) {
+        ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol, {});
       }
       return convertSymbol(ctx, symbol);
     }
@@ -101,10 +124,14 @@ export function convertType(
     return zodConstructor("boolean");
   }
   if (ty.isEnum()) {
+    const symbol = ty.getSymbolOrThrow();
+    const escapedName = `__enum_${symbol.compilerSymbol.escapedName as string}`;
+    ctx
+      .getFileInfo(ctx.currentFilePath)
+      .imports.set(symbol, { importFromUserFile: true, as: escapedName });
+
     return zodConstructor("nativeEnum", [
-      factory.createIdentifier(
-        ty.compilerType.getSymbol()?.escapedName as string
-      ),
+      factory.createIdentifier(escapedName),
     ]);
   }
   if (ty.isUnion()) {
@@ -439,19 +466,21 @@ export function generateFiles(
 
     const statements = [];
 
-    const importGroups = groupBy([...info.imports], (i) =>
-      i.getDeclarations()[0].getSourceFile().getFilePath().toString()
+    const importGroups = groupBy(
+      [...info.imports.entries()],
+      ([symbol, { importFromUserFile }]) =>
+        relativeImportPath(
+          importFromUserFile ? generatedPath : path,
+          symbol.getDeclarations()[0].getSourceFile().getFilePath()
+        )
     );
 
-    for (const [source, symbols] of Object.entries(importGroups)) {
-      let relativePath = Path.relative(Path.dirname(path), source);
-      if (!relativePath.startsWith(".")) relativePath = `./${relativePath}`;
-
-      const importSpecifiers = symbols.map((symbol) =>
+    for (const [relativePath, entries] of Object.entries(importGroups)) {
+      const importSpecifiers = entries.map(([symbol, { as }]) =>
         factory.createImportSpecifier(
           false,
-          undefined,
-          factory.createIdentifier(symbol.getName())
+          as ? factory.createIdentifier(symbol.getName()) : undefined,
+          factory.createIdentifier(as || symbol.getName())
         )
       );
       const importClause = factory.createImportClause(
@@ -491,4 +520,18 @@ export function generateFiles(
     outputMap.set(generatedPath, sourceFile);
   }
   return outputMap;
+}
+
+function relativeImportPath(
+  importingFile: string,
+  importedFile: string
+): string {
+  let relativePath = Path.relative(Path.dirname(importingFile), importedFile);
+  if (!relativePath.startsWith(".")) relativePath = `./${relativePath}`;
+  return relativePath;
+}
+
+function isDeclarationExported(declaration: tm.Node): boolean {
+  // @ts-expect-error localSymbol untyped
+  return declaration.compilerNode.localSymbol?.exportSymbol != null;
 }

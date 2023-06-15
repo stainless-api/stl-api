@@ -1,6 +1,6 @@
 import { Project, printNode } from "ts-morph";
 import * as path from "path";
-import { convertType } from "../src/convertType";
+import { SchemaGenContext, InternalSchemaGenContext, convertType } from "../src/convertType";
 
 function main(fileName: string) {
   const project = new Project({
@@ -12,11 +12,7 @@ function main(fileName: string) {
     sourceFile.getInterface("T") ||
     sourceFile.getEnum("T");
   if (!node) throw new Error("failed to find type node to generate");
-  const ctx = {
-    project,
-    typeChecker: project.getTypeChecker(),
-    node,
-  };
+  const ctx = new InternalSchemaGenContext(new SchemaGenContext(project), node);
   const type = node.getType();
   if (!type) throw new Error(`type not found`);
   console.log(printNode(convertType(ctx, type)));
