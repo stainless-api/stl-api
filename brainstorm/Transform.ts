@@ -1,11 +1,11 @@
-const CustomTypeSymbol = Symbol("custom");
+export const TransformSymbol = Symbol("Transform");
 
-abstract class Transform<O, I> {
-  [CustomTypeSymbol] = true;
+export abstract class Transform<O, I> {
+  [TransformSymbol] = true;
   abstract transform(value: input<I>): output<O>;
 }
 
-type input<T> = T extends Transform<any, infer I>
+export type input<T> = T extends Transform<any, infer I>
   ? input<I>
   : T extends object
   ? { [k in keyof T]: input<T[k]> }
@@ -16,7 +16,7 @@ type input<T> = T extends Transform<any, infer I>
   : T extends Promise<infer E>
   ? Promise<input<E>>
   : T;
-type output<T> = T extends Transform<infer O, any>
+export type output<T> = T extends Transform<infer O, any>
   ? output<O>
   : T extends object
   ? { [k in keyof T]: output<T[k]> }
