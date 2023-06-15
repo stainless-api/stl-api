@@ -2,8 +2,7 @@ import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
 import * as Path from "path";
-import { flatMap, groupBy } from "lodash";
-import { inherits } from "util";
+import { groupBy, method } from "lodash";
 
 export class SchemaGenContext {
   constructor(
@@ -126,18 +125,25 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
   ]);
 }
 
-// steps to do
-// build up map: process a type if it is not already in map, in order to avoid infinitely recursing
-//    think about how to avoid this infinite recursion, probably need to use zod.lazy()... at first don't worry about thisd
 export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type
 ): ts.Expression {
-  if (!ctx.isRoot) {
+  if (!ctx.isRoot && !isNativeObject(ty)) {
     const symbol =
-      ty.getAliasSymbol() ||
-      (ty.isInterface() && !isNativeObject(ty) ? ty.getSymbol() : null);
-    if (symbol) return convertSymbol(ctx, symbol);
+      ty.getAliasSymbol() || (ty.isInterface() && !isNativeObject(ty) ? ty.getSymbol() : null);
+    if (symbol) {
+      const declaration = symbol.getDeclarations()[0];
+      if (
+        !(
+          declaration instanceof tm.TypeAliasDeclaration ||
+          declaration instanceof tm.InterfaceDeclaration
+        ) ||
+        !declaration.getTypeParameters().length
+      ) {
+        return convertSymbol(ctx, symbol);
+      }
+    }
   }
   ctx.isRoot = false;
 
@@ -162,14 +168,22 @@ export function convertType(
     return convertUnionTypes(ctx, unionTypes);
   }
   if (ty.isIntersection()) {
-    if (ty.getIntersectionTypes().every((t) => t.isObject())) {
-      const [first, ...rest] = ty.getIntersectionTypes();
+    const [first, ...rest] = ty.getIntersectionTypes();
+    if (
+      ty
+        .getIntersectionTypes()
+        .every((t) => t.isObject() && !t.isArray() && !isRecord(ctx, t))
+    ) {
       return rest.reduce(
         (schema, shapeType) =>
           methodCall(schema, "extend", [createZodShape(ctx, shapeType)]),
         convertType(ctx, first)
       );
     }
+    return rest.reduce(
+      (prev, next) => methodCall(prev, "and", [convertType(ctx, next)]),
+      convertType(ctx, first)
+    );
   }
   if (ty.isArray()) {
     const elemType = ty.getArrayElementTypeOrThrow();
@@ -392,7 +406,6 @@ function createZodShape(
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
     ty.getProperties().map((property) => {
-      // const ty = getTypeOfSymbol(ctx, property);
       const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
       return factory.createPropertyAssignment(
         property.getName(),
@@ -451,13 +464,17 @@ function convertUnionTypes(
     // in case that both true and false are found
     const hasSyntheticBoolean =
       unionTypes.some(isTrueLiteral) && unionTypes.some(isFalseLiteral);
+
+    const nonSynthBooleanTypes = hasSyntheticBoolean
+      ? unionTypes.filter((t) => !t.isBooleanLiteral() && !t.isBoolean())
+      : unionTypes;
+
+    if (!nonSynthBooleanTypes.length) return zodConstructor("boolean");
+
     return zodConstructor("union", [
       factory.createArrayLiteralExpression(
         [
-          ...(hasSyntheticBoolean
-            ? unionTypes.filter((t) => !t.isBooleanLiteral() && !t.isBoolean())
-            : unionTypes
-          ).map((t) => convertType(ctx, t)),
+          ...nonSynthBooleanTypes.map((t) => convertType(ctx, t)),
           ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
         ],
         false
@@ -564,4 +581,11 @@ function isDeclarationExported(declaration: tm.Node): boolean {
 function getTypeId(type: tm.Type): number {
   // @ts-expect-error id is untyped
   return type.compilerType.id;
+}
+
+function isRecord(ctx: SchemaGenContext, ty: tm.Type): boolean {
+  const indexInfos = ctx.typeChecker.compilerObject.getIndexInfosOfType(
+    ty.compilerType
+  );
+  return !indexInfos.length;
 }
