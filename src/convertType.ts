@@ -2,7 +2,7 @@ import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
 import * as Path from "path";
-import { groupBy } from "lodash";
+import { flatMap, groupBy } from "lodash";
 import { inherits } from "util";
 
 export class SchemaGenContext {
@@ -25,7 +25,7 @@ export class SchemaGenContext {
   // }
 }
 
-export class InternalSchemaGenContext extends SchemaGenContext {
+export class ConvertTypeContext extends SchemaGenContext {
   constructor(ctx: SchemaGenContext, public node: tm.Node) {
     super(ctx.project, ctx.typeChecker, ctx.files, ctx.symbols);
     this.isRoot = true;
@@ -58,6 +58,22 @@ interface ImportInfo {
 interface FileInfo {
   imports: Map<tm.Symbol, ImportInfo>;
   generatedSchemas: GeneratedSchema[];
+  /** maps imported type id to local identifier it's imported as */
+  importTypeNameMap?: Map<number, string>;
+}
+
+function buildImportTypeMap(sourceFile: tm.SourceFile): Map<number, string> {
+  const outputMap = new Map();
+  for (const decl of sourceFile.getImportDeclarations()) {
+    for (const specifier of decl.getNamedImports()) {
+      const id = getTypeId(specifier.getType());
+      const identifier =
+        specifier.compilerNode.name?.text ||
+        specifier.compilerNode.propertyName?.text;
+      outputMap.set(id, identifier);
+    }
+  }
+  return outputMap;
 }
 
 interface GeneratedSchema {
@@ -67,11 +83,22 @@ interface GeneratedSchema {
 }
 
 export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
+  let importAs;
+  if (ctx instanceof ConvertTypeContext) {
+    if (ctx.isSymbolImported(symbol)) {
+      const fileInfo = ctx.getFileInfo(ctx.currentFilePath);
+      const importTypeNameMap = (fileInfo.importTypeNameMap ||=
+        buildImportTypeMap(ctx.node.getSourceFile()));
+      importAs = importTypeNameMap.get(
+        getTypeId(symbol.getTypeAtLocation(ctx.node))
+      );
+      fileInfo.imports.set(symbol, { as: importAs });
+    }
+  }
   if (!ctx.symbols.has(symbol)) {
-    symbol.getExportSymbol;
     ctx.symbols.add(symbol);
     const declaration = symbol.getDeclarations()[0];
-    const internalCtx = new InternalSchemaGenContext(ctx, declaration);
+    const internalCtx = new ConvertTypeContext(ctx, declaration);
     const type = declaration.getType();
     const generated = convertType(internalCtx, type);
     const generatedSchema = {
@@ -94,7 +121,7 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
       [],
       undefined,
       undefined,
-      factory.createIdentifier(symbol.getName())
+      factory.createIdentifier(importAs || symbol.getName())
     ),
   ]);
 }
@@ -103,18 +130,13 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
 // build up map: process a type if it is not already in map, in order to avoid infinitely recursing
 //    think about how to avoid this infinite recursion, probably need to use zod.lazy()... at first don't worry about thisd
 export function convertType(
-  ctx: InternalSchemaGenContext,
+  ctx: ConvertTypeContext,
   ty: tm.Type
 ): ts.Expression {
   if (!ctx.isRoot) {
     const symbol =
       ty.getAliasSymbol() || (ty.isInterface() ? ty.getSymbol() : null);
-    if (symbol) {
-      if (ctx.isSymbolImported(symbol)) {
-        ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol, {});
-      }
-      return convertSymbol(ctx, symbol);
-    }
+    if (symbol) return convertSymbol(ctx, symbol);
   }
   ctx.isRoot = false;
 
@@ -364,7 +386,7 @@ function isNativeObject(ty: ts.Type | tm.Type): boolean {
   return sourceFile?.match(/typescript\/lib\/.*\.d\.ts$/) != null;
 }
 function createZodShape(
-  ctx: InternalSchemaGenContext,
+  ctx: ConvertTypeContext,
   ty: tm.Type<ts.Type>
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
@@ -396,7 +418,7 @@ function isFalseLiteral(type: tm.Type): boolean {
 }
 
 function convertUnionTypes(
-  ctx: InternalSchemaGenContext,
+  ctx: ConvertTypeContext,
   unionTypes: tm.Type[]
 ): ts.Expression {
   const isOptional = unionTypes.some((unionType) => unionType.isUndefined());
@@ -476,12 +498,16 @@ export function generateFiles(
     );
 
     for (const [relativePath, entries] of Object.entries(importGroups)) {
-      const importSpecifiers = entries.map(([symbol, { as }]) =>
-        factory.createImportSpecifier(
+      const importSpecifiers = entries.map(([symbol, { as }]) => {
+        
+        if (as === symbol.getName()) as = undefined;
+
+        return factory.createImportSpecifier(
           false,
           as ? factory.createIdentifier(symbol.getName()) : undefined,
           factory.createIdentifier(as || symbol.getName())
         )
+      }
       );
       const importClause = factory.createImportClause(
         false,
@@ -534,4 +560,9 @@ function relativeImportPath(
 function isDeclarationExported(declaration: tm.Node): boolean {
   // @ts-expect-error localSymbol untyped
   return declaration.compilerNode.localSymbol?.exportSymbol != null;
+}
+
+function getTypeId(type: tm.Type): number {
+  // @ts-expect-error id is untyped
+  return type.compilerType.id;
 }

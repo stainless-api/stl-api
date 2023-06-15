@@ -1,6 +1,10 @@
 import * as tm from "ts-morph";
 import * as path from "path";
-import { SchemaGenContext, InternalSchemaGenContext, convertType } from "../convertType";
+import {
+  SchemaGenContext,
+  ConvertTypeContext,
+  convertType,
+} from "../convertType";
 
 const root = path.resolve(__dirname, "..", "..");
 
@@ -32,7 +36,7 @@ export const testCase =
     if (!type) {
       throw new Error(`failed to get Type from SourceFile`);
     }
-    const ctx = new InternalSchemaGenContext(new SchemaGenContext(project), node);
+    const ctx = new ConvertTypeContext(new SchemaGenContext(project), node);
     const actual = convertType(ctx, type);
     expect(tm.printNode(actual)).toEqual(options.expected);
   };

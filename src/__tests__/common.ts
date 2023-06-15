@@ -12,7 +12,9 @@ export interface AddressIface {
   postalCode: string;
 }
 
+export { AddressIface as AddrIface };
+
 export enum Enum {
-    HELLO,
-    BYE,
+  HELLO,
+  BYE,
 }
