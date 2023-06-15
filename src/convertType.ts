@@ -32,7 +32,7 @@ interface InternalSchemaGenContext extends SchemaGenContext {
 
 export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
   if (!ctx.symbols.has(symbol)) {
-    symbol.getExportSymbol
+    symbol.getExportSymbol;
     ctx.symbols.add(symbol);
     const declaration = symbol.getDeclarations()[0];
     const internalCtx = {
@@ -45,7 +45,8 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
     const generatedSchema = {
       symbol,
       expression: generated,
-      isExported: symbol.getExports().length > 0,
+      // @ts-expect-error
+      isExported: declaration.compilerNode.localSymbol?.exportSymbol != null,
     };
 
     const fileName = declaration.getSourceFile().getFilePath().toString();
