@@ -225,6 +225,11 @@ export function convertType(
     return schema;
   }
   if (ty.isObject()) {
+    // we don't support parsing functions, so translate to any
+    // TODO: should this be a warning or error?
+    if (ty.getCallSignatures().length) {
+      return zodConstructor("any");
+    }
     if (isNativeObject(ty)) {
       switch (ty.getSymbol()?.getName()) {
         case "Date":
@@ -407,13 +412,27 @@ function createZodShape(
   ty: tm.Type<ts.Type>
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
-    ty.getProperties().map((property) => {
-      const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
-      return factory.createPropertyAssignment(
-        property.getName(),
-        convertType(ctx, ty)
-      );
-    })
+    ty
+      .getProperties()
+      .reduce(
+        (acc, property) => {
+          const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(
+            property,
+            ctx.node
+          );
+          // filter out methods/functions
+          if (ty.getCallSignatures().length === 0) {
+            acc.push(
+              factory.createPropertyAssignment(
+                property.getName(),
+                convertType(ctx, ty)
+              )
+            );
+          }
+          return acc;
+        },
+        [] as ts.PropertyAssignment[] 
+      )
   );
 }
 
