@@ -2,7 +2,8 @@ import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
 import * as Path from "path";
-import { groupBy, method } from "lodash";
+import { groupBy, method, property } from "lodash";
+import { boolean } from "zod";
 
 export class SchemaGenContext {
   constructor(
@@ -131,7 +132,8 @@ export function convertType(
 ): ts.Expression {
   if (!ctx.isRoot && !isNativeObject(ty)) {
     const symbol =
-      ty.getAliasSymbol() || (ty.isInterface() && !isNativeObject(ty) ? ty.getSymbol() : null);
+      ty.getAliasSymbol() ||
+      (ty.isInterface() && !isNativeObject(ty) ? ty.getSymbol() : null);
     if (symbol) {
       const declaration = symbol.getDeclarations()[0];
       if (
@@ -444,6 +446,47 @@ function convertUnionTypes(
     );
   }
 
+  // see if the union is made up of objects that each have at least
+  // one property that holds a literal in common
+  // if so, generate a z.discriminatedUnion instead of a union
+  //
+  if (unionTypes.length >= 2) {
+    const [first, ...rest] = unionTypes;
+
+    const discriminator = first.getProperties().find((property) => {
+      const type = property.getTypeAtLocation(ctx.node);
+      if (
+        !isLiteralish(type) ||
+        !rest.every((restType) => {
+          const type = restType
+            .getProperty(property.getName())
+            ?.getTypeAtLocation(ctx.node);
+          return type && isLiteralish(type);
+        })
+      ) {
+        return false;
+      }
+
+      const literalValues = unionTypes.flatMap((unionType) =>
+        getLiteralValues(
+          unionType
+            .getPropertyOrThrow(property.getName())
+            .getTypeAtLocation(ctx.node)
+        )
+      );
+      return new Set(literalValues).size === literalValues.length;
+    });
+
+    if (discriminator) {
+      return zodConstructor("discriminatedUnion", [
+        factory.createStringLiteral(discriminator.getName()),
+        factory.createArrayLiteralExpression(
+          unionTypes.map((unionType) => convertType(ctx, unionType))
+        ),
+      ]);
+    }
+  }
+
   let schema = (() => {
     if (unionTypes.length === 1) return convertType(ctx, unionTypes[0]);
 
@@ -588,4 +631,24 @@ function isRecord(ctx: SchemaGenContext, ty: tm.Type): boolean {
     ty.compilerType
   );
   return !indexInfos.length;
+}
+
+/** Is a type either a literal or union of literalish types */
+function isLiteralish(ty: tm.Type): boolean {
+  if (ty.isLiteral()) return true;
+  else if (ty.isUnion()) {
+    const unionTypes = ty.getUnionTypes();
+    return unionTypes.every((unionType) => isLiteralish(unionType));
+  } else return false;
+}
+
+function getLiteralValues(
+  type: tm.Type
+): (string | boolean | number | ts.PseudoBigInt | undefined)[] {
+  if (type.isLiteral()) return [type.getLiteralValue()];
+  else if (type.isUnion())
+    return type
+      .getUnionTypes()
+      .flatMap((unionType) => getLiteralValues(unionType));
+  else return [];
 }
