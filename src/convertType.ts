@@ -1,7 +1,6 @@
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
-import * as Path from "path";
 import { groupBy, method, property } from "lodash";
 import { boolean } from "zod";
 
@@ -538,82 +537,6 @@ function mapGetOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
   }
 
   return value;
-}
-
-export function generateFiles(
-  ctx: SchemaGenContext
-): Map<string, ts.SourceFile> {
-  const outputMap = new Map();
-  for (const [path, info] of ctx.files.entries()) {
-    const generatedPath = path;
-
-    const statements = [];
-
-    const importGroups = groupBy(
-      [...info.imports.entries()],
-      ([symbol, { importFromUserFile }]) =>
-        relativeImportPath(
-          importFromUserFile ? generatedPath : path,
-          symbol.getDeclarations()[0].getSourceFile().getFilePath()
-        )
-    );
-
-    for (const [relativePath, entries] of Object.entries(importGroups)) {
-      const importSpecifiers = entries.map(([symbol, { as }]) => {
-        if (as === symbol.getName()) as = undefined;
-
-        return factory.createImportSpecifier(
-          false,
-          as ? factory.createIdentifier(symbol.getName()) : undefined,
-          factory.createIdentifier(as || symbol.getName())
-        );
-      });
-      const importClause = factory.createImportClause(
-        false,
-        undefined,
-        factory.createNamedImports(importSpecifiers)
-      );
-      const importDeclaration = factory.createImportDeclaration(
-        undefined,
-        importClause,
-        factory.createStringLiteral(relativePath),
-        undefined
-      );
-      statements.push(importDeclaration);
-    }
-
-    for (const schema of info.generatedSchemas) {
-      const declaration = factory.createVariableDeclaration(
-        schema.symbol.getName(),
-        undefined,
-        undefined,
-        schema.expression
-      );
-      const variableStatement = factory.createVariableStatement(
-        schema.isExported
-          ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
-          : [],
-        factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
-      );
-      statements.push(variableStatement);
-    }
-    const sourceFile = factory.createSourceFile(
-      statements,
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-    outputMap.set(generatedPath, sourceFile);
-  }
-  return outputMap;
-}
-
-function relativeImportPath(
-  importingFile: string,
-  importedFile: string
-): string {
-  let relativePath = Path.relative(Path.dirname(importingFile), importedFile);
-  if (!relativePath.startsWith(".")) relativePath = `./${relativePath}`;
-  return relativePath;
 }
 
 function isDeclarationExported(declaration: tm.Node): boolean {

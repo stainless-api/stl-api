@@ -1,6 +1,7 @@
 import * as tm from "ts-morph";
 import * as path from "path";
-import { SchemaGenContext, convertSymbol, generateFiles } from "../convertType";
+import { SchemaGenContext, convertSymbol } from "../convertType";
+import { generateFiles } from "../generateFiles";
 
 const root = path.resolve(__dirname, "..", "..");
 
@@ -34,7 +35,13 @@ export const genMultipleFiles = (options: {
   const ctx = new SchemaGenContext(project);
   convertSymbol(ctx, symbol);
   const result: Record<string, string> = {};
-  for (const [file, sourceFile] of generateFiles(ctx)) {
+  for (const [file, sourceFile] of generateFiles(ctx, {
+    genLocation: {
+      type: 'alongside',
+      dependencyGenPath: './dependency-schemas/'
+    },
+    rootPath: process.cwd(),
+  })) {
     result[file] = tm.ts.createPrinter().printFile(sourceFile);
   }
   return result;

@@ -9,7 +9,7 @@ type T = {
 it(`native types`, () =>
   expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
 {
-  "/Users/dariusjankauskas/Programming/ts-to-zod/src/__tests__/native-types.test.ts": "const T = z.object({ map: z.map(z.string(), z.number()), date: z.date() });
+  "src/__tests__/native-types.test.codegen.ts": "const T = z.object({ map: z.map(z.string(), z.number()), date: z.date() });
 ",
 }
 `));
