@@ -129,6 +129,27 @@ export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type
 ): ts.Expression {
+  if (isTransform(ty)) {
+    const symbol = ty.getSymbolOrThrow(
+      `failed to get symbol for transform: ${ty.getText()}`
+    );
+    const inputType = getTransformInputType(ty);
+
+    // import the transform class
+    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol, {});
+
+    return methodCall(convertType(ctx, inputType), "transform", [
+      factory.createPropertyAccessExpression(
+        factory.createNewExpression(
+          factory.createIdentifier(symbol.getName()),
+          undefined,
+          []
+        ),
+        factory.createIdentifier("transform")
+      ),
+    ]);
+  }
+
   if (!ctx.isRoot && !isNativeObject(ty)) {
     const symbol =
       ty.getAliasSymbol() || (ty.isInterface() ? ty.getSymbol() : null);
@@ -588,4 +609,37 @@ function isRecord(ctx: SchemaGenContext, ty: tm.Type): boolean {
     ty.compilerType
   );
   return !indexInfos.length;
+}
+
+function isInThisPackage(symbol: tm.Symbol): boolean {
+  const symbolFile = symbol.getDeclarations()[0].getSourceFile().getFilePath();
+  return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
+}
+
+function isTransform(type: tm.Type): boolean {
+  const symbol = type.getSymbol();
+  if (!symbol) return false;
+  const declaration = symbol.getDeclarations()[0];
+  if (
+    !tm.Node.isClassDeclaration(declaration) &&
+    !tm.Node.isClassExpression(declaration)
+  )
+    return false;
+  const heritageClause = declaration.getHeritageClauseByKind(
+    ts.SyntaxKind.ExtendsKeyword
+  );
+  const extendsTypeNode = heritageClause?.getTypeNodes()[0];
+  const baseSymbol = extendsTypeNode?.getType().getSymbol();
+  if (!baseSymbol) return false;
+  return isInThisPackage(baseSymbol) && baseSymbol.getName() === "Transform";
+}
+
+function getTransformInputType(ty: tm.Type): tm.Type {
+  const inputType = ty.getTypeArguments()[0];
+  if (!inputType) {
+    throw new Error(
+      `can't convert transform ${ty.getText()} because it doesn't have an input type parameter`
+    );
+  }
+  return inputType;
 }

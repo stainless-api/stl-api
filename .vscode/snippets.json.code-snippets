@@ -31,5 +31,18 @@
       ");",
       ""
     ]
+  },
+  "genMutlipleFiles-test": {
+    "prefix": "genMultipleFiles-test",
+    "body": [
+      "import { genMultipleFiles } from \"./genMultipleFiles\";",
+      "",
+      "type T = $1",
+      "",
+      "it(`$2`, () =>",
+      "  expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot()",
+      ");",
+      ""
+    ]
   }
 }
