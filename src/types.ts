@@ -9,7 +9,10 @@ export const TransformSymbol = Symbol("Transform");
 
 export abstract class Transform<O, I> extends SchemaType<O, I> {
   [TransformSymbol] = true;
-  abstract transform(value: output<I>): O | PromiseLike<O>;
+  abstract transform(
+    value: output<I>,
+    ctx: z.RefinementCtx
+  ): O | PromiseLike<O>;
 }
 
 export type input<T> = any extends T
