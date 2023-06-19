@@ -6,6 +6,6 @@ it(
   `{a: number} & {b: string}`,
   testCase({
     __filename,
-    expected: `z.object({ a: z.number() }).extend({ b: z.string() })`,
+    expected: `z.object({ a: z.number() }).and(z.object({ b: z.string() }))`,
   })
 );

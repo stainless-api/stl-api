@@ -1,7 +1,7 @@
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
-import { groupBy } from "lodash";
+import { groupBy, method } from "lodash";
 import Path from "path";
 
 export class SchemaGenContext {
@@ -191,17 +191,20 @@ export function convertType(
   }
   if (ty.isIntersection()) {
     const [first, ...rest] = ty.getIntersectionTypes();
-    if (
-      ty
-        .getIntersectionTypes()
-        .every((t) => t.isObject() && !t.isArray() && !isRecord(ctx, t))
-    ) {
-      return rest.reduce(
-        (schema, shapeType) =>
-          methodCall(schema, "extend", [createZodShape(ctx, shapeType)]),
-        convertType(ctx, first)
-      );
-    }
+    // TODO this was inlining object type aliases, we want to .merge them
+    // instead, but we can't do that unless we detect when we can avoid
+    // using `.lazy` for type alias references.
+    // if (
+    //   ty
+    //     .getIntersectionTypes()
+    //     .every((t) => t.isObject() && !t.isArray() && !isRecord(ctx, t))
+    // ) {
+    //   return rest.reduce(
+    //     (schema, shapeType) =>
+    //       methodCall(schema, "extend", [createZodShape(ctx, shapeType)]),
+    //     convertType(ctx, first)
+    //   );
+    // }
     return rest.reduce(
       (prev, next) => methodCall(prev, "and", [convertType(ctx, next)]),
       convertType(ctx, first)
