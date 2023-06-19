@@ -1,20 +1,14 @@
 import * as tm from "ts-morph";
-import * as path from "path";
 import { SchemaGenContext, convertSymbol } from "../convertType";
 import { generateFiles } from "../generateFiles";
-
-const root = path.resolve(__dirname, "..", "..");
-
-const project = new tm.Project({
-  tsConfigFilePath: path.join(root, "tsconfig.json"),
-});
+import { testProject } from "./testProject";
 
 export const genMultipleFiles = (options: {
   __filename: string;
   getNode?: (file: tm.SourceFile) => tm.Node | null | undefined;
   getSymbol?: (file: tm.SourceFile) => tm.Symbol | null | undefined;
 }) => {
-  const sourceFile = project.getSourceFile(options.__filename);
+  const sourceFile = testProject.getSourceFile(options.__filename);
   if (!sourceFile) {
     throw new Error(`failed to get SourceFile`);
   }
@@ -32,13 +26,13 @@ export const genMultipleFiles = (options: {
   if (!symbol) {
     throw new Error(`failed to get Symbol from SourceFile`);
   }
-  const ctx = new SchemaGenContext(project);
+  const ctx = new SchemaGenContext(testProject);
   convertSymbol(ctx, symbol);
   const result: Record<string, string> = {};
   for (const [file, sourceFile] of generateFiles(ctx, {
     genLocation: {
-      type: 'alongside',
-      dependencyGenPath: './dependency-schemas/'
+      type: "alongside",
+      dependencyGenPath: "./dependency-schemas/",
     },
     rootPath: process.cwd(),
   })) {

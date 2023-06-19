@@ -9,11 +9,11 @@ interface T {
 
 it(`imported interface`, () =>
   expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
-{
-  "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
-",
-  "src/__tests__/imported-interface.test.codegen.ts": "import { AddressIface } from "./common.ts";
-const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => AddressIface).optional() });
-",
-}
-`));
+    {
+      "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+    ",
+      "src/__tests__/imported-interface.test.codegen.ts": "import { AddressIface } from "./common.codegen.ts";
+    const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => AddressIface).optional() });
+    ",
+    }
+  `));

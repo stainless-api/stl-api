@@ -1,16 +1,10 @@
 import * as tm from "ts-morph";
-import * as path from "path";
 import {
   SchemaGenContext,
   ConvertTypeContext,
   convertType,
 } from "../convertType";
-
-const root = path.resolve(__dirname, "..", "..");
-
-const project = new tm.Project({
-  tsConfigFilePath: path.join(root, "tsconfig.json"),
-});
+import { testProject } from "./testProject";
 
 export const testCase =
   (options: {
@@ -20,7 +14,7 @@ export const testCase =
     expected: string;
   }) =>
   () => {
-    const sourceFile = project.getSourceFile(options.__filename);
+    const sourceFile = testProject.getSourceFile(options.__filename);
     if (!sourceFile) {
       throw new Error(`failed to get SourceFile`);
     }
@@ -36,7 +30,7 @@ export const testCase =
     if (!type) {
       throw new Error(`failed to get Type from SourceFile`);
     }
-    const ctx = new ConvertTypeContext(new SchemaGenContext(project), node);
+    const ctx = new ConvertTypeContext(new SchemaGenContext(testProject), node);
     const actual = convertType(ctx, type);
     expect(tm.printNode(actual)).toEqual(options.expected);
   };

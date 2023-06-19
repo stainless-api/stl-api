@@ -13,9 +13,9 @@ type GenLocationOptions =
 
 interface Options {
   genLocation: GenLocationOptions;
-  /** 
-   * the project root (where package.json resides) from which generation 
-   * paths are resolved 
+  /**
+   * the project root (where package.json resides) from which generation
+   * paths are resolved
    */
   rootPath: string;
 }
@@ -31,7 +31,7 @@ export function generateFiles(
   switch (options.genLocation.type) {
     case "alongside":
       basePath = options.rootPath;
-      baseDependenciesPath = "";
+      baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
       suffix = options.genLocation.suffix || DEFAULT_ALONGSIDE_SUFFIX;
       break;
     case "folder":
@@ -63,8 +63,15 @@ export function generateFiles(
       [...info.imports.entries()],
       ([symbol, { importFromUserFile }]) =>
         relativeImportPath(
-          importFromUserFile ? generatedPath : path,
-          symbol.getDeclarations()[0].getSourceFile().getFilePath()
+          generatedPath,
+          importFromUserFile
+            ? symbol.getDeclarations()[0].getSourceFile().getFilePath()
+            : generatePath({
+                path: symbol.getDeclarations()[0].getSourceFile().getFilePath(),
+                basePath,
+                baseDependenciesPath,
+                suffix,
+              })
         )
     );
 

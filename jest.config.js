@@ -5,6 +5,7 @@ module.exports = {
       "ts-jest",
       {
         diagnostics: false,
+        isolatedModules: true,
       },
     ],
   },

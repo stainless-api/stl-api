@@ -574,7 +574,7 @@ function isRecord(ctx: SchemaGenContext, ty: tm.Type): boolean {
   const indexInfos = ctx.typeChecker.compilerObject.getIndexInfosOfType(
     ty.compilerType
   );
-  return !indexInfos.length;
+  return indexInfos.length > 0;
 }
 
 function isInThisPackage(symbol: tm.Symbol): boolean {
