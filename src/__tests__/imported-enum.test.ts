@@ -1,4 +1,3 @@
-import { testCase } from "./testCase";
 import { Enum } from "./common";
 import { multiFileTestCase } from "./multiFileTestCase";
 

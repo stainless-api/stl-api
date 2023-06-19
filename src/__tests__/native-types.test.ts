@@ -1,4 +1,3 @@
-import { testCase } from "./testCase";
 import { multiFileTestCase } from "./multiFileTestCase";
 
 type T = {

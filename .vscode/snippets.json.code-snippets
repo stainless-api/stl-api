@@ -20,10 +20,10 @@
     "body": [
       "import { testCase } from \"./testCase\";",
       "",
-      "type T = $1;",
+      "type ${1:T} = $2;",
       "",
-      "it(`$2`, () =>",
-      "  expect(testCase({ __filename })).toMatchInlineSnapshot()",
+      "it(`$3`, () =>",
+      "  expect(testCase({ __filename, nodeName: '$1', })).toMatchInlineSnapshot()",
       ");",
       ""
     ]
