@@ -1,7 +1,7 @@
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
-import { groupBy, method } from "lodash";
+import { groupBy, method, property } from "lodash";
 import Path from "path";
 
 export class SchemaGenContext {
@@ -248,10 +248,23 @@ export function convertType(
     return schema;
   }
   if (ty.isObject()) {
-    // we don't support parsing functions, so translate to any
-    // TODO: should this be a warning or error?
-    if (ty.getCallSignatures().length) {
-      return zodConstructor("any");
+    const callSignatures = ty.getCallSignatures();
+    if (callSignatures.length !== 0) {
+      if (
+        callSignatures.some(
+          (signature) => signature.getTypeParameters().length > 0
+        )
+      ) {
+        // TODO: should this be a warning or error?
+        return zodConstructor("any");
+      }
+      const [first, ...rest] = callSignatures;
+
+      return rest.reduce(
+        (prev, curr) =>
+          methodCall(prev, "and", [convertCallSignature(ctx, curr)]),
+        convertCallSignature(ctx, first)
+      );
     }
     if (isNativeObject(ty)) {
       switch (ty.getSymbol()?.getName()) {
@@ -435,27 +448,13 @@ function createZodShape(
   ty: tm.Type<ts.Type>
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
-    ty
-      .getProperties()
-      .reduce(
-        (acc, property) => {
-          const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(
-            property,
-            ctx.node
-          );
-          // filter out methods/functions
-          if (ty.getCallSignatures().length === 0) {
-            acc.push(
-              factory.createPropertyAssignment(
-                property.getName(),
-                convertType(ctx, ty)
-              )
-            );
-          }
-          return acc;
-        },
-        [] as ts.PropertyAssignment[] 
-      )
+    ty.getProperties().map((property) => {
+      const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
+      return factory.createPropertyAssignment(
+        property.getName(),
+        convertType(ctx, ty)
+      );
+    })
   );
 }
 
@@ -473,6 +472,25 @@ function isFalseLiteral(type: tm.Type): boolean {
     // @ts-expect-error untyped api
     type.compilerType.intrinsicName === "false"
   );
+}
+
+function convertCallSignature(
+  ctx: ConvertTypeContext,
+  callSignature: tm.Signature
+): ts.Expression {
+  const argumentTypes = callSignature
+    .getParameters()
+    .map((param) => {
+      const paramType = param.getTypeAtLocation(ctx.node);
+      return convertType(ctx, paramType);
+    });
+  const returnType = convertType(ctx, callSignature.getReturnType());
+  return zodConstructor("function", [
+    zodConstructor("tuple", [
+      factory.createArrayLiteralExpression(argumentTypes),
+    ]),
+    returnType,
+  ]);
 }
 
 function convertUnionTypes(
