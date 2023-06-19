@@ -3,7 +3,6 @@ import { SchemaGenContext } from "./convertType";
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
-import * as fs from "fs";
 
 const DEFAULT_ALONGSIDE_SUFFIX = "codegen";
 
@@ -173,23 +172,4 @@ function generatePath({
   }
 
   return Path.join(chosenBasePath, Path.relative(rootPath, path));
-}
-
-// Returns the root directory of the current npm package.
-// If the current directory is not within an npm package,
-// ie no directory within the path contains a package.json,
-// returns undefined
-export function rootPackageDirectory(): string | undefined {
-  const cwd = process.cwd();
-  const root = Path.parse(cwd).root;
-  do {
-    if (fs.existsSync("package.json")) {
-      const currentPath = process.cwd();
-      process.chdir(cwd);
-      return currentPath;
-    }
-    process.chdir("..");
-  } while (process.cwd() !== root);
-
-  process.chdir(cwd);
 }

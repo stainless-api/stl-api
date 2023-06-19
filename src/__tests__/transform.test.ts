@@ -17,9 +17,9 @@ type T = {
   a: ParseFloat<ToString<Date>>;
 };
 
-it(`transform`, () =>
+it(`transform`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`

@@ -3,9 +3,9 @@ import { multiFileTestCase } from "./multiFileTestCase";
 
 type T = Prisma.UserCreateArgs;
 
-it(`crazy prisma types`, () =>
+it(`crazy prisma types`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`

@@ -30,6 +30,7 @@
   "dependencies": {
     "@types/lodash": "^4.14.195",
     "lodash": "^4.17.21",
+    "pkg-up": "3.1",
     "ts-morph": "^18.0.0",
     "zod": "^3.21.4"
   }

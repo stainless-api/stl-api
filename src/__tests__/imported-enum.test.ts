@@ -4,9 +4,9 @@ import { multiFileTestCase } from "./multiFileTestCase";
 
 type T = Enum[];
 
-it(`imported enum`, () =>
+it(`imported enum`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`

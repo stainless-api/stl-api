@@ -3,9 +3,9 @@ import { multiFileTestCase } from "./multiFileTestCase";
 type T = number | [U];
 type U = string | [T];
 
-it(`mutual recursion`, () =>
+it(`mutual recursion`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`

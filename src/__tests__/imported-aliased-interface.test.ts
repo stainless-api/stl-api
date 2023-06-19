@@ -16,9 +16,9 @@ interface T {
  * export { path_to_file_AddressIface as AddressIface }
  */
 
-it(`imported interface`, () =>
+it(`imported interface`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`
