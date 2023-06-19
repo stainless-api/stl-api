@@ -1,5 +1,5 @@
 import { AddressIface } from "./common";
-import { genMultipleFiles } from "./genMultipleFiles";
+import { multiFileTestCase } from "./multiFileTestCase";
 
 interface T {
   firstName: string;
@@ -7,13 +7,17 @@ interface T {
   address?: AddressIface;
 }
 
-it(`imported interface`, () =>
-  expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
-{
-  "/Users/dariusjankauskas/Programming/ts-to-zod/src/__tests__/common.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
-",
-  "/Users/dariusjankauskas/Programming/ts-to-zod/src/__tests__/imported-interface.test.ts": "import { AddressIface } from "./common.ts";
-const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => AddressIface).optional() });
-",
-}
-`));
+it(`imported interface`, async () =>
+  expect(
+    await multiFileTestCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`
+    {
+      "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+    ",
+      "src/__tests__/imported-interface.test.codegen.ts": "import { AddressIface } from "./common.codegen.ts";
+    const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => AddressIface).optional() });
+    ",
+    }
+  `));

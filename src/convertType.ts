@@ -1,9 +1,8 @@
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
-import * as Path from "path";
-import { groupBy, method, property } from "lodash";
-import { boolean } from "zod";
+import { groupBy, method } from "lodash";
+import Path from "path";
 
 export class SchemaGenContext {
   constructor(
@@ -130,6 +129,27 @@ export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type
 ): ts.Expression {
+  if (isTransform(ty)) {
+    const symbol = ty.getSymbolOrThrow(
+      `failed to get symbol for transform: ${ty.getText()}`
+    );
+    const inputType = getTransformInputType(ty);
+
+    // import the transform class
+    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol, {});
+
+    return methodCall(convertType(ctx, inputType), "transform", [
+      factory.createPropertyAccessExpression(
+        factory.createNewExpression(
+          factory.createIdentifier(symbol.getName()),
+          undefined,
+          []
+        ),
+        factory.createIdentifier("transform")
+      ),
+    ]);
+  }
+
   if (!ctx.isRoot && !isNativeObject(ty)) {
     const symbol =
       ty.getAliasSymbol() ||
@@ -171,17 +191,20 @@ export function convertType(
   }
   if (ty.isIntersection()) {
     const [first, ...rest] = ty.getIntersectionTypes();
-    if (
-      ty
-        .getIntersectionTypes()
-        .every((t) => t.isObject() && !t.isArray() && !isRecord(ctx, t))
-    ) {
-      return rest.reduce(
-        (schema, shapeType) =>
-          methodCall(schema, "extend", [createZodShape(ctx, shapeType)]),
-        convertType(ctx, first)
-      );
-    }
+    // TODO this was inlining object type aliases, we want to .merge them
+    // instead, but we can't do that unless we detect when we can avoid
+    // using `.lazy` for type alias references.
+    // if (
+    //   ty
+    //     .getIntersectionTypes()
+    //     .every((t) => t.isObject() && !t.isArray() && !isRecord(ctx, t))
+    // ) {
+    //   return rest.reduce(
+    //     (schema, shapeType) =>
+    //       methodCall(schema, "extend", [createZodShape(ctx, shapeType)]),
+    //     convertType(ctx, first)
+    //   );
+    // }
     return rest.reduce(
       (prev, next) => methodCall(prev, "and", [convertType(ctx, next)]),
       convertType(ctx, first)
@@ -559,82 +582,6 @@ function mapGetOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
   return value;
 }
 
-export function generateFiles(
-  ctx: SchemaGenContext
-): Map<string, ts.SourceFile> {
-  const outputMap = new Map();
-  for (const [path, info] of ctx.files.entries()) {
-    const generatedPath = path;
-
-    const statements = [];
-
-    const importGroups = groupBy(
-      [...info.imports.entries()],
-      ([symbol, { importFromUserFile }]) =>
-        relativeImportPath(
-          importFromUserFile ? generatedPath : path,
-          symbol.getDeclarations()[0].getSourceFile().getFilePath()
-        )
-    );
-
-    for (const [relativePath, entries] of Object.entries(importGroups)) {
-      const importSpecifiers = entries.map(([symbol, { as }]) => {
-        if (as === symbol.getName()) as = undefined;
-
-        return factory.createImportSpecifier(
-          false,
-          as ? factory.createIdentifier(symbol.getName()) : undefined,
-          factory.createIdentifier(as || symbol.getName())
-        );
-      });
-      const importClause = factory.createImportClause(
-        false,
-        undefined,
-        factory.createNamedImports(importSpecifiers)
-      );
-      const importDeclaration = factory.createImportDeclaration(
-        undefined,
-        importClause,
-        factory.createStringLiteral(relativePath),
-        undefined
-      );
-      statements.push(importDeclaration);
-    }
-
-    for (const schema of info.generatedSchemas) {
-      const declaration = factory.createVariableDeclaration(
-        schema.symbol.getName(),
-        undefined,
-        undefined,
-        schema.expression
-      );
-      const variableStatement = factory.createVariableStatement(
-        schema.isExported
-          ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
-          : [],
-        factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
-      );
-      statements.push(variableStatement);
-    }
-    const sourceFile = factory.createSourceFile(
-      statements,
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-    outputMap.set(generatedPath, sourceFile);
-  }
-  return outputMap;
-}
-
-function relativeImportPath(
-  importingFile: string,
-  importedFile: string
-): string {
-  let relativePath = Path.relative(Path.dirname(importingFile), importedFile);
-  if (!relativePath.startsWith(".")) relativePath = `./${relativePath}`;
-  return relativePath;
-}
-
 function isDeclarationExported(declaration: tm.Node): boolean {
   // @ts-expect-error localSymbol untyped
   return declaration.compilerNode.localSymbol?.exportSymbol != null;
@@ -649,7 +596,40 @@ function isRecord(ctx: SchemaGenContext, ty: tm.Type): boolean {
   const indexInfos = ctx.typeChecker.compilerObject.getIndexInfosOfType(
     ty.compilerType
   );
-  return !indexInfos.length;
+  return indexInfos.length > 0;
+}
+
+function isInThisPackage(symbol: tm.Symbol): boolean {
+  const symbolFile = symbol.getDeclarations()[0].getSourceFile().getFilePath();
+  return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
+}
+
+function isTransform(type: tm.Type): boolean {
+  const symbol = type.getSymbol();
+  if (!symbol) return false;
+  const declaration = symbol.getDeclarations()[0];
+  if (
+    !tm.Node.isClassDeclaration(declaration) &&
+    !tm.Node.isClassExpression(declaration)
+  )
+    return false;
+  const heritageClause = declaration.getHeritageClauseByKind(
+    ts.SyntaxKind.ExtendsKeyword
+  );
+  const extendsTypeNode = heritageClause?.getTypeNodes()[0];
+  const baseSymbol = extendsTypeNode?.getType().getSymbol();
+  if (!baseSymbol) return false;
+  return isInThisPackage(baseSymbol) && baseSymbol.getName() === "Transform";
+}
+
+function getTransformInputType(ty: tm.Type): tm.Type {
+  const inputType = ty.getTypeArguments()[0];
+  if (!inputType) {
+    throw new Error(
+      `can't convert transform ${ty.getText()} because it doesn't have an input type parameter`
+    );
+  }
+  return inputType;
 }
 
 /** Is a type either a literal or union of literalish types */

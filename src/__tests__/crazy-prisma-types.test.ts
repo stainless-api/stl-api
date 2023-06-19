@@ -1,16 +1,16 @@
 import { Prisma } from "../../prisma-client/index";
-import { genMultipleFiles } from "./genMultipleFiles";
+import { multiFileTestCase } from "./multiFileTestCase";
 
 type T = Prisma.UserCreateArgs;
 
-it(`crazy prisma types`, () =>
+it(`crazy prisma types`, async () =>
   expect(
-    genMultipleFiles({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`
     {
-      "/Users/andy/gh/ts-to-zod/prisma-client/index.d.ts": "export const CommentInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
+      "prisma-client/index.d.codegen.ts": "export const CommentInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
     export const QueryMode = z.object({ default: z.literal("default"), insensitive: z.literal("insensitive") });
     export const NestedUuidFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
     export const UuidFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
@@ -111,7 +111,7 @@ it(`crazy prisma types`, () =>
     export const UserUncheckedCreateInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostUncheckedCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
     export const UserCreateInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
     ",
-      "/Users/andy/gh/ts-to-zod/src/__tests__/crazy-prisma-types.test.ts": "import { UserSelect, UserInclude, UserUncheckedCreateInput, UserCreateInput } from "../../prisma-client/index.d.ts";
+      "src/__tests__/crazy-prisma-types.test.codegen.ts": "import { UserSelect, UserInclude, UserUncheckedCreateInput, UserCreateInput } from "../../prisma-client/index.d.codegen.ts";
     const T = z.object({ select: z.lazy(() => UserSelect).nullable().optional(), include: z.lazy(() => UserInclude).nullable().optional(), data: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateInput)), z.object({}).and(z.lazy(() => UserCreateInput))]) });
     ",
     }
