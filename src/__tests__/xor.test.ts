@@ -27,7 +27,7 @@ type T = XOR<Person, Pet>;
 it(`XOR type`, () => {
   expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
     {
-      "/Users/andy/gh/ts-to-zod/src/__tests__/xor.test.ts": "const Pet = z.object({ name: z.string(), breed: z.string() });
+      "src/__tests__/xor.test.codegen.ts": "const Pet = z.object({ name: z.string(), breed: z.string() });
     const Person = z.object({ name: z.string(), language: z.string() });
     const T = z.union([z.object({ language: z.undefined() }).and(z.lazy(() => Pet)), z.object({ breed: z.undefined() }).and(z.lazy(() => Person))]);
     ",

@@ -20,7 +20,7 @@ type T = {
 it(`transform`, () =>
   expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
     {
-      "/Users/andy/gh/ts-to-zod/src/__tests__/transform.test.ts": "import { ParseFloat, ToString } from "./transform.test.ts";
+      "src/__tests__/transform.test.codgen.ts": "import { ParseFloat, ToString } from "./transform.test.ts";
     const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform) });
     ",
     }

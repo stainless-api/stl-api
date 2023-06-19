@@ -1,8 +1,8 @@
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
-import { groupBy, method, property } from "lodash";
-import { boolean } from "zod";
+import { groupBy } from "lodash";
+import Path from "path";
 
 export class SchemaGenContext {
   constructor(
