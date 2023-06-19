@@ -1,7 +1,8 @@
 import * as tm from "ts-morph";
 import { SchemaGenContext, convertSymbol } from "../convertType";
-import { generateFiles } from "../generateFiles";
 import { testProject } from "./testProject";
+import { generateFiles, rootPackageDirectory } from "../generateFiles";
+import * as path from "path";
 
 export const multiFileTestCase = (options: {
   __filename: string;
@@ -28,15 +29,17 @@ export const multiFileTestCase = (options: {
   }
   const ctx = new SchemaGenContext(testProject);
   convertSymbol(ctx, symbol);
+  const rootPath = rootPackageDirectory()!; 
   const result: Record<string, string> = {};
   for (const [file, sourceFile] of generateFiles(ctx, {
     genLocation: {
       type: "alongside",
       dependencyGenPath: "./dependency-schemas/",
     },
-    rootPath: process.cwd(),
+    rootPath,
   })) {
-    result[file] = tm.ts.createPrinter().printFile(sourceFile);
+    const relativeFile = path.relative(rootPath, file);
+    result[relativeFile] = tm.ts.createPrinter().printFile(sourceFile);
   }
   return result;
 };
