@@ -5,9 +5,9 @@
       "label": "test <file>",
       "type": "shell",
       "options": { "shell": { "executable": "bash", "args": ["-c", "-l"] } },
-      "command": "jest",
+      "command": "npm",
       "isBackground": false,
-      "args": ["${file}"],
+      "args": ["test", "${file}"],
       "group": "test",
       "presentation": {
         "panel": "dedicated",
