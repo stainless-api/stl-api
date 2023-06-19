@@ -19,9 +19,9 @@ interface T {
 it(`imported interface`, () =>
   expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
 {
-  "/Users/dariusjankauskas/Programming/ts-to-zod/src/__tests__/common.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+  "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 ",
-  "/Users/dariusjankauskas/Programming/ts-to-zod/src/__tests__/imported-aliased-interface.test.ts": "import { AddressIface as Addr } from "./common.ts";
+  "src/__tests__/imported-aliased-interface.test.codegen.ts": "import { AddressIface as Addr } from "./common.ts";
 const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => Addr).optional() });
 ",
 }
