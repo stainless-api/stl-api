@@ -26,9 +26,9 @@ interface Pet {
 
 type T = XOR<Person, Pet>;
 
-it(`XOR type`, () => {
+it(`XOR type`, async () => {
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`

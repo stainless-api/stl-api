@@ -5,9 +5,9 @@ type T = {
   date: Date;
 };
 
-it(`native types`, () =>
+it(`native types`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`

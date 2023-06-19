@@ -7,9 +7,9 @@ interface T {
   address?: AddressIface;
 }
 
-it(`imported interface`, () =>
+it(`imported interface`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`

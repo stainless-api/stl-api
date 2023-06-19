@@ -1,9 +1,11 @@
 import * as tm from "ts-morph";
 import { SchemaGenContext, convertSymbol } from "../convertType";
-import { generateFiles } from "../generateFiles";
 import { testProject } from "./testProject";
+import { generateFiles } from "../generateFiles";
+import * as path from "path";
+import pkgUp from "pkg-up";
 
-export const multiFileTestCase = (options: {
+export const multiFileTestCase = async (options: {
   __filename: string;
   getNode?: (file: tm.SourceFile) => tm.Node | null | undefined;
   getSymbol?: (file: tm.SourceFile) => tm.Symbol | null | undefined;
@@ -28,15 +30,21 @@ export const multiFileTestCase = (options: {
   }
   const ctx = new SchemaGenContext(testProject);
   convertSymbol(ctx, symbol);
+  const rootPackageJson = await pkgUp(); 
+  if (!rootPackageJson) {
+    throw new Error("test must run within npm package");
+  }
+  const rootPath = path.dirname(rootPackageJson);
   const result: Record<string, string> = {};
   for (const [file, sourceFile] of generateFiles(ctx, {
     genLocation: {
       type: "alongside",
       dependencyGenPath: "./dependency-schemas/",
     },
-    rootPath: process.cwd(),
+    rootPath,
   })) {
-    result[file] = tm.ts.createPrinter().printFile(sourceFile);
+    const relativeFile = path.relative(rootPath, file);
+    result[relativeFile] = tm.ts.createPrinter().printFile(sourceFile);
   }
   return result;
 };

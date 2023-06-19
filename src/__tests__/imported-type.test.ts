@@ -7,9 +7,9 @@ type T = {
   address?: Address;
 };
 
-it(`imported type`, () =>
+it(`imported type`, async () =>
   expect(
-    multiFileTestCase({
+    await multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`
