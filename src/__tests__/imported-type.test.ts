@@ -1,5 +1,5 @@
 import { Address } from "./common";
-import { genMultipleFiles } from "./genMultipleFiles";
+import { multiFileTestCase } from "./multiFileTestCase";
 
 type T = {
   firstName: string;
@@ -8,7 +8,11 @@ type T = {
 };
 
 it(`imported type`, () =>
-  expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
+  expect(
+    multiFileTestCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`
     {
       "src/__tests__/common.codegen.ts": "export const Address = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
     ",

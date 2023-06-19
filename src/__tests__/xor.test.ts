@@ -1,7 +1,9 @@
-import { genMultipleFiles } from "./genMultipleFiles";
+import { multiFileTestCase } from "./multiFileTestCase";
 import z from "zod";
 
-type Without<T, U> = { [P in Exclude<keyof T, keyof U>]?: never };
+type Without<T, U> = {
+  [P in Exclude<keyof T, keyof U>]?: never;
+};
 
 /**
  * XOR is needed to have a real mutually exclusive union type
@@ -25,7 +27,11 @@ interface Pet {
 type T = XOR<Person, Pet>;
 
 it(`XOR type`, () => {
-  expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
+  expect(
+    multiFileTestCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`
     {
       "src/__tests__/xor.test.codegen.ts": "const Pet = z.object({ name: z.string(), breed: z.string() });
     const Person = z.object({ name: z.string(), language: z.string() });

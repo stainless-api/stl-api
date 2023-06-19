@@ -1,11 +1,15 @@
 import { testCase } from "./testCase";
 import { Enum } from "./common";
-import { genMultipleFiles } from "./genMultipleFiles";
+import { multiFileTestCase } from "./multiFileTestCase";
 
 type T = Enum[];
 
 it(`imported enum`, () =>
-  expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
+  expect(
+    multiFileTestCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`
     {
       "src/__tests__/common.codegen.ts": "import { Enum as __enum_Enum } from "./common.ts";
     export const Enum = z.nativeEnum(__enum_Enum);

@@ -16,31 +16,27 @@
   // 	"description": "Log output to console"
   // }
   "convertType-test": {
-    "prefix": "convertType-test",
+    "prefix": "testCase",
     "body": [
       "import { testCase } from \"./testCase\";",
       "",
       "type T = $1;",
       "",
-      "it(",
-      "  `$1`,",
-      "  testCase({",
-      "    __filename,",
-      "    expected: `$0`,",
-      "  })",
+      "it(`$2`, () =>",
+      "  expect(testCase({ __filename })).toMatchInlineSnapshot()",
       ");",
       ""
     ]
   },
   "genMutlipleFiles-test": {
-    "prefix": "genMultipleFiles-test",
+    "prefix": "multiFileTestCase",
     "body": [
-      "import { genMultipleFiles } from \"./genMultipleFiles\";",
+      "import { multiFileTestCase } from \"./multiFileTestCase\";",
       "",
       "type T = $1",
       "",
       "it(`$2`, () =>",
-      "  expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot()",
+      "  expect(multiFileTestCase({ __filename })).toMatchInlineSnapshot()",
       ");",
       ""
     ]

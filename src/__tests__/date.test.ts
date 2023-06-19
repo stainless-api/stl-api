@@ -2,10 +2,9 @@ import { testCase } from "./testCase";
 
 type T = Date;
 
-it(
-  `Date`,
-  testCase({
-    __filename,
-    expected: "z.date()",
-  })
-);
+it(`Date`, () =>
+  expect(
+    testCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`"z.date()"`));

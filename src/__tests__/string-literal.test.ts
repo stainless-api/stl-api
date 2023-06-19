@@ -2,10 +2,9 @@ import { testCase } from "./testCase";
 
 type T = "a";
 
-it(
-  `"a"`,
-  testCase({
-    __filename,
-    expected: `z.literal("a")`,
-  })
-);
+it(`"a"`, () =>
+  expect(
+    testCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`"z.literal("a")"`));

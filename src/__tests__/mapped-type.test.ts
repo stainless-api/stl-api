@@ -10,10 +10,11 @@ type T = {
     : { other: NonNullable<Obj<number>[k]> };
 };
 
-it(
-  `mapped type`,
-  testCase({
-    __filename,
-    expected: `z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })`,
-  })
-);
+it(`mapped type`, () =>
+  expect(
+    testCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(
+    `"z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })"`
+  ));

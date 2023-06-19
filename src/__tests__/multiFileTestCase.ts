@@ -3,7 +3,7 @@ import { SchemaGenContext, convertSymbol } from "../convertType";
 import { generateFiles } from "../generateFiles";
 import { testProject } from "./testProject";
 
-export const genMultipleFiles = (options: {
+export const multiFileTestCase = (options: {
   __filename: string;
   getNode?: (file: tm.SourceFile) => tm.Node | null | undefined;
   getSymbol?: (file: tm.SourceFile) => tm.Symbol | null | undefined;

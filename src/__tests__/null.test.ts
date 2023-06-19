@@ -2,10 +2,9 @@ import { testCase } from "./testCase";
 
 type T = null;
 
-it(
-  `null`,
-  testCase({
-    __filename,
-    expected: "z.null()",
-  })
-);
+it(`null`, () =>
+  expect(
+    testCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`"z.null()"`));

@@ -2,10 +2,9 @@ import { testCase } from "./testCase";
 
 type T = bigint;
 
-it(
-  `bigint`,
-  testCase({
-    __filename,
-    expected: "z.bigint()",
-  })
-);
+it(`bigint`, () =>
+  expect(
+    testCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`"z.bigint()"`));

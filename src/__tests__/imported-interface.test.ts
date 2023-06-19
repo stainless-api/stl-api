@@ -1,5 +1,5 @@
 import { AddressIface } from "./common";
-import { genMultipleFiles } from "./genMultipleFiles";
+import { multiFileTestCase } from "./multiFileTestCase";
 
 interface T {
   firstName: string;
@@ -8,7 +8,11 @@ interface T {
 }
 
 it(`imported interface`, () =>
-  expect(genMultipleFiles({ __filename })).toMatchInlineSnapshot(`
+  expect(
+    multiFileTestCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`
     {
       "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
     ",

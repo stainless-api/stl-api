@@ -1,11 +1,11 @@
 import { Prisma } from "../../prisma-client/index";
-import { genMultipleFiles } from "./genMultipleFiles";
+import { multiFileTestCase } from "./multiFileTestCase";
 
 type T = Prisma.UserCreateArgs;
 
 it(`crazy prisma types`, () =>
   expect(
-    genMultipleFiles({
+    multiFileTestCase({
       __filename,
     })
   ).toMatchInlineSnapshot(`
