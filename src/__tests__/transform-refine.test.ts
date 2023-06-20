@@ -54,7 +54,7 @@ it(`transform`, async () =>
   })
 ).toMatchInlineSnapshot(`
 {
-  "src/__tests__/transform.test.codegen.ts": "import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform.test.ts";
+  "src/__tests__/transform-refine.test.codegen.ts": "import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform-refine.test.ts";
 const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine) });
 ",
 }
