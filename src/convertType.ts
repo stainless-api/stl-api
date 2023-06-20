@@ -129,14 +129,16 @@ export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type
 ): ts.Expression {
-  if (isTransform(ty)) {
+  if (isPackageType(ty, "Transform")) {
     const symbol = ty.getSymbolOrThrow(
       `failed to get symbol for transform: ${ty.getText()}`
     );
-    const inputType = getTransformInputType(ty);
+    const inputType = getNthBaseClassTypeArgument(ty, 0);
 
     // import the transform class
-    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol, {});
+    ctx
+      .getFileInfo(ctx.currentFilePath)
+      .imports.set(symbol, { importFromUserFile: true });
 
     return methodCall(convertType(ctx, inputType), "transform", [
       factory.createPropertyAccessExpression(
@@ -148,6 +150,14 @@ export function convertType(
         factory.createIdentifier("transform")
       ),
     ]);
+  }
+
+  if (isPackageType(ty, "Refine")) {
+    return convertRefineType(ctx, ty, "refine");
+  }
+
+  if (isPackageType(ty, "SuperRefine")) {
+    return convertRefineType(ctx, ty, "superRefine");
   }
 
   if (!ctx.isRoot && !isNativeObject(ty)) {
@@ -553,6 +563,48 @@ function convertUnionTypes(
   return schema;
 }
 
+function convertRefineType(
+  ctx: ConvertTypeContext,
+  ty: tm.Type,
+  refineType: "refine" | "superRefine"
+): ts.Expression {
+  const symbol = ty.getSymbolOrThrow(
+    `failed to get symbol for ${refineType}: ${ty.getText()}`
+  );
+  const inputType = getNthBaseClassTypeArgument(ty, 0);
+
+  // import the refine class
+  ctx
+    .getFileInfo(ctx.currentFilePath)
+    .imports.set(symbol, { importFromUserFile: true });
+
+  const callArgs = [
+    factory.createPropertyAccessExpression(
+      factory.createNewExpression(
+        factory.createIdentifier(symbol.getName()),
+        undefined,
+        []
+      ),
+      factory.createIdentifier(refineType)
+    ),
+  ];
+
+  if (refineType === "refine") {
+    callArgs.push(
+      factory.createPropertyAccessExpression(
+        factory.createNewExpression(
+          factory.createIdentifier(symbol.getName()),
+          undefined,
+          []
+        ),
+        factory.createIdentifier("message")
+      )
+    );
+  }
+
+  return methodCall(convertType(ctx, inputType), refineType, callArgs);
+}
+
 function mapGetOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
   let value = map.get(key);
   if (!value) {
@@ -573,19 +625,12 @@ function getTypeId(type: tm.Type): number {
   return type.compilerType.id;
 }
 
-function isRecord(ctx: SchemaGenContext, ty: tm.Type): boolean {
-  const indexInfos = ctx.typeChecker.compilerObject.getIndexInfosOfType(
-    ty.compilerType
-  );
-  return indexInfos.length > 0;
-}
-
 function isInThisPackage(symbol: tm.Symbol): boolean {
   const symbolFile = symbol.getDeclarations()[0].getSourceFile().getFilePath();
   return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
 }
 
-function isTransform(type: tm.Type): boolean {
+function isPackageType(type: tm.Type, typeName: string): boolean {
   const symbol = type.getSymbol();
   if (!symbol) return false;
   const declaration = symbol.getDeclarations()[0];
@@ -600,16 +645,25 @@ function isTransform(type: tm.Type): boolean {
   const extendsTypeNode = heritageClause?.getTypeNodes()[0];
   const baseSymbol = extendsTypeNode?.getType().getSymbol();
   if (!baseSymbol) return false;
-  return isInThisPackage(baseSymbol) && baseSymbol.getName() === "Transform";
+  return isInThisPackage(baseSymbol) && baseSymbol.getName() === typeName;
 }
 
-function getTransformInputType(ty: tm.Type): tm.Type {
+/** Assuming there is one base class of the given type argument, gets its nth type argument */
+function getNthBaseClassTypeArgument(ty: tm.Type, n: number): tm.Type {
   const targetType = ty.getTargetType();
-  if (!targetType) throw new Error(`internal error: can't convert transform ${ty.getText()} due to lack of target type`)
-  const rawInputType = targetType.getBaseTypes()[0].getTypeArguments()[1];
-  const typeArgumentNames = targetType.getTypeArguments().map(arg => arg.getText());
-  const inputTypeName = rawInputType.getSymbol()!.compilerSymbol.escapedName;
-  const inputTypePos = typeArgumentNames.findIndex(name => name === inputTypeName);
+  if (!targetType)
+    throw new Error(
+      `internal error: can't convert transform ${ty.getText()} due to lack of target type`
+    );
+  const rawInputType = targetType.getBaseTypes()[0].getTypeArguments()[n];
+  const typeArgumentNames = targetType
+    .getTypeArguments()
+    .map((arg) => arg.getText());
+  const rawInputName = rawInputType.getSymbol()?.compilerSymbol.escapedName;
+  if (!rawInputName) return rawInputType;
+  const inputTypePos = typeArgumentNames.findIndex(
+    (name) => name === rawInputName
+  );
   if (inputTypePos >= 0) return ty.getTypeArguments()[inputTypePos];
   else return rawInputType;
 }

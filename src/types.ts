@@ -1,13 +1,13 @@
 import z from "zod";
 
-export abstract class SchemaType<O, I> {
+export abstract class SchemaType<I, O> {
   declare _input: I;
   declare _output: O;
 }
 
 export const TransformSymbol = Symbol("Transform");
 
-export abstract class Transform<O, I> extends SchemaType<O, I> {
+export abstract class Transform<I, O> extends SchemaType<I, O> {
   [TransformSymbol] = true;
   abstract transform(
     value: output<I>,
@@ -55,8 +55,24 @@ export type output<T> = any extends T
   ? PromiseLike<output<E>>
   : T;
 
-export type TypeSchema<Output, Input = any> =
+export type TypeSchema<Output> =
   | Output
-  | SchemaType<Output, Input>;
+  | SchemaType<any, Output>;
 
 export type toZod<T> = z.ZodType<output<T>, z.ZodTypeDef, input<T>>;
+
+export const RefineSymbol = Symbol("Refine");
+
+export abstract class Refine<I, RO = output<I>> extends SchemaType<I, RO> {
+  [RefineSymbol] = true;
+  message: string | z.CustomErrorParams | ((arg: output<I>) => z.CustomErrorParams) | undefined = undefined;
+
+  abstract refine(value: output<I>): unknown | Promise<unknown> ;
+}
+
+export const SuperRefineSymbol = Symbol("SuperRefine");
+
+export abstract class SuperRefine<I, RO = output<I>> extends SchemaType<I, RO> {
+  [SuperRefineSymbol] = true;
+  abstract superRefine(value: output<I>, ctx: z.RefinementCtx): void;
+}
