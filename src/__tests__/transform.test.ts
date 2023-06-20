@@ -1,20 +1,20 @@
 import { multiFileTestCase } from "./multiFileTestCase";
-import { TypeSchema, Transform, input } from "../index";
+import { TypeSchema, Transform, output } from "../index";
 
 class ToString<I extends TypeSchema<any>> extends Transform<string, I> {
-  transform(value: input<I>): string {
+  transform(value: output<I>): string {
     return String(value);
   }
 }
 
 class ParseFloat<I extends TypeSchema<string>> extends Transform<number, I> {
-  transform(value: input<I>): number {
+  transform(value: output<I>): number {
     return parseFloat(value);
   }
 }
 
 class Coerce<O, I> extends Transform<O, I> {
-  transform(value: input<I>): O {
+  transform(value: output<I>): O {
     return value as O;
   }
 }
