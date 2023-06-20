@@ -604,13 +604,14 @@ function isTransform(type: tm.Type): boolean {
 }
 
 function getTransformInputType(ty: tm.Type): tm.Type {
-  const inputType = ty.getTypeArguments()[0];
-  if (!inputType) {
-    throw new Error(
-      `can't convert transform ${ty.getText()} because it doesn't have an input type parameter`
-    );
-  }
-  return inputType;
+  const targetType = ty.getTargetType();
+  if (!targetType) throw new Error(`internal error: can't convert transform ${ty.getText()} due to lack of target type`)
+  const rawInputType = targetType.getBaseTypes()[0].getTypeArguments()[1];
+  const typeArgumentNames = targetType.getTypeArguments().map(arg => arg.getText());
+  const inputTypeName = rawInputType.getSymbol()!.compilerSymbol.escapedName;
+  const inputTypePos = typeArgumentNames.findIndex(name => name === inputTypeName);
+  if (inputTypePos >= 0) return ty.getTypeArguments()[inputTypePos];
+  else return rawInputType;
 }
 
 /** Is a type either a literal or union of literalish types */
