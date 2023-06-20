@@ -13,15 +13,15 @@ class ParseFloat<I extends TypeSchema<string>> extends Transform<number, I> {
   }
 }
 
-class Coerce<I, O> extends Transform<O, I> {
-  transform(value: input<O>): O {
+class Coerce<O, I> extends Transform<O, I> {
+  transform(value: input<I>): O {
     return value as O;
   }
 }
 
 type T = {
   a: ParseFloat<ToString<Date>>;
-  b: Coerce<string, "a" | "b">;
+  b: Coerce<"a" | "b", string>;
 };
 
 it(`transform`, async () =>
