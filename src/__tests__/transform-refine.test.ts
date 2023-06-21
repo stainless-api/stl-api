@@ -1,5 +1,16 @@
 import { multiFileTestCase } from "./multiFileTestCase";
-import { TypeSchema, Transform, Refine, SuperRefine, output } from "../index";
+import {
+  TypeSchema,
+  Transform,
+  Refine,
+  SuperRefine,
+  DateSchema,
+  output,
+  NumberSchema,
+  ObjectSchema,
+  ArraySchema,
+  StringSchema,
+} from "../index";
 import z from "zod";
 
 class ToString<I extends TypeSchema<any>> extends Transform<I, string> {
@@ -39,12 +50,24 @@ class Even<I extends TypeSchema<number>> extends SuperRefine<I> {
   }
 }
 
-
 type T = {
   a: ParseFloat<ToString<Date>>;
   b: Coerce<string, "a" | "b">;
   c: ParsePet;
   d: Even<number>;
+
+  date: DateSchema<{ min: "2023-01-10" }>;
+  number: NumberSchema<{
+    finite: true;
+    safe: "too big";
+    gt: [5, "5 and below too small!"];
+  }>;
+  object: ObjectSchema<T, { passthrough: true }>;
+  array: ArraySchema<
+    number | null,
+    { nonempty: true; min: [5, "at least five elements needed"] }
+  >;
+  datetime: StringSchema<{ datetime: { offset: true } }>;
 };
 
 it(`transform`, async () =>
@@ -55,7 +78,7 @@ it(`transform`, async () =>
 ).toMatchInlineSnapshot(`
 {
   "src/__tests__/transform-refine.test.codegen.ts": "import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform-refine.test.ts";
-const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine) });
+const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.lazy(() => T).passthrough(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }) });
 ",
 }
 `));
