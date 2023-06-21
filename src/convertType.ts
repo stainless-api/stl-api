@@ -898,7 +898,9 @@ function getTypeId(type: tm.Type): number {
 }
 
 function isInThisPackage(symbol: tm.Symbol): boolean {
-  const symbolFile = symbol.getDeclarations()[0].getSourceFile().getFilePath();
+  const declarations = symbol.getDeclarations();
+  if (!declarations.length) return false;
+  const symbolFile = declarations[0].getSourceFile().getFilePath();
   return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
 }
 
