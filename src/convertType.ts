@@ -174,9 +174,19 @@ export function convertType(
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
   }
+  if (ty.isClass()) {
+    const symbol = ty.getSymbolOrThrow();
+    const escapedName = `__class_${symbol.compilerSymbol.escapedName}`;
+    ctx
+      .getFileInfo(ctx.currentFilePath)
+      .imports.set(symbol, { importFromUserFile: true, as: escapedName });
+    return zodConstructor("instanceof", [
+      factory.createIdentifier(escapedName),
+    ]);
+  }
   if (ty.isEnum()) {
     const symbol = ty.getSymbolOrThrow();
-    const escapedName = `__enum_${symbol.compilerSymbol.escapedName as string}`;
+    const escapedName = `__enum_${symbol.compilerSymbol.escapedName}`;
     ctx
       .getFileInfo(ctx.currentFilePath)
       .imports.set(symbol, { importFromUserFile: true, as: escapedName });
