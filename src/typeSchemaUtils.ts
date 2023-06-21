@@ -53,7 +53,11 @@ export const bigIntSchemaProperties = new Set([
 
 export const dateSchemaProperties = new Set(["min", "max"]);
 
-export const objectSchemaProperties = new Set(["passthrough", "strict"]);
+export const objectSchemaProperties = new Set([
+  "passthrough",
+  "strict",
+  "catchall",
+]);
 
 export const arraySetSchemaProperties = new Set([
   "nonempty",

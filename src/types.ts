@@ -188,6 +188,7 @@ export class DateSchema<Props extends DateSchemaProps> extends SchemaType<
 interface ObjectSchemaProps {
   passthrough?: OptionalMessage<true>;
   strict?: OptionalMessage<true>;
+  catchall?: any,
 }
 
 export class ObjectSchema<

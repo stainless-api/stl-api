@@ -68,6 +68,7 @@ type T = {
     { nonempty: true; min: [5, "at least five elements needed"] }
   >;
   datetime: StringSchema<{ datetime: { offset: true } }>;
+  catchall: ObjectSchema<{a: number}, {catchall: string}>;
 };
 
 it(`transform`, async () =>
@@ -78,7 +79,7 @@ it(`transform`, async () =>
 ).toMatchInlineSnapshot(`
 {
   "src/__tests__/transform-refine.test.codegen.ts": "import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform-refine.test.ts";
-const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }) });
+const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()) });
 ",
 }
 `));

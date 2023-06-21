@@ -832,6 +832,11 @@ function convertSchemaType(
       ]);
       continue;
     }
+    
+    if (name === "catchall") {
+      expression = methodCall(expression, "catchall", [convertType(ctx, ty)]);
+      continue;
+    }
 
     let literalValue;
     literalValue =
