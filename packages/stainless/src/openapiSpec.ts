@@ -1,4 +1,4 @@
-import { z, AnyAPIDescription, AnyResourceConfig, allEndpoints } from "./stl";
+import { z, AnyAPIDescription, AnyResource, allEndpoints } from "./stl";
 import {
   ZodOpenApiOperationObject,
   ZodOpenApiPathsObject,
@@ -6,19 +6,17 @@ import {
 } from "zod-openapi";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 import { snakeCase } from "lodash";
-import { doc } from "prettier";
 
 function allModels(
-  resource:
-    | AnyResourceConfig
-    | Pick<AnyResourceConfig, "models" | "namespacedResources">
+  resource: AnyResource | Pick<AnyResource, "models" | "namespacedResources">
 ): Record<string, z.ZodTypeAny> {
+  const namespacedResources = resource.namespacedResources || {};
   return {
     ...resource.models,
     ...Object.assign(
       {},
-      ...Object.keys(resource.namespacedResources || {}).map((k) =>
-        allModels(resource.namespacedResources[k])
+      ...Object.keys(namespacedResources).map((k) =>
+        allModels(namespacedResources[k])
       )
     ),
   };

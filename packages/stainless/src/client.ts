@@ -4,8 +4,8 @@ import {
   z,
   AnyAPIDescription,
   AnyEndpoint,
-  AnyResourceConfig,
-  ResourceConfig,
+  AnyResource,
+  Resource,
   HttpMethod,
   EndpointPathInput,
   EndpointBodyInput,
@@ -29,14 +29,14 @@ type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
   : ClientPromise<undefined>;
 
 export type StainlessClient<Api extends AnyAPIDescription> = ClientResource<
-  ResourceConfig<
+  Resource<
     Api["topLevel"]["actions"],
     Api["resources"],
     Api["topLevel"]["models"]
   >
 >;
 
-type ClientResource<Resource extends AnyResourceConfig> = {
+type ClientResource<Resource extends AnyResource> = {
   [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
     ? ClientFunction<Resource["actions"][Action]>
     : never;

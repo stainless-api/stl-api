@@ -146,26 +146,26 @@ export type GetEndpointUrl<E extends AnyEndpoint> =
   E["endpoint"] extends `${HttpMethod} ${infer Url}` ? Url : never;
 
 export function allEndpoints(
-  resource:
-    | AnyResourceConfig
-    | Pick<AnyResourceConfig, "actions" | "namespacedResources">
+  resource: Pick<AnyResource, "actions" | "namespacedResources">
 ): AnyEndpoint[] {
+  const actions = resource.actions || {};
+  const namespacedResources = resource.namespacedResources || {};
   return [
-    ...Object.keys(resource.actions || {})
-      .map((k) => resource.actions[k])
+    ...Object.keys(actions)
+      .map((k) => actions[k])
       .filter(Boolean),
-    ...Object.keys(resource.namespacedResources || {}).flatMap((k) =>
-      allEndpoints(resource.namespacedResources[k])
+    ...Object.keys(namespacedResources).flatMap((k) =>
+      allEndpoints(namespacedResources[k])
     ),
   ];
 }
 
 export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 
-export type ResourceConfig<
+export type Resource<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
-    | Record<string, ResourceConfig<any, any, any>>
+    | Record<string, Resource<any, any, any>>
     | undefined,
   Models extends Record<string, z.ZodTypeAny> | undefined
 > = {
@@ -177,7 +177,7 @@ export type ResourceConfig<
   models: Models;
 };
 
-export type AnyResourceConfig = ResourceConfig<any, any, any>;
+export type AnyResource = Resource<any, any, any>;
 
 type OpenAPIConfig = {
   endpoint: HttpEndpoint | false;
@@ -185,8 +185,8 @@ type OpenAPIConfig = {
 };
 
 export type APIDescription<
-  TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
-  Resources extends Record<string, AnyResourceConfig> | undefined
+  TopLevel extends Resource<AnyActionsConfig, undefined, any>,
+  Resources extends Record<string, AnyResource> | undefined
 > = {
   openapi: OpenAPIConfig;
   topLevel: TopLevel;
@@ -455,7 +455,7 @@ export class Stl<Plugins extends AnyPlugins> {
 
   resource<
     Actions extends AnyActionsConfig | undefined,
-    Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
+    Resources extends Record<string, Resource<any, any, any>> | undefined,
     Models extends Record<string, z.ZodTypeAny> | undefined
   >({
     actions,
@@ -468,18 +468,18 @@ export class Stl<Plugins extends AnyPlugins> {
     actions?: Actions;
     namespacedResources?: Resources;
     models?: Models;
-  }): ResourceConfig<Actions, Resources, Models> {
+  }): Resource<Actions, Resources, Models> {
     return {
       ...config,
       actions: actions || {},
       namespacedResources: namespacedResources || {},
       models: models || {},
-    } as ResourceConfig<Actions, Resources, Models>;
+    } as Resource<Actions, Resources, Models>;
   }
 
   api<
-    TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
-    Resources extends Record<string, AnyResourceConfig> | undefined
+    TopLevel extends Resource<AnyActionsConfig, undefined, any>,
+    Resources extends Record<string, AnyResource> | undefined
   >({
     openapi,
     topLevel,
