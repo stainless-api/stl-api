@@ -3,6 +3,14 @@ const { factory } = ts;
 import * as tm from "ts-morph";
 import { groupBy, method, property } from "lodash";
 import Path from "path";
+import {
+  arraySetSchemaProperties,
+  bigIntSchemaProperties,
+  dateSchemaProperties,
+  numberSchemaProperties,
+  objectSchemaProperties,
+  stringSchemaProperties,
+} from "./typeSchemaUtils";
 
 export class SchemaGenContext {
   constructor(
@@ -129,14 +137,17 @@ export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type
 ): ts.Expression {
-  if (isTransform(ty)) {
+  const packageBaseTypeName = getPackageBaseTypeName(ty);
+  if (packageBaseTypeName === "Transform") {
     const symbol = ty.getSymbolOrThrow(
       `failed to get symbol for transform: ${ty.getText()}`
     );
-    const inputType = getTransformInputType(ty);
+    const inputType = getNthBaseClassTypeArgument(ty, 0);
 
     // import the transform class
-    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol, {});
+    ctx
+      .getFileInfo(ctx.currentFilePath)
+      .imports.set(symbol, { importFromUserFile: true });
 
     return methodCall(convertType(ctx, inputType), "transform", [
       factory.createPropertyAccessExpression(
@@ -148,6 +159,97 @@ export function convertType(
         factory.createIdentifier("transform")
       ),
     ]);
+  }
+
+  if (packageBaseTypeName === "Refine") {
+    return convertRefineType(ctx, ty, "refine");
+  }
+
+  if (packageBaseTypeName === "SuperRefine") {
+    return convertRefineType(ctx, ty, "superRefine");
+  }
+
+  let packageTypeName = undefined;
+  const typeSymbol = ty.getSymbol();
+  if (typeSymbol && isInThisPackage(typeSymbol)) {
+    packageTypeName = typeSymbol.getName();
+  }
+
+  switch (packageTypeName) {
+    case "NumberSchema":
+      return convertPrimitiveSchemaType(
+        ctx,
+        ty,
+        "number",
+        packageTypeName,
+        numberSchemaProperties
+      );
+    case "StringSchema":
+      return convertPrimitiveSchemaType(
+        ctx,
+        ty,
+        "string",
+        packageTypeName,
+        stringSchemaProperties
+      );
+    case "BigIntSchema":
+      return convertPrimitiveSchemaType(
+        ctx,
+        ty,
+        "bigint",
+        packageTypeName,
+        bigIntSchemaProperties
+      );
+    case "DateSchema":
+      return convertPrimitiveSchemaType(
+        ctx,
+        ty,
+        "date",
+        packageTypeName,
+        dateSchemaProperties
+      );
+    case "ObjectSchema": {
+      const [objectType, typeArgs] = extractGenericSchemaTypeArguments(ctx, ty);
+      return convertSchemaType(
+        ctx,
+        packageTypeName,
+        objectSchemaProperties,
+        typeArgs,
+        convertType(ctx, objectType)
+      );
+    }
+    case "ArraySchema": {
+      const [elementType, typeArgs] = extractGenericSchemaTypeArguments(
+        ctx,
+        ty
+      );
+      const arrayConstructor = zodConstructor("array", [
+        convertType(ctx, elementType),
+      ]);
+      return convertSchemaType(
+        ctx,
+        packageTypeName,
+        arraySetSchemaProperties,
+        typeArgs,
+        arrayConstructor
+      );
+    }
+    case "SetSchema": {
+      const [elementType, typeArgs] = extractGenericSchemaTypeArguments(
+        ctx,
+        ty
+      );
+      const setConstructor = zodConstructor("set", [
+        convertType(ctx, elementType),
+      ]);
+      return convertSchemaType(
+        ctx,
+        packageTypeName,
+        arraySetSchemaProperties,
+        typeArgs,
+        setConstructor
+      );
+    }
   }
 
   if (!ctx.isRoot && !isNativeObject(ty)) {
@@ -600,6 +702,230 @@ function convertUnionTypes(
   return schema;
 }
 
+function convertRefineType(
+  ctx: ConvertTypeContext,
+  ty: tm.Type,
+  refineType: "refine" | "superRefine"
+): ts.Expression {
+  const symbol = ty.getSymbolOrThrow(
+    `failed to get symbol for ${refineType}: ${ty.getText()}`
+  );
+  const inputType = getNthBaseClassTypeArgument(ty, 0);
+
+  // import the refine class
+  ctx
+    .getFileInfo(ctx.currentFilePath)
+    .imports.set(symbol, { importFromUserFile: true });
+
+  const callArgs = [
+    factory.createPropertyAccessExpression(
+      factory.createNewExpression(
+        factory.createIdentifier(symbol.getName()),
+        undefined,
+        []
+      ),
+      factory.createIdentifier(refineType)
+    ),
+  ];
+
+  if (refineType === "refine") {
+    callArgs.push(
+      factory.createPropertyAccessExpression(
+        factory.createNewExpression(
+          factory.createIdentifier(symbol.getName()),
+          undefined,
+          []
+        ),
+        factory.createIdentifier("message")
+      )
+    );
+  }
+
+  return methodCall(convertType(ctx, inputType), refineType, callArgs);
+}
+
+const SCHEMA_TUPLE_TYPE_ERROR = `schema property of type tuple must be of form [<literal value>, "string literal message"]`;
+
+function convertPrimitiveSchemaType(
+  ctx: ConvertTypeContext,
+  type: tm.Type,
+  zodConstructorName: string,
+  schemaTypeName: string,
+  allowedParameters: Set<string>
+): ts.Expression {
+  const args = type.getTypeArguments();
+  if (args.length === 0 || !args[0].isObject()) {
+    throw new Error(
+      "ts-to-zod schema types take object literals as validation properties"
+    );
+  }
+  const [typeArgs] = args;
+  return convertSchemaType(
+    ctx,
+    schemaTypeName,
+    allowedParameters,
+    typeArgs,
+    zodConstructor(zodConstructorName)
+  );
+}
+
+function extractGenericSchemaTypeArguments(
+  ctx: ConvertTypeContext,
+  type: tm.Type
+): [tm.Type, tm.Type] {
+  const args = type.getTypeArguments();
+  if (args.length != 2 || !args[1].isObject()) {
+    throw new Error(
+      "ts-to-zod Object, Array, and Set schema types take two type arguments"
+    );
+  }
+  return args as [tm.Type, tm.Type];
+}
+
+function convertSchemaType(
+  ctx: ConvertTypeContext,
+  schemaTypeName: string,
+  allowedParameters: Set<string>,
+  typeArgs: tm.Type,
+  baseExpression: ts.Expression
+): ts.Expression {
+  let expression = baseExpression;
+
+  // Special-cases how to handle string value literals.
+  // This is needed for the case of `min` and `max` for
+  // `DateSchema`, as they take in instances of `Date`, but
+  // users can only pass string literals as type arguments.
+  // This function converts those literals to Dates at
+  // runtime.
+  const createValueStringLiteral = (s: string) => {
+    const stringLiteral = factory.createStringLiteral(s);
+    return schemaTypeName === "DateSchema"
+      ? factory.createNewExpression(
+          factory.createIdentifier("Date"),
+          [],
+          [stringLiteral]
+        )
+      : stringLiteral;
+  };
+
+  for (const property of typeArgs.getProperties()) {
+    const name = property.getName();
+    if (!allowedParameters.has(name)) {
+      throw new Error(
+        `${schemaTypeName} does not accept ${name} as a parameter.`
+      );
+    }
+
+    // ip and datetime are special in that they can take an object as a
+    // parameter. This requires special logic in a few cases.
+    const ipDatetimeSpecialCase = name === "ip" || name === "datetime";
+
+    const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
+    if (ipDatetimeSpecialCase && ty.isObject() && !ty.isArray()) {
+      let versionSymbol = ty.getProperty("version");
+      let precisionSymbol = ty.getProperty("precision");
+      let offsetSymbol = ty.getProperty("offset");
+      let messageSymbol = ty.getProperty("message");
+
+      let properties = [];
+
+      if (versionSymbol) {
+        properties.push(
+          factory.createPropertyAssignment(
+            "version",
+            factory.createStringLiteral(
+              versionSymbol
+                .getTypeAtLocation(ctx.node)
+                .getLiteralValue() as string
+            )
+          )
+        );
+      }
+      if (precisionSymbol) {
+        properties.push(
+          factory.createPropertyAssignment(
+            "precison",
+            factory.createNumericLiteral(
+              precisionSymbol
+                .getTypeAtLocation(ctx.node)
+                .getLiteralValue() as number
+            )
+          )
+        );
+      }
+      if (offsetSymbol) {
+        properties.push(
+          factory.createPropertyAssignment("offset", factory.createTrue())
+        );
+      }
+      if (messageSymbol) {
+        properties.push(
+          factory.createPropertyAssignment(
+            "message",
+            factory.createStringLiteral(
+              messageSymbol
+                .getTypeAtLocation(ctx.node)
+                .getLiteralValue() as string
+            )
+          )
+        );
+      }
+
+      expression = methodCall(expression, name, [
+        factory.createObjectLiteralExpression(properties),
+      ]);
+      continue;
+    }
+
+    if (name === "catchall") {
+      expression = methodCall(expression, "catchall", [convertType(ctx, ty)]);
+      continue;
+    }
+
+    let literalValue;
+    literalValue =
+      ty.getLiteralValue() || ty.getFlags() === ts.TypeFlags.BooleanLiteral;
+    let literalMessage;
+    if (literalValue) {
+    } else if (ty.isTuple()) {
+      const tupleTypes = ty.getTupleElements();
+      if (tupleTypes.length != 2) {
+        throw new Error(SCHEMA_TUPLE_TYPE_ERROR);
+      } else if (ipDatetimeSpecialCase) {
+        throw new Error(
+          `The DateSchema ${name} property does not accept a tuple with error string information.`
+        );
+      }
+      const [literalType, messageType] = tupleTypes;
+      const value =
+        literalType.getLiteralValue() ||
+        literalType.getFlags() === ts.TypeFlags.BooleanLiteral;
+      if (!value || messageType.getFlags() !== ts.TypeFlags.StringLiteral) {
+        throw new Error(SCHEMA_TUPLE_TYPE_ERROR);
+      }
+
+      literalValue = value;
+      literalMessage = messageType.getLiteralValue() as string;
+    } else throw new Error(`invalid parameter value passed for ${name}`);
+
+    if (literalValue) {
+      let args: ts.Expression[];
+      if (typeof literalValue === "string")
+        args = [createValueStringLiteral(literalValue)];
+      else if (typeof literalValue === "number")
+        args = [factory.createNumericLiteral(literalValue)];
+      else if (typeof literalValue === "bigint")
+        args = [factory.createBigIntLiteral(literalValue)];
+      else args = [];
+      if (literalMessage)
+        args.push(factory.createStringLiteral(literalMessage));
+      expression = methodCall(expression, name, args);
+    }
+  }
+
+  return expression;
+}
+
 function mapGetOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
   let value = map.get(key);
   if (!value) {
@@ -620,44 +946,49 @@ function getTypeId(type: tm.Type): number {
   return type.compilerType.id;
 }
 
-function isRecord(ctx: SchemaGenContext, ty: tm.Type): boolean {
-  const indexInfos = ctx.typeChecker.compilerObject.getIndexInfosOfType(
-    ty.compilerType
-  );
-  return indexInfos.length > 0;
-}
-
 function isInThisPackage(symbol: tm.Symbol): boolean {
-  const symbolFile = symbol.getDeclarations()[0].getSourceFile().getFilePath();
+  const declarations = symbol.getDeclarations();
+  if (!declarations.length) return false;
+  const symbolFile = declarations[0].getSourceFile().getFilePath();
   return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
 }
 
-function isTransform(type: tm.Type): boolean {
+function getPackageBaseTypeName(type: tm.Type): string | undefined {
   const symbol = type.getSymbol();
-  if (!symbol) return false;
+  if (!symbol) return undefined;
   const declaration = symbol.getDeclarations()[0];
   if (
     !tm.Node.isClassDeclaration(declaration) &&
     !tm.Node.isClassExpression(declaration)
   )
-    return false;
+    return undefined;
   const heritageClause = declaration.getHeritageClauseByKind(
     ts.SyntaxKind.ExtendsKeyword
   );
   const extendsTypeNode = heritageClause?.getTypeNodes()[0];
   const baseSymbol = extendsTypeNode?.getType().getSymbol();
-  if (!baseSymbol) return false;
-  return isInThisPackage(baseSymbol) && baseSymbol.getName() === "Transform";
+  if (!baseSymbol) return undefined;
+  return isInThisPackage(baseSymbol) ? baseSymbol.getName() : undefined;
 }
 
-function getTransformInputType(ty: tm.Type): tm.Type {
-  const inputType = ty.getTypeArguments()[0];
-  if (!inputType) {
+/** Assuming there is one base class of the given type argument, gets its nth type argument */
+function getNthBaseClassTypeArgument(ty: tm.Type, n: number): tm.Type {
+  const targetType = ty.getTargetType();
+  if (!targetType)
     throw new Error(
-      `can't convert transform ${ty.getText()} because it doesn't have an input type parameter`
+      `internal error: can't convert transform ${ty.getText()} due to lack of target type`
     );
-  }
-  return inputType;
+  const rawInputType = targetType.getBaseTypes()[0].getTypeArguments()[n];
+  const typeArgumentNames = targetType
+    .getTypeArguments()
+    .map((arg) => arg.getText());
+  const rawInputName = rawInputType.getSymbol()?.compilerSymbol.escapedName;
+  if (!rawInputName) return rawInputType;
+  const inputTypePos = typeArgumentNames.findIndex(
+    (name) => name === rawInputName
+  );
+  if (inputTypePos >= 0) return ty.getTypeArguments()[inputTypePos];
+  else return rawInputType;
 }
 
 /** Is a type either a literal or union of literalish types */
