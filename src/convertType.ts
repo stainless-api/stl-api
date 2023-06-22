@@ -697,9 +697,7 @@ function convertRefineType(
   return methodCall(convertType(ctx, inputType), refineType, callArgs);
 }
 
-const SCHEMA_TUPLE_TYPE_ERROR = new Error(
-  `schema property of type tuple must be of form [<literal value>, "string literal message"]`
-);
+const SCHEMA_TUPLE_TYPE_ERROR = `schema property of type tuple must be of form [<literal value>, "string literal message"]`;
 
 function convertPrimitiveSchemaType(
   ctx: ConvertTypeContext,
@@ -777,7 +775,6 @@ function convertSchemaType(
 
     const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
     if (ipDatetimeSpecialCase && ty.isObject() && !ty.isArray()) {
-
       let versionSymbol = ty.getProperty("version");
       let precisionSymbol = ty.getProperty("precision");
       let offsetSymbol = ty.getProperty("offset");
@@ -832,7 +829,7 @@ function convertSchemaType(
       ]);
       continue;
     }
-    
+
     if (name === "catchall") {
       expression = methodCall(expression, "catchall", [convertType(ctx, ty)]);
       continue;
@@ -846,7 +843,7 @@ function convertSchemaType(
     } else if (ty.isTuple()) {
       const tupleTypes = ty.getTupleElements();
       if (tupleTypes.length != 2) {
-        throw SCHEMA_TUPLE_TYPE_ERROR;
+        throw new Error(SCHEMA_TUPLE_TYPE_ERROR);
       } else if (ipDatetimeSpecialCase) {
         throw new Error(
           `The DateSchema ${name} property does not accept a tuple with error string information.`
@@ -857,7 +854,7 @@ function convertSchemaType(
         literalType.getLiteralValue() ||
         literalType.getFlags() === ts.TypeFlags.BooleanLiteral;
       if (!value || messageType.getFlags() !== ts.TypeFlags.StringLiteral) {
-        throw SCHEMA_TUPLE_TYPE_ERROR;
+        throw new Error(SCHEMA_TUPLE_TYPE_ERROR);
       }
 
       literalValue = value;
