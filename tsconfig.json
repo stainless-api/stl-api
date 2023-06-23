@@ -6,5 +6,8 @@
     { "path": "packages/prisma" },
     { "path": "packages/react-query" },
     { "path": "packages/stainless" }
-  ]
+  ],
+  "compilerOptions": {
+    "esModuleInterop": true
+  }
 }

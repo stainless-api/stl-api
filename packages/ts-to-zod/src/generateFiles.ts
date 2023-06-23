@@ -6,12 +6,12 @@ import * as Path from "path";
 
 const DEFAULT_ALONGSIDE_SUFFIX = "codegen";
 
-type GenLocationOptions =
+export type GenLocationOptions =
   | { type: "alongside"; dependencyGenPath: string; suffix?: string }
   | { type: "folder"; genPath: string }
-  | { type: "node_modules" };
+  | { type: "node_modules"; genPath: string };
 
-interface Options {
+export interface GenOptions {
   genLocation: GenLocationOptions;
   /**
    * the project root (where package.json resides) from which generation
@@ -22,7 +22,7 @@ interface Options {
 
 export function generateFiles(
   ctx: SchemaGenContext,
-  options: Options
+  options: GenOptions
 ): Map<string, ts.SourceFile> {
   let basePath: string;
   let baseDependenciesPath: string;
@@ -45,7 +45,7 @@ export function generateFiles(
       basePath = Path.join(
         options.rootPath,
         "node_modules",
-        "path/to/gen/in/TODO"
+        options.genLocation.genPath
       );
       baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
       break;
