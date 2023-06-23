@@ -1,108 +1,24 @@
 import { groupBy } from "lodash";
-import { SchemaGenContext } from "./convertType";
-import { ts } from "ts-morph";
+import { ImportInfo, SchemaGenContext } from "./convertType";
+import { ts, Symbol } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
+import { GenOptions, GenerationConfig, createGenerationConfig } from "./filePathConfig";
 
-const DEFAULT_ALONGSIDE_SUFFIX = "codegen";
-
-export type GenLocationOptions =
-  | { type: "alongside"; dependencyGenPath: string; suffix?: string }
-  | { type: "folder"; genPath: string }
-  | { type: "node_modules"; genPath: string };
-
-export interface GenOptions {
-  genLocation: GenLocationOptions;
-  /**
-   * the project root (where package.json resides) from which generation
-   * paths are resolved
-   */
-  rootPath: string;
-}
 
 export function generateFiles(
   ctx: SchemaGenContext,
   options: GenOptions
 ): Map<string, ts.SourceFile> {
-  let basePath: string;
-  let baseDependenciesPath: string;
-  let suffix: string | undefined;
-
-  switch (options.genLocation.type) {
-    case "alongside":
-      basePath = options.rootPath;
-      baseDependenciesPath = Path.join(
-        basePath,
-        options.genLocation.dependencyGenPath
-      );
-      suffix = options.genLocation.suffix || DEFAULT_ALONGSIDE_SUFFIX;
-      break;
-    case "folder":
-      basePath = Path.join(options.rootPath, options.genLocation.genPath);
-      baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
-      break;
-    case "node_modules":
-      basePath = Path.join(
-        options.rootPath,
-        "node_modules",
-        options.genLocation.genPath
-      );
-      baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
-      break;
-  }
-
   const outputMap = new Map();
+  const generationConfig = createGenerationConfig(options);
   for (const [path, info] of ctx.files.entries()) {
     const generatedPath = generatePath({
       path,
-      rootPath: options.rootPath,
-      basePath,
-      baseDependenciesPath,
-      suffix,
+      ...generationConfig
     });
 
-    const statements = [];
-
-    const importGroups = groupBy(
-      [...info.imports.entries()],
-      ([symbol, { importFromUserFile }]) =>
-        relativeImportPath(
-          generatedPath,
-          importFromUserFile
-            ? symbol.getDeclarations()[0].getSourceFile().getFilePath()
-            : generatePath({
-                path: symbol.getDeclarations()[0].getSourceFile().getFilePath(),
-                rootPath: options.rootPath,
-                basePath,
-                baseDependenciesPath,
-                suffix,
-              })
-        )
-    );
-
-    for (const [relativePath, entries] of Object.entries(importGroups)) {
-      const importSpecifiers = entries.map(([symbol, { as }]) => {
-        if (as === symbol.getName()) as = undefined;
-
-        return factory.createImportSpecifier(
-          false,
-          as ? factory.createIdentifier(symbol.getName()) : undefined,
-          factory.createIdentifier(as || symbol.getName())
-        );
-      });
-      const importClause = factory.createImportClause(
-        false,
-        undefined,
-        factory.createNamedImports(importSpecifiers)
-      );
-      const importDeclaration = factory.createImportDeclaration(
-        undefined,
-        importClause,
-        factory.createStringLiteral(relativePath),
-        undefined
-      );
-      statements.push(importDeclaration);
-    }
+    const statements: ts.Statement[] = generateImportStatements(generationConfig, generatedPath, info.imports);
 
     for (const schema of info.generatedSchemas) {
       const declaration = factory.createVariableDeclaration(
@@ -172,4 +88,50 @@ function generatePath({
   }
 
   return Path.join(chosenBasePath, Path.relative(rootPath, path));
+}
+
+export function generateImportStatements(
+  config: GenerationConfig,
+  filePath: string,
+  imports: Map<Symbol, ImportInfo>
+): ts.ImportDeclaration[] {
+  const importDeclarations = [];
+  const importGroups = groupBy(
+    [...imports.entries()],
+    ([symbol, { importFromUserFile }]) =>
+      relativeImportPath(
+        filePath,
+        importFromUserFile
+          ? symbol.getDeclarations()[0].getSourceFile().getFilePath()
+          : generatePath({
+              path: symbol.getDeclarations()[0].getSourceFile().getFilePath(),
+              ...config
+            })
+      )
+  );
+
+  for (const [relativePath, entries] of Object.entries(importGroups)) {
+    const importSpecifiers = entries.map(([symbol, { as }]) => {
+      if (as === symbol.getName()) as = undefined;
+
+      return factory.createImportSpecifier(
+        false,
+        as ? factory.createIdentifier(symbol.getName()) : undefined,
+        factory.createIdentifier(as || symbol.getName())
+      );
+    });
+    const importClause = factory.createImportClause(
+      false,
+      undefined,
+      factory.createNamedImports(importSpecifiers)
+    );
+    const importDeclaration = factory.createImportDeclaration(
+      undefined,
+      importClause,
+      factory.createStringLiteral(relativePath),
+      undefined
+    );
+    importDeclarations.push(importDeclaration);
+  }
+  return importDeclarations;
 }

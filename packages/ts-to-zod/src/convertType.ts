@@ -51,7 +51,7 @@ export class ConvertTypeContext extends SchemaGenContext {
   }
 }
 
-interface ImportInfo {
+export interface ImportInfo {
   as?: string;
   /**
    * If true, the output code will import from
