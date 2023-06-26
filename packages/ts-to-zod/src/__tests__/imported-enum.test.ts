@@ -11,11 +11,11 @@ it(`imported enum`, async () =>
 ).toMatchInlineSnapshot(`
 {
   "src/__tests__/common.codegen.ts": "import { z } from "zod";
-import { Enum as __enum_Enum } from "./common.ts";
+import { Enum as __enum_Enum } from "./common";
 export const Enum = z.nativeEnum(__enum_Enum);
 ",
   "src/__tests__/imported-enum.test.codegen.ts": "import { z } from "zod";
-import { Enum } from "./common.codegen.ts";
+import { Enum } from "./common.codegen";
 const T = z.array(z.lazy(() => Enum));
 ",
 }

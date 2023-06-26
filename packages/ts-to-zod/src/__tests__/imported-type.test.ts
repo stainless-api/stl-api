@@ -18,7 +18,7 @@ it(`imported type`, async () =>
 export const Address = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 ",
   "src/__tests__/imported-type.test.codegen.ts": "import { z } from "zod";
-import { Address } from "./common.codegen.ts";
+import { Address } from "./common.codegen";
 const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => Address).optional() });
 ",
 }
