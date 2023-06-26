@@ -90,16 +90,17 @@ interface GeneratedSchema {
 }
 
 export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
-  let importAs;
+  let escapedImport;
   if (ctx instanceof ConvertTypeContext) {
     if (ctx.isSymbolImported(symbol)) {
       const fileInfo = ctx.getFileInfo(ctx.currentFilePath);
       const importTypeNameMap = (fileInfo.importTypeNameMap ||=
         buildImportTypeMap(ctx.node.getSourceFile()));
-      importAs = importTypeNameMap.get(
+      const importAs = importTypeNameMap.get(
         getTypeId(symbol.getTypeAtLocation(ctx.node))
       );
-      fileInfo.imports.set(symbol, { as: importAs });
+      escapedImport = `__symbol_${importAs || symbol.getName()}`
+      fileInfo.imports.set(symbol, { as: escapedImport });
     }
   }
   if (!ctx.symbols.has(symbol)) {
@@ -128,7 +129,7 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
       [],
       undefined,
       undefined,
-      factory.createIdentifier(importAs || symbol.getName())
+      factory.createIdentifier(escapedImport || symbol.getName())
     ),
   ]);
 }
