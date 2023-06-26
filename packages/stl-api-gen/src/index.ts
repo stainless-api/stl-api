@@ -20,21 +20,6 @@ import {
 
 import { createGenerationConfig } from "ts-to-zod/dist/filePathConfig";
 
-interface EndpointEntry {
-  filePath: string;
-  identifier: string;
-  mangledIdentifier: string;
-  path?: ts.Expression;
-  query?: ts.Expression;
-  body?: ts.Expression;
-  response?: ts.Expression;
-}
-
-function getOrInsert<K, V>(map: Map<K, V>, key: K, insert: V): V {
-  if (!map.has(key)) map.set(key, insert);
-  return map.get(key)!;
-}
-
 async function main() {
 
   if (process.argv.length < 3) {
@@ -209,60 +194,3 @@ async function main() {
 (async () => {
   await main();
 })();
-
-function getSchemaType(
-  node: tm.Node,
-  args: tm.Type,
-  fieldName: string
-): tm.Type | undefined {
-  return args.getProperty(fieldName)?.getTypeAtLocation(node);
-}
-
-function processSchemaType(
-  ctx: ConvertTypeContext,
-  type: tm.Type | undefined,
-  imports: Set<tm.Symbol>
-): ts.Expression | undefined {
-  if (!type) return undefined;
-  const expression = convertType(ctx, type);
-  const symbol = type.getSymbol();
-  if (symbol) imports.add(symbol);
-  return expression;
-}
-
-function mangledSymbolName(symbol: tm.Symbol): string {
-  const name = symbol.getName();
-  const filePath = symbol.getDeclarations()[0].getSourceFile().getFilePath();
-
-  const unicodeLetterRegex = /\p{L}/u;
-
-  const escapedStringBuilder = [];
-  for (const codePointString of filePath) {
-    if (codePointString === "/") {
-      escapedStringBuilder.push("$");
-    } else if (unicodeLetterRegex.test(codePointString)) {
-      escapedStringBuilder.push(codePointString);
-    } else {
-      escapedStringBuilder.push(`u${codePointString.codePointAt(0)}`);
-    }
-  }
-
-  return `__stlapigen_${name}_${escapedStringBuilder.join()}`;
-}
-
-function setEndpointProperty(
-  endpoint: EndpointEntry,
-  property: "body" | "query" | "path" | "response",
-  statements: ts.Statement[]
-) {
-  const schemaExpression = endpoint[property];
-  if (!schemaExpression) return;
-  const assignment = factory.createAssignment(
-    factory.createPropertyAccessExpression(
-      factory.createIdentifier(endpoint.mangledIdentifier),
-      factory.createIdentifier(property)
-    ),
-    schemaExpression
-  );
-  statements.push(factory.createExpressionStatement(assignment));
-}
