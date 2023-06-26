@@ -21,7 +21,6 @@ import {
 import { createGenerationConfig } from "ts-to-zod/dist/filePathConfig";
 
 async function main() {
-
   if (process.argv.length < 3) {
     console.log("Need to pass directory");
     process.exit();
@@ -37,8 +36,6 @@ async function main() {
     // TODO: should file path be configurable?
     tsConfigFilePath: Path.join(process.argv[2], "tsconfig.json"),
   });
-
-  const typeChecker = project.getTypeChecker();
 
   const baseCtx = new SchemaGenContext(project);
 
@@ -58,66 +55,68 @@ async function main() {
     const imports = new Map<tm.Symbol, ImportInfo>();
     let hasMagicCall = false;
     // a list of closures to call to modify the file before saving it
-    // performs modifications that invalidate ast information after 
+    // performs modifications that invalidate ast information after
     // all tree visiting is complete
-    const fileOperations: (() => void)[] = []; 
+    const fileOperations: (() => void)[] = [];
 
-    for (const callExpression of file.getDescendantsOfKind(ts.SyntaxKind.CallExpression)) {
-        const receiverExpression = callExpression.getExpression();
-        const symbol = receiverExpression.getSymbol();
-        if (!symbol) continue;
+    for (const callExpression of file.getDescendantsOfKind(
+      ts.SyntaxKind.CallExpression
+    )) {
+      const receiverExpression = callExpression.getExpression();
+      const symbol = receiverExpression.getSymbol();
+      if (!symbol) continue;
 
-        const symbolDeclaration = symbol.getDeclarations()[0];
-        const symbolDeclarationFile = symbolDeclaration
-          ?.getSourceFile()
-          ?.getFilePath();
+      const symbolDeclaration = symbol.getDeclarations()[0];
+      const symbolDeclarationFile = symbolDeclaration
+        ?.getSourceFile()
+        ?.getFilePath();
 
-        // TODO: check if type is that of the endpoint function from stainless stl
-        if (
-          symbol.getEscapedName() !== "magic" ||
-          symbolDeclarationFile?.indexOf("stl.d.ts") < 0
-        )
-          continue;
-        const typeRefArguments = callExpression.getTypeArguments();
-        if (typeRefArguments.length != 1) continue;
-        hasMagicCall = true;
+      if (
+        symbol.getEscapedName() !== "magic" ||
+        symbolDeclarationFile?.indexOf("stl.d.ts") < 0
+      ) {
+        continue;
+      }
 
-        const typeArguments = typeRefArguments.map((typeRef) =>
-          typeRef.getType()
+      const typeRefArguments = callExpression.getTypeArguments();
+      if (typeRefArguments.length != 1) continue;
+      hasMagicCall = true;
+
+      const typeArguments = typeRefArguments.map((typeRef) =>
+        typeRef.getType()
+      );
+      const [type] = typeArguments;
+
+      let schemaExpression: ts.Expression;
+
+      const typeSymbol = type.getSymbol();
+      if (typeSymbol && (type.getAliasSymbol() || type.isInterface())) {
+        schemaExpression = convertSymbol(ctx, typeSymbol);
+      } else {
+        schemaExpression = convertType(ctx, type);
+      }
+
+      // remove all arguments to magic function
+      for (
+        let argumentLength = callExpression.getArguments().length;
+        argumentLength > 0;
+        argumentLength--
+      ) {
+        fileOperations.push(() =>
+          callExpression.removeArgument(argumentLength - 1)
         );
-        const [type] = typeArguments;
+      }
 
-        let schemaExpression: ts.Expression;
-
-        const typeSymbol = type.getSymbol();
-        if (typeSymbol && (type.getAliasSymbol() || type.isInterface())) {
-          schemaExpression = convertSymbol(ctx, typeSymbol);
-          const declarations = symbol.getDeclarations();
-          if (declarations.length) {
-            const filePath = declarations[0].getSourceFile().getFilePath();
-            // TODO: mangle filePath, add an import for it
-          }
-        } else {
-          schemaExpression = convertType(ctx, type);
-        }
-
-        // remove all arguments to magic function
-        for (
-          let argumentLength = callExpression.getArguments().length;
-          argumentLength > 0;
-          argumentLength--
-        ) {
-          fileOperations.push(() => callExpression.removeArgument(argumentLength - 1));
-        }
-
-        // fill in generated schema expression
-        fileOperations.push(() => callExpression.addArgument(
+      // fill in generated schema expression
+      fileOperations.push(() =>
+        callExpression.addArgument(
           printer.printNode(
             ts.EmitHint.Unspecified,
             schemaExpression,
             file.compilerNode
           )
-        ));
+        )
+      );
     }
     if (!hasMagicCall) continue;
 
@@ -134,7 +133,7 @@ async function main() {
       "stainless",
       imports
     );
-    
+
     let hasZImport = false;
 
     // remove all existing codegen imports
@@ -151,7 +150,7 @@ async function main() {
         }
       }
     }
-    
+
     // don't import "z" if it's already imported in the file
     if (hasZImport) {
       importDeclarations = importDeclarations.slice(1);
@@ -166,13 +165,13 @@ async function main() {
         )
       )
       .join("\n");
-      
+
     // Insert imports after the last import already in the file.
     const insertPosition = fileImportDeclarations.length;
     file.insertStatements(insertPosition, importsString);
 
     // Commit all operations potentially destructive to AST visiting.
-    fileOperations.forEach(op => op());
+    fileOperations.forEach((op) => op());
   }
 
   project.save();
