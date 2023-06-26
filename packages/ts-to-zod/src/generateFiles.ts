@@ -3,8 +3,11 @@ import { ImportInfo, SchemaGenContext } from "./convertType";
 import { ts, Symbol } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
-import { GenOptions, GenerationConfig, createGenerationConfig } from "./filePathConfig";
-
+import {
+  GenOptions,
+  GenerationConfig,
+  createGenerationConfig,
+} from "./filePathConfig";
 
 export function generateFiles(
   ctx: SchemaGenContext,
@@ -15,10 +18,15 @@ export function generateFiles(
   for (const [path, info] of ctx.files.entries()) {
     const generatedPath = generatePath({
       path,
-      ...generationConfig
+      ...generationConfig,
     });
 
-    const statements: ts.Statement[] = generateImportStatements(generationConfig, generatedPath, info.imports);
+    const statements: ts.Statement[] = generateImportStatements(
+      generationConfig,
+      generatedPath,
+      options.zPackage,
+      info.imports
+    );
 
     for (const schema of info.generatedSchemas) {
       const declaration = factory.createVariableDeclaration(
@@ -93,6 +101,7 @@ function generatePath({
 export function generateImportStatements(
   config: GenerationConfig,
   filePath: string,
+  zPackage: string | undefined,
   imports: Map<Symbol, ImportInfo>
 ): ts.ImportDeclaration[] {
   const importDeclarations = [];
@@ -105,10 +114,28 @@ export function generateImportStatements(
           ? symbol.getDeclarations()[0].getSourceFile().getFilePath()
           : generatePath({
               path: symbol.getDeclarations()[0].getSourceFile().getFilePath(),
-              ...config
+              ...config,
             })
       )
   );
+  const zImportClause = factory.createImportClause(
+    false,
+    undefined,
+    factory.createNamedImports([
+      factory.createImportSpecifier(
+        false,
+        undefined,
+        factory.createIdentifier("z")
+      ),
+    ])
+  );
+  const zImportDeclaration = factory.createImportDeclaration(
+    [],
+    zImportClause,
+    factory.createStringLiteral(zPackage || "zod")
+  );
+
+  importDeclarations.push(zImportDeclaration);
 
   for (const [relativePath, entries] of Object.entries(importGroups)) {
     const importSpecifiers = entries.map(([symbol, { as }]) => {

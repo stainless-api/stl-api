@@ -22,7 +22,7 @@ it(`generating in node_modules`, async () =>
       },
       rootPath: await (async () => {
         const rootPackageJson = await pkgUp({
-            cwd: __dirname
+          cwd: __dirname
         });
         if (!rootPackageJson) {
           throw new Error("test must run within npm package");
@@ -33,11 +33,13 @@ it(`generating in node_modules`, async () =>
   })
 ).toMatchInlineSnapshot(`
 {
-  "node_modules/zodgen/src/__tests__/common.ts": "import { Enum as __enum_Enum } from "../../../../src/__tests__/common.ts";
+  "node_modules/zodgen/src/__tests__/common.ts": "import { z } from "zod";
+import { Enum as __enum_Enum } from "../../../../src/__tests__/common.ts";
 export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 export const Enum = z.nativeEnum(__enum_Enum);
 ",
-  "node_modules/zodgen/src/__tests__/generate-in-node-modules.test.ts": "import { AddressIface as AddrIface, Enum } from "./common.ts";
+  "node_modules/zodgen/src/__tests__/generate-in-node-modules.test.ts": "import { z } from "zod";
+import { AddressIface as AddrIface, Enum } from "./common.ts";
 const T = z.object({ datetime: z.string().max(20).datetime(), addresses: z.array(z.lazy(() => AddrIface)), enum: z.lazy(() => Enum) });
 ",
 }

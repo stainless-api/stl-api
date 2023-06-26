@@ -28,17 +28,18 @@ type T = XOR<Person, Pet>;
 
 it(`XOR type`, async () => {
   expect(
-    await multiFileTestCase({
-      __filename,
-    })
-  ).toMatchInlineSnapshot(`
-    {
-      "src/__tests__/xor.test.codegen.ts": "const Pet = z.object({ name: z.string(), breed: z.string() });
-    const Person = z.object({ name: z.string(), language: z.string() });
-    const T = z.union([z.object({ language: z.undefined() }).and(z.lazy(() => Pet)), z.object({ breed: z.undefined() }).and(z.lazy(() => Person))]);
-    ",
-    }
-  `);
+  await multiFileTestCase({
+    __filename
+  })
+).toMatchInlineSnapshot(`
+{
+  "src/__tests__/xor.test.codegen.ts": "import { z } from "zod";
+const Pet = z.object({ name: z.string(), breed: z.string() });
+const Person = z.object({ name: z.string(), language: z.string() });
+const T = z.union([z.object({ language: z.undefined() }).and(z.lazy(() => Pet)), z.object({ breed: z.undefined() }).and(z.lazy(() => Person))]);
+",
+}
+`);
 
   const Pet = z.object({ name: z.string(), breed: z.string() });
   const Person = z.object({ name: z.string(), language: z.string() });
