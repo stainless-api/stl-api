@@ -1,4 +1,5 @@
 import * as z from "./z";
+import { type toZod } from "ts-to-zod";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 export { SelectTree, parseSelect } from "./parseSelect";
@@ -879,5 +880,9 @@ export class Stl<Plugins extends AnyPlugins> {
       TopLevel & OpenAPITopLevel<typeof openapi>,
       Resources
     >;
+  }
+
+  magic<T>(schema: toZod<T>): toZod<T> {
+    return schema;
   }
 }
