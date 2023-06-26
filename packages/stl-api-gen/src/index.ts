@@ -36,14 +36,17 @@ function getOrInsert<K, V>(map: Map<K, V>, key: K, insert: V): V {
 }
 
 async function main() {
-  const packageJsonPath = await pkgUp();
-  if (!packageJsonPath) throw "todo";
-  const rootPath = Path.dirname(packageJsonPath);
 
   if (process.argv.length < 3) {
     console.log("Need to pass directory");
     process.exit();
   }
+
+  const packageJsonPath = await pkgUp({
+    cwd: process.argv[2],
+  });
+  if (!packageJsonPath) throw "todo";
+  const rootPath = Path.dirname(packageJsonPath);
 
   const project = new tm.Project({
     // TODO: should file path be configurable?
@@ -69,11 +72,13 @@ async function main() {
     const ctx = new ConvertTypeContext(baseCtx, file);
     const imports = new Map<tm.Symbol, ImportInfo>();
     let hasMagicCall = false;
-    for (const declaration of file.getVariableDeclarations()) {
-      const initializer = declaration.getInitializer();
-      if (!initializer) continue;
-      if (initializer instanceof tm.CallExpression) {
-        const receiverExpression = initializer.getExpression();
+    // a list of closures to call to modify the file before saving it
+    // performs modifications that invalidate ast information after 
+    // all tree visiting is complete
+    const fileOperations: (() => void)[] = []; 
+
+    for (const callExpression of file.getDescendantsOfKind(ts.SyntaxKind.CallExpression)) {
+        const receiverExpression = callExpression.getExpression();
         const symbol = receiverExpression.getSymbol();
         if (!symbol) continue;
 
@@ -88,7 +93,7 @@ async function main() {
           symbolDeclarationFile?.indexOf("stl.d.ts") < 0
         )
           continue;
-        const typeRefArguments = initializer.getTypeArguments();
+        const typeRefArguments = callExpression.getTypeArguments();
         if (typeRefArguments.length != 1) continue;
         hasMagicCall = true;
 
@@ -97,7 +102,7 @@ async function main() {
         );
         const [type] = typeArguments;
 
-        let schemaExpression;
+        let schemaExpression: ts.Expression;
 
         const typeSymbol = type.getSymbol();
         if (typeSymbol && (type.getAliasSymbol() || type.isInterface())) {
@@ -113,22 +118,21 @@ async function main() {
 
         // remove all arguments to magic function
         for (
-          let argumentLength = initializer.getArguments().length;
+          let argumentLength = callExpression.getArguments().length;
           argumentLength > 0;
           argumentLength--
         ) {
-          initializer.removeArgument(argumentLength - 1);
+          fileOperations.push(() => callExpression.removeArgument(argumentLength - 1));
         }
 
         // fill in generated schema expression
-        initializer.addArgument(
+        fileOperations.push(() => callExpression.addArgument(
           printer.printNode(
             ts.EmitHint.Unspecified,
             schemaExpression,
             file.compilerNode
           )
-        );
-      }
+        ));
     }
     if (!hasMagicCall) continue;
 
@@ -149,10 +153,11 @@ async function main() {
     let hasZImport = false;
 
     // remove all existing codegen imports
-    for (const importDecl of file.getImportDeclarations()) {
+    const fileImportDeclarations = file.getImportDeclarations();
+    for (const importDecl of fileImportDeclarations) {
       const sourcePath = importDecl.getModuleSpecifier().getLiteralValue();
       if (sourcePath.indexOf("stl-api/gen") == 0) {
-        importDecl.remove();
+        fileOperations.push(() => importDecl.remove());
       } else if (sourcePath === "stainless") {
         for (const specifier of importDecl.getNamedImports()) {
           if (specifier.getName() === "z") {
@@ -176,10 +181,15 @@ async function main() {
         )
       )
       .join("\n");
-    file.addStatements(importsString);
+      
+    // Insert imports after the last import already in the file.
+    const insertPosition = fileImportDeclarations.length;
+    file.insertStatements(insertPosition, importsString);
+
+    // Commit all operations potentially destructive to AST visiting.
+    fileOperations.forEach(op => op());
   }
 
-  // save all of the changes made to the stl.magic calls
   project.save();
 
   const generatedFileContents = generateFiles(baseCtx, generationOptions);
