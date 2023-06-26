@@ -137,7 +137,7 @@ export function generateImportStatements(
 
   importDeclarations.push(zImportDeclaration);
 
-  for (const [relativePath, entries] of Object.entries(importGroups)) {
+  for (let [relativePath, entries] of Object.entries(importGroups)) {
     const importSpecifiers = entries.map(([symbol, { as }]) => {
       if (as === symbol.getName()) as = undefined;
 
@@ -153,10 +153,16 @@ export function generateImportStatements(
       factory.createNamedImports(importSpecifiers)
     );
     
+    // use absolute, not relative, imports for things in node_modules
+    const nodeModulesPos = relativePath.lastIndexOf("node_modules");
+    if (nodeModulesPos >= 0) {
+      relativePath = relativePath.substring(nodeModulesPos + 13);
+    }
+    
     // strip extension like '.ts' off file
     const parsedRelativePath = Path.parse(relativePath);
     let extensionlessRelativePath = Path.join(parsedRelativePath.dir, parsedRelativePath.name);
-    if (extensionlessRelativePath[0] !== ".") {
+    if (extensionlessRelativePath[0] !== "." && nodeModulesPos < 0) {
       extensionlessRelativePath = `./${extensionlessRelativePath}`;
     }
     
