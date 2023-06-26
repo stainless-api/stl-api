@@ -10,14 +10,15 @@ import {
   ConvertTypeContext,
   SchemaGenContext,
   ImportInfo,
-} from "ts-to-zod/src/convertType.js";
+  convertSymbol,
+} from "ts-to-zod/dist/convertType";
 
 import {
   generateFiles,
   generateImportStatements,
-} from "ts-to-zod/src/generateFiles.js";
+} from "ts-to-zod/dist/generateFiles";
 
-import { createGenerationConfig } from "ts-to-zod/src/filePathConfig.js";
+import { createGenerationConfig } from "ts-to-zod/dist/filePathConfig";
 
 interface EndpointEntry {
   filePath: string;
@@ -38,15 +39,15 @@ async function main() {
   const packageJsonPath = await pkgUp();
   if (!packageJsonPath) throw "todo";
   const rootPath = Path.dirname(packageJsonPath);
-  
-  if (process.argv.length < 2) {
+
+  if (process.argv.length < 3) {
     console.log("Need to pass directory");
     process.exit();
   }
 
   const project = new tm.Project({
     // TODO: should file path be configurable?
-    tsConfigFilePath: Path.join(process.argv[1], "tsconfig.json"),
+    tsConfigFilePath: Path.join(process.argv[2], "tsconfig.json"),
   });
 
   const typeChecker = project.getTypeChecker();
@@ -56,18 +57,18 @@ async function main() {
   const generationOptions = {
     genLocation: {
       type: "node_modules",
-      genPath: "ts-to-zod/gen/",
+      genPath: "stl-api/gen/",
     },
     rootPath,
+    zPackage: "stainless",
   } as const;
   const generationConfig = createGenerationConfig(generationOptions);
   const printer = tm.ts.createPrinter();
 
   for (const file of project.getSourceFiles()) {
-    if (file.getFilePath().indexOf("__tests__") < 0) continue;
-
     const ctx = new ConvertTypeContext(baseCtx, file);
     const imports = new Map<tm.Symbol, ImportInfo>();
+    let hasMagicCall = false;
     for (const declaration of file.getVariableDeclarations()) {
       const initializer = declaration.getInitializer();
       if (!initializer) continue;
@@ -75,28 +76,39 @@ async function main() {
         const receiverExpression = initializer.getExpression();
         const symbol = receiverExpression.getSymbol();
         if (!symbol) continue;
-        const functionType = symbol.getTypeAtLocation(file);
+
+        const symbolDeclaration = symbol.getDeclarations()[0];
+        const symbolDeclarationFile = symbolDeclaration
+          ?.getSourceFile()
+          ?.getFilePath();
 
         // TODO: check if type is that of the endpoint function from stainless stl
-        if (false) continue;
-        const typeArguments = functionType.getTypeArguments();
-        if (typeArguments.length != 1) continue;
+        if (
+          symbol.getEscapedName() !== "magic" ||
+          symbolDeclarationFile?.indexOf("stl.d.ts") < 0
+        )
+          continue;
+        const typeRefArguments = initializer.getTypeArguments();
+        if (typeRefArguments.length != 1) continue;
+        hasMagicCall = true;
+
+        const typeArguments = typeRefArguments.map((typeRef) =>
+          typeRef.getType()
+        );
         const [type] = typeArguments;
 
-        const schemaExpression = convertType(ctx, type);
+        let schemaExpression;
 
         const typeSymbol = type.getSymbol();
-        if (typeSymbol) {
+        if (typeSymbol && (type.getAliasSymbol() || type.isInterface())) {
+          schemaExpression = convertSymbol(ctx, typeSymbol);
           const declarations = symbol.getDeclarations();
           if (declarations.length) {
             const filePath = declarations[0].getSourceFile().getFilePath();
             // TODO: mangle filePath, add an import for it
           }
         } else {
-          const fileInfo = ctx.files.get(file.getFilePath());
-          if (fileInfo) {
-            fileInfo.imports.forEach((v, k) => imports.set(k, v));
-          }
+          schemaExpression = convertType(ctx, type);
         }
 
         // remove all arguments to magic function
@@ -109,25 +121,61 @@ async function main() {
         }
 
         // fill in generated schema expression
-        initializer.addArgument(schemaExpression.getText());
+        initializer.addArgument(
+          printer.printNode(
+            ts.EmitHint.Unspecified,
+            schemaExpression,
+            file.compilerNode
+          )
+        );
       }
     }
-    // remove all existing codegen imports
-    for (const importDecl of file.getImportDeclarations()) {
-      const sourcePath = importDecl.getModuleSpecifier().getLiteralValue();
-      if (sourcePath.indexOf("ts-to-zod/gen") == 0) {
-        importDecl.remove();
-      }
+    if (!hasMagicCall) continue;
+
+    // Get the imports needed for the current file, any
+    const fileInfo = ctx.files.get(file.getFilePath());
+    if (fileInfo) {
+      fileInfo.imports.forEach((v, k) => imports.set(k, v));
     }
 
     // add new imports necessary for schema generation
-    const importDeclarations = generateImportStatements(
+    let importDeclarations = generateImportStatements(
       generationConfig,
       file.getFilePath(),
+      "stainless",
       imports
     );
     
-    const importsString = importDeclarations.map(declaration => printer.printNode(ts.EmitHint.Unspecified, declaration, file.compilerNode)).join();
+    let hasZImport = false;
+
+    // remove all existing codegen imports
+    for (const importDecl of file.getImportDeclarations()) {
+      const sourcePath = importDecl.getModuleSpecifier().getLiteralValue();
+      if (sourcePath.indexOf("stl-api/gen") == 0) {
+        importDecl.remove();
+      } else if (sourcePath === "stainless") {
+        for (const specifier of importDecl.getNamedImports()) {
+          if (specifier.getName() === "z") {
+            hasZImport = true;
+          }
+        }
+      }
+    }
+    
+    // don't import "z" if it's already imported in the file
+    if (hasZImport) {
+      importDeclarations = importDeclarations.slice(1);
+    }
+
+    const importsString = importDeclarations
+      .map((declaration) =>
+        printer.printNode(
+          ts.EmitHint.Unspecified,
+          declaration,
+          file.compilerNode
+        )
+      )
+      .join("\n");
     file.addStatements(importsString);
   }
 
@@ -135,7 +183,6 @@ async function main() {
   project.save();
 
   const generatedFileContents = generateFiles(baseCtx, generationOptions);
-
 
   for (const [file, fileContents] of generatedFileContents) {
     const fileDir = Path.dirname(file);
@@ -152,7 +199,6 @@ async function main() {
 (async () => {
   await main();
 })();
-
 
 function getSchemaType(
   node: tm.Node,
