@@ -152,10 +152,18 @@ export function generateImportStatements(
       undefined,
       factory.createNamedImports(importSpecifiers)
     );
+    
+    // strip extension like '.ts' off file
+    const parsedRelativePath = Path.parse(relativePath);
+    let extensionlessRelativePath = Path.join(parsedRelativePath.dir, parsedRelativePath.name);
+    if (extensionlessRelativePath[0] !== ".") {
+      extensionlessRelativePath = `./${extensionlessRelativePath}`;
+    }
+    
     const importDeclaration = factory.createImportDeclaration(
       undefined,
       importClause,
-      factory.createStringLiteral(relativePath),
+      factory.createStringLiteral(extensionlessRelativePath),
       undefined
     );
     importDeclarations.push(importDeclaration);
