@@ -25,9 +25,11 @@ it(`imported interface`, async () =>
   })
 ).toMatchInlineSnapshot(`
 {
-  "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+  "src/__tests__/common.codegen.ts": "import { z } from "zod";
+export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 ",
-  "src/__tests__/imported-interface.test.codegen.ts": "import { AddressIface } from "./common.codegen.ts";
+  "src/__tests__/imported-interface.test.codegen.ts": "import { z } from "zod";
+import { AddressIface } from "./common.codegen.ts";
 import { TestClass as __class_TestClass } from "./imported-interface.test.ts";
 const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => AddressIface).optional(), testMyClass: z.instanceof(__class_TestClass) });
 ",

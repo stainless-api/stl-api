@@ -7,12 +7,13 @@ type T = {
 
 it(`native types`, async () =>
   expect(
-    await multiFileTestCase({
-      __filename,
-    })
-  ).toMatchInlineSnapshot(`
-    {
-      "src/__tests__/native-types.test.codegen.ts": "const T = z.object({ map: z.map(z.string(), z.number()), date: z.date() });
-    ",
-    }
-  `));
+  await multiFileTestCase({
+    __filename
+  })
+).toMatchInlineSnapshot(`
+{
+  "src/__tests__/native-types.test.codegen.ts": "import { z } from "zod";
+const T = z.object({ map: z.map(z.string(), z.number()), date: z.date() });
+",
+}
+`));

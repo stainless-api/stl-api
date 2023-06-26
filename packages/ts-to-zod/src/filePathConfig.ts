@@ -14,6 +14,8 @@ export interface GenOptions {
    * paths are resolved
    */
   rootPath: string;
+  /** the package from where to import the `z` constant */
+  zPackage?: string;
 }
 
 // produced via the _
