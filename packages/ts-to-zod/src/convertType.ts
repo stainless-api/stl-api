@@ -102,10 +102,11 @@ export interface ImportInfo {
    * `symbol`.
    */
   importFromUserFile?: boolean;
+  sourceFile: string;
 }
 
 interface FileInfo {
-  imports: Map<tm.Symbol, ImportInfo>;
+  imports: Map<string, ImportInfo>;
   generatedSchemas: GeneratedSchema[];
   /** maps imported type id to local identifier it's imported as */
   importTypeNameMap?: Map<number, string>;
@@ -156,7 +157,10 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
       } else {
         escapedImport = `__symbol_${importAs || symbol.getName()}`;
       }
-      fileInfo.imports.set(symbol, { as: escapedImport });
+      fileInfo.imports.set(symbol.getName(), {
+        as: escapedImport,
+        sourceFile: declaration.getSourceFile().getFilePath(),
+      });
     }
   }
   if (!ctx.symbols.has(symbol)) {
@@ -199,9 +203,10 @@ export function convertType(
     const inputType = getNthBaseClassTypeArgument(ty, 0);
 
     // import the transform class
-    ctx
-      .getFileInfo(ctx.currentFilePath)
-      .imports.set(symbol, { importFromUserFile: true });
+    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+      importFromUserFile: true,
+      sourceFile: getTypeFilePath(ty)!,
+    });
 
     return methodCall(convertType(ctx, inputType), "transform", [
       factory.createPropertyAccessExpression(
@@ -344,9 +349,11 @@ export function convertType(
       );
     }
     const escapedName = `__class_${symbol.compilerSymbol.escapedName}`;
-    ctx
-      .getFileInfo(ctx.currentFilePath)
-      .imports.set(symbol, { importFromUserFile: true, as: escapedName });
+    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+      importFromUserFile: true,
+      as: escapedName,
+      sourceFile: declaration.getSourceFile().getFilePath(),
+    });
     return zodConstructor("instanceof", [
       factory.createIdentifier(escapedName),
     ]);
@@ -367,7 +374,11 @@ export function convertType(
     const escapedName = `__enum_${symbol.compilerSymbol.escapedName}`;
     ctx
       .getFileInfo(ctx.currentFilePath)
-      .imports.set(symbol, { importFromUserFile: true, as: escapedName });
+      .imports.set(symbol.getName(), {
+        importFromUserFile: true,
+        as: escapedName,
+        sourceFile: declaration.getSourceFile().getFilePath(),
+      });
 
     return zodConstructor("nativeEnum", [
       factory.createIdentifier(escapedName),
@@ -791,7 +802,7 @@ function convertRefineType(
   // import the refine class
   ctx
     .getFileInfo(ctx.currentFilePath)
-    .imports.set(symbol, { importFromUserFile: true });
+    .imports.set(symbol.getName(), { importFromUserFile: true, sourceFile: getTypeFilePath(ty)! });
 
   const callArgs = [
     factory.createPropertyAccessExpression(
