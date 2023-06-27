@@ -1,7 +1,7 @@
 import { AddressIface } from "./common";
 import { multiFileTestCase } from "./multiFileTestCase";
 
-class TestClass {
+export class TestClass {
   a: string = "hello";
 
   method(): void {
