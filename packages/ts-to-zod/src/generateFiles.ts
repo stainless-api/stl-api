@@ -102,18 +102,18 @@ export function generateImportStatements(
   config: GenerationConfig,
   filePath: string,
   zPackage: string | undefined,
-  imports: Map<Symbol, ImportInfo>
+  imports: Map<string, ImportInfo>
 ): ts.ImportDeclaration[] {
   const importDeclarations = [];
   const importGroups = groupBy(
     [...imports.entries()],
-    ([symbol, { importFromUserFile }]) =>
+    ([symbol, { importFromUserFile, sourceFile }]) =>
       relativeImportPath(
         filePath,
         importFromUserFile
-          ? symbol.getDeclarations()[0].getSourceFile().getFilePath()
+          ? sourceFile
           : generatePath({
-              path: symbol.getDeclarations()[0].getSourceFile().getFilePath(),
+              path: sourceFile,
               ...config,
             })
       )
@@ -138,13 +138,13 @@ export function generateImportStatements(
   importDeclarations.push(zImportDeclaration);
 
   for (let [relativePath, entries] of Object.entries(importGroups)) {
-    const importSpecifiers = entries.map(([symbol, { as }]) => {
-      if (as === symbol.getName()) as = undefined;
+    const importSpecifiers = entries.map(([name, { as }]) => {
+      if (as === name) as = undefined;
 
       return factory.createImportSpecifier(
         false,
-        as ? factory.createIdentifier(symbol.getName()) : undefined,
-        factory.createIdentifier(as || symbol.getName())
+        as ? factory.createIdentifier(name) : undefined,
+        factory.createIdentifier(as || name)
       );
     });
     const importClause = factory.createImportClause(

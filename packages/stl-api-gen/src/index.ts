@@ -21,6 +21,8 @@ import {
 
 import { createGenerationConfig } from "ts-to-zod/dist/filePathConfig";
 
+const NODE_MODULES_GEN_PATH = "stl-api/gen/";
+
 async function main() {
   if (process.argv.length < 3) {
     console.log("Need to pass directory");
@@ -43,7 +45,7 @@ async function main() {
   const generationOptions = {
     genLocation: {
       type: "node_modules",
-      genPath: "stl-api/gen/",
+      genPath: NODE_MODULES_GEN_PATH,
     },
     rootPath,
     zPackage: "stainless",
@@ -53,7 +55,7 @@ async function main() {
 
   for (const file of project.getSourceFiles()) {
     const ctx = new ConvertTypeContext(baseCtx, file);
-    const imports = new Map<tm.Symbol, ImportInfo>();
+    const imports = new Map<string, ImportInfo>();
     let hasMagicCall = false;
     // a list of closures to call to modify the file before saving it
     // performs modifications that invalidate ast information after
@@ -91,33 +93,39 @@ async function main() {
 
       const typeSymbol = type.getAliasSymbol() || type.getSymbol();
 
-      // ctx.isRoot = true;
+      ctx.isRoot = true;
       if (
         typeSymbol &&
-        (type.getAliasSymbol() || type.isInterface() || type.isEnum() || type.isClass())
+        (type.getAliasSymbol() ||
+          type.isInterface() ||
+          type.isEnum() ||
+          type.isClass())
       ) {
         try {
-          schemaExpression = convertSymbol(ctx, typeSymbol);
+          convertSymbol(ctx, typeSymbol);
         } catch (e) {
           if (e instanceof ErrorAbort) break;
           else throw e;
         }
+        const name = typeSymbol.getName();
+        let as;
         const declaration = typeSymbol.getDeclarations()[0];
-        if (declaration) {
-          if (
-            declaration.getSourceFile().getFilePath() === file.getFilePath()
-          ) {
-            const name = typeSymbol.getName();
-            let as;
-            if (type.isEnum()) {
-              as = `__enum_${name}`;
-            } else if (type.isClass()) {
-              as = `__class_${name}`;
-            }
-
-            imports.set(typeSymbol, { as });
-          }
+        // TODO factor out this logic in ts-to-zod and export a function
+        if (type.isEnum()) {
+          as = `__enum_${name}`;
+        } else if (type.isClass()) {
+          as = `__class_${name}`;
+        } else {
+          as = `__symbol_${name}`;
         }
+        
+        const declarationFilePath = declaration.getSourceFile().getFilePath();
+
+        if (declarationFilePath === file.getFilePath()) {
+          imports.set(typeSymbol.getName(), { as, sourceFile: declarationFilePath });
+        }
+        const schemaName = as || name;
+        schemaExpression = factory.createIdentifier(schemaName);
       } else {
         try {
           schemaExpression = convertType(ctx, type);
@@ -152,19 +160,18 @@ async function main() {
     // Get the imports needed for the current file, any
     const fileInfo = ctx.files.get(file.getFilePath());
     if (fileInfo) {
-      for (const [symbol, importInfo] of fileInfo.imports) {
+      for (const [name, importInfo] of fileInfo.imports) {
         // TODO: is handling multiple declarations relevant here?
-        const symbolFilePath = symbol
-          .getDeclarations()[0]
-          .getSourceFile()
-          .getFilePath();
         // Don't include imports that would import from the file we're
         // currently processing. This is relevant when handling enums and
         // classes.
-        if (symbolFilePath === file.getFilePath()) {
-          continue;
+        if (importInfo.sourceFile === file.getFilePath()) {
+          imports.set(name, {
+            ...importInfo,
+            sourceFile: Path.join(rootPath, "node_modules", NODE_MODULES_GEN_PATH, Path.relative(rootPath, importInfo.sourceFile)),
+          })
         }
-        imports.set(symbol, importInfo);
+        else imports.set(name, importInfo);
       }
     }
 
