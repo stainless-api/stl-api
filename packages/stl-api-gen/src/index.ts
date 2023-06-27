@@ -100,7 +100,44 @@ async function main() {
       } else {
         schemaExpression = convertType(ctx, type);
       }
+      
+      if (ctx.diagnostics.size) {
+        const output = [];
+        let errorCount = 0;
+        let warningCount = 0;
 
+        for (const [filePath, diagnostics] of ctx.diagnostics.entries()) {
+          errorCount += diagnostics.errors.length;
+          warningCount += diagnostics.warnings.length;
+          
+          output.push(`${Path.relative('.', filePath)}:`)
+          
+          for (const warning of diagnostics.warnings) {
+            output.push(`warning: ${warning.message}`);
+          }
+
+          for (const error of diagnostics.errors) {
+            output.push(`error: ${error.message}`);
+          }
+        }
+        
+        let diagnosticSummary;
+        
+        if (errorCount > 0 && warningCount > 0) {
+          diagnosticSummary = `Encountered ${errorCount} errors and ${warningCount} warnings`;
+        } else if (errorCount > 0) {
+          diagnosticSummary = `Encountered ${errorCount} errors`;
+        } else {
+          diagnosticSummary = `Encountered ${warningCount}`;
+        }
+        
+        console.log(diagnosticSummary);
+        for (const line of output) {
+          console.log(line);
+        }
+        process.exit(0);
+      }
+      
       // remove all arguments to magic function
       for (
         let argumentLength = callExpression.getArguments().length;
