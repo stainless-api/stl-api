@@ -91,7 +91,9 @@ interface GeneratedSchema {
 
 export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
   let escapedImport;
+  let isRoot = false;
   if (ctx instanceof ConvertTypeContext) {
+    isRoot = ctx.isRoot;
     if (ctx.isSymbolImported(symbol)) {
       const fileInfo = ctx.getFileInfo(ctx.currentFilePath);
       const importTypeNameMap = (fileInfo.importTypeNameMap ||=
@@ -112,7 +114,7 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
     const generatedSchema = {
       symbol,
       expression: generated,
-      isExported: isDeclarationExported(declaration),
+      isExported: isRoot || isDeclarationExported(declaration),
     };
 
     const fileName = declaration.getSourceFile().getFilePath();
