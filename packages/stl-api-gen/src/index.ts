@@ -67,13 +67,14 @@ async function main() {
       if (!symbol) continue;
 
       const symbolDeclaration = symbol.getDeclarations()[0];
+      if (!symbolDeclaration) continue;
       const symbolDeclarationFile = symbolDeclaration
-        ?.getSourceFile()
-        ?.getFilePath();
+        .getSourceFile()
+        .getFilePath();
 
       if (
         symbol.getEscapedName() !== "magic" ||
-        symbolDeclarationFile?.indexOf("stl.d.ts") < 0
+        symbolDeclarationFile.indexOf("stl.d.ts") < 0
       ) {
         continue;
       }
@@ -81,17 +82,21 @@ async function main() {
       const typeRefArguments = callExpression.getTypeArguments();
       if (typeRefArguments.length != 1) continue;
       hasMagicCall = true;
-
-      const typeArguments = typeRefArguments.map((typeRef) =>
-        typeRef.getType()
-      );
-      const [type] = typeArguments;
+      
+      const [typeArgument] = typeRefArguments;
+      const type = typeArgument.getType();
 
       let schemaExpression: ts.Expression;
 
-      const typeSymbol = type.getSymbol();
+      const typeSymbol = type.getAliasSymbol() || type.getSymbol();
       if (typeSymbol && (type.getAliasSymbol() || type.isInterface())) {
         schemaExpression = convertSymbol(ctx, typeSymbol);
+        const declaration = typeSymbol.getDeclarations()[0];
+        if (declaration) {
+          if (declaration.getSourceFile().getFilePath() === file.getFilePath()) {
+            imports.set(typeSymbol, {});
+          }
+        }
       } else {
         schemaExpression = convertType(ctx, type);
       }
