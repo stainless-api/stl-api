@@ -21,7 +21,7 @@ interface Incident {
   message: string;
 }
 
-class ErrorAbort extends Error {}
+export class ErrorAbort extends Error {}
 
 export class SchemaGenContext {
   constructor(
@@ -71,7 +71,13 @@ export class SchemaGenContext {
 
 export class ConvertTypeContext extends SchemaGenContext {
   constructor(ctx: SchemaGenContext, public node: tm.Node) {
-    super(ctx.project, ctx.typeChecker, ctx.files, ctx.symbols, ctx.diagnostics);
+    super(
+      ctx.project,
+      ctx.typeChecker,
+      ctx.files,
+      ctx.symbols,
+      ctx.diagnostics
+    );
     this.isRoot = true;
     this.currentFilePath = this.node.getSourceFile().getFilePath();
   }
@@ -128,24 +134,33 @@ interface GeneratedSchema {
 export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
   let escapedImport;
   let isRoot = false;
+
+  const declaration = getDeclarationOrThrow(symbol);
+  const internalCtx = new ConvertTypeContext(ctx, declaration);
+  const type = declaration.getType();
+
   if (ctx instanceof ConvertTypeContext) {
     isRoot = ctx.isRoot;
-    if (ctx.isSymbolImported(symbol)) {
+    if (ctx.isSymbolImported(symbol) || type.isEnum() || type.isClass()) {
       const fileInfo = ctx.getFileInfo(ctx.currentFilePath);
       const importTypeNameMap = (fileInfo.importTypeNameMap ||=
         buildImportTypeMap(ctx.node.getSourceFile()));
       const importAs = importTypeNameMap.get(
         getTypeId(symbol.getTypeAtLocation(ctx.node))
       );
-      escapedImport = `__symbol_${importAs || symbol.getName()}`;
+
+      if (type.isEnum()) {
+        escapedImport = `__enum_${importAs || symbol.getName()}`;
+      } else if (type.isClass()) {
+        escapedImport = `__class_${importAs || symbol.getName()}`;
+      } else {
+        escapedImport = `__symbol_${importAs || symbol.getName()}`;
+      }
       fileInfo.imports.set(symbol, { as: escapedImport });
     }
   }
   if (!ctx.symbols.has(symbol)) {
     ctx.symbols.add(symbol);
-    const declaration = getDeclarationOrThrow(symbol);
-    const internalCtx = new ConvertTypeContext(ctx, declaration);
-    const type = declaration.getType();
     const generated = convertType(internalCtx, type);
     const generatedSchema = {
       symbol,
@@ -317,6 +332,17 @@ export function convertType(
   }
   if (ty.isClass()) {
     const symbol = ty.getSymbolOrThrow();
+    const declaration = getDeclarationOrThrow(symbol);
+    if (!isDeclarationExported(declaration)) {
+      ctx.addError(
+        declaration.getSourceFile().getFilePath(),
+        {
+          message:
+            "Classes used in Zod schemas must be exported from their modules.",
+        },
+        true
+      );
+    }
     const escapedName = `__class_${symbol.compilerSymbol.escapedName}`;
     ctx
       .getFileInfo(ctx.currentFilePath)
@@ -327,6 +353,17 @@ export function convertType(
   }
   if (ty.isEnum()) {
     const symbol = ty.getSymbolOrThrow();
+    const declaration = getDeclarationOrThrow(symbol);
+    if (!isDeclarationExported(declaration)) {
+      ctx.addError(
+        declaration.getSourceFile().getFilePath(),
+        {
+          message:
+            "Enums used in Zod schemas must be exported from their modules.",
+        },
+        true
+      );
+    }
     const escapedName = `__enum_${symbol.compilerSymbol.escapedName}`;
     ctx
       .getFileInfo(ctx.currentFilePath)
@@ -857,12 +894,9 @@ function convertSchemaType(
     if (!allowedParameters.has(name)) {
       const declaration = property.getDeclarations()[0];
       const filePath = declaration.getSourceFile().getFilePath();
-      ctx.addError(
-        filePath,
-        {
-          message: `${schemaTypeName} does not accept ${name} as a parameter.`,
-        },
-      );
+      ctx.addError(filePath, {
+        message: `${schemaTypeName} does not accept ${name} as a parameter.`,
+      });
       continue;
     }
 
@@ -941,11 +975,15 @@ function convertSchemaType(
       const tupleTypes = ty.getTupleElements();
       if (tupleTypes.length != 2) {
         const typePath = getTypeFilePath(ty);
-        ctx.addError(typePath || "unknown", {message: SCHEMA_TUPLE_TYPE_ERROR});
+        ctx.addError(typePath || "unknown", {
+          message: SCHEMA_TUPLE_TYPE_ERROR,
+        });
         continue;
       } else if (ipDatetimeSpecialCase) {
         const typePath = getTypeFilePath(ty);
-        ctx.addError(typePath || "unknown", {message: `The DateSchema ${name} property does not accept a tuple with error string information.`});
+        ctx.addError(typePath || "unknown", {
+          message: `The DateSchema ${name} property does not accept a tuple with error string information.`,
+        });
         continue;
       }
       const [literalType, messageType] = tupleTypes;
@@ -954,16 +992,20 @@ function convertSchemaType(
         literalType.getFlags() === ts.TypeFlags.BooleanLiteral;
       if (!value || messageType.getFlags() !== ts.TypeFlags.StringLiteral) {
         const typePath = getTypeFilePath(ty);
-        ctx.addError(typePath || "unknown", {message: SCHEMA_TUPLE_TYPE_ERROR});
+        ctx.addError(typePath || "unknown", {
+          message: SCHEMA_TUPLE_TYPE_ERROR,
+        });
         continue;
       }
 
       literalValue = value;
       literalMessage = messageType.getLiteralValue() as string;
     } else {
-        const typePath = getTypeFilePath(ty);
-        ctx.addError(typePath || "unknown", {message: `invalid parameter value passed for ${name}`});
-        continue;
+      const typePath = getTypeFilePath(ty);
+      ctx.addError(typePath || "unknown", {
+        message: `invalid parameter value passed for ${name}`,
+      });
+      continue;
     }
 
     if (literalValue) {

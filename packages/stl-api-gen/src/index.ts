@@ -11,6 +11,7 @@ import {
   SchemaGenContext,
   ImportInfo,
   convertSymbol,
+  ErrorAbort,
 } from "ts-to-zod/dist/convertType";
 
 import {
@@ -82,62 +83,50 @@ async function main() {
       const typeRefArguments = callExpression.getTypeArguments();
       if (typeRefArguments.length != 1) continue;
       hasMagicCall = true;
-      
+
       const [typeArgument] = typeRefArguments;
       const type = typeArgument.getType();
 
       let schemaExpression: ts.Expression;
 
       const typeSymbol = type.getAliasSymbol() || type.getSymbol();
-      if (typeSymbol && (type.getAliasSymbol() || type.isInterface())) {
-        schemaExpression = convertSymbol(ctx, typeSymbol);
+
+      // ctx.isRoot = true;
+      if (
+        typeSymbol &&
+        (type.getAliasSymbol() || type.isInterface() || type.isEnum() || type.isClass())
+      ) {
+        try {
+          schemaExpression = convertSymbol(ctx, typeSymbol);
+        } catch (e) {
+          if (e instanceof ErrorAbort) break;
+          else throw e;
+        }
         const declaration = typeSymbol.getDeclarations()[0];
         if (declaration) {
-          if (declaration.getSourceFile().getFilePath() === file.getFilePath()) {
-            imports.set(typeSymbol, {});
+          if (
+            declaration.getSourceFile().getFilePath() === file.getFilePath()
+          ) {
+            const name = typeSymbol.getName();
+            let as;
+            if (type.isEnum()) {
+              as = `__enum_${name}`;
+            } else if (type.isClass()) {
+              as = `__class_${name}`;
+            }
+
+            imports.set(typeSymbol, { as });
           }
         }
       } else {
-        schemaExpression = convertType(ctx, type);
+        try {
+          schemaExpression = convertType(ctx, type);
+        } catch (e) {
+          if (e instanceof ErrorAbort) break;
+          else throw e;
+        }
       }
-      
-      if (ctx.diagnostics.size) {
-        const output = [];
-        let errorCount = 0;
-        let warningCount = 0;
 
-        for (const [filePath, diagnostics] of ctx.diagnostics.entries()) {
-          errorCount += diagnostics.errors.length;
-          warningCount += diagnostics.warnings.length;
-          
-          output.push(`${Path.relative('.', filePath)}:`)
-          
-          for (const warning of diagnostics.warnings) {
-            output.push(`warning: ${warning.message}`);
-          }
-
-          for (const error of diagnostics.errors) {
-            output.push(`error: ${error.message}`);
-          }
-        }
-        
-        let diagnosticSummary;
-        
-        if (errorCount > 0 && warningCount > 0) {
-          diagnosticSummary = `Encountered ${errorCount} errors and ${warningCount} warnings`;
-        } else if (errorCount > 0) {
-          diagnosticSummary = `Encountered ${errorCount} errors`;
-        } else {
-          diagnosticSummary = `Encountered ${warningCount}`;
-        }
-        
-        console.log(diagnosticSummary);
-        for (const line of output) {
-          console.log(line);
-        }
-        process.exit(0);
-      }
-      
       // remove all arguments to magic function
       for (
         let argumentLength = callExpression.getArguments().length;
@@ -150,13 +139,11 @@ async function main() {
       }
 
       // fill in generated schema expression
-      fileOperations.push(() =>
-        callExpression.addArgument(
-          printer.printNode(
-            ts.EmitHint.Unspecified,
-            schemaExpression,
-            file.compilerNode
-          )
+      callExpression.addArgument(
+        printer.printNode(
+          ts.EmitHint.Unspecified,
+          schemaExpression,
+          file.compilerNode
         )
       );
     }
@@ -165,7 +152,20 @@ async function main() {
     // Get the imports needed for the current file, any
     const fileInfo = ctx.files.get(file.getFilePath());
     if (fileInfo) {
-      fileInfo.imports.forEach((v, k) => imports.set(k, v));
+      for (const [symbol, importInfo] of fileInfo.imports) {
+        // TODO: is handling multiple declarations relevant here?
+        const symbolFilePath = symbol
+          .getDeclarations()[0]
+          .getSourceFile()
+          .getFilePath();
+        // Don't include imports that would import from the file we're
+        // currently processing. This is relevant when handling enums and
+        // classes.
+        if (symbolFilePath === file.getFilePath()) {
+          continue;
+        }
+        imports.set(symbol, importInfo);
+      }
     }
 
     // add new imports necessary for schema generation
@@ -214,6 +214,44 @@ async function main() {
 
     // Commit all operations potentially destructive to AST visiting.
     fileOperations.forEach((op) => op());
+  }
+
+  if (baseCtx.diagnostics.size) {
+    const output = [];
+    let errorCount = 0;
+    let warningCount = 0;
+
+    for (const [filePath, diagnostics] of baseCtx.diagnostics.entries()) {
+      errorCount += diagnostics.errors.length;
+      warningCount += diagnostics.warnings.length;
+
+      output.push(`${Path.relative(".", filePath)}:`);
+
+      for (const warning of diagnostics.warnings) {
+        output.push(`warning: ${warning.message}`);
+      }
+
+      for (const error of diagnostics.errors) {
+        output.push(`error: ${error.message}`);
+      }
+    }
+
+    let diagnosticSummary;
+
+    if (errorCount > 0 && warningCount > 0) {
+      diagnosticSummary = `Encountered ${errorCount} errors and ${warningCount} warnings`;
+    } else if (errorCount > 0) {
+      diagnosticSummary = `Encountered ${errorCount} errors`;
+    } else {
+      diagnosticSummary = `Encountered ${warningCount}`;
+    }
+
+    console.log(diagnosticSummary);
+    for (const line of output) {
+      console.log(line);
+    }
+    console.log("No changes were made to package source.");
+    process.exit(0);
   }
 
   project.save();

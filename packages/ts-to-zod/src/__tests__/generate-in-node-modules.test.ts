@@ -39,8 +39,8 @@ export const AddressIface = z.object({ street: z.string(), city: z.string(), sta
 export const Enum = z.nativeEnum(__enum_Enum);
 ",
   "node_modules/zodgen/src/__tests__/generate-in-node-modules.test.ts": "import { z } from "zod";
-import { AddressIface as __symbol_AddrIface, Enum as __symbol_Enum } from "./common";
-const T = z.object({ datetime: z.string().max(20).datetime(), addresses: z.array(z.lazy(() => __symbol_AddrIface)), enum: z.lazy(() => __symbol_Enum) });
+import { AddressIface as __symbol_AddrIface, Enum as __enum_Enum } from "./common";
+const T = z.object({ datetime: z.string().max(20).datetime(), addresses: z.array(z.lazy(() => __symbol_AddrIface)), enum: z.lazy(() => __enum_Enum) });
 ",
 }
 `));
