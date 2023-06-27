@@ -1,7 +1,7 @@
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as tm from "ts-morph";
-import { groupBy, method, property } from "lodash";
+import { groupBy } from "lodash";
 import Path from "path";
 import {
   arraySetSchemaProperties,
@@ -12,12 +12,25 @@ import {
   stringSchemaProperties,
 } from "./typeSchemaUtils";
 
+interface Diagnostics {
+  errors: Incident[];
+  warnings: Incident[];
+}
+
+interface Incident {
+  message: string;
+}
+
+class ErrorAbort extends Error {}
+
 export class SchemaGenContext {
   constructor(
     public project: tm.Project,
     public typeChecker = project.getTypeChecker(),
     public files: Map<string, FileInfo> = new Map(),
-    public symbols: Set<tm.Symbol> = new Set()
+    public symbols: Set<tm.Symbol> = new Set(),
+    /* map from file names to any diagnostics associated with them */
+    public diagnostics: Map<string, Diagnostics> = new Map()
   ) {}
 
   getFileInfo(filePath: string): FileInfo {
@@ -27,14 +40,38 @@ export class SchemaGenContext {
     }));
   }
 
-  // addImportToFile(symbol: tm.Symbol, filePath: string, importInfo: ImportInfo = {}) {
-  // this.getFileInfo(filePath).imports.set(symbol, importInfo);
-  // }
+  addError(filePath: string, incident: Incident, abort?: boolean): void;
+  addError(filePath: string, incident: Incident, abort: true): never;
+  addError(filePath: string, incident: Incident, abort?: boolean) {
+    const incidents = mapGetOrCreate(this.diagnostics, filePath, () => ({
+      errors: [],
+      warnings: [],
+    }));
+    incidents.errors.push(incident);
+    if (abort) throw new ErrorAbort();
+  }
+
+  addTypeError(type: tm.Type, incident: Incident, abort?: boolean): void;
+  addTypeError(type: tm.Type, incident: Incident, abort: true): never;
+  addTypeError(type: tm.Type, incident: Incident, abort?: boolean) {
+    const symbol = type.getAliasSymbol() || type.getSymbol();
+    const declaration = symbol ? getDeclaration(symbol) : undefined;
+    const filePath = declaration?.getSourceFile()?.getFilePath();
+    this.addError("unknown", incident, abort);
+  }
+
+  addWarning(filePath: string, incident: Incident) {
+    const incidents = mapGetOrCreate(this.diagnostics, filePath, () => ({
+      errors: [],
+      warnings: [],
+    }));
+    incidents.warnings.push(incident);
+  }
 }
 
 export class ConvertTypeContext extends SchemaGenContext {
   constructor(ctx: SchemaGenContext, public node: tm.Node) {
-    super(ctx.project, ctx.typeChecker, ctx.files, ctx.symbols);
+    super(ctx.project, ctx.typeChecker, ctx.files, ctx.symbols, ctx.diagnostics);
     this.isRoot = true;
     this.currentFilePath = this.node.getSourceFile().getFilePath();
   }
@@ -340,9 +377,10 @@ export function convertType(
 
     if (restIndex >= 0) {
       if (restIndex != tupleTypes.length - 1) {
-        throw new Error(
-          "zod only supports rest elements at the end of tuples."
-        );
+        ctx.addTypeError(ty, {
+          message: "zod only supports rest elements at the end of tuples.",
+        });
+        return zodConstructor("any");
       }
 
       restType = tupleTypes.at(-1);
@@ -491,7 +529,7 @@ export function convertType(
     return zodConstructor("never");
   }
 
-  throw new Error(`unsupported type: ${ty.getText()}`);
+  ctx.addError("todo", { message: `unsupported type: ${ty.getText()}` }, true);
 }
 
 function zodConstructor(
@@ -756,8 +794,13 @@ function convertPrimitiveSchemaType(
 ): ts.Expression {
   const args = type.getTypeArguments();
   if (args.length === 0 || !args[0].isObject()) {
-    throw new Error(
-      "ts-to-zod schema types take object literals as validation properties"
+    ctx.addError(
+      "todo",
+      {
+        message:
+          "ts-to-zod schema types take object literals as validation properties",
+      },
+      true
     );
   }
   const [typeArgs] = args;
@@ -812,9 +855,15 @@ function convertSchemaType(
   for (const property of typeArgs.getProperties()) {
     const name = property.getName();
     if (!allowedParameters.has(name)) {
-      throw new Error(
-        `${schemaTypeName} does not accept ${name} as a parameter.`
+      const declaration = property.getDeclarations()[0];
+      const filePath = declaration.getSourceFile().getFilePath();
+      ctx.addError(
+        filePath,
+        {
+          message: `${schemaTypeName} does not accept ${name} as a parameter.`,
+        },
       );
+      continue;
     }
 
     // ip and datetime are special in that they can take an object as a
@@ -891,23 +940,31 @@ function convertSchemaType(
     } else if (ty.isTuple()) {
       const tupleTypes = ty.getTupleElements();
       if (tupleTypes.length != 2) {
-        throw new Error(SCHEMA_TUPLE_TYPE_ERROR);
+        const typePath = getTypeFilePath(ty);
+        ctx.addError(typePath || "unknown", {message: SCHEMA_TUPLE_TYPE_ERROR});
+        continue;
       } else if (ipDatetimeSpecialCase) {
-        throw new Error(
-          `The DateSchema ${name} property does not accept a tuple with error string information.`
-        );
+        const typePath = getTypeFilePath(ty);
+        ctx.addError(typePath || "unknown", {message: `The DateSchema ${name} property does not accept a tuple with error string information.`});
+        continue;
       }
       const [literalType, messageType] = tupleTypes;
       const value =
         literalType.getLiteralValue() ||
         literalType.getFlags() === ts.TypeFlags.BooleanLiteral;
       if (!value || messageType.getFlags() !== ts.TypeFlags.StringLiteral) {
-        throw new Error(SCHEMA_TUPLE_TYPE_ERROR);
+        const typePath = getTypeFilePath(ty);
+        ctx.addError(typePath || "unknown", {message: SCHEMA_TUPLE_TYPE_ERROR});
+        continue;
       }
 
       literalValue = value;
       literalMessage = messageType.getLiteralValue() as string;
-    } else throw new Error(`invalid parameter value passed for ${name}`);
+    } else {
+        const typePath = getTypeFilePath(ty);
+        ctx.addError(typePath || "unknown", {message: `invalid parameter value passed for ${name}`});
+        continue;
+    }
 
     if (literalValue) {
       let args: ts.Expression[];
@@ -1013,6 +1070,16 @@ function getLiteralValues(
   else return [];
 }
 
+function getTypeFilePath(type: tm.Type): string | undefined {
+  return getTypeDeclaration(type)?.getSourceFile()?.getFilePath();
+}
+
+function getTypeDeclaration(type: tm.Type): tm.Node | undefined {
+  const symbol = type.getAliasSymbol() || type.getSymbol();
+  if (!symbol) return;
+  return getDeclaration(symbol);
+}
+
 function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
   const declarations = symbol.getDeclarations();
   for (const declaration of declarations) {
@@ -1020,8 +1087,8 @@ function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
       declaration instanceof tm.TypeAliasDeclaration ||
       declaration instanceof tm.InterfaceDeclaration ||
       declaration instanceof tm.ClassDeclaration ||
-      declaration instanceof tm.ClassExpression || 
-      declaration instanceof tm.TypeLiteralNode || 
+      declaration instanceof tm.ClassExpression ||
+      declaration instanceof tm.TypeLiteralNode ||
       declaration instanceof tm.EnumDeclaration
     ) {
       return declaration;
