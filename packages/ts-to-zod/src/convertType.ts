@@ -43,8 +43,7 @@ export class ConvertTypeContext extends SchemaGenContext {
   currentFilePath: string;
 
   isSymbolImported(symbol: tm.Symbol): boolean {
-    const symbolFileName: string = symbol
-      .getDeclarations()[0]
+    const symbolFileName: string = getDeclarationOrThrow(symbol)
       .getSourceFile()
       .getFilePath();
     return this.currentFilePath !== symbolFileName;
@@ -101,13 +100,13 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
       const importAs = importTypeNameMap.get(
         getTypeId(symbol.getTypeAtLocation(ctx.node))
       );
-      escapedImport = `__symbol_${importAs || symbol.getName()}`
+      escapedImport = `__symbol_${importAs || symbol.getName()}`;
       fileInfo.imports.set(symbol, { as: escapedImport });
     }
   }
   if (!ctx.symbols.has(symbol)) {
     ctx.symbols.add(symbol);
-    const declaration = symbol.getDeclarations()[0];
+    const declaration = getDeclarationOrThrow(symbol);
     const internalCtx = new ConvertTypeContext(ctx, declaration);
     const type = declaration.getType();
     const generated = convertType(internalCtx, type);
@@ -260,7 +259,7 @@ export function convertType(
       ty.getAliasSymbol() ||
       (ty.isInterface() && !isNativeObject(ty) ? ty.getSymbol() : null);
     if (symbol) {
-      const declaration = symbol.getDeclarations()[0];
+      const declaration = getDeclaration(symbol);
       if (
         !(
           declaration instanceof tm.TypeAliasDeclaration ||
@@ -525,8 +524,10 @@ function methodCall(
 }
 
 /** The file in which a type was declared. Likely unsuitable for use for interfaces that might be extended. */
-function typeSourceFile(ty: ts.Type): string | undefined {
-  return ty.getSymbol()?.declarations?.[0]?.getSourceFile().fileName;
+function typeSourceFile(ty: tm.Type): string | undefined {
+  const symbol = ty.getSymbol();
+  if (!symbol) return;
+  return getDeclaration(symbol)?.getSourceFile().getFilePath();
 }
 
 function getTypeOrigin(type: ts.Type): ts.Type | undefined;
@@ -553,8 +554,7 @@ function getSymbolWrapper(
   return ctxProvider._context.compilerFactory.getSymbol(symbol);
 }
 
-function isNativeObject(ty: ts.Type | tm.Type): boolean {
-  if (ty instanceof tm.Type) return isNativeObject(ty.compilerType);
+function isNativeObject(ty: tm.Type): boolean {
   const sourceFile = typeSourceFile(ty);
   return sourceFile?.match(/typescript\/lib\/.*\.d\.ts$/) != null;
 }
@@ -948,16 +948,17 @@ function getTypeId(type: tm.Type): number {
 }
 
 function isInThisPackage(symbol: tm.Symbol): boolean {
-  const declarations = symbol.getDeclarations();
-  if (!declarations.length) return false;
-  const symbolFile = declarations[0].getSourceFile().getFilePath();
+  const declaration = getDeclaration(symbol);
+  if (!declaration) return false;
+  const symbolFile = declaration.getSourceFile().getFilePath();
   return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
 }
 
 function getPackageBaseTypeName(type: tm.Type): string | undefined {
   const symbol = type.getSymbol();
   if (!symbol) return undefined;
-  const declaration = symbol.getDeclarations()[0];
+  const declaration = getDeclaration(symbol);
+  if (!declaration) return;
   if (
     !tm.Node.isClassDeclaration(declaration) &&
     !tm.Node.isClassExpression(declaration)
@@ -1010,4 +1011,29 @@ function getLiteralValues(
       .getUnionTypes()
       .flatMap((unionType) => getLiteralValues(unionType));
   else return [];
+}
+
+function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
+  const declarations = symbol.getDeclarations();
+  for (const declaration of declarations) {
+    if (
+      declaration instanceof tm.TypeAliasDeclaration ||
+      declaration instanceof tm.InterfaceDeclaration ||
+      declaration instanceof tm.ClassDeclaration ||
+      declaration instanceof tm.ClassExpression || 
+      declaration instanceof tm.TypeLiteralNode || 
+      declaration instanceof tm.EnumDeclaration
+    ) {
+      return declaration;
+    }
+  }
+
+  return undefined;
+}
+
+function getDeclarationOrThrow(symbol: tm.Symbol): tm.Node {
+  const declaration = getDeclaration(symbol);
+  if (!declaration) {
+    throw new Error("could not get type declaration for that symbol");
+  } else return declaration;
 }
