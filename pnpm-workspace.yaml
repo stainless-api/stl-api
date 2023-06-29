@@ -1,4 +1,5 @@
 packages:
   - "packages/*"
+  - "packages/stl-api-gen/test_project"
   - "demo"
   - "docs"
