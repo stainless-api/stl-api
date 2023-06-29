@@ -1,7 +1,8 @@
 import * as tm from "ts-morph";
 import { SchemaGenContext, convertSymbol } from "../convertType";
 import { testProject } from "./testProject";
-import { GenOptions, generateFiles } from "../generateFiles";
+import { generateFiles } from "../generateFiles";
+import { GenOptions } from "../filePathConfig";
 import * as path from "path";
 import pkgUp from "pkg-up";
 
@@ -30,9 +31,9 @@ export const multiFileTestCase = async (options: {
     throw new Error(`failed to get Symbol from SourceFile`);
   }
   const ctx = new SchemaGenContext(testProject);
-  convertSymbol(ctx, symbol);
+  convertSymbol(ctx, symbol, { variant: "node", node });
   const rootPackageJson = await pkgUp({
-    cwd: __dirname
+    cwd: __dirname,
   });
   if (!rootPackageJson) {
     throw new Error("test must run within npm package");
