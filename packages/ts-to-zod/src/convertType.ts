@@ -772,13 +772,28 @@ function createZodShape(
         property,
         ctx.node,
       );
+      
+      // If the current property has a parent type associated with it, use that
+      // parent type for diagnostics information ini order to correctly attribute
+      // the source of problematic types.
+      let enclosingType = type;
+      const propertyDeclaration = getPropertyDeclaration(property);
+      if (propertyDeclaration) {
+        const parentNode = propertyDeclaration.getParent();
+        if (parentNode) {
+          const parentType = ctx.typeChecker.getTypeAtLocation(parentNode);
+          if (parentType) enclosingType = parentType;
+        }
+      }
+      
+      
       return factory.createPropertyAssignment(
         property.getName(),
         convertType(ctx, propertyType, {
           variant: "property",
           name: property.getName(),
           symbol: property,
-          enclosingType: type,
+          enclosingType,
         })
       );
     })
