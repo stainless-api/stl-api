@@ -5,6 +5,8 @@ import pkgUp from "pkg-up";
 import Path from "path";
 import fs from "fs";
 
+import chalk from "chalk";
+
 import { convertType } from "ts-to-zod";
 import {
   ConvertTypeContext,
@@ -12,6 +14,8 @@ import {
   ImportInfo,
   convertSymbol,
   ErrorAbort,
+  Incident,
+  Diagnostics,
 } from "ts-to-zod/dist/convertType";
 
 import {
@@ -22,6 +26,13 @@ import {
 import { createGenerationConfig } from "ts-to-zod/dist/filePathConfig";
 
 const NODE_MODULES_GEN_PATH = "stl-api/gen/";
+
+interface MagicCallDiagnostics {
+  line: number;
+  column: number;
+  filePath: string;
+  diagnostics: Map<string, Diagnostics>;
+}
 
 async function main() {
   if (process.argv.length < 3) {
@@ -41,6 +52,8 @@ async function main() {
   });
 
   const baseCtx = new SchemaGenContext(project);
+
+  const callDiagnostics: MagicCallDiagnostics[] = [];
 
   const generationOptions = {
     genLocation: {
@@ -94,6 +107,7 @@ async function main() {
       const typeSymbol = type.getAliasSymbol() || type.getSymbol();
 
       ctx.isRoot = true;
+      ctx.diagnostics = new Map();
       if (
         typeSymbol &&
         (type.getAliasSymbol() ||
@@ -102,10 +116,15 @@ async function main() {
           type.isClass())
       ) {
         try {
-          convertSymbol(ctx, typeSymbol);
+          convertSymbol(ctx, typeSymbol, {
+            variant: "node",
+            node: typeArgument,
+          });
         } catch (e) {
           if (e instanceof ErrorAbort) break;
           else throw e;
+        } finally {
+          addDiagnostics(ctx, file, callExpression, callDiagnostics);
         }
         const name = typeSymbol.getName();
         let as;
@@ -118,20 +137,28 @@ async function main() {
         } else {
           as = `__symbol_${name}`;
         }
-        
+
         const declarationFilePath = declaration.getSourceFile().getFilePath();
 
         if (declarationFilePath === file.getFilePath()) {
-          imports.set(typeSymbol.getName(), { as, sourceFile: declarationFilePath });
+          imports.set(typeSymbol.getName(), {
+            as,
+            sourceFile: declarationFilePath,
+          });
         }
         const schemaName = as || name;
         schemaExpression = factory.createIdentifier(schemaName);
       } else {
         try {
-          schemaExpression = convertType(ctx, type);
+          schemaExpression = convertType(ctx, type, {
+            variant: "node",
+            node: typeArgument,
+          });
         } catch (e) {
           if (e instanceof ErrorAbort) break;
           else throw e;
+        } finally {
+          addDiagnostics(ctx, file, callExpression, callDiagnostics);
         }
       }
 
@@ -168,10 +195,14 @@ async function main() {
         if (importInfo.sourceFile === file.getFilePath()) {
           imports.set(name, {
             ...importInfo,
-            sourceFile: Path.join(rootPath, "node_modules", NODE_MODULES_GEN_PATH, Path.relative(rootPath, importInfo.sourceFile)),
-          })
-        }
-        else imports.set(name, importInfo);
+            sourceFile: Path.join(
+              rootPath,
+              "node_modules",
+              NODE_MODULES_GEN_PATH,
+              Path.relative(rootPath, importInfo.sourceFile)
+            ),
+          });
+        } else imports.set(name, importInfo);
       }
     }
 
@@ -223,42 +254,83 @@ async function main() {
     fileOperations.forEach((op) => op());
   }
 
-  if (baseCtx.diagnostics.size) {
+  if (callDiagnostics.length) {
     const output = [];
     let errorCount = 0;
     let warningCount = 0;
 
-    for (const [filePath, diagnostics] of baseCtx.diagnostics.entries()) {
-      errorCount += diagnostics.errors.length;
-      warningCount += diagnostics.warnings.length;
+    for (const { filePath, line, column, diagnostics } of callDiagnostics) {
+      output.push(
+        chalk.magenta(
+          `While processing magic call at ${Path.relative(
+            ".",
+            filePath
+          )}:${line}:${column}:`
+        )
+      );
+      for (const [filePath, fileDiagnostics] of diagnostics) {
+        errorCount += fileDiagnostics.errors.length;
+        warningCount += fileDiagnostics.warnings.length;
 
-      output.push(`${Path.relative(".", filePath)}:`);
+        for (const warning of fileDiagnostics.warnings) {
+          output.push(
+            generateIncidentLocation(Path.relative(".", filePath), warning)
+          );
+          output.push(
+            chalk.yellow("warning: ") +
+              warning.message +
+              generateDiagnosticDetails(warning)
+          );
+        }
 
-      for (const warning of diagnostics.warnings) {
-        output.push(`warning: ${warning.message}`);
-      }
-
-      for (const error of diagnostics.errors) {
-        output.push(`error: ${error.message}`);
+        for (const error of fileDiagnostics.errors) {
+          output.push(
+            generateIncidentLocation(Path.relative(".", filePath), error)
+          );
+          output.push(
+            chalk.red("error: ") +
+              error.message +
+              generateDiagnosticDetails(error)
+          );
+        }
       }
     }
 
     let diagnosticSummary;
 
     if (errorCount > 0 && warningCount > 0) {
-      diagnosticSummary = `Encountered ${errorCount} errors and ${warningCount} warnings`;
+      diagnosticSummary =
+        "Encountered " +
+        chalk.red(`${errorCount} error${errorCount === 1 ? "" : "s"} `) +
+        "and " +
+        chalk.yellow(
+          `${warningCount} warning${warningCount === 1 ? "" : "s"}`
+        ) +
+        ".";
     } else if (errorCount > 0) {
-      diagnosticSummary = `Encountered ${errorCount} errors`;
+      diagnosticSummary =
+        "Encountered " +
+        chalk.red(`${errorCount} error${errorCount === 1 ? "" : "s"}`) +
+        ".";
     } else {
-      diagnosticSummary = `Encountered ${warningCount}`;
+      diagnosticSummary =
+        "Encountered " +
+        chalk.yellow(
+          `${warningCount} warning${warningCount === 1 ? "" : "s"}`
+        ) +
+        ".";
     }
 
-    console.log(diagnosticSummary);
     for (const line of output) {
       console.log(line);
     }
-    console.log("No changes were made to package source.");
-    process.exit(0);
+    console.log();
+    console.log(diagnosticSummary);
+
+    if (errorCount > 0) {
+      console.log("No modifications were made to package source.");
+      process.exit(0);
+    }
   }
 
   project.save();
@@ -279,4 +351,54 @@ async function main() {
 
 (async () => {
   await main();
-})();
+})()
+  .then()
+  .catch(console.log);
+
+function generateIncidentLocation(
+  filePath: string,
+  incident: Incident
+): string {
+  const position = incident.position
+    ? `${incident.position.startLine}:${incident.position.startColumn}:`
+    : "";
+  return chalk.gray(`${filePath}:${position}`);
+}
+
+function generateDiagnosticDetails({
+  position,
+  name,
+  typeText,
+  propertyName,
+}: Incident): string {
+  let typeDescriptor;
+  if (typeText && (!name || name === "__type")) typeDescriptor = typeText;
+  else typeDescriptor = name;
+
+  if (typeDescriptor && propertyName) {
+    return chalk`\nin type of property {cyan \`${propertyName}\`} of type {cyan \`${typeDescriptor}\`}`;
+  } else if (name) {
+    return chalk`\nwhile processing type {cyan \`${typeDescriptor}\`}`;
+  } else if (position) {
+    return "";
+  } else return "at an unknown location";
+}
+
+function addDiagnostics(
+  ctx: SchemaGenContext,
+  file: tm.SourceFile,
+  callExpression: tm.Node,
+  callDiagnostics: MagicCallDiagnostics[]
+) {
+  if (ctx.diagnostics.size) {
+    const { line, column } = file.getLineAndColumnAtPos(
+      callExpression.getStart()
+    );
+    callDiagnostics.push({
+      diagnostics: ctx.diagnostics,
+      line,
+      column,
+      filePath: file.getFilePath(),
+    });
+  }
+}

@@ -12,14 +12,38 @@ import {
   stringSchemaProperties,
 } from "./typeSchemaUtils";
 
-interface Diagnostics {
+export interface Diagnostics {
   errors: Incident[];
   warnings: Incident[];
 }
 
-interface Incident {
-  message: string;
+interface Position {
+  startLine: number;
+  startColumn: number;
+  endLine: number;
+  endColumn: number;
 }
+
+export interface Incident {
+  message: string;
+  position?: Position;
+  name?: string;
+  typeText?: string;
+  propertyName?: string;
+}
+
+export type DiagnosticItem =
+  | {
+      variant: "node";
+      node: tm.Node;
+    }
+  | { variant: "type"; type: tm.Type }
+  | {
+      variant: "property";
+      name: string;
+      symbol: tm.Symbol;
+      enclosingType: tm.Type;
+    };
 
 export class ErrorAbort extends Error {}
 
@@ -40,27 +64,81 @@ export class SchemaGenContext {
     }));
   }
 
-  addError(filePath: string, incident: Incident, abort?: boolean): void;
-  addError(filePath: string, incident: Incident, abort: true): never;
-  addError(filePath: string, incident: Incident, abort?: boolean) {
+  /** Returns the filePath corresponding to the location of the incident, and adds
+   * location information to the given incident if relevant.
+   */
+  private processIncident(
+    item: DiagnosticItem,
+    incident: Incident
+  ): { filePath: string } {
+    let filePath = "unknown";
+    switch (item.variant) {
+      case "node":
+        const sourceFile = item.node.getSourceFile();
+        filePath = sourceFile.getFilePath();
+        const { line: startLine, column: startColumn } =
+          sourceFile.getLineAndColumnAtPos(item.node.getStart());
+        const { line: endLine, column: endColumn } =
+          sourceFile.getLineAndColumnAtPos(item.node.getStart());
+        incident.position ||= {
+          startLine,
+          startColumn,
+          endLine,
+          endColumn,
+        };
+        break;
+      case "type": {
+        incident.typeText ||= item.type.getText();
+        const symbol = item.type.getAliasSymbol() || item.type.getSymbol();
+        if (!symbol) return { filePath: "<unknown file>" };
+        const declaration = getDeclaration(symbol);
+        if (!declaration) return { filePath: "<unknown file>" };
+        const { filePath: typeFilePath } = this.processIncident(
+          { variant: "node", node: declaration },
+          incident
+        );
+        filePath = typeFilePath;
+        incident.name ||= symbol.getName();
+        break;
+      }
+      case "property": {
+        incident.propertyName ||= item.name;
+        for (const declaration of item.symbol.getDeclarations()) {
+          if (
+            declaration instanceof tm.PropertyDeclaration ||
+            declaration instanceof tm.PropertySignature
+          ) {
+            this.processIncident(
+              { variant: "node", node: declaration },
+              incident
+            );
+            break;
+          }
+        }
+        return this.processIncident(
+          { variant: "type", type: item.enclosingType },
+          incident
+        );
+      }
+    }
+    return { filePath };
+  }
+
+  addError(item: DiagnosticItem, incident: Incident, abort: true): never;
+  addError(item: DiagnosticItem, incident: Incident, abort?: boolean): void;
+  addError(item: DiagnosticItem, incident: Incident, abort?: boolean) {
+    const { filePath } = this.processIncident(item, incident);
     const incidents = mapGetOrCreate(this.diagnostics, filePath, () => ({
       errors: [],
       warnings: [],
     }));
+
     incidents.errors.push(incident);
     if (abort) throw new ErrorAbort();
   }
 
-  addTypeError(type: tm.Type, incident: Incident, abort?: boolean): void;
-  addTypeError(type: tm.Type, incident: Incident, abort: true): never;
-  addTypeError(type: tm.Type, incident: Incident, abort?: boolean) {
-    const symbol = type.getAliasSymbol() || type.getSymbol();
-    const declaration = symbol ? getDeclaration(symbol) : undefined;
-    const filePath = declaration?.getSourceFile()?.getFilePath();
-    this.addError("unknown", incident, abort);
-  }
-
-  addWarning(filePath: string, incident: Incident) {
+  addWarning(item: DiagnosticItem, incident: Incident) {
+    const { filePath } = this.processIncident(item, incident);
     const incidents = mapGetOrCreate(this.diagnostics, filePath, () => ({
       errors: [],
       warnings: [],
@@ -132,11 +210,18 @@ interface GeneratedSchema {
   isExported: boolean;
 }
 
-export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
+export function convertSymbol(
+  ctx: SchemaGenContext,
+  symbol: tm.Symbol,
+  diagnosticItem: DiagnosticItem
+) {
   let escapedImport;
   let isRoot = false;
 
-  const declaration = getDeclarationOrThrow(symbol);
+  const declaration = getDeclaration(symbol);
+  if (!declaration) {
+    ctx.addError(diagnosticItem, {message: `Could not find type of name \`${symbol.getName()}\``}, true);
+  }
   const internalCtx = new ConvertTypeContext(ctx, declaration);
   const type = declaration.getType();
 
@@ -165,7 +250,7 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
   }
   if (!ctx.symbols.has(symbol)) {
     ctx.symbols.add(symbol);
-    const generated = convertType(internalCtx, type);
+    const generated = convertType(internalCtx, type, diagnosticItem);
     const generatedSchema = {
       symbol,
       expression: generated,
@@ -193,8 +278,11 @@ export function convertSymbol(ctx: SchemaGenContext, symbol: tm.Symbol) {
 
 export function convertType(
   ctx: ConvertTypeContext,
-  ty: tm.Type
+  ty: tm.Type,
+  diagnosticItem: DiagnosticItem
 ): ts.Expression {
+  const typeSymbol = ty.getSymbol();
+
   const packageBaseTypeName = getPackageBaseTypeName(ty);
   if (packageBaseTypeName === "Transform") {
     const symbol = ty.getSymbolOrThrow(
@@ -208,28 +296,31 @@ export function convertType(
       sourceFile: getTypeFilePath(ty)!,
     });
 
-    return methodCall(convertType(ctx, inputType), "transform", [
-      factory.createPropertyAccessExpression(
-        factory.createNewExpression(
-          factory.createIdentifier(symbol.getName()),
-          undefined,
-          []
+    return methodCall(
+      convertType(ctx, inputType, diagnosticItem),
+      "transform",
+      [
+        factory.createPropertyAccessExpression(
+          factory.createNewExpression(
+            factory.createIdentifier(symbol.getName()),
+            undefined,
+            []
+          ),
+          factory.createIdentifier("transform")
         ),
-        factory.createIdentifier("transform")
-      ),
-    ]);
+      ]
+    );
   }
 
   if (packageBaseTypeName === "Refine") {
-    return convertRefineType(ctx, ty, "refine");
+    return convertRefineType(ctx, ty, "refine", diagnosticItem);
   }
 
   if (packageBaseTypeName === "SuperRefine") {
-    return convertRefineType(ctx, ty, "superRefine");
+    return convertRefineType(ctx, ty, "superRefine", diagnosticItem);
   }
 
   let packageTypeName = undefined;
-  const typeSymbol = ty.getSymbol();
   if (typeSymbol && isInThisPackage(typeSymbol)) {
     packageTypeName = typeSymbol.getName();
   }
@@ -241,7 +332,8 @@ export function convertType(
         ty,
         "number",
         packageTypeName,
-        numberSchemaProperties
+        numberSchemaProperties,
+        diagnosticItem
       );
     case "StringSchema":
       return convertPrimitiveSchemaType(
@@ -249,7 +341,8 @@ export function convertType(
         ty,
         "string",
         packageTypeName,
-        stringSchemaProperties
+        stringSchemaProperties,
+        diagnosticItem
       );
     case "BigIntSchema":
       return convertPrimitiveSchemaType(
@@ -257,7 +350,8 @@ export function convertType(
         ty,
         "bigint",
         packageTypeName,
-        bigIntSchemaProperties
+        bigIntSchemaProperties,
+        diagnosticItem
       );
     case "DateSchema":
       return convertPrimitiveSchemaType(
@@ -265,7 +359,8 @@ export function convertType(
         ty,
         "date",
         packageTypeName,
-        dateSchemaProperties
+        dateSchemaProperties,
+        diagnosticItem
       );
     case "ObjectSchema": {
       const [objectType, typeArgs] = extractGenericSchemaTypeArguments(ctx, ty);
@@ -274,7 +369,8 @@ export function convertType(
         packageTypeName,
         objectSchemaProperties,
         typeArgs,
-        convertType(ctx, objectType)
+        convertType(ctx, objectType, diagnosticItem),
+        diagnosticItem
       );
     }
     case "ArraySchema": {
@@ -283,14 +379,15 @@ export function convertType(
         ty
       );
       const arrayConstructor = zodConstructor("array", [
-        convertType(ctx, elementType),
+        convertType(ctx, elementType, diagnosticItem),
       ]);
       return convertSchemaType(
         ctx,
         packageTypeName,
         arraySetSchemaProperties,
         typeArgs,
-        arrayConstructor
+        arrayConstructor,
+        diagnosticItem
       );
     }
     case "SetSchema": {
@@ -299,14 +396,15 @@ export function convertType(
         ty
       );
       const setConstructor = zodConstructor("set", [
-        convertType(ctx, elementType),
+        convertType(ctx, elementType, diagnosticItem),
       ]);
       return convertSchemaType(
         ctx,
         packageTypeName,
         arraySetSchemaProperties,
         typeArgs,
-        setConstructor
+        setConstructor,
+        diagnosticItem
       );
     }
   }
@@ -324,14 +422,14 @@ export function convertType(
         ) ||
         !declaration.getTypeParameters().length
       ) {
-        return convertSymbol(ctx, symbol);
+        return convertSymbol(ctx, symbol, diagnosticItem);
       }
     }
   }
   ctx.isRoot = false;
 
   const origin = getTypeOrigin(ty);
-  if (origin) return convertType(ctx, origin);
+  if (origin) return convertType(ctx, origin, diagnosticItem);
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
   }
@@ -340,12 +438,11 @@ export function convertType(
     const declaration = getDeclarationOrThrow(symbol);
     if (!isDeclarationExported(declaration)) {
       ctx.addError(
-        declaration.getSourceFile().getFilePath(),
+        { variant: "type", type: ty },
         {
           message:
             "Classes used in Zod schemas must be exported from their modules.",
-        },
-        true
+        }
       );
     }
     const escapedName = `__class_${symbol.compilerSymbol.escapedName}`;
@@ -363,22 +460,19 @@ export function convertType(
     const declaration = getDeclarationOrThrow(symbol);
     if (!isDeclarationExported(declaration)) {
       ctx.addError(
-        declaration.getSourceFile().getFilePath(),
+        { variant: "type", type: ty },
         {
           message:
             "Enums used in Zod schemas must be exported from their modules.",
-        },
-        true
+        }
       );
     }
     const escapedName = `__enum_${symbol.compilerSymbol.escapedName}`;
-    ctx
-      .getFileInfo(ctx.currentFilePath)
-      .imports.set(symbol.getName(), {
-        importFromUserFile: true,
-        as: escapedName,
-        sourceFile: declaration.getSourceFile().getFilePath(),
-      });
+    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+      importFromUserFile: true,
+      as: escapedName,
+      sourceFile: declaration.getSourceFile().getFilePath(),
+    });
 
     return zodConstructor("nativeEnum", [
       factory.createIdentifier(escapedName),
@@ -386,7 +480,7 @@ export function convertType(
   }
   if (ty.isUnion()) {
     let unionTypes = ty.getUnionTypes();
-    return convertUnionTypes(ctx, unionTypes);
+    return convertUnionTypes(ctx, unionTypes, diagnosticItem);
   }
   if (ty.isIntersection()) {
     const [first, ...rest] = ty.getIntersectionTypes();
@@ -405,13 +499,16 @@ export function convertType(
     //   );
     // }
     return rest.reduce(
-      (prev, next) => methodCall(prev, "and", [convertType(ctx, next)]),
-      convertType(ctx, first)
+      (prev, next) =>
+        methodCall(prev, "and", [convertType(ctx, next, diagnosticItem)]),
+      convertType(ctx, first, diagnosticItem)
     );
   }
   if (ty.isArray()) {
     const elemType = ty.getArrayElementTypeOrThrow();
-    return zodConstructor("array", [convertType(ctx, elemType)]);
+    return zodConstructor("array", [
+      convertType(ctx, elemType, diagnosticItem),
+    ]);
   }
   if (ty.isTuple()) {
     let tupleTypes = ty.getTupleElements();
@@ -425,8 +522,8 @@ export function convertType(
 
     if (restIndex >= 0) {
       if (restIndex != tupleTypes.length - 1) {
-        ctx.addTypeError(ty, {
-          message: "zod only supports rest elements at the end of tuples.",
+        ctx.addError(diagnosticItem, {
+          message: "Zod only supports rest elements at the end of tuples.",
         });
         return zodConstructor("any");
       }
@@ -438,12 +535,14 @@ export function convertType(
 
     let schema = zodConstructor("tuple", [
       factory.createArrayLiteralExpression(
-        tupleTypes.map((ty) => convertType(ctx, ty))
+        tupleTypes.map((ty) => convertType(ctx, ty, diagnosticItem))
       ),
     ]);
 
     if (restIndex >= 0) {
-      schema = methodCall(schema, "rest", [convertType(ctx, restType!)]);
+      schema = methodCall(schema, "rest", [
+        convertType(ctx, restType!, diagnosticItem),
+      ]);
     }
     return schema;
   }
@@ -462,11 +561,15 @@ export function convertType(
 
       return rest.reduce(
         (prev, curr) =>
-          methodCall(prev, "and", [convertCallSignature(ctx, curr)]),
-        convertCallSignature(ctx, first)
+          methodCall(prev, "and", [
+            convertCallSignature(ctx, curr, diagnosticItem),
+          ]),
+        convertCallSignature(ctx, first, diagnosticItem)
       );
     }
     if (isNativeObject(ty)) {
+      // TODO: for these items, the previous diagnostic item is likely more useful. Use
+      // that instead.
       switch (ty.getSymbol()?.getName()) {
         case "Date":
           return zodConstructor("date");
@@ -474,7 +577,9 @@ export function convertType(
           const args = ty.getTypeArguments();
           if (args.length !== 1)
             throw new Error(`expected one Set<> type argument`);
-          return zodConstructor("set", [convertType(ctx, args[0])]);
+          return zodConstructor("set", [
+            convertType(ctx, args[0], diagnosticItem),
+          ]);
         }
         case "Map": {
           const args = ty.getTypeArguments();
@@ -482,14 +587,16 @@ export function convertType(
             throw new Error(`expected two Map<> type arguments`);
           return zodConstructor(
             "map",
-            args.map((arg) => convertType(ctx, arg))
+            args.map((arg) => convertType(ctx, arg, diagnosticItem))
           );
         }
         case "Promise": {
           const args = ty.getTypeArguments();
           if (args.length !== 1)
             throw new Error(`expected one Promise<> type argument`);
-          return zodConstructor("promise", [convertType(ctx, args[0])]);
+          return zodConstructor("promise", [
+            convertType(ctx, args[0], diagnosticItem),
+          ]);
         }
       }
     }
@@ -510,10 +617,12 @@ export function convertType(
         const keyTypes = indexInfos.map((indexInfo) =>
           getTypeWrapper(ty, indexInfo.keyType)
         );
-        const keyType = convertUnionTypes(ctx, keyTypes);
+        const keyType = convertUnionTypes(ctx, keyTypes, diagnosticItem);
+        // TODO: should we set this to property where possible?
         const valueType = convertType(
           ctx,
-          getTypeWrapper(ty, indexInfos[0].type)
+          getTypeWrapper(ty, indexInfos[0].type),
+          diagnosticItem
         );
 
         return zodConstructor("record", [keyType, valueType]);
@@ -525,6 +634,7 @@ export function convertType(
             factory.createArrayLiteralExpression(recordTypes),
           ]);
     }
+
     return zodConstructor("object", [createZodShape(ctx, ty)]);
   }
   if (ty.compilerType.flags & ts.TypeFlags.ESSymbol) {
@@ -577,7 +687,11 @@ export function convertType(
     return zodConstructor("never");
   }
 
-  ctx.addError("todo", { message: `unsupported type: ${ty.getText()}` }, true);
+  ctx.addError(
+    diagnosticItem,
+    { message: `unsupported type: ${ty.getText()}` },
+    true
+  );
 }
 
 function zodConstructor(
@@ -646,14 +760,22 @@ function isNativeObject(ty: tm.Type): boolean {
 }
 function createZodShape(
   ctx: ConvertTypeContext,
-  ty: tm.Type<ts.Type>
+  type: tm.Type<ts.Type>
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
-    ty.getProperties().map((property) => {
-      const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
+    type.getProperties().map((property) => {
+      const propertyType = ctx.typeChecker.getTypeOfSymbolAtLocation(
+        property,
+        ctx.node
+      );
       return factory.createPropertyAssignment(
         property.getName(),
-        convertType(ctx, ty)
+        convertType(ctx, propertyType, {
+          variant: "property",
+          name: property.getName(),
+          symbol: property,
+          enclosingType: type,
+        })
       );
     })
   );
@@ -677,13 +799,18 @@ function isFalseLiteral(type: tm.Type): boolean {
 
 function convertCallSignature(
   ctx: ConvertTypeContext,
-  callSignature: tm.Signature
+  callSignature: tm.Signature,
+  diagnosticItem: DiagnosticItem
 ): ts.Expression {
   const argumentTypes = callSignature.getParameters().map((param) => {
     const paramType = param.getTypeAtLocation(ctx.node);
-    return convertType(ctx, paramType);
+    return convertType(ctx, paramType, diagnosticItem);
   });
-  const returnType = convertType(ctx, callSignature.getReturnType());
+  const returnType = convertType(
+    ctx,
+    callSignature.getReturnType(),
+    diagnosticItem
+  );
   return zodConstructor("function", [
     zodConstructor("tuple", [
       factory.createArrayLiteralExpression(argumentTypes),
@@ -694,7 +821,8 @@ function convertCallSignature(
 
 function convertUnionTypes(
   ctx: ConvertTypeContext,
-  unionTypes: tm.Type[]
+  unionTypes: tm.Type[],
+  diagnosticItem: DiagnosticItem
 ): ts.Expression {
   const isOptional = unionTypes.some((unionType) => unionType.isUndefined());
   const isNullable = unionTypes.some((unionType) => unionType.isNull());
@@ -740,14 +868,17 @@ function convertUnionTypes(
       return zodConstructor("discriminatedUnion", [
         factory.createStringLiteral(discriminator.getName()),
         factory.createArrayLiteralExpression(
-          unionTypes.map((unionType) => convertType(ctx, unionType))
+          unionTypes.map((unionType) =>
+            convertType(ctx, unionType, diagnosticItem)
+          )
         ),
       ]);
     }
   }
 
   let schema = (() => {
-    if (unionTypes.length === 1) return convertType(ctx, unionTypes[0]);
+    if (unionTypes.length === 1)
+      return convertType(ctx, unionTypes[0], diagnosticItem);
 
     if (unionTypes.every((unionType) => unionType.isStringLiteral())) {
       return zodConstructor("enum", [
@@ -776,7 +907,9 @@ function convertUnionTypes(
     return zodConstructor("union", [
       factory.createArrayLiteralExpression(
         [
-          ...nonSynthBooleanTypes.map((t) => convertType(ctx, t)),
+          ...nonSynthBooleanTypes.map((t) =>
+            convertType(ctx, t, diagnosticItem)
+          ),
           ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
         ],
         false
@@ -792,7 +925,8 @@ function convertUnionTypes(
 function convertRefineType(
   ctx: ConvertTypeContext,
   ty: tm.Type,
-  refineType: "refine" | "superRefine"
+  refineType: "refine" | "superRefine",
+  diagnosticItem: DiagnosticItem
 ): ts.Expression {
   const symbol = ty.getSymbolOrThrow(
     `failed to get symbol for ${refineType}: ${ty.getText()}`
@@ -800,9 +934,10 @@ function convertRefineType(
   const inputType = getNthBaseClassTypeArgument(ty, 0);
 
   // import the refine class
-  ctx
-    .getFileInfo(ctx.currentFilePath)
-    .imports.set(symbol.getName(), { importFromUserFile: true, sourceFile: getTypeFilePath(ty)! });
+  ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+    importFromUserFile: true,
+    sourceFile: getTypeFilePath(ty)!,
+  });
 
   const callArgs = [
     factory.createPropertyAccessExpression(
@@ -828,7 +963,11 @@ function convertRefineType(
     );
   }
 
-  return methodCall(convertType(ctx, inputType), refineType, callArgs);
+  return methodCall(
+    convertType(ctx, inputType, diagnosticItem),
+    refineType,
+    callArgs
+  );
 }
 
 const SCHEMA_TUPLE_TYPE_ERROR = `schema property of type tuple must be of form [<literal value>, "string literal message"]`;
@@ -838,12 +977,13 @@ function convertPrimitiveSchemaType(
   type: tm.Type,
   zodConstructorName: string,
   schemaTypeName: string,
-  allowedParameters: Set<string>
+  allowedParameters: Set<string>,
+  diagnosticItem: DiagnosticItem
 ): ts.Expression {
   const args = type.getTypeArguments();
   if (args.length === 0 || !args[0].isObject()) {
     ctx.addError(
-      "todo",
+      diagnosticItem,
       {
         message:
           "ts-to-zod schema types take object literals as validation properties",
@@ -857,7 +997,8 @@ function convertPrimitiveSchemaType(
     schemaTypeName,
     allowedParameters,
     typeArgs,
-    zodConstructor(zodConstructorName)
+    zodConstructor(zodConstructorName),
+    diagnosticItem
   );
 }
 
@@ -879,7 +1020,8 @@ function convertSchemaType(
   schemaTypeName: string,
   allowedParameters: Set<string>,
   typeArgs: tm.Type,
-  baseExpression: ts.Expression
+  baseExpression: ts.Expression,
+  diagnosticItem: DiagnosticItem
 ): ts.Expression {
   let expression = baseExpression;
 
@@ -900,12 +1042,25 @@ function convertSchemaType(
       : stringLiteral;
   };
 
+  const typeArgsSymbol = typeArgs.getAliasSymbol() || typeArgs.getSymbol();
+  if (typeArgsSymbol) {
+    const declaration = getDeclaration(typeArgsSymbol);
+    if (declaration) {
+      diagnosticItem = { variant: "type", type: typeArgs };
+    }
+  }
+
   for (const property of typeArgs.getProperties()) {
+    diagnosticItem = {
+      variant: "property",
+      name: property.getName(),
+      symbol: property,
+      enclosingType: typeArgs,
+    };
     const name = property.getName();
     if (!allowedParameters.has(name)) {
-      const declaration = property.getDeclarations()[0];
-      const filePath = declaration.getSourceFile().getFilePath();
-      ctx.addError(filePath, {
+      // TODO: customize how this is handled
+      ctx.addError(diagnosticItem, {
         message: `${schemaTypeName} does not accept ${name} as a parameter.`,
       });
       continue;
@@ -916,7 +1071,12 @@ function convertSchemaType(
     const ipDatetimeSpecialCase = name === "ip" || name === "datetime";
 
     const ty = ctx.typeChecker.getTypeOfSymbolAtLocation(property, ctx.node);
-    if (ipDatetimeSpecialCase && ty.isObject() && !ty.isArray()) {
+    if (
+      ipDatetimeSpecialCase &&
+      ty.isObject() &&
+      !ty.isArray() &&
+      !ty.isTuple()
+    ) {
       let versionSymbol = ty.getProperty("version");
       let precisionSymbol = ty.getProperty("precision");
       let offsetSymbol = ty.getProperty("offset");
@@ -973,7 +1133,9 @@ function convertSchemaType(
     }
 
     if (name === "catchall") {
-      expression = methodCall(expression, "catchall", [convertType(ctx, ty)]);
+      expression = methodCall(expression, "catchall", [
+        convertType(ctx, ty, diagnosticItem),
+      ]);
       continue;
     }
 
@@ -985,15 +1147,13 @@ function convertSchemaType(
     } else if (ty.isTuple()) {
       const tupleTypes = ty.getTupleElements();
       if (tupleTypes.length != 2) {
-        const typePath = getTypeFilePath(ty);
-        ctx.addError(typePath || "unknown", {
+        ctx.addError(diagnosticItem, {
           message: SCHEMA_TUPLE_TYPE_ERROR,
         });
         continue;
       } else if (ipDatetimeSpecialCase) {
-        const typePath = getTypeFilePath(ty);
-        ctx.addError(typePath || "unknown", {
-          message: `The DateSchema ${name} property does not accept a tuple with error string information.`,
+        ctx.addError(diagnosticItem, {
+          message: `The StringSchema ${name} property does not accept a tuple with error string information.`,
         });
         continue;
       }
@@ -1002,8 +1162,7 @@ function convertSchemaType(
         literalType.getLiteralValue() ||
         literalType.getFlags() === ts.TypeFlags.BooleanLiteral;
       if (!value || messageType.getFlags() !== ts.TypeFlags.StringLiteral) {
-        const typePath = getTypeFilePath(ty);
-        ctx.addError(typePath || "unknown", {
+        ctx.addError(diagnosticItem, {
           message: SCHEMA_TUPLE_TYPE_ERROR,
         });
         continue;
@@ -1012,9 +1171,8 @@ function convertSchemaType(
       literalValue = value;
       literalMessage = messageType.getLiteralValue() as string;
     } else {
-      const typePath = getTypeFilePath(ty);
-      ctx.addError(typePath || "unknown", {
-        message: `invalid parameter value passed for ${name}`,
+      ctx.addError(diagnosticItem, {
+        message: `Invalid parameter value passed for ${name}`,
       });
       continue;
     }
