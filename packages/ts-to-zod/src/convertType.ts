@@ -1304,6 +1304,13 @@ function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
     ) {
       return declaration;
     }
+    
+    if (declaration instanceof tm.ImportSpecifier) {
+      const symbol = declaration.getSymbol();
+      if (symbol && !symbol.getValueDeclaration()) {
+        return declaration;
+      }
+    }
   }
 
   return undefined;
