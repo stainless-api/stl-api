@@ -100,23 +100,30 @@ async function main() {
       hasMagicCall = true;
 
       const [typeArgument] = typeRefArguments;
+      
+      let hasTypeArguments = false;
+      
+      if (typeArgument instanceof tm.TypeReferenceNode) {
+        const name = typeArgument.getTypeName();
+        if (typeArgument.getTypeArguments().length) hasTypeArguments = true;
+        const symbol = name.getSymbolOrThrow();
+      } else {
+        
+      }
+      
+
+
       const type = typeArgument.getType();
-
       let schemaExpression: ts.Expression;
-
-      const typeSymbol = type.getAliasSymbol() || type.getSymbol();
 
       ctx.isRoot = true;
       ctx.diagnostics = new Map();
       if (
-        typeSymbol &&
-        (type.getAliasSymbol() ||
-          type.isInterface() ||
-          type.isEnum() ||
-          type.isClass())
+        typeArgument instanceof tm.TypeReferenceNode && typeArgument.getTypeArguments().length === 0
       ) {
+        const symbol = typeArgument.getTypeName().getSymbolOrThrow();
         try {
-          convertSymbol(ctx, typeSymbol, {
+          convertSymbol(ctx, symbol, {
             variant: "node",
             node: typeArgument,
           });
@@ -126,9 +133,9 @@ async function main() {
         } finally {
           addDiagnostics(ctx, file, callExpression, callDiagnostics);
         }
-        const name = typeSymbol.getName();
+        const name = symbol.getName();
         let as;
-        const declaration = typeSymbol.getDeclarations()[0];
+        const declaration = symbol.getDeclarations()[0];
         // TODO factor out this logic in ts-to-zod and export a function
         if (type.isEnum()) {
           as = `__enum_${name}`;
@@ -141,7 +148,7 @@ async function main() {
         const declarationFilePath = declaration.getSourceFile().getFilePath();
 
         if (declarationFilePath === file.getFilePath()) {
-          imports.set(typeSymbol.getName(), {
+          imports.set(symbol.getName(), {
             as,
             sourceFile: declarationFilePath,
           });
