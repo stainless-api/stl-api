@@ -53,7 +53,6 @@ async function main() {
 
   const baseCtx = new SchemaGenContext(project);
 
-  const callDiagnostics: MagicCallDiagnostics[] = [];
 
   const generationOptions = {
     genLocation: {
@@ -65,6 +64,8 @@ async function main() {
   } as const;
   const generationConfig = createGenerationConfig(generationOptions);
   const printer = tm.ts.createPrinter();
+
+  const callDiagnostics: MagicCallDiagnostics[] = [];
 
   for (const file of project.getSourceFiles()) {
     const ctx = new ConvertTypeContext(baseCtx, file);
@@ -101,18 +102,6 @@ async function main() {
 
       const [typeArgument] = typeRefArguments;
       
-      let hasTypeArguments = false;
-      
-      if (typeArgument instanceof tm.TypeReferenceNode) {
-        const name = typeArgument.getTypeName();
-        if (typeArgument.getTypeArguments().length) hasTypeArguments = true;
-        const symbol = name.getSymbolOrThrow();
-      } else {
-        
-      }
-      
-
-
       const type = typeArgument.getType();
       let schemaExpression: ts.Expression;
 

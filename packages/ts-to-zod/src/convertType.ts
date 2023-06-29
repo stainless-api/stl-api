@@ -220,7 +220,11 @@ export function convertSymbol(
 
   const declaration = getDeclaration(symbol);
   if (!declaration) {
-    ctx.addError(diagnosticItem, {message: `Could not find type of name \`${symbol.getName()}\``}, true);
+    ctx.addError(
+      diagnosticItem,
+      { message: `Could not find type of name \`${symbol.getName()}\`` },
+      true
+    );
   }
   const internalCtx = new ConvertTypeContext(ctx, declaration);
   const type = declaration.getType();
@@ -313,11 +317,11 @@ export function convertType(
   }
 
   if (packageBaseTypeName === "Refine") {
-    return convertRefineType(ctx, ty, "refine", diagnosticItem);
+    return convertRefineType(ctx, ty, typeSymbol, "refine", diagnosticItem);
   }
 
   if (packageBaseTypeName === "SuperRefine") {
-    return convertRefineType(ctx, ty, "superRefine", diagnosticItem);
+    return convertRefineType(ctx, ty, typeSymbol, "superRefine", diagnosticItem);
   }
 
   let packageTypeName = undefined;
@@ -409,10 +413,10 @@ export function convertType(
     }
   }
 
-  if (!ctx.isRoot && !isNativeObject(ty)) {
+  if (!ctx.isRoot && !isNativeObject(typeSymbol)) {
     const symbol =
       ty.getAliasSymbol() ||
-      (ty.isInterface() && !isNativeObject(ty) ? ty.getSymbol() : null);
+      (ty.isInterface() && !isNativeObject(typeSymbol) ? typeSymbol : null);
     if (symbol) {
       const declaration = getDeclaration(symbol);
       if (
@@ -434,8 +438,14 @@ export function convertType(
     return zodConstructor("boolean");
   }
   if (ty.isClass()) {
-    const symbol = ty.getSymbolOrThrow();
-    const declaration = getDeclarationOrThrow(symbol);
+    if (!typeSymbol) {
+      ctx.addError(
+        diagnosticItem,
+        { message: `Could not find class ${ty.getText()}` },
+        true
+      );
+    }
+    const declaration = getDeclarationOrThrow(typeSymbol);
     if (!isDeclarationExported(declaration)) {
       ctx.addError(
         { variant: "type", type: ty },
@@ -445,8 +455,8 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__class_${symbol.compilerSymbol.escapedName}`;
-    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+    const escapedName = `__class_${typeSymbol.compilerSymbol.escapedName}`;
+    ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
       sourceFile: declaration.getSourceFile().getFilePath(),
@@ -456,8 +466,14 @@ export function convertType(
     ]);
   }
   if (ty.isEnum()) {
-    const symbol = ty.getSymbolOrThrow();
-    const declaration = getDeclarationOrThrow(symbol);
+    if (!typeSymbol) {
+      ctx.addError(
+        diagnosticItem,
+        { message: `Could not find enum ${ty.getText()}` },
+        true
+      );
+    }
+    const declaration = getDeclarationOrThrow(typeSymbol);
     if (!isDeclarationExported(declaration)) {
       ctx.addError(
         { variant: "type", type: ty },
@@ -467,8 +483,8 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__enum_${symbol.compilerSymbol.escapedName}`;
-    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+    const escapedName = `__enum_${typeSymbol.compilerSymbol.escapedName}`;
+    ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
       sourceFile: declaration.getSourceFile().getFilePath(),
@@ -567,10 +583,10 @@ export function convertType(
         convertCallSignature(ctx, first, diagnosticItem)
       );
     }
-    if (isNativeObject(ty)) {
+    if (isNativeObject(typeSymbol)) {
       // TODO: for these items, the previous diagnostic item is likely more useful. Use
       // that instead.
-      switch (ty.getSymbol()?.getName()) {
+      switch (typeSymbol?.getName()) {
         case "Date":
           return zodConstructor("date");
         case "Set": {
@@ -723,13 +739,6 @@ function methodCall(
   );
 }
 
-/** The file in which a type was declared. Likely unsuitable for use for interfaces that might be extended. */
-function typeSourceFile(ty: tm.Type): string | undefined {
-  const symbol = ty.getSymbol();
-  if (!symbol) return;
-  return getDeclaration(symbol)?.getSourceFile().getFilePath();
-}
-
 function getTypeOrigin(type: ts.Type): ts.Type | undefined;
 function getTypeOrigin(type: tm.Type): tm.Type | undefined;
 function getTypeOrigin(type: ts.Type | tm.Type): ts.Type | tm.Type | undefined {
@@ -746,17 +755,12 @@ function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
   return ctxProvider._context.compilerFactory.getType(type);
 }
 
-function getSymbolWrapper(
-  ctxProvider: tm.Symbol,
-  symbol: ts.Symbol
-): tm.Symbol {
-  // @ts-expect-error
-  return ctxProvider._context.compilerFactory.getSymbol(symbol);
-}
-
-function isNativeObject(ty: tm.Type): boolean {
-  const sourceFile = typeSourceFile(ty);
-  return sourceFile?.match(/typescript\/lib\/.*\.d\.ts$/) != null;
+function isNativeObject(symbol: tm.Symbol | undefined): boolean {
+  if (!symbol) return false;
+  const declaration = getDeclaration(symbol);
+  const sourceFile = declaration?.getSourceFile().getFilePath();
+  if (!sourceFile) return false;
+  return sourceFile.match(/typescript\/lib\/.*\.d\.ts$/) != null;
 }
 function createZodShape(
   ctx: ConvertTypeContext,
@@ -766,7 +770,7 @@ function createZodShape(
     type.getProperties().map((property) => {
       const propertyType = ctx.typeChecker.getTypeOfSymbolAtLocation(
         property,
-        ctx.node
+        ctx.node,
       );
       return factory.createPropertyAssignment(
         property.getName(),
@@ -925,12 +929,17 @@ function convertUnionTypes(
 function convertRefineType(
   ctx: ConvertTypeContext,
   ty: tm.Type,
+  symbol: tm.Symbol | undefined,
   refineType: "refine" | "superRefine",
   diagnosticItem: DiagnosticItem
 ): ts.Expression {
-  const symbol = ty.getSymbolOrThrow(
-    `failed to get symbol for ${refineType}: ${ty.getText()}`
-  );
+  if (!symbol) {
+    ctx.addError(
+      diagnosticItem,
+      { message: `failed to get symbol for ${refineType}: ${ty.getText()}` },
+      true
+    );
+  }
   const inputType = getNthBaseClassTypeArgument(ty, 0);
 
   // import the refine class
@@ -1304,7 +1313,7 @@ function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
     ) {
       return declaration;
     }
-    
+
     if (declaration instanceof tm.ImportSpecifier) {
       const symbol = declaration.getSymbol();
       if (symbol && !symbol.getValueDeclaration()) {
@@ -1321,4 +1330,15 @@ function getDeclarationOrThrow(symbol: tm.Symbol): tm.Node {
   if (!declaration) {
     throw new Error("could not get type declaration for that symbol");
   } else return declaration;
+}
+
+function getPropertyDeclaration(symbol: tm.Symbol): tm.Node | undefined {
+  for (const declaration of symbol.getDeclarations()) {
+   if ( 
+            declaration instanceof tm.PropertyDeclaration ||
+            declaration instanceof tm.PropertySignature
+   ) {
+     return declaration;
+   }
+  }
 }
