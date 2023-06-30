@@ -23,7 +23,21 @@ import {
   generateImportStatements,
 } from "ts-to-zod/dist/generateFiles";
 
-import { createGenerationConfig } from "ts-to-zod/dist/filePathConfig";
+import {
+  GenOptions,
+  createGenerationConfig,
+} from "ts-to-zod/dist/filePathConfig";
+import { Watcher } from "./watch";
+
+import { program as argParser } from "commander";
+
+// TODO: add dry run functionality?
+argParser.option("-w, --watch", "enables watch mode");
+argParser.option(
+  "-d, --directory <path>",
+  "the directory to generate schemas for",
+  "."
+);
 
 const NODE_MODULES_GEN_PATH = "stl-api/gen/";
 
@@ -35,24 +49,29 @@ interface MagicCallDiagnostics {
 }
 
 async function main() {
-  if (process.argv.length < 3) {
-    console.log("Need to pass directory");
-    process.exit();
-  }
+  argParser.parse();
+  const options = argParser.opts();
 
   const packageJsonPath = await pkgUp({
-    cwd: process.argv[2],
+    cwd: options.directory,
   });
-  if (!packageJsonPath) throw "todo";
+  if (!packageJsonPath) {
+    console.error(
+      `Folder ${Path.relative(
+        "./",
+        options.directory
+      )} and its parent directories do not contain a package.json.`
+    );
+    process.exit(1);
+  }
   const rootPath = Path.dirname(packageJsonPath);
 
   const project = new tm.Project({
     // TODO: should file path be configurable?
-    tsConfigFilePath: Path.join(process.argv[2], "tsconfig.json"),
+    tsConfigFilePath: Path.join(rootPath, "tsconfig.json"),
   });
 
   const baseCtx = new SchemaGenContext(project);
-
 
   const generationOptions = {
     genLocation: {
@@ -62,8 +81,69 @@ async function main() {
     rootPath,
     zPackage: "stainless",
   } as const;
-  const generationConfig = createGenerationConfig(generationOptions);
   const printer = tm.ts.createPrinter();
+
+  let watcher: Watcher | undefined;
+  if (options.watch) {
+    watcher = new Watcher(rootPath);
+  }
+
+  const succeeded = await evaluate(
+    project,
+    baseCtx,
+    generationOptions,
+    rootPath,
+    printer
+  );
+
+  if (watcher) {
+    for await (const { path } of watcher.getEvents()) {
+      console.clear();
+      const relativePath = Path.relative("./", path);
+      console.log(`Found change in ${relativePath}.`);
+      const succeeded = await evaluate(
+        watcher.project,
+        watcher.baseCtx,
+        generationOptions,
+        rootPath,
+        printer
+      );
+      if (succeeded) {
+        console.clear();
+        console.log(`Successfully processed ${relativePath}.`);
+      }
+      console.log("Watching for file changes...");
+    }
+  } else if (!succeeded) {
+    process.exit(1);
+  }
+}
+
+(async () => {
+  await main();
+})()
+  .then()
+  .catch(console.log);
+
+function generateIncidentLocation(
+  filePath: string,
+  incident: Incident
+): string {
+  const position = incident.position
+    ? `${incident.position.startLine}:${incident.position.startColumn}:`
+    : "";
+  return chalk.gray(`${filePath}:${position}`);
+}
+
+/** returns true on successful generation of files, false otherwise */
+async function evaluate(
+  project: tm.Project,
+  baseCtx: SchemaGenContext,
+  generationOptions: GenOptions,
+  rootPath: string,
+  printer: ts.Printer
+): Promise<boolean> {
+  const generationConfig = createGenerationConfig(generationOptions);
 
   const callDiagnostics: MagicCallDiagnostics[] = [];
 
@@ -101,14 +181,15 @@ async function main() {
       hasMagicCall = true;
 
       const [typeArgument] = typeRefArguments;
-      
+
       const type = typeArgument.getType();
       let schemaExpression: ts.Expression;
 
       ctx.isRoot = true;
       ctx.diagnostics = new Map();
       if (
-        typeArgument instanceof tm.TypeReferenceNode && typeArgument.getTypeArguments().length === 0
+        typeArgument instanceof tm.TypeReferenceNode &&
+        typeArgument.getTypeArguments().length === 0
       ) {
         const symbol = typeArgument.getTypeName().getSymbolOrThrow();
         try {
@@ -184,10 +265,10 @@ async function main() {
     const fileInfo = ctx.files.get(file.getFilePath());
     if (fileInfo) {
       for (const [name, importInfo] of fileInfo.imports) {
-        // TODO: is handling multiple declarations relevant here?
         // Don't include imports that would import from the file we're
         // currently processing. This is relevant when handling enums and
         // classes.
+        // TODO: is handling multiple declarations relevant here?
         if (importInfo.sourceFile === file.getFilePath()) {
           imports.set(name, {
             ...importInfo,
@@ -325,7 +406,7 @@ async function main() {
 
     if (errorCount > 0) {
       console.log("No modifications were made to package source.");
-      process.exit(0);
+      return false;
     }
   }
 
@@ -343,22 +424,8 @@ async function main() {
     // write sourceFile to file
     await fs.promises.writeFile(file, printer.printFile(fileContents));
   }
-}
 
-(async () => {
-  await main();
-})()
-  .then()
-  .catch(console.log);
-
-function generateIncidentLocation(
-  filePath: string,
-  incident: Incident
-): string {
-  const position = incident.position
-    ? `${incident.position.startLine}:${incident.position.startColumn}:`
-    : "";
-  return chalk.gray(`${filePath}:${position}`);
+  return true;
 }
 
 function generateDiagnosticDetails({
