@@ -375,6 +375,12 @@ importers:
       chalk:
         specifier: 4.1.2
         version: 4.1.2
+      chokidar:
+        specifier: ^3.5.3
+        version: 3.5.3
+      commander:
+        specifier: ^11.0.0
+        version: 11.0.0
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -5090,6 +5096,11 @@ packages:
 
   /comma-separated-tokens@1.0.8:
     resolution: {integrity: sha512-GHuDRO12Sypu2cV70d1dkA2EUmXHgntrzbpvOB+Qy+49ypNfGgFQIC2fhhXbnyrJRynDCAARsT7Ou0M6hirpfw==}
+    dev: false
+
+  /commander@11.0.0:
+    resolution: {integrity: sha512-9HMlXtt/BNoYr8ooyjjNRdIilOTkVJXB+GhxMTtOKwk0R4j4lS4NpjuqmRxroBfnfTSHQIHQB7wryHhXarNjmQ==}
+    engines: {node: '>=16'}
     dev: false
 
   /commander@2.20.3:
