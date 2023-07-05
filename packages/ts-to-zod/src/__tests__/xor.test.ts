@@ -33,7 +33,17 @@ it(`XOR type`, async () => {
   })
 ).toMatchInlineSnapshot(`
 {
-  "src/__tests__/xor.test.codegen.ts": "import { z } from "zod";
+  "src/__tests__/xor.test.codegen.d.ts": "import { z } from "zod";
+const Pet: z.ZodTypeAny;
+const Person: z.ZodTypeAny;
+const T: z.ZodTypeAny;
+",
+  "src/__tests__/xor.test.codegen.js": "const { z } = require("zod");
+const Pet = z.object({ name: z.string(), breed: z.string() });
+const Person = z.object({ name: z.string(), language: z.string() });
+const T = z.union([z.object({ language: z.undefined() }).and(z.lazy(() => Pet)), z.object({ breed: z.undefined() }).and(z.lazy(() => Person))]);
+",
+  "src/__tests__/xor.test.codegen.mjs": "import { z } from "zod";
 const Pet = z.object({ name: z.string(), breed: z.string() });
 const Person = z.object({ name: z.string(), language: z.string() });
 const T = z.union([z.object({ language: z.undefined() }).and(z.lazy(() => Pet)), z.object({ breed: z.undefined() }).and(z.lazy(() => Person))]);
