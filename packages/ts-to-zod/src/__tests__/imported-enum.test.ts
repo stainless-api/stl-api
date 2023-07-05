@@ -10,12 +10,28 @@ it(`imported enum`, async () =>
   })
 ).toMatchInlineSnapshot(`
 {
-  "src/__tests__/common.codegen.ts": "import { z } from "zod";
+  "src/__tests__/common.codegen.d.ts": "import { z } from "zod";
+import { Enum as __enum_Enum } from "./common";
+export const Enum: z.ZodTypeAny;
+",
+  "src/__tests__/common.codegen.js": "const { z } = require("zod");
+const { Enum: __enum_Enum } = require("./common");
+exports.Enum = z.nativeEnum(__enum_Enum);
+",
+  "src/__tests__/common.codegen.mjs": "import { z } from "zod";
 import { Enum as __enum_Enum } from "./common";
 export const Enum = z.nativeEnum(__enum_Enum);
 ",
-  "src/__tests__/imported-enum.test.codegen.ts": "import { z } from "zod";
-import { Enum as __enum_Enum } from "./common.codegen";
+  "src/__tests__/imported-enum.test.codegen.d.ts": "import { z } from "zod";
+import { Enum as __enum_Enum } from "./common";
+const T: z.ZodTypeAny;
+",
+  "src/__tests__/imported-enum.test.codegen.js": "const { z } = require("zod");
+const { Enum: __enum_Enum } = require("./common");
+const T = z.array(z.lazy(() => __enum_Enum));
+",
+  "src/__tests__/imported-enum.test.codegen.mjs": "import { z } from "zod";
+import { Enum as __enum_Enum } from "./common";
 const T = z.array(z.lazy(() => __enum_Enum));
 ",
 }
