@@ -1347,7 +1347,8 @@ function getDeclarationOrThrow(symbol: tm.Symbol): tm.Node {
   } else return declaration;
 }
 
-function getPropertyDeclaration(symbol: tm.Symbol): tm.Node | undefined {
+// TODO: move to utils file
+export function getPropertyDeclaration(symbol: tm.Symbol): tm.Node | undefined {
   for (const declaration of symbol.getDeclarations()) {
    if ( 
             declaration instanceof tm.PropertyDeclaration ||

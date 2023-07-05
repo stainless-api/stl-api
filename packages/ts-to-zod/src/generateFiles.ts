@@ -12,14 +12,11 @@ import {
 export function generateFiles(
   ctx: SchemaGenContext,
   options: GenOptions
-): Map<string, ts.SourceFile> {
+): Map<string, ts.Statement[]> {
   const outputMap = new Map();
   const generationConfig = createGenerationConfig(options);
   for (const [path, info] of ctx.files.entries()) {
-    const generatedPath = generatePath({
-      path,
-      ...generationConfig,
-    });
+    const generatedPath = generatePath(path, generationConfig);
 
     const statements: ts.Statement[] = generateImportStatements(
       generationConfig,
@@ -43,12 +40,7 @@ export function generateFiles(
       );
       statements.push(variableStatement);
     }
-    const sourceFile = factory.createSourceFile(
-      statements,
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-    outputMap.set(generatedPath, sourceFile);
+    outputMap.set(generatedPath, statements);
   }
   return outputMap;
 }
@@ -62,24 +54,10 @@ function relativeImportPath(
   return relativePath;
 }
 
-function generatePath({
-  /** Path of the file for which the schema is being generated */
-  path,
-  /** The root path of the project. Usually the root of an npm package. */
-  rootPath,
-  /** Base path where user file schemas should be generated in */
-  basePath,
-  /** Base path where dependency file schemas should be generated in */
-  baseDependenciesPath,
-  /** The suffix to append to file names, if specified */
-  suffix,
-}: {
-  path: string;
-  rootPath: string;
-  basePath: string;
-  baseDependenciesPath: string;
-  suffix?: string;
-}): string {
+export function generatePath(
+  path: string,
+  { basePath, baseDependenciesPath, rootPath, suffix }: GenerationConfig
+): string {
   // set cwd to the root path for proper processing of relative paths
   // save old cwd to restore later
   // either basePath or baseDependenciesPath
@@ -110,12 +88,7 @@ export function generateImportStatements(
     ([symbol, { importFromUserFile, sourceFile }]) =>
       relativeImportPath(
         filePath,
-        importFromUserFile
-          ? sourceFile
-          : generatePath({
-              path: sourceFile,
-              ...config,
-            })
+        importFromUserFile ? sourceFile : generatePath(sourceFile, config)
       )
   );
   const zImportClause = factory.createImportClause(
