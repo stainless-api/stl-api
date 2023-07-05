@@ -92,5 +92,4 @@ function propertyToNodeType(property: tm.Symbol, location: tm.Node): NodeType {
   const node = getPropertyDeclaration(property);
   if (!node) throw new Error("internal error: invalid property encountered");
   return [node, property.getTypeAtLocation(location)];
-
 }

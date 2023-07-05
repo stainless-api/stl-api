@@ -183,7 +183,7 @@ export interface ImportInfo {
   sourceFile: string;
 }
 
-interface FileInfo {
+export interface FileInfo {
   imports: Map<string, ImportInfo>;
   generatedSchemas: GeneratedSchema[];
   /** maps imported type id to local identifier it's imported as */
@@ -205,9 +205,16 @@ function buildImportTypeMap(sourceFile: tm.SourceFile): Map<number, string> {
 }
 
 interface GeneratedSchema {
-  symbol: tm.Symbol;
+  name: string;
   expression: ts.Expression;
   isExported: boolean;
+  /** 
+   * The type for the schema value to generate in d.ts. 
+   * Defaults to `z.ZodTypeAny`. 
+   */
+  type?: ts.TypeNode,
+  /** Whether the type shouldn't be exported from the definition file. Defaults to false. */
+  private?: boolean,
 }
 
 export function convertSymbol(
@@ -256,7 +263,7 @@ export function convertSymbol(
     ctx.symbols.add(symbol);
     const generated = convertType(internalCtx, type, diagnosticItem);
     const generatedSchema = {
-      symbol,
+      name: symbol.getName(),
       expression: generated,
       isExported: isRoot || isDeclarationExported(declaration),
     };

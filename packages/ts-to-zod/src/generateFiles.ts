@@ -1,6 +1,6 @@
-import { groupBy } from "lodash";
-import { ImportInfo, SchemaGenContext } from "./convertType";
-import { ts, Symbol } from "ts-morph";
+import { Dictionary, groupBy } from "lodash";
+import { FileInfo, ImportInfo, SchemaGenContext } from "./convertType";
+import { ts } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
 import {
@@ -18,31 +18,127 @@ export function generateFiles(
   for (const [path, info] of ctx.files.entries()) {
     const generatedPath = generatePath(path, generationConfig);
 
-    const statements: ts.Statement[] = generateImportStatements(
-      generationConfig,
-      generatedPath,
-      options.zPackage,
-      info.imports
-    );
+    const esmPath = `${generatedPath}.mjs`;
+    const dtsPath = `${generatedPath}.d.ts`;
+    const cjsPath = `${generatedPath}.js`;
 
-    for (const schema of info.generatedSchemas) {
+    outputMap.set(
+      esmPath,
+      generateStatementsESM(info, generationConfig, generatedPath, options)
+    );
+    outputMap.set(
+      dtsPath,
+      generateStatementsDTS(info, generationConfig, generatedPath, options)
+    );
+    outputMap.set(
+      cjsPath,
+      generateStatementsCJS(info, generationConfig, generatedPath, options)
+    );
+  }
+  return outputMap;
+}
+
+function generateStatementsESM(
+  info: FileInfo,
+  generationConfig: GenerationConfig,
+  generatedPath: string,
+  options: GenOptions
+): ts.Statement[] {
+  const statements: ts.Statement[] = generateImportStatementsESM(
+    generationConfig,
+    generatedPath,
+    options.zPackage,
+    info.imports
+  );
+
+  for (const schema of info.generatedSchemas) {
+    const declaration = factory.createVariableDeclaration(
+      schema.name,
+      undefined,
+      undefined,
+      schema.expression
+    );
+    const variableStatement = factory.createVariableStatement(
+      schema.isExported
+        ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
+        : [],
+      factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
+    );
+    statements.push(variableStatement);
+  }
+  return statements;
+}
+
+function generateStatementsDTS(
+  info: FileInfo,
+  generationConfig: GenerationConfig,
+  generatedPath: string,
+  options: GenOptions
+): ts.Statement[] {
+  const statements: ts.Statement[] = generateImportStatementsESM(
+    generationConfig,
+    generatedPath,
+    options.zPackage,
+    info.imports
+  );
+
+  for (const schema of info.generatedSchemas) {
+    if (schema.private) continue;
+    const declaration = factory.createVariableDeclaration(
+      schema.name,
+      undefined,
+      schema.type || factory.createTypeReferenceNode("z.ZodTypeAny")
+    );
+    const variableStatement = factory.createVariableStatement(
+      schema.isExported
+        ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
+        : [],
+      factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
+    );
+    statements.push(variableStatement);
+  }
+  return statements;
+}
+
+function generateStatementsCJS(
+  info: FileInfo,
+  generationConfig: GenerationConfig,
+  generatedPath: string,
+  options: GenOptions
+): ts.Statement[] {
+  const statements: ts.Statement[] = generateImportStatementsCJS(
+    generationConfig,
+    generatedPath,
+    options.zPackage,
+    info.imports
+  );
+
+  for (const schema of info.generatedSchemas) {
+    if (schema.isExported) {
+      const exportTarget = factory.createPropertyAccessExpression(
+        factory.createIdentifier("exports"),
+        schema.name
+      );
+      statements.push(
+        factory.createExpressionStatement(
+          factory.createAssignment(exportTarget, schema.expression)
+        )
+      );
+    } else {
       const declaration = factory.createVariableDeclaration(
-        schema.symbol.getName(),
+        schema.name,
         undefined,
         undefined,
         schema.expression
       );
       const variableStatement = factory.createVariableStatement(
-        schema.isExported
-          ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
-          : [],
+        undefined,
         factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
       );
       statements.push(variableStatement);
     }
-    outputMap.set(generatedPath, statements);
   }
-  return outputMap;
+  return statements;
 }
 
 function relativeImportPath(
@@ -54,6 +150,7 @@ function relativeImportPath(
   return relativePath;
 }
 
+/** Returns the path in which to generate schemas for an input path. Generates without a file extension. */
 export function generatePath(
   path: string,
   { basePath, baseDependenciesPath, rootPath, suffix }: GenerationConfig
@@ -73,24 +170,54 @@ export function generatePath(
     );
   }
 
-  return Path.join(chosenBasePath, Path.relative(rootPath, path));
+  const pathWithExtension = Path.join(
+    chosenBasePath,
+    Path.relative(rootPath, path)
+  );
+  const parsed = Path.parse(pathWithExtension);
+  return Path.join(parsed.dir, parsed.name);
 }
 
-export function generateImportStatements(
-  config: GenerationConfig,
+function generateImportGroups(
+  imports: Map<string, ImportInfo>,
   filePath: string,
-  zPackage: string | undefined,
-  imports: Map<string, ImportInfo>
-): ts.ImportDeclaration[] {
-  const importDeclarations = [];
-  const importGroups = groupBy(
+  config: GenerationConfig
+): Dictionary<[string, ImportInfo][]> {
+  return groupBy(
     [...imports.entries()],
-    ([symbol, { importFromUserFile, sourceFile }]) =>
+    ([_, { importFromUserFile, sourceFile }]) =>
       relativeImportPath(
         filePath,
         importFromUserFile ? sourceFile : generatePath(sourceFile, config)
       )
   );
+}
+
+function normalizeImport(relativePath: string): string {
+  // use absolute, not relative, imports for things in node_modules
+  const nodeModulesPos = relativePath.lastIndexOf("node_modules");
+  if (nodeModulesPos >= 0) {
+    relativePath = relativePath.substring(nodeModulesPos + 13);
+  }
+
+  // strip extension like '.ts' off file
+  const parsedRelativePath = Path.parse(relativePath);
+  let extensionlessRelativePath = Path.join(
+    parsedRelativePath.dir,
+    parsedRelativePath.name
+  );
+  if (extensionlessRelativePath[0] !== "." && nodeModulesPos < 0) {
+    extensionlessRelativePath = `./${extensionlessRelativePath}`;
+  }
+  return extensionlessRelativePath;
+}
+
+export function generateImportStatementsESM(
+  config: GenerationConfig,
+  filePath: string,
+  zPackage: string | undefined,
+  imports: Map<string, ImportInfo>
+): ts.ImportDeclaration[] {
   const zImportClause = factory.createImportClause(
     false,
     undefined,
@@ -108,7 +235,9 @@ export function generateImportStatements(
     factory.createStringLiteral(zPackage || "zod")
   );
 
-  importDeclarations.push(zImportDeclaration);
+  const importDeclarations = [zImportDeclaration];
+
+  const importGroups = generateImportGroups(imports, filePath, config);
 
   for (let [relativePath, entries] of Object.entries(importGroups)) {
     const importSpecifiers = entries.map(([name, { as }]) => {
@@ -126,29 +255,86 @@ export function generateImportStatements(
       factory.createNamedImports(importSpecifiers)
     );
 
-    // use absolute, not relative, imports for things in node_modules
-    const nodeModulesPos = relativePath.lastIndexOf("node_modules");
-    if (nodeModulesPos >= 0) {
-      relativePath = relativePath.substring(nodeModulesPos + 13);
-    }
-
-    // strip extension like '.ts' off file
-    const parsedRelativePath = Path.parse(relativePath);
-    let extensionlessRelativePath = Path.join(
-      parsedRelativePath.dir,
-      parsedRelativePath.name
-    );
-    if (extensionlessRelativePath[0] !== "." && nodeModulesPos < 0) {
-      extensionlessRelativePath = `./${extensionlessRelativePath}`;
-    }
+    const normalizedImport = normalizeImport(relativePath);
 
     const importDeclaration = factory.createImportDeclaration(
       undefined,
       importClause,
-      factory.createStringLiteral(extensionlessRelativePath),
+      factory.createStringLiteral(normalizedImport),
       undefined
     );
     importDeclarations.push(importDeclaration);
   }
   return importDeclarations;
+}
+
+export function generateImportStatementsCJS(
+  config: GenerationConfig,
+  filePath: string,
+  zPackage: string | undefined,
+  imports: Map<string, ImportInfo>
+): ts.Statement[] {
+  const zRequireExpression = factory.createCallExpression(
+    factory.createIdentifier("require"),
+    undefined,
+    [factory.createStringLiteral(zPackage || "zod")]
+  );
+  const zImportStatement = factory.createVariableStatement(
+    [],
+    factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          factory.createObjectBindingPattern([
+            factory.createBindingElement(undefined, undefined, "z"),
+          ]),
+          undefined,
+          undefined,
+          zRequireExpression
+        ),
+      ],
+      ts.NodeFlags.Const
+    )
+  );
+
+  const importStatements: ts.Statement[] = [zImportStatement];
+
+  const importGroups = generateImportGroups(imports, filePath, config);
+
+  for (let [relativePath, entries] of Object.entries(importGroups)) {
+    const bindingElements = entries.map(([name, { as }]) => {
+      if (as === name) as = undefined;
+
+      return factory.createBindingElement(
+        undefined,
+        as ? factory.createIdentifier(name) : undefined,
+        factory.createIdentifier(as || name)
+      );
+    });
+    const requireDestructure =
+      factory.createObjectBindingPattern(bindingElements);
+
+    const normalizedImport = normalizeImport(relativePath);
+    const requireExpression = factory.createCallExpression(
+      factory.createIdentifier("require"),
+      undefined,
+      [factory.createStringLiteral(normalizedImport)]
+    );
+
+    const importStatement = factory.createVariableStatement(
+      undefined,
+      factory.createVariableDeclarationList(
+        [
+          factory.createVariableDeclaration(
+            requireDestructure,
+            undefined,
+            undefined,
+            requireExpression
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+    importStatements.push(importStatement);
+  }
+  return importStatements;
 }
