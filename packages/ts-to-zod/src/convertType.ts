@@ -334,7 +334,7 @@ export function convertType(
       (flag: ts.ElementFlags) => flag === ts.ElementFlags.Rest
     );
 
-    let restType;
+    let restType: tm.Type<ts.Type> | undefined;
 
     if (restIndex >= 0) {
       if (restIndex != tupleTypes.length - 1) {
@@ -590,12 +590,10 @@ function convertCallSignature(
   ctx: ConvertTypeContext,
   callSignature: tm.Signature
 ): ts.Expression {
-  const argumentTypes = callSignature
-    .getParameters()
-    .map((param) => {
-      const paramType = param.getTypeAtLocation(ctx.node);
-      return convertType(ctx, paramType);
-    });
+  const argumentTypes = callSignature.getParameters().map((param) => {
+    const paramType = param.getTypeAtLocation(ctx.node);
+    return convertType(ctx, paramType);
+  });
   const returnType = convertType(ctx, callSignature.getReturnType());
   return zodConstructor("function", [
     zodConstructor("tuple", [
