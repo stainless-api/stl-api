@@ -63,7 +63,6 @@ export function parseEndpoint(endpoint: HttpEndpoint): [HttpMethod, HttpPath] {
  * objects; plays well with z.object(...).transform(() => ({...}))
  * whereas z.AnyZodObject doesn't.
  */
-// TODO: is there a z.Something for this already?
 export type ZodObjectSchema = z.ZodType<object, any, object>;
 
 /**
@@ -83,7 +82,7 @@ export type Handler<
 ) => Response | Promise<Response>;
 
 /**
- * Contains parsed path, query, and body params.
+ * An object merging properties from path, query, and body params
  */
 type RequestData<
   Path extends ZodObjectSchema | undefined,
@@ -97,7 +96,7 @@ type RequestData<
  * An interface for per-endpoint configuration, accessible to and extendable by
  * plugins/middleware.
  *
- * When creating endpoints, users can specify a `config` object of 
+ * When creating endpoints, users can specify a `config` object of
  * type `EndpointConfig`. This allows plugins to accept custom properties.
  *
  * ```ts
@@ -105,10 +104,10 @@ type RequestData<
  * declare module "stainless" {
  *   // This interface must be declared within the "stainless" module
  *   interface EndpointConfig {
-   *   rateLimit?: number,
+ *   rateLimit?: number,
  *   }
  * }
- * 
+ *
  * // api/users/retrieve.ts
  *
  * stl.endpoint(
@@ -177,7 +176,6 @@ export type GetEndpointUrl<E extends AnyEndpoint> =
 /**
  * Gets all endpoints associated with a given resource
  */
-// TODO make this a method on AnyResourceConfig?
 export function allEndpoints(
   resource:
     | AnyResourceConfig
@@ -196,10 +194,8 @@ export function allEndpoints(
 export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 
 /**
- * A resource configuration created on an instance of {@link Stl}.
+ * A resource configuration created by {@link Stl.resource}.
  */
-// TODO: endpoint returns Endpoint, but resource returns ResourceConfig
-// maybe this should be Resource
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
@@ -256,11 +252,10 @@ export type AnyAPIDescription = APIDescription<any, any>;
  */
 export class StlError extends Error {
   /**
-   * @paramx statusCode 
+   * @param statusCode
    * @param response optional data included in the body of the response JSON.
    */
   constructor(
-    /** testing */
     public statusCode: number,
     public response?: Record<string, any>
   ) {
@@ -346,7 +341,7 @@ type AnyPlugins = Record<string, MakeStainlessPlugin<any, any>>;
 /**
  * Options for customizing the behavior of an {@link Stl} instance.
  */
-export type StainlessOpts<Plugins extends AnyPlugins> = {
+export type CreateStlOptions<Plugins extends AnyPlugins> = {
   /**
    * Provide plugins to customize `stainless` endpoint behavior.
    * Each plugin is named by the user, and must be of type {@link MakeStainlessPlugin}.
@@ -469,7 +464,7 @@ type OpenAPITopLevel<
   : { actions: { getOpenapi: OpenAPIEndpoint } };
 
 /** Parameters for {@link Stl.endpoint}. */
-interface EndpointParams<
+interface CreateEndpointOptions<
   MethodAndUrl extends HttpEndpoint,
   Config extends EndpointConfig | undefined,
   Path extends ZodObjectSchema | undefined,
@@ -508,7 +503,7 @@ interface EndpointParams<
 }
 
 /** Parameters for {@link Stl.resource} */
-interface ResourceParams<
+interface CreateResourceOptions<
   Actions extends AnyActionsConfig | undefined,
   Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
   Models extends Record<string, z.ZodTypeAny> | undefined
@@ -529,7 +524,7 @@ interface ResourceParams<
 }
 
 /** Parameters for {@link Stl.api} */
-interface ApiParams<
+interface CreateApiOptions<
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > {
@@ -566,7 +561,7 @@ interface ApiParams<
  * export const stl = new Stl({})
  * ```
  *
- * For a higher-level overview of how to use `Stl` to build APIs, 
+ * For a higher-level overview of how to use `Stl` to build APIs,
  * see [the docs](https://stainlessapi.com/stl/getting-started).
  */
 export class Stl<Plugins extends AnyPlugins> {
@@ -576,9 +571,9 @@ export class Stl<Plugins extends AnyPlugins> {
 
   /**
    *
-   * @param opts {StainlessOpts<Plugins>} customize the created instance with plugins
+   * @param opts {CreateStlOptions<Plugins>} customize the created instance with plugins
    */
-  constructor(opts: StainlessOpts<Plugins>) {
+  constructor(opts: CreateStlOptions<Plugins>) {
     for (const key in opts.plugins) {
       const makePlugin = opts.plugins[key];
       const plugin = (this.stainlessPlugins[key] = makePlugin(this));
@@ -718,7 +713,14 @@ export class Stl<Plugins extends AnyPlugins> {
     Body extends ZodObjectSchema | undefined,
     Response extends z.ZodTypeAny = z.ZodVoid
   >(
-    params: EndpointParams<MethodAndUrl, Config, Path, Query, Body, Response>
+    params: CreateEndpointOptions<
+      MethodAndUrl,
+      Config,
+      Path,
+      Query,
+      Body,
+      Response
+    >
   ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
     const { config, response, path, query, body, ...rest } = params;
     return {
@@ -771,7 +773,7 @@ export class Stl<Plugins extends AnyPlugins> {
     namespacedResources,
     models,
     ...config
-  }: ResourceParams<Actions, Resources, Models>): ResourceConfig<
+  }: CreateResourceOptions<Actions, Resources, Models>): ResourceConfig<
     Actions,
     Resources,
     Models
@@ -818,7 +820,7 @@ export class Stl<Plugins extends AnyPlugins> {
     openapi,
     topLevel,
     resources,
-  }: ApiParams<TopLevel, Resources>): APIDescription<
+  }: CreateApiOptions<TopLevel, Resources>): APIDescription<
     TopLevel & OpenAPITopLevel<typeof openapi>,
     Resources
   > {

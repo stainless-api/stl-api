@@ -32,19 +32,19 @@ type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
 
 /**
  * A client for making requests to the REST API described by the `Api` type.
- * 
+ *
  * The client allows for performing REST operations idiomatically by utilizing
- * the resources and endpoints declared on the API. A resource's endpoints 
- * are available on the client as methods on a field with the name of the 
+ * the resources and endpoints declared on the API. A resource's endpoints
+ * are available on the client as methods on a field with the name of the
  * resource.
- * 
+ *
  * ## Example
  * ```ts
- * // api/users/index.ts 
+ * // api/users/index.ts
  * import { stl } from "~/libs/stl";
  * import { retrieve } from "./retrieve";
  * import { User } from "./models";
- * 
+ *
  * export const users = stl.resource({
  *   summary: "Users",
  *   models: {
@@ -54,17 +54,17 @@ type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
  *     retrieve,
  *   },
  * });
- * 
+ *
  * // app/users/[userId]/page.tsx
  * ...
  * // `users` refers to the resource by the same name, `retrieve` refers
  * // to the endpoint on `users` by the same name
  * const user = client.users.retrieve(userId);
  * ...
- * 
+ *
  * ## Implementation note
- * In order to decrease build times and bundle sizes, the 
- * `stainless` client utilizes proxies in order to provide a mapping 
+ * In order to decrease build times and bundle sizes, the
+ * `stainless` client utilizes proxies in order to provide a mapping
  * to the server API. This means that resource and endpoint fields and methods
  * cannot be found within source code. Autocomplete and type definitions
  * within a Typescript LSP-enabled editor are good ways of understanding
@@ -131,7 +131,7 @@ class HTTPResponseError extends Error {
 }
 
 /** Options for the {@link createClient} function. */
-interface ClientOpts {
+interface CreateClientOptions {
   /** Replaces the default global `fetch` function to make requests. */
   fetch?: typeof fetch;
 }
@@ -140,29 +140,29 @@ interface ClientOpts {
  * Creates a client for making requests against a `stainless` framework API.
  * For usage information see {@link StainlessClient}.
  *
- * @param baseUrl the url to prepend to all request paths 
+ * @param baseUrl the url to prepend to all request paths
  * @param options options to customize client behavior
  * @returns client
- * 
+ *
  * ## Example
  * ```ts
  * // ~/api/client.ts
  * import { createClient } from "stainless";
  * import type { api } from "./index";
- * 
+ *
  * export const client = createClient<typeof api>("/api");
  * ```
- * 
+ *
  * ## Client-server separation
  * In order to get a client with correct typing information, it's necessary
- * to import the type of the API from server-side code. This does not expose 
- * server-side code or secrets to users because types are transpile-time 
- * constructs. Importing values or functions from server-side code, however, 
- * would result in this being included in client-side bundles. 
+ * to import the type of the API from server-side code. This does not expose
+ * server-side code or secrets to users because types are transpile-time
+ * constructs. Importing values or functions from server-side code, however,
+ * would result in this being included in client-side bundles.
  */
 export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
-  options?: ClientOpts
+  options?: CreateClientOptions
 ): StainlessClient<Api> {
   const checkStatus = (response: Response) => {
     if (response.ok) {
@@ -265,9 +265,9 @@ export function createClient<Api extends AnyAPIDescription>(
 export type Headers = Record<string, string | null | undefined>;
 export type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
-/** 
- * Request options to customize the behavior of a 
- * {@link StainlessClient} request. 
+/**
+ * Request options to customize the behavior of a
+ * {@link StainlessClient} request.
  */
 
 // TODO most of these are unimplemented
@@ -340,9 +340,9 @@ export class PageImpl<D extends z.PageData<any>> {
   declare items: z.PageItemType<D>[];
   /** The cursor referring to the first element in the page, if present. */
   declare startCursor: string | null;
-  /** 
-   * The cursor referring to the one past the last element in the page, 
-   * if present. 
+  /**
+   * The cursor referring to the one past the last element in the page,
+   * if present.
    */
   declare endCursor: string | null;
   /** If known, whether there is a page after the current one. */
@@ -350,9 +350,9 @@ export class PageImpl<D extends z.PageData<any>> {
   /** If known, whether there is a page before the current one. */
   declare hasPreviousPage: boolean | undefined;
 
-  /** 
-   * Get params to access previous page. 
-   * @throws if there is no `startCursor`. 
+  /**
+   * Get params to access previous page.
+   * @throws if there is no `startCursor`.
    */
   getPreviousPageParams(): z.PaginationParams {
     const { startCursor } = this.data;
@@ -386,8 +386,8 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   /**
-   * Gets the URL at which to access the previous page. 
-   * @throws if there is no `startCursor`. 
+   * Gets the URL at which to access the previous page.
+   * @throws if there is no `startCursor`.
    */
   getPreviousPageUrl(): string {
     return `${this.pathname}/${qs.stringify(this.getPreviousPageParams())}`;
@@ -395,7 +395,7 @@ export class PageImpl<D extends z.PageData<any>> {
 
   /**
    * Gets the previous page.
-   * @throws if there is no `startCursor`. 
+   * @throws if there is no `startCursor`.
    */
   async getPreviousPage(): Promise<Page<D>> {
     return await this.clientPath.reduce(
@@ -404,9 +404,9 @@ export class PageImpl<D extends z.PageData<any>> {
     )(this.getPreviousPageParams());
   }
 
-  /** 
-   * Get params to access the next page. 
-   * @throws if there is no `endCursor`. 
+  /**
+   * Get params to access the next page.
+   * @throws if there is no `endCursor`.
    */
   getNextPageParams(): z.PaginationParams {
     const { endCursor } = this.data;
@@ -438,8 +438,8 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 
   /**
-   * Gets the URL at which to access the next page. 
-   * @throws if there is no `endCursor`. 
+   * Gets the URL at which to access the next page.
+   * @throws if there is no `endCursor`.
    */
   getNextPageUrl(): string {
     return `${this.pathname}/${qs.stringify(this.getNextPageParams())}`;
@@ -447,7 +447,7 @@ export class PageImpl<D extends z.PageData<any>> {
 
   /**
    * Gets the next page.
-   * @throws if there is no `endCursor`. 
+   * @throws if there is no `endCursor`.
    */
   async getNextPage(): Promise<Page<D>> {
     return await this.clientPath.reduce(
