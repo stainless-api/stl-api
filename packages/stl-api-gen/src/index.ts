@@ -20,7 +20,7 @@ import {
 
 import {
   generateFiles,
-  generateImportStatements,
+  generateImportStatementsESM,
   generatePath,
 } from "ts-to-zod/dist/generateFiles";
 
@@ -49,27 +49,16 @@ argParser.option(
 
 const NODE_MODULES_GEN_PATH = "@stl-api/gen";
 
-const Z_IMPORT_STATEMENT = factory.createImportDeclaration(
-  [],
-  factory.createImportClause(
-    false,
-    undefined,
-    factory.createNamedImports([
-      factory.createImportSpecifier(
-        false,
-        undefined,
-        factory.createIdentifier("z")
-      ),
-    ])
-  ),
-  factory.createStringLiteral("stainless")
-);
-
 interface CallDiagnostics {
   line: number;
   column: number;
   filePath: string;
   diagnostics: Map<string, Diagnostics>;
+}
+
+interface EndpointCall {
+  endpointPath: string;
+  schemaExpression: ts.Expression;
 }
 
 async function main() {
@@ -170,7 +159,7 @@ async function evaluate(
   const generationConfig = createGenerationConfig(generationOptions);
 
   const callDiagnostics: CallDiagnostics[] = [];
-  const endpointCalls: Map<tm.SourceFile, EndpointTypeInstance[]> = new Map();
+  const endpointCalls: Map<tm.SourceFile, EndpointCall[]> = new Map();
 
   // all of the stl.types calls found
 
@@ -198,7 +187,30 @@ async function evaluate(
         const call = handleEndpoint(callExpression);
         if (!call) continue;
         const fileCalls = getOrInsert(endpointCalls, file, () => []);
-        fileCalls.push(call);
+        const endpointSchema = convertEndpointCall(
+          ctx,
+          call,
+          file,
+          callDiagnostics
+        );
+        if (!endpointSchema) {
+          break;
+        }
+        fileCalls.push({
+          endpointPath: call.endpointPath,
+          schemaExpression: endpointSchema,
+        });
+        const ctxFile = getOrInsert(ctx.files, file.getFilePath(), () => ({
+          imports: new Map(),
+          generatedSchemas: [],
+        }));
+        ctxFile.generatedSchemas.push({
+          name: mangleString(call.endpointPath),
+          expression: endpointSchema,
+          isExported: true,
+          /** non-user-visible type should be given any type */
+          type: factory.createTypeReferenceNode("any"),
+        });
         continue;
       }
 
@@ -302,7 +314,7 @@ async function evaluate(
     }
 
     // add new imports necessary for schema generation
-    let importDeclarations = generateImportStatements(
+    let importDeclarations = generateImportStatementsESM(
       generationConfig,
       file.getFilePath(),
       "stainless",
@@ -355,6 +367,7 @@ async function evaluate(
     const mapEntries = [];
 
     outer: for (const [file, calls] of endpointCalls) {
+      baseCtx.diagnostics = new Map();
       const ctx = new ConvertTypeContext(baseCtx, file);
       for (const call of calls) {
         const mangledName = mangleString(call.endpointPath);
@@ -363,9 +376,9 @@ async function evaluate(
           undefined,
           [
             factory.createStringLiteral(
-              convertPathToImport(
+              `${convertPathToImport(
                 generatePath(file.getFilePath(), generationConfig)
-              )
+              )}.js`
             ),
           ]
         );
@@ -391,84 +404,10 @@ async function evaluate(
           callExpression
         );
         mapEntries.push(entry);
-        const filex = generatePath(file.getFilePath(), generationConfig);
-
-        const generatedStatements = getOrInsert(
-          generatedFileContents,
-          generatePath(file.getFilePath(), generationConfig),
-          () => [Z_IMPORT_STATEMENT]
-        );
-
-        const objectProperties = [];
-
-        const requestTypes = [
-          ["query", call.query],
-          ["path", call.path],
-          ["body", call.body],
-        ].filter(([_, type]) => type) as [string, NodeType][];
-        for (const [name, nodeType] of requestTypes) {
-          const schemaExpression = convertEndpointType(
-            ctx,
-            call.callExpression,
-            callDiagnostics,
-            file,
-            nodeType[0],
-            nodeType[1]
-          );
-          if (!schemaExpression) break outer;
-          objectProperties.push(
-            factory.createPropertyAssignment(name, schemaExpression)
-          );
-        }
-
-        let schemaExpression;
-        if (call.response) {
-          schemaExpression = convertEndpointType(
-            ctx,
-            call.callExpression,
-            callDiagnostics,
-            file,
-            call.response[0],
-            call.response[1]
-          );
-          if (!schemaExpression) break outer;
-        } else {
-          // if no response type is provided, use the default schema z.void() to indicate no response
-          schemaExpression = factory.createCallExpression(
-            factory.createPropertyAccessExpression(
-              factory.createIdentifier("z"),
-              "void"
-            ),
-            [],
-            []
-          );
-        }
-        objectProperties.push(
-          factory.createPropertyAssignment("response", schemaExpression)
-        );
-
-        const variableDeclaration = factory.createVariableDeclarationList(
-          [
-            factory.createVariableDeclaration(
-              mangledName,
-              undefined,
-              undefined,
-              factory.createObjectLiteralExpression(objectProperties)
-            ),
-          ],
-          ts.NodeFlags.Const
-        );
-
-        generatedStatements.push(
-          factory.createVariableStatement(
-            [factory.createToken(ts.SyntaxKind.ExportKeyword)],
-            variableDeclaration
-          )
-        );
       }
     }
 
-    const mapConstant = factory.createVariableDeclarationList(
+    /* const mapConstant = factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(
           "someName",
@@ -478,23 +417,65 @@ async function evaluate(
         ),
       ],
       // ts.NodeFlags.Const
-    );
+    ); 
     const mapStatement = factory.createVariableStatement(
       [factory.createToken(ts.SyntaxKind.ExportKeyword)],
       mapConstant
     );
-    const mapSourceFile = factory.createSourceFile(
-      [mapStatement],
+    */
+    const mapExpression = factory.createObjectLiteralExpression(mapEntries);
+
+    const mapStatementCJS = factory.createExpressionStatement(
+      factory.createAssignment(
+        factory.createPropertyAccessExpression(
+          factory.createIdentifier("exports"),
+          "map"
+        ),
+        mapExpression
+      )
+    );
+
+    const mapDeclaration = factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          "someName",
+          undefined,
+          undefined,
+          factory.createObjectLiteralExpression(mapEntries)
+        ),
+      ],
+      ts.NodeFlags.Const
+    );
+    const mapStatementESM = factory.createVariableStatement(
+      [factory.createToken(ts.SyntaxKind.ExportKeyword)],
+      mapDeclaration
+    );
+
+    const mapSourceFileCJS = factory.createSourceFile(
+      [mapStatementCJS],
+      factory.createToken(ts.SyntaxKind.EndOfFileToken),
+      0
+    );
+
+    const mapSourceFileESM = factory.createSourceFile(
+      [mapStatementESM],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       0
     );
 
     const genPath = Path.join(rootPath, "node_modules", NODE_MODULES_GEN_PATH);
-    const endpointMapGenPath = Path.join(genPath, "__endpointMap.js");
     await fs.promises.mkdir(genPath, { recursive: true });
+
+    const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");
     await fs.promises.writeFile(
-      endpointMapGenPath,
-      printer.printFile(mapSourceFile)
+      endpointMapGenPathCJS,
+      printer.printFile(mapSourceFileCJS)
+    );
+
+    const endpointMapGenPathESM = Path.join(genPath, "__endpointMap.mjs");
+    await fs.promises.writeFile(
+      endpointMapGenPathESM,
+      printer.printFile(mapSourceFileESM)
     );
   }
 
@@ -578,7 +559,6 @@ async function evaluate(
   }
 
   for (const [file, fileStatments] of generatedFileContents) {
-    console.log(`writing to file ${file}`);
     const fileDir = Path.dirname(file);
     // creates directory where to write file to, if it doesn't already exist
     await fs.promises.mkdir(fileDir, {
@@ -678,6 +658,61 @@ function convertEndpointType(
       addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);
     }
   }
+}
+
+function convertEndpointCall(
+  ctx: ConvertTypeContext,
+  call: EndpointTypeInstance,
+  file: tm.SourceFile,
+  callDiagnostics: CallDiagnostics[]
+): ts.Expression | undefined {
+  const objectProperties = [];
+  const requestTypes = [
+    ["query", call.query],
+    ["path", call.path],
+    ["body", call.body],
+  ].filter(([_, type]) => type) as [string, NodeType][];
+  for (const [name, nodeType] of requestTypes) {
+    const schemaExpression = convertEndpointType(
+      ctx,
+      call.callExpression,
+      callDiagnostics,
+      file,
+      nodeType[0],
+      nodeType[1]
+    );
+    if (!schemaExpression) return;
+    objectProperties.push(
+      factory.createPropertyAssignment(name, schemaExpression)
+    );
+  }
+
+  let schemaExpression;
+  if (call.response) {
+    schemaExpression = convertEndpointType(
+      ctx,
+      call.callExpression,
+      callDiagnostics,
+      file,
+      call.response[0],
+      call.response[1]
+    );
+    if (!schemaExpression) return;
+  } else {
+    // if no response type is provided, use the default schema z.void() to indicate no response
+    schemaExpression = factory.createCallExpression(
+      factory.createPropertyAccessExpression(
+        factory.createIdentifier("z"),
+        "void"
+      ),
+      [],
+      []
+    );
+  }
+  objectProperties.push(
+    factory.createPropertyAssignment("response", schemaExpression)
+  );
+  return factory.createObjectLiteralExpression(objectProperties);
 }
 
 // TODO: factor out to ts-to-zod?

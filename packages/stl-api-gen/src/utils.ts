@@ -11,7 +11,7 @@ export function isSymbolStlMethod(symbol: tm.Symbol): boolean {
 
 export function mangleString(str: string): string {
   const unicodeLetterRegex = /\p{L}/u;
-  const escapedStringBuilder = [];
+  const escapedStringBuilder = ["__"];
   for (const codePointString of str) {
     if (codePointString === "/") {
       escapedStringBuilder.push("$");

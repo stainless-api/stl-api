@@ -129,7 +129,7 @@ function updateCtx(ctx: SchemaGenContext) {
 
   // delete a generated schema based on whether symbol is updated
   // need to add two new fields: generation updated, and dependencies
-  ctx.getFileInfo("file").generatedSchemas[0].symbol;
+  // ctx.getFileInfo("file").generatedSchemas[0].symbol;
 
   // how do we update these? todo: go to file and see how this is
   // being used. perhaps just invalidate every time the file changes?

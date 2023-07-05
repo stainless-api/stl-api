@@ -2,6 +2,7 @@ import * as z from "./z";
 import { type toZod } from "ts-to-zod";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
+import { Config } from "prettier";
 export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
@@ -650,6 +651,32 @@ export class Stl<Plugins extends AnyPlugins> {
     params: Params,
     context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
+    if (
+      !context.endpoint.query &&
+      !context.endpoint.path &&
+      !context.endpoint.body &&
+      !context.endpoint.response
+    ) {
+      try {
+        const module = await eval?.("import('@stl-api/gen/__endpointMap.js')");
+        const schemas = await module.map[context.endpoint.endpoint];
+        if (schemas) {
+          context.endpoint.path = schemas.path;
+          context.endpoint.query = schemas.query;
+          context.endpoint.body = schemas.body;
+          context.endpoint.response = schemas.response;
+        } else {
+          throw new Error(
+            "error encountered while handling endpoint " +
+              context.endpoint.endpoint +
+              ": no schema found. run the cli on the project to generate the schema for the endpoint."
+          );
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
       if (middleware) await middleware(params, context);
@@ -747,7 +774,7 @@ export class Stl<Plugins extends AnyPlugins> {
   ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
     const { config, response, path, query, body, ...rest } = params;
     return {
-      stl: this as any,
+      stl: this,
       config: config as Config,
       response: (response || z.void()) as Response,
       path: path as Path,
@@ -885,4 +912,95 @@ export class Stl<Plugins extends AnyPlugins> {
   magic<T>(schema: toZod<T>): toZod<T> {
     return schema;
   }
+
+  types<T extends Types>(): TypeEndpointBuilder<
+    TypeArgToZod<T, "path">,
+    TypeArgToZod<T, "query">,
+    TypeArgToZod<T, "body">,
+    "response" extends keyof T ? toZod<T["response"]> : z.ZodVoid
+  > {
+    return {
+      endpoint: <
+        MethodAndUrl extends HttpEndpoint,
+        Config extends EndpointConfig | undefined,
+        Path extends ZodObjectSchema | undefined,
+        Query extends ZodObjectSchema | undefined,
+        Body extends ZodObjectSchema | undefined,
+        Response extends z.ZodTypeAny = z.ZodVoid
+      >({
+        endpoint,
+        config,
+        handler,
+      }: TypeEndpointParams<
+        MethodAndUrl,
+        Config,
+        Path,
+        Query,
+        Body,
+        Response
+      >): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response> => {
+        return {
+          stl: this,
+          endpoint,
+          config: config as Config,
+          handler,
+          path: undefined as Path,
+          query: undefined as Query,
+          body: undefined as Body,
+          response: undefined as any as Response,
+        };
+      },
+    };
+  }
+}
+
+type TypeArgToZod<T extends Types, K extends keyof Types> = K extends keyof T
+  ? toZod<T[K]>
+  : undefined;
+
+interface Types {
+  path?: any;
+  query?: any;
+  body?: any;
+  response?: any;
+}
+
+interface TypeEndpointParams<
+  MethodAndUrl extends HttpEndpoint,
+  Config extends EndpointConfig | undefined,
+  Path extends ZodObjectSchema | undefined,
+  Query extends ZodObjectSchema | undefined,
+  Body extends ZodObjectSchema | undefined,
+  Response extends z.ZodTypeAny = z.ZodVoid
+> {
+  endpoint: MethodAndUrl;
+  config?: Config;
+  handler: Handler<
+    StlContext<BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>>,
+    Path,
+    Query,
+    Body,
+    Response extends z.ZodTypeAny ? z.input<Response> : undefined
+  >;
+}
+
+interface TypeEndpointBuilder<
+  Path extends ZodObjectSchema | undefined,
+  Query extends ZodObjectSchema | undefined,
+  Body extends ZodObjectSchema | undefined,
+  Response extends z.ZodTypeAny = z.ZodVoid
+> {
+  endpoint<
+    MethodAndUrl extends HttpEndpoint,
+    Config extends EndpointConfig | undefined
+  >(
+    params: TypeEndpointParams<
+      MethodAndUrl,
+      Config,
+      Path,
+      Query,
+      Body,
+      Response
+    >
+  ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response>;
 }
