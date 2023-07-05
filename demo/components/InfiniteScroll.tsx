@@ -4,7 +4,7 @@ import {
   DynamicSizeList,
   Props as DynamicSizeListProps,
 } from "./DynamicSizeList";
-import { UseItem } from "../libs/useInfiniteQuery";
+import { UseItem } from "@stl-api/react-query";
 import AutoSizer from "react-virtualized-auto-sizer";
 
 export type ItemProps<I, D> = Partial<ListChildComponentProps<D>> & {

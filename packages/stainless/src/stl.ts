@@ -5,11 +5,13 @@ export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
-export type {
-  StainlessClient,
+export {
+  type StainlessClient,
   ClientPromise,
+  type ClientPromiseProps,
   PaginatorPromise,
-  Page,
+  type Page,
+  type RequestOptions,
 } from "./client";
 
 export { getApiMetadata } from "./gen/getApiMetadata";
@@ -166,6 +168,26 @@ export interface Endpoint<
 }
 
 export type AnyEndpoint = Endpoint<any, any, any, any, any, any>;
+
+export type EndpointPathInput<E extends AnyEndpoint> =
+  E["path"] extends z.ZodTypeAny ? z.input<E["path"]> : undefined;
+export type EndpointPathOutput<E extends AnyEndpoint> =
+  E["path"] extends z.ZodTypeAny ? z.output<E["path"]> : undefined;
+
+export type EndpointQueryInput<E extends AnyEndpoint> =
+  E["query"] extends z.ZodTypeAny ? z.input<E["query"]> : undefined;
+export type EndpointQueryOutput<E extends AnyEndpoint> =
+  E["query"] extends z.ZodTypeAny ? z.output<E["query"]> : undefined;
+
+export type EndpointBodyInput<E extends AnyEndpoint> =
+  E["body"] extends z.ZodTypeAny ? z.input<E["body"]> : undefined;
+export type EndpointBodyOutput<E extends AnyEndpoint> =
+  E["body"] extends z.ZodTypeAny ? z.output<E["body"]> : undefined;
+
+export type EndpointResponseInput<E extends AnyEndpoint> =
+  E["response"] extends z.ZodTypeAny ? z.input<E["response"]> : undefined;
+export type EndpointResponseOutput<E extends AnyEndpoint> =
+  E["response"] extends z.ZodTypeAny ? z.output<E["response"]> : undefined;
 
 export type GetEndpointMethod<E extends AnyEndpoint> =
   E["endpoint"] extends `${infer M extends HttpMethod} ${string}` ? M : never;

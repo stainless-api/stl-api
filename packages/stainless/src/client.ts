@@ -7,20 +7,18 @@ import {
   AnyResourceConfig,
   ResourceConfig,
   HttpMethod,
+  EndpointPathInput,
+  EndpointBodyInput,
+  EndpointQueryInput,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
 type ValueOf<T extends object> = T[keyof T];
 
-type ExtractClientPath<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
-  ? ValueOf<z.input<E["path"]>>
-  : undefined;
-type ExtractClientQuery<E extends AnyEndpoint> = E["query"] extends z.ZodTypeAny
-  ? z.input<E["query"]>
-  : undefined;
-type ExtractClientBody<E extends AnyEndpoint> = E["body"] extends z.ZodTypeAny
-  ? z.input<E["body"]>
-  : undefined;
+type EndpointPathParam<E extends AnyEndpoint> =
+  EndpointPathInput<E> extends object
+    ? ValueOf<EndpointPathInput<E>>
+    : undefined;
 
 type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
   E["response"]
@@ -92,24 +90,31 @@ type ClientResource<Resource extends AnyResourceConfig> = {
 type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        body: ExtractClientBody<E>,
-        options?: { query?: ExtractClientQuery<E> }
+        path: EndpointPathParam<E>,
+        body: EndpointBodyInput<E>,
+        options?: RequestOptions<EndpointQueryInput<E>>
       ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        query: ExtractClientQuery<E>
+        path: EndpointPathParam<E>,
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
       ) => ExtractClientResponse<E>
-    : (path: ExtractClientPath<E>) => ExtractClientResponse<E>
+    : (
+        path: EndpointPathParam<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
   : E["body"] extends z.ZodTypeAny
   ? (
-      body: ExtractClientBody<E>,
-      options?: { query?: ExtractClientQuery<E> }
+      body: EndpointBodyInput<E>,
+      options?: RequestOptions<EndpointQueryInput<E>>
     ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (query: ExtractClientQuery<E>) => ExtractClientResponse<E>
-  : () => ExtractClientResponse<E>;
+  ? (
+      query: EndpointQueryInput<E>,
+      options?: RequestOptions
+    ) => ExtractClientResponse<E>
+  : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
   if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "get";
@@ -174,9 +179,9 @@ export function createClient<Api extends AnyAPIDescription>(
   };
 
   const client = createRecursiveProxy((opts) => {
+    const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
-    const { args } = opts;
     let requestOptions: RequestOptions<any> | undefined;
 
     let path = callPath.join("/"); // eg; /issuing/cards
@@ -185,7 +190,7 @@ export function createClient<Api extends AnyAPIDescription>(
     }
 
     if (isRequestOptions(args.at(-1))) {
-      requestOptions = args.shift() as any;
+      requestOptions = args.pop() as any;
     }
     const method = actionMethod(action);
 
@@ -251,7 +256,6 @@ export function createClient<Api extends AnyAPIDescription>(
       pathname,
       search,
       query,
-      cacheKey,
     };
 
     return action === "list"
@@ -271,46 +275,46 @@ export type KeysEnum<T> = { [P in keyof Required<T>]: true };
  */
 
 // TODO most of these are unimplemented
-export type RequestOptions<Req extends {} = Record<string, unknown>> = {
+export type RequestOptions<Req extends {} | undefined = undefined> = {
   /** Override the method with which to perform the request. */
-  method?: HttpMethod;
+  // method?: HttpMethod;
   /** Override the path at which to make the request. */
-  path?: string;
+  // path?: string;
   /** Provide query parameters for the request. */
   query?: Req | undefined;
   /** Provide body parameters for the request. */
-  body?: Req | undefined;
+  // body?: Req | undefined;
   /** Provide HTTP headers to send with the request. */
   headers?: Headers | undefined;
 
   /** The maximum number of times to retry a request. Defaults to 0. */
-  maxRetries?: number;
+  // maxRetries?: number;
   /** Whether to stream the response. */
-  stream?: boolean | undefined;
+  // stream?: boolean | undefined;
   /** The number of milliseconds before the request times out. */
-  timeout?: number;
+  // timeout?: number;
   /**
    * Make the request idempotent. Assuming server-side support,
    * if the request is performed multiple times, the requested action will
    * be performed at most once for a given value of the key.
    */
-  idempotencyKey?: string;
+  // idempotencyKey?: string;
 };
 
 // This is required so that we can determine if a given object matches the RequestOptions
 // type at runtime. While this requires duplication, it is enforced by the TypeScript
 // compiler such that any missing / extraneous keys will cause an error.
 const requestOptionsKeys: KeysEnum<RequestOptions> = {
-  method: true,
-  path: true,
+  // method: true,
+  // path: true,
   query: true,
-  body: true,
+  // body: true,
   headers: true,
 
-  maxRetries: true,
-  stream: true,
-  timeout: true,
-  idempotencyKey: true,
+  // maxRetries: true,
+  // stream: true,
+  // timeout: true,
+  // idempotencyKey: true,
 };
 
 const isRequestOptions = (obj: unknown): obj is RequestOptions => {
@@ -457,24 +461,22 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 }
 
-type ClientPromiseProps = {
+export type ClientPromiseProps = {
   method: HttpMethod;
   uri: string;
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 };
 
 /** A promise returned by {@link StainlessClient} requests. */
-class ClientPromise<R> implements Promise<R> {
+export class ClientPromise<R> implements Promise<R> {
   fetch: () => Promise<R>;
   method: HttpMethod;
   uri: string;
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 
   constructor(fetch: () => Promise<R>, props: ClientPromiseProps) {
     this.fetch = once(fetch);
@@ -483,7 +485,6 @@ class ClientPromise<R> implements Promise<R> {
     this.pathname = props.pathname;
     this.search = props.search;
     this.query = props.query;
-    this.cacheKey = props.cacheKey;
   }
 
   then<TResult1 = R, TResult2 = never>(
@@ -517,14 +518,12 @@ class ClientPromise<R> implements Promise<R> {
   }
 }
 
-export type { ClientPromise };
-
 /**
  * The result of client.???.list, can be awaited like a
  * `Promise` to get a single page, or async iterated to go through
  * all items.
  */
-class PaginatorPromise<D extends z.PageData<any>>
+export class PaginatorPromise<D extends z.PageData<any>>
   extends ClientPromise<Page<D>>
   implements AsyncIterable<z.PageItemType<D>>
 {
@@ -544,5 +543,3 @@ class PaginatorPromise<D extends z.PageData<any>>
     return "PaginatorPromise";
   }
 }
-
-export type { PaginatorPromise };

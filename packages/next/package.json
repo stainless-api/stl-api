@@ -20,10 +20,8 @@
   ],
   "source": "src/nextPlugin.ts",
   "main": "dist/nextPlugin.js",
-  "module": "dist/nextPlugin.es.js",
   "types": "dist/nextPlugin.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {

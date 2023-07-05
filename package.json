@@ -19,8 +19,10 @@
   "license": "ISC",
   "scripts": {
     "test": "jest",
-    "build": "tsc -b packages/*/tsconfig.build.json && (cd demo && pnpm build)",
-    "build:watch": "tsc -b --watch packages/*/tsconfig.build.json demo/tsconfig.json",
+    "test:ci": "start-server-and-test start-test-server http://0.0.0.0:3005 test",
+    "start-test-server": "cd demo && pnpm start -- -p 3005",
+    "build": "pnpm -r run prebuild && tsc -b packages/*/tsconfig*.json && (cd demo && pnpm build)",
+    "build:watch": "pnpm -r run prebuild && tsc -b --watch packages/*/tsconfig*.json demo/tsconfig.json",
     "docs:start": "cd docs && pnpm start",
     "docs:build": "cd docs && pnpm build",
     "docs:deploy": "pnpm docs:build && netlify deploy --dir docs/build --prod",
@@ -39,6 +41,7 @@
     "node-fetch": "^2.6.11",
     "prettier": "^2.8.8",
     "rimraf": "^5.0.1",
+    "start-server-and-test": "^2.0.0",
     "ts-jest": "^29.1.0",
     "typescript": "^5.0.4"
   }

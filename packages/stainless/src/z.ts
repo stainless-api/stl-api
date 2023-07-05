@@ -757,7 +757,9 @@ export type PageData<I> = {
   hasPreviousPage?: boolean;
 };
 
-export type PageItemType<D extends PageData<any>> = D["items"][number];
+export type PageItemType<D> = D extends PageData<any>
+  ? D["items"][number]
+  : never;
 
 export const AnyPageData: z.ZodType<
   PageData<any>,
