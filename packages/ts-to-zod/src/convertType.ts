@@ -547,7 +547,7 @@ export function convertType(
       (flag: ts.ElementFlags) => flag === ts.ElementFlags.Rest
     );
 
-    let restType;
+    let restType: tm.Type<ts.Type> | undefined;
 
     if (restIndex >= 0) {
       if (restIndex != tupleTypes.length - 1) {

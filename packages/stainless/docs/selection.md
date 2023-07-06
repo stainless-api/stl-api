@@ -15,13 +15,13 @@ $ curl localhost:3000/api/posts/5 -G -d 'select=user_fields.name'
 ## Pristine convention
 
 The pristine convention is to have a selectable property as a sibling of an
-[expandable](/packages/stainless/docs/expansion.md) property. So in the above example
-there would be an expandable `user` property, whose type has some properties
+[includable](/packages/stainless/docs/inclusion.md) property. So in the above example
+there would be an includable `user` property, whose type has some properties
 always defined, and a selectable `user_fields` property, whose type has all properties
 optional.
 
-This allows for SDKs of all languages to provide better types for expandable fields than
-if `select` could omit properties of the expandable fields.
+This allows for SDKs of all languages to provide better types for includable fields than
+if `select` could omit properties of the includable fields.
 
 ### Select format
 
@@ -36,7 +36,7 @@ if `select` could omit properties of the expandable fields.
 > It's not possible to generate precise types for `select` because the number
 > of possibilities can easily become huge. We may decide to use a different
 > format for `select` in the future to achieve better type safety (for example,
-> the same format as `expand`).
+> the same format as `include`).
 
 ## Implementing select without circular associations
 
@@ -101,8 +101,8 @@ The `@stl-api/prisma` plugin will automatically generate the necessary
 `include` for prisma queries via [`ctx.prisma`](/packages/prisma/README.md#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/packages/prisma/README.md#use-prismamodelloader-on-a-parameter) when
 you have [declared a `.prismaModel(...)`](/packages/prisma/README.md#declare-prismamodel-on-a-response-type) on the response schema.
 
-For other use cases, you will need to manually include the expanded paths in
-your response.
+For other use cases, you will need to write code in your handler to
+add fields to the response that requested to be selected.
 
 ## Implementing selection with circular associations
 
@@ -181,4 +181,4 @@ This means that the following select paths are allowed:
 Obviously for many use cases, you would want to keep the depth limit low.
 
 > **Warning**
-> The maximum recursion depth supported by `z.expands` is 5.
+> The maximum recursion depth supported by `z.includes` is 5.

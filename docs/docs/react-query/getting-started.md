@@ -47,7 +47,7 @@ const PostView = () => {
 
   const { data: fetchedPost, isLoading } = client.posts.useRetrieve(
     typeof postId === "string" ? postId : "",
-    { expand: ["user", "comments.user"] },
+    { include: ["user", "comments.user"] },
     { enabled: typeof postId === "string" }
   );
 
@@ -76,7 +76,7 @@ interface PostFeedProps {
 const InfinitePostFeed: React.FC<PostFeedProps> = ({ userId }) => {
   const { itemAndPlaceholderCount, useItem } = client.posts.useInfiniteList({
     userId,
-    expand: ["items.user", "items.comments"],
+    include: ["items.user", "items.comments"],
   });
 
   return (

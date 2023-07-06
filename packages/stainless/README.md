@@ -7,7 +7,7 @@ and get an OpenAPI spec, docs, and typed frontend client without a build step.
 
 You can use it as a pluggable, batteries-included web framework for APIs (managing auth, pagination, observability, etc) or sprinkle it on top of your existing API in any framework for better OpenAPI support and/or full-stack typesafety.
 
-You can also opt into Stainless's Stripe-inspired [pristine API design conventions](/README.md#pristine-conventions) and get rich pagination, consistent errors, field expansion & selection, and (WIP) normalized caching on the frontend for free.
+You can also opt into Stainless's Stripe-inspired [pristine API design conventions](/README.md#pristine-conventions) and get rich pagination, consistent errors, field inclusion & selection, and (WIP) normalized caching on the frontend for free.
 
 Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, and (heavily) from the internal API Framework we worked on at Stripe.
 
@@ -28,7 +28,7 @@ Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, an
   - [Use client](#use-client)
 - [In-depth topics](#in-depth-topics)
   - [Pagination](#pagination)
-  - [Expansion](#expansion)
+  - [Inclusion](#inclusion)
   - [Selection](#selection)
 
 # Ecosystem
@@ -251,11 +251,11 @@ export default function UserPage({
 Stainless provides helpers for easily implementing pagination that follows the pristine
 convention, and makes it easy to implement pagination with Prisma.
 
-## [Expansion](/packages/stainless/docs/expansion.md)
+## [Inclusion](/packages/stainless/docs/inclusion.md)
 
-Expansion allows you to optionally include associated objects in an API response if the
-user requests them in an `expand` query parameter. Stainless makes it easy to implement
-expansion with Prisma.
+Inclusion allows you to optionally include associated objects in an API response if the
+user requests them in an `include` query parameter. Stainless makes it easy to implement
+inclusion with Prisma.
 
 ## [Selection](/packages/stainless/docs/selection.md)
 
