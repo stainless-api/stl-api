@@ -111,8 +111,8 @@ The `@stl-api/prisma` plugin will automatically generate the necessary
 `include` for prisma queries via [`ctx.prisma`](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/stl/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
 you have [declared a `.prismaModel(...)`](/stl/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
 
-For other use cases, you will need to manually include the included paths in
-your response.
+For other use cases, you will need to write code in your handler to
+add fields to the response that requested to be selected.
 
 ## Implementing selection with circular associations
 
