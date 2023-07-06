@@ -1,5 +1,5 @@
 {
-  "name": "stl-api-gen",
+  "name": "@stl-api/gen",
   "version": "1.0.0",
   "description": "Bundle-time utilities implementing ergonomic stl-api helpers.\"",
   "author": "dev@stainlessapi.com",
@@ -18,6 +18,9 @@
     "format": "prettier -w .",
     "build": "tsc -p tsconfig.build.json",
     "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "bin": {
+    "stl": "dist/index.js"
   },
   "license": "MIT",
   "dependencies": {

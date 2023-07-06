@@ -1,5 +1,15 @@
 import * as tm from "ts-morph";
 import Path from "path";
+import fs from "fs";
+
+export async function statOrExit(path: string): Promise<fs.Stats> {
+  try {
+    return await fs.promises.stat(path);
+  } catch (e: any) {
+    console.error(`${e}.`);
+    process.exit(1);
+  }
+}
 
 export function isSymbolStlMethod(symbol: tm.Symbol): boolean {
   const symbolDeclaration = symbol.getDeclarations()[0];

@@ -208,13 +208,13 @@ interface GeneratedSchema {
   name: string;
   expression: ts.Expression;
   isExported: boolean;
-  /** 
-   * The type for the schema value to generate in d.ts. 
-   * Defaults to `z.ZodTypeAny`. 
+  /**
+   * The type for the schema value to generate in d.ts.
+   * Defaults to `z.ZodTypeAny`.
    */
-  type?: ts.TypeNode,
+  type?: ts.TypeNode;
   /** Whether the type shouldn't be exported from the definition file. Defaults to false. */
-  private?: boolean,
+  private?: boolean;
 }
 
 export function convertSymbol(
@@ -328,7 +328,13 @@ export function convertType(
   }
 
   if (packageBaseTypeName === "SuperRefine") {
-    return convertRefineType(ctx, ty, typeSymbol, "superRefine", diagnosticItem);
+    return convertRefineType(
+      ctx,
+      ty,
+      typeSymbol,
+      "superRefine",
+      diagnosticItem
+    );
   }
 
   let packageTypeName = undefined;
@@ -777,9 +783,9 @@ function createZodShape(
     type.getProperties().map((property) => {
       const propertyType = ctx.typeChecker.getTypeOfSymbolAtLocation(
         property,
-        ctx.node,
+        ctx.node
       );
-      
+
       // If the current property has a parent type associated with it, use that
       // parent type for diagnostics information ini order to correctly attribute
       // the source of problematic types.
@@ -792,8 +798,7 @@ function createZodShape(
           if (parentType) enclosingType = parentType;
         }
       }
-      
-      
+
       return factory.createPropertyAssignment(
         property.getName(),
         convertType(ctx, propertyType, {
@@ -1357,11 +1362,11 @@ function getDeclarationOrThrow(symbol: tm.Symbol): tm.Node {
 // TODO: move to utils file
 export function getPropertyDeclaration(symbol: tm.Symbol): tm.Node | undefined {
   for (const declaration of symbol.getDeclarations()) {
-   if ( 
-            declaration instanceof tm.PropertyDeclaration ||
-            declaration instanceof tm.PropertySignature
-   ) {
-     return declaration;
-   }
+    if (
+      declaration instanceof tm.PropertyDeclaration ||
+      declaration instanceof tm.PropertySignature
+    ) {
+      return declaration;
+    }
   }
 }
