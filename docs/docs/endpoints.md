@@ -16,12 +16,8 @@ import { NotFoundError, z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
-export const retrieve = stl.endpoint({
+export const retrieve = stl.types<{path: {userId: string}, response: typeof User}>().endpoint({
   endpoint: "get /api/users/{userId}",
-  response: User,
-  path: z.object({
-    userId: z.string(),
-  }),
   async handler({ userId }, ctx) {
     const user = await prisma.user.findUnique({
       where: {
@@ -33,29 +29,15 @@ export const retrieve = stl.endpoint({
   },
 });
 ```
-
 ## Properties
+
+The `endpoint` method takes properties to customize the behavior of the endpoint.
 
 ### `endpoint`
 
 A string declaring the HTTP method (`get`, `post`, `put`, `patch`, `delete`, `options`, `head`) and
 URL for this endpoint.
 
-### `response`
-
-The [schema](/stl/schemas) for the HTTP response.
-
-### `path`
-
-The [schema](/stl/schemas) for the path parameters.
-
-### `query`
-
-The [schema](/stl/schemas) for the query (search) parameters.
-
-### `body`
-
-The [schema](/stl/schemas) for the request body parameters.
 
 ### `handler(params, context)`
 
@@ -63,7 +45,34 @@ The function that handles requests to this `endpoint`. It will be called with a 
 of the parsed `path`, `query`, and `body` parameters squashed together, a `context` object, and should return
 or resolve to a raw response to be parsed by the `response` schema.
 
-The `params`, `context` and return types will be automatically mapped from the request and response schemas.
+The `params`, `context` and return types will be automatically mapped from the request and response types.
+
+## Types
+`stl.types` is a helper that enables generating rich, validating schemas for the parameter and 
+response types of the endpoint. After running the `@stl-api` CLI, these type definitions are 
+converted into Zod schemas, which are used to validate endpoint parameters. If parameters 
+fail to validate against the generated schema, the endpoint responds with a detailed error message.
+For more information about the CLI, visit its [dedicated page](/stl/cli).
+
+`stl.types` accepts one type parameter, which is used to specify the types of the parameters accepted by the endpoint,
+as well as the type of its response. In order to provide these parameters, these fields can be passed as 
+properties of the type parameter:
+
+### `response`
+
+The type of the HTTP response.
+
+### `path`
+
+The type for the path parameters.
+
+### `query`
+
+The type for the query (search) parameters.
+
+### `body`
+
+The type for the request body parameters.
 
 ## Error handling
 
@@ -93,3 +102,26 @@ Responds with HTTP status code 403.
 ### `NotFoundError`
 
 Responds with HTTP status code 404.
+
+## Manually providing Zod schemas
+
+Typed endpoints can also be created through manually specifying 
+zod schemas, and passing them to the standalone `endpoint` method.
+This method takes the same properties as the `endpoint` method available when using `stl.types`,
+as well as these additional properties for providing schema values:
+
+### `response`
+
+The [schema](/stl/schemas) for the HTTP response.
+
+### `path`
+
+The [schema](/stl/schemas) for the path parameters.
+
+### `query`
+
+The [schema](/stl/schemas) for the query (search) parameters.
+
+### `body`
+
+The [schema](/stl/schemas) for the request body parameters.
