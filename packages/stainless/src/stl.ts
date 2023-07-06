@@ -909,7 +909,7 @@ export class Stl<Plugins extends AnyPlugins> {
     >;
   }
 
-  magic<T>(schema: toZod<T>): toZod<T> {
+  magic<T>(schema: z.ZodTypeAny): z.ZodTypeAny {
     return schema;
   }
 
