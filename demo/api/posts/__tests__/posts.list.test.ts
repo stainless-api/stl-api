@@ -211,7 +211,7 @@ describe("/api/posts", function () {
       }
     `);
   });
-  it("expansion + selection 2", async function () {
+  it("inclusion + selection 2", async function () {
     const { data } = await testClient.posts.list({
       userId: "187f77f6-5570-40ae-84f7-bcd28fab78a2",
       pageSize: 3,
