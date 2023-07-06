@@ -1,8 +1,8 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 ---
 
-# Schemas
+# Runtime Zod schema definition
 
 We provide a customized version of [Zod](https://zod.dev/) for declaring request and response schemas,
 available via the following import:
