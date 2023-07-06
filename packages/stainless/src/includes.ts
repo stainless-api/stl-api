@@ -44,28 +44,6 @@ export function includes<
   ).withMetadata({ stainless: { includes: true } });
 }
 
-/**
- * Given an zod schema from `includes`, extracts the possible options
- */
-export function includesOptions<V extends string[]>(param: z.ZodType<V>): V {
-  if (
-    param instanceof z.ZodOptional ||
-    param instanceof z.ZodNullable ||
-    param instanceof z.ZodMetadata
-  )
-    return includesOptions(param.unwrap());
-  if (param instanceof z.ZodDefault)
-    return includesOptions(param._def.innerType);
-  if (!(param instanceof z.ZodArray)) {
-    throw new Error(`param must be a ZodArray of a ZodEnum of string`);
-  }
-  const { element } = param;
-  if (!(element instanceof z.ZodEnum)) {
-    throw new Error(`param must be a ZodArray of a ZodEnum of string`);
-  }
-  return element.options;
-}
-
 function unwrapIncludable(e: z.ZodTypeAny): z.AnyZodObject | undefined {
   if (e instanceof z.ZodObject) {
     return e;
@@ -129,21 +107,6 @@ export type IncludablePaths<
                 : never;
             }[keyof Model & string])
   : never;
-
-type IncludeSubPaths<
-  E extends string,
-  Path extends string
-> = E extends `${Path}.${infer SubPath}` ? SubPath : never;
-
-export function includeSubPaths<S extends string[], P extends string>(
-  include: S,
-  path: P
-): IncludeSubPaths<S[number], P>[] {
-  const prefix = `${path}.`;
-  return include.flatMap((path) =>
-    path.startsWith(prefix) ? [path.substring(prefix.length)] : []
-  ) as any;
-}
 
 export function getIncludes(ctx: StlContext<any>): string[] | null | undefined {
   const include = ctx.parsedParams?.query?.include;
