@@ -8,9 +8,7 @@ import {
   NotFoundError,
   z,
 } from "stainless";
-import {
-  includeSubPaths,
-} from "./includeUtils";
+import { includeSubPaths } from "./includeUtils";
 import { isPlainObject } from "lodash";
 
 declare module "zod" {
@@ -483,18 +481,17 @@ type NextLevel<
   Prefix extends string
 > = E extends `${Prefix}.${infer B}` ? B : never;
 
-type ExpandToInclude<T extends string> = {
+type includeFromQuery<T extends string> = {
   [K in TopLevel<T>]?:
-  | boolean
-  | (NextLevel<T, K> extends string
-    ? { include: ExpandToInclude<NextLevel<T, K>> }
-    : never);
+    | boolean
+    | (NextLevel<T, K> extends string
+        ? { include: includeFromQuery<NextLevel<T, K>> }
+        : never);
 };
 
-const x =
-{
+const x = {
   user: { include: { comments: true } },
-  comments: { include: { user: true } }
+  comments: { include: { user: true } },
 };
 
 /**
@@ -508,7 +505,7 @@ const x =
  */
 function includeFromQuery<T extends string[]>(
   include: T
-): ExpandToInclude<T[number]> {
+): includeFromQuery<T[number]> {
   const result: any = {};
   for (const path of include) {
     const parts = path.split(".");

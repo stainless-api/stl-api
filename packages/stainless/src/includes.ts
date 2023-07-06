@@ -130,7 +130,7 @@ export type IncludablePaths<
             }[keyof Model & string])
   : never;
 
-type ExpandSubPaths<
+type IncludeSubPaths<
   E extends string,
   Path extends string
 > = E extends `${Path}.${infer SubPath}` ? SubPath : never;
@@ -138,7 +138,7 @@ type ExpandSubPaths<
 export function includeSubPaths<S extends string[], P extends string>(
   include: S,
   path: P
-): ExpandSubPaths<S[number], P>[] {
+): IncludeSubPaths<S[number], P>[] {
   const prefix = `${path}.`;
   return include.flatMap((path) =>
     path.startsWith(prefix) ? [path.substring(prefix.length)] : []
