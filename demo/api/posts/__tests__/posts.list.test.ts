@@ -86,13 +86,13 @@ describe("/api/posts", function () {
       hasPreviousPage: false,
     });
   });
-  it("expansion + selection", async function () {
+  it("inclusion + selection", async function () {
     expect(
       (
         await testClient.posts.list({
           userId: "187f77f6-5570-40ae-84f7-bcd28fab78a2",
           pageSize: 3,
-          expand: ["items.user"],
+          include: ["items.user"],
           select: "items.user_fields{id,name}",
         })
       ).data
@@ -211,11 +211,11 @@ describe("/api/posts", function () {
       }
     `);
   });
-  it("expansion + selection 2", async function () {
+  it("inclusion + selection 2", async function () {
     const { data } = await testClient.posts.list({
       userId: "187f77f6-5570-40ae-84f7-bcd28fab78a2",
       pageSize: 3,
-      expand: ["items.user"],
+      include: ["items.user"],
       select: "items.user_fields{id,name,comments_fields{id}}",
     });
     expect({

@@ -11,7 +11,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ userId }) => {
     client.posts.useInfiniteList({
       userId,
       pageSize: 5,
-      expand: ["items.user", "items.comments"],
+      include: ["items.user", "items.comments"],
     });
 
   return (

@@ -10,7 +10,7 @@ based on a fullstack twitter clone we found on youtube: https://github.com/Anton
 - [x] Infinite scroll / pagination helpers
 - [x] Our own routing
 - [x] Fix Context typing
-- [x] Expand
+- [x] Include
 - [x] Next `app` routing
 - [ ] Errors
 - [ ] Implement config, use it for auth requirement
