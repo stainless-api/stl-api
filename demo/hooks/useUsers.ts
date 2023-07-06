@@ -1,5 +1,5 @@
 import useSWR from "swr";
-import { client } from "~/api/client";
+import { client } from "../api/client";
 
 const useUsers = () => {
   const { data, error, isLoading, mutate } = useSWR("users-list", () =>

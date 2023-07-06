@@ -1,6 +1,6 @@
-import { stl } from "~/libs/stl";
+import { stl } from "../../libs/stl";
 import { NotFoundError, z } from "stainless";
-import prisma from "~/libs/prismadb";
+import prisma from "../../libs/prismadb";
 import { User } from "./models";
 
 export const retrieve = stl.endpoint({

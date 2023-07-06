@@ -20,10 +20,8 @@
   "license": "ISC",
   "source": "src/prismaPlugin.ts",
   "main": "dist/prismaPlugin.js",
-  "module": "dist/prismaPlugin.es.js",
   "types": "dist/prismaPlugin.d.ts",
   "scripts": {
-    "build": "tsc -p tsconfig.build.json",
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {

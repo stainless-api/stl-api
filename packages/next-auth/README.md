@@ -8,7 +8,7 @@ context.
 > **Warning**
 >
 > This is alpha software, and we may make significant changes in the coming months.
-> But we're eager for you to try it out and let us know what you think!
+> We're eager for you to try it out and let us know what you think!
 
 This guide assumes you've already set up [@stl-api/next](/packages/next).
 
@@ -114,20 +114,19 @@ import {
   PartialStlContext,
 } from "stainless";
 
-export const makeCurrentUserPlugin =
-  (): MakeStainlessPlugin => (stl) => ({
-    async middleware<EC extends AnyEndpoint>(
-      endpoint: EC,
-      params: Params,
-      context: PartialStlContext<EC>
-    ) {
-      const { session } = context;
+export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
+  async middleware<EC extends AnyEndpoint>(
+    endpoint: EC,
+    params: Params,
+    context: PartialStlContext<EC>
+  ) {
+    const { session } = context;
 
-      // session?.user is exactly what was returned from authorize(),
-      // but doesn't have complete type information
-      context.currentUser = session?.user as any;
-    },
-  });
+    // session?.user is exactly what was returned from authorize(),
+    // but doesn't have complete type information
+    context.currentUser = session?.user as any;
+  },
+});
 ```
 
 ```diff

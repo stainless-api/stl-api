@@ -2,15 +2,14 @@ import axios from "axios";
 import { useCallback, useState } from "react";
 import { toast } from "react-hot-toast";
 
-import useLoginModal from "~/hooks/useLoginModal";
-import useRegisterModal from "~/hooks/useRegisterModal";
-import useCurrentUser from "~/hooks/useCurrentUser";
-import usePost from "~/hooks/usePost";
+import useLoginModal from "../hooks/useLoginModal";
+import useRegisterModal from "../hooks/useRegisterModal";
+import useCurrentUser from "../hooks/useCurrentUser";
+import usePost from "../hooks/usePost";
 
 import Avatar from "./Avatar";
 import Button from "./Button";
-import { client } from "~/api/client";
-import { invalidateQueries } from "~/libs/invalidateQueries";
+import { client } from "../api/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 interface FormProps {
@@ -46,7 +45,7 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
 
       toast.success("Tweet created");
       setBody("");
-      invalidateQueries(queryClient, client.posts.list({}));
+      client.posts.invalidateList(queryClient);
       mutatePost();
     } catch (error) {
       toast.error("Something went wrong");

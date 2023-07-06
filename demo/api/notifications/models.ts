@@ -1,6 +1,6 @@
 import { User, UserSelection } from "../users/models";
 import { z } from "stainless";
-import prisma from "~/libs/prismadb";
+import prisma from "../../libs/prismadb";
 
 export const Notification0 = z.response({
   id: z.string().uuid(),

@@ -1,4 +1,4 @@
-import { stl } from "~/libs/stl";
+import { stl } from "../../libs/stl";
 import { create } from "./create";
 import { list } from "./list";
 import { retrieve } from "./retrieve";

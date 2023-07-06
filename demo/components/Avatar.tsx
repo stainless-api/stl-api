@@ -2,7 +2,7 @@ import Image from "next/image";
 import { useRouter } from "next/router";
 import { useCallback } from "react";
 
-import useUser from "~/hooks/useUser";
+import useUser from "../hooks/useUser";
 
 interface AvatarProps {
   userId: string;

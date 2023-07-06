@@ -1,4 +1,4 @@
-import { posts } from "~/api/posts";
+import { posts } from "../../../api/posts";
 import { stlNextPageRoute } from "@stl-api/next";
 
 export default stlNextPageRoute(posts.actions.list, posts.actions.create);

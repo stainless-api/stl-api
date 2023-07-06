@@ -437,12 +437,11 @@ export const makePrismaPlugin =
         paginate: paginate,
       },
       middleware<EC extends AnyEndpoint>(
-        endpoint: EC,
         params: Params,
         context: StlContext<EC>
       ) {
-        const model = endpoint.response
-          ? (extractPrismaModel(endpoint.response) as any)
+        const model = context.endpoint.response
+          ? (extractPrismaModel(context.endpoint.response) as any)
           : null;
         function getModel(): PrismaModel {
           if (!model)
@@ -450,7 +449,7 @@ export const makePrismaPlugin =
           return model;
         }
         function wrapQuery<Q extends { include?: any }>(prismaQuery: Q): Q {
-          return endpointWrapQuery(endpoint, context, prismaQuery);
+          return endpointWrapQuery(context.endpoint, context, prismaQuery);
         }
 
         const prismaContext: PrismaContext<PrismaModel> = {

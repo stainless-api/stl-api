@@ -13,7 +13,7 @@ Stainless draws inspiration with gratitude from tRPC, FastAPI, GraphQL/Relay, an
 
 > **Note**
 > This project is currently in its **alpha stage of development**.
-> Features may be changed or removed at any time without warning, and production use is not recommended. 
+> Features may be changed or removed at any time without warning, and production use is not recommended.
 > Hobbyists welcome!
 
 For example:

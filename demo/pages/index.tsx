@@ -1,6 +1,6 @@
-import Header from "~/components/Header";
-import Form from "~/components/Form";
-import InfinitePostFeed from "~/components/posts/InfinitePostFeed";
+import Header from "../components/Header";
+import Form from "../components/Form";
+import InfinitePostFeed from "../components/posts/InfinitePostFeed";
 
 export default function Home() {
   return (

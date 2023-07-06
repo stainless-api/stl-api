@@ -1,4 +1,4 @@
-import { stl } from "~/libs/stl";
+import { stl } from "../../libs/stl";
 import { z } from "stainless";
 import { Post } from "./models";
 

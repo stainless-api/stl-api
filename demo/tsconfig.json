@@ -14,9 +14,7 @@
     "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "preserve",
-    "paths": {
-      "~/*": ["./*"]
-    },
+
     "plugins": [
       {
         "name": "next"
@@ -36,6 +34,9 @@
     },
     {
       "path": "../packages/prisma"
+    },
+    {
+      "path": "../packages/react-query/tsconfig.esm.json"
     },
     {
       "path": "../packages/stainless"

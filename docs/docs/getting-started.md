@@ -7,7 +7,7 @@ sidebar_position: 1
 :::caution
 
 This is alpha software, and we may make significant changes in the coming months.
-But we're eager for you to try it out and let us know what you think!
+We're eager for you to try it out and let us know what you think!
 
 :::
 
@@ -17,13 +17,19 @@ We will soon provide a `create-stl-app` API. Until then:
 
 ## Installation
 
+For now, you can install packages from versioned GitHub branches, like so:
+
 ```bash
-npm i --save stainless-api/stl-api#stainless-0.0.2 stainless-api/stl-api#next-0.0.2
+npm i --save  stainless-api/stl-api#stainless-0.0.2 \
+              stainless-api/stl-api#next-0.0.2 \
+              stainless-api/react-query#stainless-0.0.2
 
 # Optional plugins:
-npm i --save stainless-api/stl-api#next-auth-0.0.2  # If you are using next-auth
-npm i --save stainless-api/stl-api#prisma-0.0.2     # If you are using Prisma
+npm i --save 'stainless-api/stl-api#next-auth-0.0.2'  # If you are using next-auth
+npm i --save 'stainless-api/stl-api#prisma-0.0.2'     # If you are using Prisma
 ```
+
+In the future, we will publish to npm packages like `stainless`, `@stl-api/next`, etc.
 
 ## Create Stainless instance
 
@@ -32,8 +38,6 @@ npm i --save stainless-api/stl-api#prisma-0.0.2     # If you are using Prisma
 
 import { Stl } from "stainless";
 import { makeNextPlugin } from "@stl-api/next";
-
-export type Context = {};
 
 const plugins = {
   next: makeNextPlugin(),
@@ -169,10 +173,10 @@ export { GET, HEAD, POST, PUT, PATCH, DELETE, OPTIONS };
 ```ts
 // ~/api/client.ts
 
-import { createClient } from "stainless";
+import { createReactQueryClient } from "@stl-api/react-query";
 import type { api } from "./index";
 
-export const client = createClient<typeof api>("/api");
+export const client = createReactQueryClient<typeof api>("/api");
 ```
 
 ## Use client
@@ -182,17 +186,13 @@ export const client = createClient<typeof api>("/api");
 
 import * as React from "react";
 import client from "~/api/client.ts";
-import { useQuery } from "@tanstack/react-query";
 
 export default function UserPage({
   params: { userId },
 }: {
   params: { userId: string };
 }): React.ReactElement {
-  const { status, error, data: user } = useQuery({
-    queryKey: [`users/${userId}`],
-    queryFn: () => client.users.retrieve(userId),
-  });
+  const { status, error, data: user } = client.users.useRetrieve(userId);
 
   if (status === "loading") return <LoadingAlert>Loading user...</LoadingAlert>;
   if (error) return <ErrorAlert error={error} />;

@@ -7,20 +7,18 @@ import {
   AnyResourceConfig,
   ResourceConfig,
   HttpMethod,
+  EndpointPathInput,
+  EndpointBodyInput,
+  EndpointQueryInput,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
 type ValueOf<T extends object> = T[keyof T];
 
-type ExtractClientPath<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
-  ? ValueOf<z.input<E["path"]>>
-  : undefined;
-type ExtractClientQuery<E extends AnyEndpoint> = E["query"] extends z.ZodTypeAny
-  ? z.input<E["query"]>
-  : undefined;
-type ExtractClientBody<E extends AnyEndpoint> = E["body"] extends z.ZodTypeAny
-  ? z.input<E["body"]>
-  : undefined;
+type EndpointPathParam<E extends AnyEndpoint> =
+  EndpointPathInput<E> extends object
+    ? ValueOf<EndpointPathInput<E>>
+    : undefined;
 
 type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
   E["response"]
@@ -30,6 +28,47 @@ type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
   ? ClientPromise<z.infer<E["response"]>>
   : ClientPromise<undefined>;
 
+/**
+ * A client for making requests to the REST API described by the `Api` type.
+ *
+ * The client allows for performing REST operations idiomatically by utilizing
+ * the resources and endpoints declared on the API. A resource's endpoints
+ * are available on the client as methods on a field with the name of the
+ * resource.
+ *
+ * ## Example
+ * ```ts
+ * // api/users/index.ts
+ * import { stl } from "~/libs/stl";
+ * import { retrieve } from "./retrieve";
+ * import { User } from "./models";
+ *
+ * export const users = stl.resource({
+ *   summary: "Users",
+ *   models: {
+ *     User,
+ *   },
+ *   actions: {
+ *     retrieve,
+ *   },
+ * });
+ *
+ * // app/users/[userId]/page.tsx
+ * ...
+ * // `users` refers to the resource by the same name, `retrieve` refers
+ * // to the endpoint on `users` by the same name
+ * const user = client.users.retrieve(userId);
+ * ...
+ *
+ * ## Implementation note
+ * In order to decrease build times and bundle sizes, the
+ * `stainless` client utilizes proxies in order to provide a mapping
+ * to the server API. This means that resource and endpoint fields and methods
+ * cannot be found within source code. Autocomplete and type definitions
+ * within a Typescript LSP-enabled editor are good ways of understanding
+ * the shape of the client API.
+ * ```
+ */
 export type StainlessClient<Api extends AnyAPIDescription> = ClientResource<
   ResourceConfig<
     Api["topLevel"]["actions"],
@@ -51,24 +90,31 @@ type ClientResource<Resource extends AnyResourceConfig> = {
 type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        body: ExtractClientBody<E>,
-        options?: { query?: ExtractClientQuery<E> }
+        path: EndpointPathParam<E>,
+        body: EndpointBodyInput<E>,
+        options?: RequestOptions<EndpointQueryInput<E>>
       ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
     ? (
-        path: ExtractClientPath<E>,
-        query: ExtractClientQuery<E>
+        path: EndpointPathParam<E>,
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
       ) => ExtractClientResponse<E>
-    : (path: ExtractClientPath<E>) => ExtractClientResponse<E>
+    : (
+        path: EndpointPathParam<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
   : E["body"] extends z.ZodTypeAny
   ? (
-      body: ExtractClientBody<E>,
-      options?: { query?: ExtractClientQuery<E> }
+      body: EndpointBodyInput<E>,
+      options?: RequestOptions<EndpointQueryInput<E>>
     ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (query: ExtractClientQuery<E>) => ExtractClientResponse<E>
-  : () => ExtractClientResponse<E>;
+  ? (
+      query: EndpointQueryInput<E>,
+      options?: RequestOptions
+    ) => ExtractClientResponse<E>
+  : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
   if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "get";
@@ -77,15 +123,51 @@ function actionMethod(action: string): HttpMethod {
   return "post";
 }
 
+/**
+ * Thrown when a non-success HTTP status code is encountered by the client.
+ */
 class HTTPResponseError extends Error {
+  /**
+   * @param response the unsuccessful response
+   */
   constructor(public response: Response) {
     super(`HTTP Error Response: ${response.status} ${response.statusText}`);
   }
 }
 
+/** Options for the {@link createClient} function. */
+interface CreateClientOptions {
+  /** Replaces the default global `fetch` function to make requests. */
+  fetch?: typeof fetch;
+}
+
+/**
+ * Creates a client for making requests against a `stainless` framework API.
+ * For usage information see {@link StainlessClient}.
+ *
+ * @param baseUrl the url to prepend to all request paths
+ * @param options options to customize client behavior
+ * @returns client
+ *
+ * ## Example
+ * ```ts
+ * // ~/api/client.ts
+ * import { createClient } from "stainless";
+ * import type { api } from "./index";
+ *
+ * export const client = createClient<typeof api>("/api");
+ * ```
+ *
+ * ## Client-server separation
+ * In order to get a client with correct typing information, it's necessary
+ * to import the type of the API from server-side code. This does not expose
+ * server-side code or secrets to users because types are transpile-time
+ * constructs. Importing values or functions from server-side code, however,
+ * would result in this being included in client-side bundles.
+ */
 export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
-  options?: { fetch?: typeof fetch }
+  options?: CreateClientOptions
 ): StainlessClient<Api> {
   const checkStatus = (response: Response) => {
     if (response.ok) {
@@ -97,9 +179,9 @@ export function createClient<Api extends AnyAPIDescription>(
   };
 
   const client = createRecursiveProxy((opts) => {
+    const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
-    const { args } = opts;
     let requestOptions: RequestOptions<any> | undefined;
 
     let path = callPath.join("/"); // eg; /issuing/cards
@@ -108,7 +190,7 @@ export function createClient<Api extends AnyAPIDescription>(
     }
 
     if (isRequestOptions(args.at(-1))) {
-      requestOptions = args.shift() as any;
+      requestOptions = args.pop() as any;
     }
     const method = actionMethod(action);
 
@@ -174,7 +256,6 @@ export function createClient<Api extends AnyAPIDescription>(
       pathname,
       search,
       query,
-      cacheKey,
     };
 
     return action === "list"
@@ -184,39 +265,59 @@ export function createClient<Api extends AnyAPIDescription>(
   return client;
 }
 
+/** A record of HTTP header names and values. */
 export type Headers = Record<string, string | null | undefined>;
 export type KeysEnum<T> = { [P in keyof Required<T>]: true };
 
-export type RequestOptions<Req extends {} = Record<string, unknown>> = {
-  method?: HttpMethod;
-  path?: string;
+/**
+ * Request options to customize the behavior of a
+ * {@link StainlessClient} request.
+ */
+
+// TODO most of these are unimplemented
+export type RequestOptions<Req extends {} | undefined = undefined> = {
+  /** Override the method with which to perform the request. */
+  // method?: HttpMethod;
+  /** Override the path at which to make the request. */
+  // path?: string;
+  /** Provide query parameters for the request. */
   query?: Req | undefined;
-  body?: Req | undefined;
+  /** Provide body parameters for the request. */
+  // body?: Req | undefined;
+  /** Provide HTTP headers to send with the request. */
   headers?: Headers | undefined;
 
-  maxRetries?: number;
-  stream?: boolean | undefined;
-  timeout?: number;
-  idempotencyKey?: string;
+  /** The maximum number of times to retry a request. Defaults to 0. */
+  // maxRetries?: number;
+  /** Whether to stream the response. */
+  // stream?: boolean | undefined;
+  /** The number of milliseconds before the request times out. */
+  // timeout?: number;
+  /**
+   * Make the request idempotent. Assuming server-side support,
+   * if the request is performed multiple times, the requested action will
+   * be performed at most once for a given value of the key.
+   */
+  // idempotencyKey?: string;
 };
 
 // This is required so that we can determine if a given object matches the RequestOptions
 // type at runtime. While this requires duplication, it is enforced by the TypeScript
 // compiler such that any missing / extraneous keys will cause an error.
 const requestOptionsKeys: KeysEnum<RequestOptions> = {
-  method: true,
-  path: true,
+  // method: true,
+  // path: true,
   query: true,
-  body: true,
+  // body: true,
   headers: true,
 
-  maxRetries: true,
-  stream: true,
-  timeout: true,
-  idempotencyKey: true,
+  // maxRetries: true,
+  // stream: true,
+  // timeout: true,
+  // idempotencyKey: true,
 };
 
-export const isRequestOptions = (obj: unknown): obj is RequestOptions => {
+const isRequestOptions = (obj: unknown): obj is RequestOptions => {
   return (
     typeof obj === "object" &&
     obj !== null &&
@@ -225,6 +326,7 @@ export const isRequestOptions = (obj: unknown): obj is RequestOptions => {
   );
 };
 
+/** Fetched page data, along with associated pagination state. */
 export type Page<D extends z.PageData<any>> = PageImpl<D> & D;
 
 export class PageImpl<D extends z.PageData<any>> {
@@ -238,12 +340,24 @@ export class PageImpl<D extends z.PageData<any>> {
     Object.assign(this, data);
   }
 
+  /** The items in a page. */
   declare items: z.PageItemType<D>[];
+  /** The cursor referring to the first element in the page, if present. */
   declare startCursor: string | null;
+  /**
+   * The cursor referring to the one past the last element in the page,
+   * if present.
+   */
   declare endCursor: string | null;
+  /** If known, whether there is a page after the current one. */
   declare hasNextPage: boolean | undefined;
+  /** If known, whether there is a page before the current one. */
   declare hasPreviousPage: boolean | undefined;
 
+  /**
+   * Get params to access previous page.
+   * @throws if there is no `startCursor`.
+   */
   getPreviousPageParams(): z.PaginationParams {
     const { startCursor } = this.data;
     if (startCursor == null) {
@@ -270,14 +384,23 @@ export class PageImpl<D extends z.PageData<any>> {
     };
   }
 
+  /** Gets the cursor to access the previous page. */
   getPreviousPageParam(): string | null {
     return this.data.startCursor;
   }
 
+  /**
+   * Gets the URL at which to access the previous page.
+   * @throws if there is no `startCursor`.
+   */
   getPreviousPageUrl(): string {
     return `${this.pathname}/${qs.stringify(this.getPreviousPageParams())}`;
   }
 
+  /**
+   * Gets the previous page.
+   * @throws if there is no `startCursor`.
+   */
   async getPreviousPage(): Promise<Page<D>> {
     return await this.clientPath.reduce(
       (client: any, path) => client[path],
@@ -285,6 +408,10 @@ export class PageImpl<D extends z.PageData<any>> {
     )(this.getPreviousPageParams());
   }
 
+  /**
+   * Get params to access the next page.
+   * @throws if there is no `endCursor`.
+   */
   getNextPageParams(): z.PaginationParams {
     const { endCursor } = this.data;
     if (endCursor == null) {
@@ -309,14 +436,23 @@ export class PageImpl<D extends z.PageData<any>> {
     };
   }
 
+  /** Gets the cursor to access the next page. */
   getNextPageParam(): string | null {
     return this.data.endCursor;
   }
 
+  /**
+   * Gets the URL at which to access the next page.
+   * @throws if there is no `endCursor`.
+   */
   getNextPageUrl(): string {
     return `${this.pathname}/${qs.stringify(this.getNextPageParams())}`;
   }
 
+  /**
+   * Gets the next page.
+   * @throws if there is no `endCursor`.
+   */
   async getNextPage(): Promise<Page<D>> {
     return await this.clientPath.reduce(
       (client: any, path) => client[path],
@@ -325,23 +461,22 @@ export class PageImpl<D extends z.PageData<any>> {
   }
 }
 
-type ClientPromiseProps = {
+export type ClientPromiseProps = {
   method: HttpMethod;
   uri: string;
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 };
 
-class ClientPromise<R> implements Promise<R> {
+/** A promise returned by {@link StainlessClient} requests. */
+export class ClientPromise<R> implements Promise<R> {
   fetch: () => Promise<R>;
   method: HttpMethod;
   uri: string;
   pathname: string;
   search: string;
   query: Record<string, any>;
-  cacheKey: string;
 
   constructor(fetch: () => Promise<R>, props: ClientPromiseProps) {
     this.fetch = once(fetch);
@@ -350,7 +485,6 @@ class ClientPromise<R> implements Promise<R> {
     this.pathname = props.pathname;
     this.search = props.search;
     this.query = props.query;
-    this.cacheKey = props.cacheKey;
   }
 
   then<TResult1 = R, TResult2 = never>(
@@ -384,14 +518,12 @@ class ClientPromise<R> implements Promise<R> {
   }
 }
 
-export type { ClientPromise };
-
 /**
  * The result of client.???.list, can be awaited like a
- * Promise to get a single page, or async iterated to go through
- * all items
+ * `Promise` to get a single page, or async iterated to go through
+ * all items.
  */
-class PaginatorPromise<D extends z.PageData<any>>
+export class PaginatorPromise<D extends z.PageData<any>>
   extends ClientPromise<Page<D>>
   implements AsyncIterable<z.PageItemType<D>>
 {
@@ -411,5 +543,3 @@ class PaginatorPromise<D extends z.PageData<any>>
     return "PaginatorPromise";
   }
 }
-
-export type { PaginatorPromise };

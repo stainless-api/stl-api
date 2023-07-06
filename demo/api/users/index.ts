@@ -1,4 +1,4 @@
-import { stl } from "~/libs/stl";
+import { stl } from "../../libs/stl";
 import { list } from "./list";
 import { retrieve } from "./retrieve";
 import { User, UserSelection } from "./models";

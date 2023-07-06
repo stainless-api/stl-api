@@ -2,7 +2,7 @@ import { Stl } from "stainless";
 import { makePrismaPlugin } from "@stl-api/prisma";
 import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
-import { authOptions } from "~/pages/api/auth/[...nextauth]";
+import { authOptions } from "../pages/api/auth/[...nextauth]";
 import { makeCurrentUserPlugin } from "./currentUserPlugin";
 import { User } from "@prisma/client";
 
