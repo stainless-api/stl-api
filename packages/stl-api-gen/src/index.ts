@@ -1,3 +1,5 @@
+#!/usr/bin/env node
+
 import * as tm from "ts-morph";
 import { ts } from "ts-morph";
 const { factory } = ts;
@@ -33,19 +35,26 @@ import { Watcher } from "./watch";
 import {
   EndpointTypeInstance,
   NodeType,
-  handleEndpoint,
+  preprocessEndpoint,
 } from "./endpointPreprocess";
 
 import { program as argParser } from "commander";
-import { convertPathToImport, isSymbolStlMethod, mangleString } from "./utils";
+import {
+  convertPathToImport,
+  isSymbolStlMethod,
+  mangleString,
+  statOrExit,
+} from "./utils";
 
 // TODO: add dry run functionality?
 argParser.option("-w, --watch", "enables watch mode");
-argParser.option(
-  "-d, --directory <path>",
-  "the directory to generate schemas for",
-  "."
-);
+argParser
+  .option(
+    "-d, --directory <path>",
+    "the directory to generate schemas for",
+    "."
+  )
+  .allowExcessArguments(false);
 
 const NODE_MODULES_GEN_PATH = "@stl-api/gen";
 
@@ -65,6 +74,12 @@ async function main() {
   argParser.parse();
   const options = argParser.opts();
 
+  const directoryStat = await statOrExit(options.directory);
+  if (!directoryStat.isDirectory()) {
+    console.error(`Error: '${options.directory}; is not a directory.`);
+    process.exit(1);
+  }
+
   const packageJsonPath = await pkgUp({
     cwd: options.directory,
   });
@@ -79,10 +94,26 @@ async function main() {
   }
   const rootPath = Path.dirname(packageJsonPath);
 
-  const project = new tm.Project({
-    // TODO: should file path be configurable?
-    tsConfigFilePath: Path.join(rootPath, "tsconfig.json"),
-  });
+  const tsConfigFilePath = Path.relative(
+    ".",
+    Path.join(rootPath, "tsconfig.json")
+  );
+  const tsConfigStat = await statOrExit(tsConfigFilePath);
+  if (!tsConfigStat.isFile()) {
+    console.error(`Error: '${tsConfigFilePath}' is not a file.`);
+  }
+
+  let watcher: Watcher | undefined;
+  if (options.watch) {
+    watcher = new Watcher(rootPath);
+  }
+
+  const project =
+    watcher?.project ||
+    new tm.Project({
+      // TODO: should file path be configurable?
+      tsConfigFilePath,
+    });
 
   const baseCtx = new SchemaGenContext(project);
 
@@ -94,12 +125,8 @@ async function main() {
     rootPath,
     zPackage: "stainless",
   } as const;
-  const printer = tm.ts.createPrinter();
 
-  let watcher: Watcher | undefined;
-  if (options.watch) {
-    watcher = new Watcher(rootPath);
-  }
+  const printer = tm.ts.createPrinter();
 
   const succeeded = await evaluate(
     project,
@@ -158,15 +185,16 @@ async function evaluate(
 ): Promise<boolean> {
   const generationConfig = createGenerationConfig(generationOptions);
 
+  // accumulated diagnostics to emit
   const callDiagnostics: CallDiagnostics[] = [];
+  // every stl.types.endpoint call found per file
   const endpointCalls: Map<tm.SourceFile, EndpointCall[]> = new Map();
-
-  // all of the stl.types calls found
 
   for (const file of project.getSourceFiles()) {
     const ctx = new ConvertTypeContext(baseCtx, file);
     const imports = new Map<string, ImportInfo>();
     let hasMagicCall = false;
+
     // a list of closures to call to modify the file before saving it
     // performs modifications that invalidate ast information after
     // all tree visiting is complete
@@ -184,7 +212,7 @@ async function evaluate(
       if (!(methodName === "magic" || methodName === "endpoint")) continue;
 
       if (methodName == "endpoint") {
-        const call = handleEndpoint(callExpression);
+        const call = preprocessEndpoint(callExpression);
         if (!call) continue;
         const fileCalls = getOrInsert(endpointCalls, file, () => []);
         const endpointSchema = convertEndpointCall(
@@ -208,11 +236,13 @@ async function evaluate(
           name: mangleString(call.endpointPath),
           expression: endpointSchema,
           isExported: true,
-          /** non-user-visible type should be given any type */
-          type: factory.createTypeReferenceNode("any"),
+          /** non-user-visible value should not be generated in .d.ts */
+          private: true,
         });
         continue;
       }
+      
+      // Handle stl.magic call
 
       const typeRefArguments = callExpression.getTypeArguments();
       if (typeRefArguments.length != 1) continue;
@@ -243,7 +273,6 @@ async function evaluate(
         }
         const name = symbol.getName();
         const declaration = symbol.getDeclarations()[0];
-        // TODO factor out this logic in ts-to-zod and export a function
         const as = mangleTypeName(type, name);
         const declarationFilePath = declaration.getSourceFile().getFilePath();
 
@@ -363,122 +392,6 @@ async function evaluate(
 
   const generatedFileContents = generateFiles(baseCtx, generationOptions);
 
-  if (endpointCalls.size) {
-    const mapEntries = [];
-
-    outer: for (const [file, calls] of endpointCalls) {
-      baseCtx.diagnostics = new Map();
-      const ctx = new ConvertTypeContext(baseCtx, file);
-      for (const call of calls) {
-        const mangledName = mangleString(call.endpointPath);
-        const importExpression = factory.createCallExpression(
-          factory.createToken(ts.SyntaxKind.ImportKeyword) as ts.Expression,
-          undefined,
-          [
-            factory.createStringLiteral(
-              `${convertPathToImport(
-                generatePath(file.getFilePath(), generationConfig)
-              )}.js`
-            ),
-          ]
-        );
-        const callExpression = factory.createCallExpression(
-          factory.createPropertyAccessExpression(importExpression, "then"),
-          undefined,
-          [
-            factory.createArrowFunction(
-              undefined,
-              undefined,
-              [factory.createParameterDeclaration(undefined, undefined, "mod")],
-              undefined,
-              undefined,
-              factory.createPropertyAccessExpression(
-                factory.createIdentifier("mod"),
-                mangledName
-              )
-            ),
-          ]
-        );
-        const entry = factory.createPropertyAssignment(
-          factory.createStringLiteral(call.endpointPath),
-          callExpression
-        );
-        mapEntries.push(entry);
-      }
-    }
-
-    /* const mapConstant = factory.createVariableDeclarationList(
-      [
-        factory.createVariableDeclaration(
-          "someName",
-          undefined,
-          undefined,
-          factory.createObjectLiteralExpression(mapEntries)
-        ),
-      ],
-      // ts.NodeFlags.Const
-    ); 
-    const mapStatement = factory.createVariableStatement(
-      [factory.createToken(ts.SyntaxKind.ExportKeyword)],
-      mapConstant
-    );
-    */
-    const mapExpression = factory.createObjectLiteralExpression(mapEntries);
-
-    const mapStatementCJS = factory.createExpressionStatement(
-      factory.createAssignment(
-        factory.createPropertyAccessExpression(
-          factory.createIdentifier("exports"),
-          "map"
-        ),
-        mapExpression
-      )
-    );
-
-    const mapDeclaration = factory.createVariableDeclarationList(
-      [
-        factory.createVariableDeclaration(
-          "someName",
-          undefined,
-          undefined,
-          factory.createObjectLiteralExpression(mapEntries)
-        ),
-      ],
-      ts.NodeFlags.Const
-    );
-    const mapStatementESM = factory.createVariableStatement(
-      [factory.createToken(ts.SyntaxKind.ExportKeyword)],
-      mapDeclaration
-    );
-
-    const mapSourceFileCJS = factory.createSourceFile(
-      [mapStatementCJS],
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-
-    const mapSourceFileESM = factory.createSourceFile(
-      [mapStatementESM],
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-
-    const genPath = Path.join(rootPath, "node_modules", NODE_MODULES_GEN_PATH);
-    await fs.promises.mkdir(genPath, { recursive: true });
-
-    const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");
-    await fs.promises.writeFile(
-      endpointMapGenPathCJS,
-      printer.printFile(mapSourceFileCJS)
-    );
-
-    const endpointMapGenPathESM = Path.join(genPath, "__endpointMap.mjs");
-    await fs.promises.writeFile(
-      endpointMapGenPathESM,
-      printer.printFile(mapSourceFileESM)
-    );
-  }
-
   if (callDiagnostics.length) {
     const output = [];
     let errorCount = 0;
@@ -556,6 +469,105 @@ async function evaluate(
       console.log("No modifications were made to package source.");
       return false;
     }
+  }
+
+  // Generate __endpointMap
+  if (endpointCalls.size) {
+    const mapEntries = [];
+
+    outer: for (const [file, calls] of endpointCalls) {
+      for (const call of calls) {
+        const mangledName = mangleString(call.endpointPath);
+        const importExpression = factory.createCallExpression(
+          factory.createToken(ts.SyntaxKind.ImportKeyword) as ts.Expression,
+          undefined,
+          [
+            factory.createStringLiteral(
+              `${convertPathToImport(
+                generatePath(file.getFilePath(), generationConfig)
+              )}.js`
+            ),
+          ]
+        );
+        const callExpression = factory.createCallExpression(
+          factory.createPropertyAccessExpression(importExpression, "then"),
+          undefined,
+          [
+            factory.createArrowFunction(
+              undefined,
+              undefined,
+              [factory.createParameterDeclaration(undefined, undefined, "mod")],
+              undefined,
+              undefined,
+              factory.createPropertyAccessExpression(
+                factory.createIdentifier("mod"),
+                mangledName
+              )
+            ),
+          ]
+        );
+        const entry = factory.createPropertyAssignment(
+          factory.createStringLiteral(call.endpointPath),
+          callExpression
+        );
+        mapEntries.push(entry);
+      }
+    }
+
+    const mapExpression = factory.createObjectLiteralExpression(mapEntries);
+
+    const mapStatementCJS = factory.createExpressionStatement(
+      factory.createAssignment(
+        factory.createPropertyAccessExpression(
+          factory.createIdentifier("exports"),
+          "map"
+        ),
+        mapExpression
+      )
+    );
+
+    const mapSourceFileCJS = factory.createSourceFile(
+      [mapStatementCJS],
+      factory.createToken(ts.SyntaxKind.EndOfFileToken),
+      0
+    );
+
+    const mapDeclaration = factory.createVariableDeclarationList(
+      [
+        factory.createVariableDeclaration(
+          "someName",
+          undefined,
+          undefined,
+          factory.createObjectLiteralExpression(mapEntries)
+        ),
+      ],
+      ts.NodeFlags.Const
+    );
+    const mapStatementESM = factory.createVariableStatement(
+      [factory.createToken(ts.SyntaxKind.ExportKeyword)],
+      mapDeclaration
+    );
+
+    const mapSourceFileESM = factory.createSourceFile(
+      [mapStatementESM],
+      factory.createToken(ts.SyntaxKind.EndOfFileToken),
+      0
+    );
+
+    const genPath = Path.join(rootPath, "node_modules", NODE_MODULES_GEN_PATH);
+    await fs.promises.mkdir(genPath, { recursive: true });
+
+    const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");
+    await fs.promises.writeFile(
+      endpointMapGenPathCJS,
+      printer.printFile(mapSourceFileCJS)
+    );
+
+    const endpointMapGenPathESM = Path.join(genPath, "__endpointMap.mjs");
+    await fs.promises.writeFile(
+      endpointMapGenPathESM,
+      printer.printFile(mapSourceFileESM)
+    );
   }
 
   for (const [file, fileStatments] of generatedFileContents) {

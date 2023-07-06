@@ -7,15 +7,17 @@ export type NodeType = [tm.Node, tm.Type];
 
 export interface EndpointTypeInstance {
   endpointPath: string;
-  callExpression: tm.Node,
-  query?: NodeType,
-  path?: NodeType,
-  body?: NodeType,
-  response?: NodeType,
+  callExpression: tm.Node;
+  query?: NodeType;
+  path?: NodeType;
+  body?: NodeType;
+  response?: NodeType;
 }
 
 // call expression is the expression (...endpoint())
-export function handleEndpoint(callExpression: tm.CallExpression): EndpointTypeInstance | undefined {
+export function preprocessEndpoint(
+  callExpression: tm.CallExpression
+): EndpointTypeInstance | undefined {
   // lhs is the value on which .endpoint is being called
   const lhs = callExpression.getExpression();
   const endpointArgs = callExpression.getArguments();
@@ -54,7 +56,7 @@ export function handleEndpoint(callExpression: tm.CallExpression): EndpointTypeI
       let pathNodeType;
       let bodyNodeType;
       let responseNodeType;
-      
+
       for (const property of schemaTypes.getProperties()) {
         const name = property.getName();
         switch (name) {
@@ -75,7 +77,7 @@ export function handleEndpoint(callExpression: tm.CallExpression): EndpointTypeI
             continue;
         }
       }
-      
+
       return {
         endpointPath,
         callExpression,
@@ -83,7 +85,7 @@ export function handleEndpoint(callExpression: tm.CallExpression): EndpointTypeI
         path: pathNodeType,
         body: bodyNodeType,
         response: responseNodeType,
-      }
+      };
     }
   }
 }
