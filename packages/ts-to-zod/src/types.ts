@@ -15,9 +15,7 @@ export abstract class Transform<I, O> extends SchemaType<I, O> {
   ): O | PromiseLike<O>;
 }
 
-export type input<T> = any extends T
-  ? any
-  : T extends SchemaType<any, infer I>
+export type input<T> = T extends SchemaType<any, infer I>
   ? input<I>
   : T extends z.ZodTypeAny
   ? z.input<T>
@@ -35,9 +33,7 @@ export type input<T> = any extends T
   ? PromiseLike<input<E>>
   : T;
 
-export type output<T> = any extends T
-  ? any
-  : T extends SchemaType<any, infer I>
+export type output<T> = T extends SchemaType<any, infer I>
   ? output<I>
   : T extends z.ZodTypeAny
   ? z.output<T>
@@ -188,7 +184,7 @@ export class DateSchema<Props extends DateSchemaProps> extends SchemaType<
 interface ObjectSchemaProps {
   passthrough?: OptionalMessage<true>;
   strict?: OptionalMessage<true>;
-  catchall?: any,
+  catchall?: any;
 }
 
 export class ObjectSchema<
@@ -215,4 +211,3 @@ export class SetSchema<T, Props extends SetSchemaProps> extends SchemaType<
   Set<T>,
   Set<T>
 > {}
-
