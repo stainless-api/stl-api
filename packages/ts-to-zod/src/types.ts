@@ -1,6 +1,6 @@
 import z from "zod";
 
-export abstract class SchemaType<I, O> {
+export abstract class SchemaType<I, O=I>{
   declare _input: I;
   declare _output: O;
 }

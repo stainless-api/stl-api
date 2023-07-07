@@ -7,7 +7,7 @@ export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
-export { Includable, Includes, Selectable, Selects } from "./magicTypes";
+export { Includable, Includes, Selectable, Selects, Selection, PageResponse } from "./magicTypes";
 export {
   type StainlessClient,
   ClientPromise,

@@ -347,23 +347,37 @@ export function convertType(
   } else if (isStainlessSymbol(typeSymbol)) {
     switch (typeSymbol?.getName()) {
       case "Includable":
-        return convertIncludableSelectable(
+        return convertSimpleSchemaClassSuffix(
           ctx,
           ty,
           "includable",
           diagnosticItem
         );
       case "Selectable":
-        return convertIncludableSelectable(
+        return convertSimpleSchemaClassSuffix(
           ctx,
           ty,
           "selectable",
+          diagnosticItem
+        );
+      case "Selection":
+        return convertSimpleSchemaClassSuffix(
+          ctx,
+          ty,
+          "selection",
           diagnosticItem
         );
       case "Includes":
         return convertIncludesSelects(ctx, ty, "includes", diagnosticItem);
       case "Selects":
         return convertIncludesSelects(ctx, ty, "selects", diagnosticItem);
+      case "PageResponse":
+        return convertSimpleSchemaClassZ(
+          ctx,
+          ty,
+          "pageResponse",
+          diagnosticItem
+        );
     }
   }
 
@@ -1112,7 +1126,21 @@ function convertIncludesSelects(
   ]);
 }
 
-function convertIncludableSelectable(
+function convertSimpleSchemaClassZ(
+  ctx: ConvertTypeContext,
+  type: tm.Type,
+  name: string,
+  diagnosticItem: DiagnosticItem
+): ts.Expression {
+  const args = type.getTypeArguments();
+  if (args.length !== 1) {
+    throw new Error(`${name} takes one type parameter`);
+  }
+  const schemaExpression = convertType(ctx, args[0], diagnosticItem);
+  return zodConstructor(name, [schemaExpression]);
+}
+
+function convertSimpleSchemaClassSuffix(
   ctx: ConvertTypeContext,
   type: tm.Type,
   name: string,
@@ -1120,7 +1148,7 @@ function convertIncludableSelectable(
 ): ts.Expression {
   const args = type.getTypeArguments();
   if (args.length != 1) {
-    throw new Error("stainless Includable and Selectable take one argument");
+    throw new Error(`expected one type argument for ${name}`);
   }
   const arg = args[0];
   const schemaExpression = convertType(ctx, arg, diagnosticItem);
