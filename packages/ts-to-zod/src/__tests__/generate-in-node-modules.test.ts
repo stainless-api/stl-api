@@ -6,7 +6,7 @@ import pkgUp from "pkg-up";
 import path from "path";
 
 type T = {
-  datetime: StringSchema<{ max: 20; datetime: true }>;
+  datetime: StringSchema<{ max: 20; datetime: true, regex: ["[A-Z]", "oops"] }>;
   addresses: AddrIface[];
   enum: Enum;
 };
@@ -54,11 +54,11 @@ const T: z.ZodTypeAny;
 ",
   "node_modules/zodgen/src/__tests__/generate-in-node-modules.test.js": "const { z } = require("zod");
 const { AddressIface: __symbol_AddrIface, Enum: __enum_Enum } = require("./common");
-const T = z.object({ datetime: z.string().max(20).datetime(), addresses: z.array(z.lazy(() => __symbol_AddrIface)), enum: z.lazy(() => __enum_Enum) });
+const T = z.object({ datetime: z.string().max(20).datetime().regex(new RegExp("[A-Z]"), "oops"), addresses: z.array(z.lazy(() => __symbol_AddrIface)), enum: z.lazy(() => __enum_Enum) });
 ",
   "node_modules/zodgen/src/__tests__/generate-in-node-modules.test.mjs": "import { z } from "zod";
 import { AddressIface as __symbol_AddrIface, Enum as __enum_Enum } from "./common";
-const T = z.object({ datetime: z.string().max(20).datetime(), addresses: z.array(z.lazy(() => __symbol_AddrIface)), enum: z.lazy(() => __enum_Enum) });
+const T = z.object({ datetime: z.string().max(20).datetime().regex(new RegExp("[A-Z]"), "oops"), addresses: z.array(z.lazy(() => __symbol_AddrIface)), enum: z.lazy(() => __enum_Enum) });
 ",
 }
 `));

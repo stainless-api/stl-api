@@ -290,7 +290,11 @@ export function convertSymbol(
 export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
+  /** 
+   * If true, forces generation for the current type instead of using `z.lazy()`. 
+   */
+  generateInline?: boolean,
 ): ts.Expression {
   const typeSymbol = ty.getSymbol();
 
@@ -386,7 +390,7 @@ export function convertType(
         packageTypeName,
         objectSchemaProperties,
         typeArgs,
-        convertType(ctx, objectType, diagnosticItem),
+        convertType(ctx, objectType, diagnosticItem, true),
         diagnosticItem
       );
     }
@@ -426,7 +430,7 @@ export function convertType(
     }
   }
 
-  if (!ctx.isRoot && !isNativeObject(typeSymbol)) {
+  if (!ctx.isRoot && !generateInline && !isNativeObject(typeSymbol)) {
     const symbol =
       ty.getAliasSymbol() ||
       (ty.isInterface() && !isNativeObject(typeSymbol) ? typeSymbol : null);
@@ -1063,11 +1067,12 @@ function convertSchemaType(
 
   // Special-cases how to handle string value literals.
   // This is needed for the case of `min` and `max` for
-  // `DateSchema`, as they take in instances of `Date`, but
+  // `DateSchema`, and `regex` for `StringSchema`, as they take 
+  // in instances of `Date` and `RegExp`, but
   // users can only pass string literals as type arguments.
   // This function converts those literals to Dates at
   // runtime.
-  const createValueStringLiteral = (s: string) => {
+  const createValueStringLiteral = (s: string, property: string) => {
     const stringLiteral = factory.createStringLiteral(s);
     return schemaTypeName === "DateSchema"
       ? factory.createNewExpression(
@@ -1075,7 +1080,7 @@ function convertSchemaType(
           [],
           [stringLiteral]
         )
-      : stringLiteral;
+      : schemaTypeName === "StringSchema" && property === "regex" ? factory.createNewExpression(factory.createIdentifier("RegExp"), [], [factory.createStringLiteral(s)]) : stringLiteral;
   };
 
   const typeArgsSymbol = typeArgs.getAliasSymbol() || typeArgs.getSymbol();
@@ -1216,7 +1221,7 @@ function convertSchemaType(
     if (literalValue) {
       let args: ts.Expression[];
       if (typeof literalValue === "string")
-        args = [createValueStringLiteral(literalValue)];
+        args = [createValueStringLiteral(literalValue, name)];
       else if (typeof literalValue === "number")
         args = [factory.createNumericLiteral(literalValue)];
       else if (typeof literalValue === "bigint")
