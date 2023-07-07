@@ -291,59 +291,80 @@ export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type,
   diagnosticItem: DiagnosticItem,
-  /** 
-   * If true, forces generation for the current type instead of using `z.lazy()`. 
+  /**
+   * If true, forces generation for the current type instead of using `z.lazy()`.
    */
-  generateInline?: boolean,
+  generateInline?: boolean
 ): ts.Expression {
   const typeSymbol = ty.getSymbol();
 
-  const packageBaseTypeName = getPackageBaseTypeName(ty);
-  if (packageBaseTypeName === "Transform") {
-    const symbol = ty.getSymbolOrThrow(
-      `failed to get symbol for transform: ${ty.getText()}`
-    );
-    const inputType = getNthBaseClassTypeArgument(ty, 0);
-
-    // import the transform class
-    ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
-      importFromUserFile: true,
-      sourceFile: getTypeFilePath(ty)!,
-    });
-
-    return methodCall(
-      convertType(ctx, inputType, diagnosticItem),
-      "transform",
-      [
-        factory.createPropertyAccessExpression(
-          factory.createNewExpression(
-            factory.createIdentifier(symbol.getName()),
-            undefined,
-            []
-          ),
-          factory.createIdentifier("transform")
-        ),
-      ]
-    );
-  }
-
-  if (packageBaseTypeName === "Refine") {
-    return convertRefineType(ctx, ty, typeSymbol, "refine", diagnosticItem);
-  }
-
-  if (packageBaseTypeName === "SuperRefine") {
-    return convertRefineType(
-      ctx,
-      ty,
-      typeSymbol,
-      "superRefine",
-      diagnosticItem
-    );
-  }
-
+  const baseTypeName = getBaseTypeName(ty);
   let packageTypeName = undefined;
-  if (typeSymbol && isInThisPackage(typeSymbol)) {
-    packageTypeName = typeSymbol.getName();
+  if (isInThisPackage(typeSymbol)) {
+    if (typeSymbol) {
+      packageTypeName = typeSymbol.getName();
+    }
+
+    switch (baseTypeName) {
+      case "Transform": {
+        const symbol = ty.getSymbolOrThrow(
+          `failed to get symbol for transform: ${ty.getText()}`
+        );
+        const inputType = getNthBaseClassTypeArgument(ty, 0);
+
+        // import the transform class
+        ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+          importFromUserFile: true,
+          sourceFile: getTypeFilePath(ty)!,
+        });
+
+        return methodCall(
+          convertType(ctx, inputType, diagnosticItem),
+          "transform",
+          [
+            factory.createPropertyAccessExpression(
+              factory.createNewExpression(
+                factory.createIdentifier(symbol.getName()),
+                undefined,
+                []
+              ),
+              factory.createIdentifier("transform")
+            ),
+          ]
+        );
+      }
+      case "Refine":
+        return convertRefineType(ctx, ty, typeSymbol, "refine", diagnosticItem);
+      case "SuperRefine":
+        return convertRefineType(
+          ctx,
+          ty,
+          typeSymbol,
+          "superRefine",
+          diagnosticItem
+        );
+    }
+  } else if (isStainlessSymbol(typeSymbol)) {
+    switch (typeSymbol?.getName()) {
+      case "Includable":
+        return convertIncludableSelectable(
+          ctx,
+          ty,
+          "includable",
+          diagnosticItem
+        );
+      case "Selectable":
+        return convertIncludableSelectable(
+          ctx,
+          ty,
+          "selectable",
+          diagnosticItem
+        );
+      case "Includes":
+        return convertIncludesSelects(ctx, ty, "includes", diagnosticItem);
+      case "Selects":
+        return convertIncludesSelects(ctx, ty, "selects", diagnosticItem);
+    }
   }
 
   switch (packageTypeName) {
@@ -430,10 +451,10 @@ export function convertType(
     }
   }
 
-  if (!ctx.isRoot && !generateInline && !isNativeObject(typeSymbol)) {
+  if (!ctx.isRoot && !generateInline && !isNativeSymbol(typeSymbol)) {
     const symbol =
       ty.getAliasSymbol() ||
-      (ty.isInterface() && !isNativeObject(typeSymbol) ? typeSymbol : null);
+      (ty.isInterface() && !isNativeSymbol(typeSymbol) ? typeSymbol : null);
     if (symbol) {
       const declaration = getDeclaration(symbol);
       if (
@@ -600,7 +621,7 @@ export function convertType(
         convertCallSignature(ctx, first, diagnosticItem)
       );
     }
-    if (isNativeObject(typeSymbol)) {
+    if (isNativeSymbol(typeSymbol)) {
       // TODO: for these items, the previous diagnostic item is likely more useful. Use
       // that instead.
       switch (typeSymbol?.getName()) {
@@ -772,13 +793,25 @@ function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
   return ctxProvider._context.compilerFactory.getType(type);
 }
 
-function isNativeObject(symbol: tm.Symbol | undefined): boolean {
+function isSymbolInFile(
+  symbol: tm.Symbol | undefined,
+  filePattern: RegExp
+): boolean {
   if (!symbol) return false;
   const declaration = getDeclaration(symbol);
   const sourceFile = declaration?.getSourceFile().getFilePath();
   if (!sourceFile) return false;
-  return sourceFile.match(/typescript\/lib\/.*\.d\.ts$/) != null;
+  return sourceFile.match(filePattern) != null;
 }
+
+function isNativeSymbol(symbol: tm.Symbol | undefined): boolean {
+  return isSymbolInFile(symbol, /typescript\/lib\/.*\.d\.ts$/);
+}
+
+function isStainlessSymbol(symbol: tm.Symbol | undefined): boolean {
+  return isSymbolInFile(symbol, /stainless\/dist\/.*\.d\.ts$/);
+}
+
 function createZodShape(
   ctx: ConvertTypeContext,
   type: tm.Type<ts.Type>
@@ -1055,6 +1088,45 @@ function extractGenericSchemaTypeArguments(
   return args as [tm.Type, tm.Type];
 }
 
+function convertIncludesSelects(
+  ctx: ConvertTypeContext,
+  type: tm.Type,
+  name: string,
+  diagnosticItem: DiagnosticItem
+): ts.Expression {
+  const args = type.getTypeArguments();
+  if (args.length < 1 || args.length > 2) {
+    throw new Error("stainless takes one or two type parameters");
+  }
+  if (args[1] && !args[1].isNumberLiteral()) {
+    ctx.addError(diagnosticItem, {
+      message: "expected a single numeric literal between 0 and 5",
+    });
+  }
+  const schemaExpression = convertType(ctx, args[0], diagnosticItem);
+  const depth = (args[1].getLiteralValue() as number) || 3;
+
+  return zodConstructor(name, [
+    schemaExpression,
+    factory.createNumericLiteral(depth),
+  ]);
+}
+
+function convertIncludableSelectable(
+  ctx: ConvertTypeContext,
+  type: tm.Type,
+  name: string,
+  diagnosticItem: DiagnosticItem
+): ts.Expression {
+  const args = type.getTypeArguments();
+  if (args.length != 1) {
+    throw new Error("stainless Includable and Selectable take one argument");
+  }
+  const arg = args[0];
+  const schemaExpression = convertType(ctx, arg, diagnosticItem);
+  return methodCall(schemaExpression, name);
+}
+
 function convertSchemaType(
   ctx: ConvertTypeContext,
   schemaTypeName: string,
@@ -1067,7 +1139,7 @@ function convertSchemaType(
 
   // Special-cases how to handle string value literals.
   // This is needed for the case of `min` and `max` for
-  // `DateSchema`, and `regex` for `StringSchema`, as they take 
+  // `DateSchema`, and `regex` for `StringSchema`, as they take
   // in instances of `Date` and `RegExp`, but
   // users can only pass string literals as type arguments.
   // This function converts those literals to Dates at
@@ -1080,7 +1152,13 @@ function convertSchemaType(
           [],
           [stringLiteral]
         )
-      : schemaTypeName === "StringSchema" && property === "regex" ? factory.createNewExpression(factory.createIdentifier("RegExp"), [], [factory.createStringLiteral(s)]) : stringLiteral;
+      : schemaTypeName === "StringSchema" && property === "regex"
+      ? factory.createNewExpression(
+          factory.createIdentifier("RegExp"),
+          [],
+          [factory.createStringLiteral(s)]
+        )
+      : stringLiteral;
   };
 
   const typeArgsSymbol = typeArgs.getAliasSymbol() || typeArgs.getSymbol();
@@ -1256,14 +1334,15 @@ function getTypeId(type: tm.Type): number {
   return type.compilerType.id;
 }
 
-function isInThisPackage(symbol: tm.Symbol): boolean {
+function isInThisPackage(symbol: tm.Symbol | undefined): boolean {
+  if (!symbol) return false;
   const declaration = getDeclaration(symbol);
   if (!declaration) return false;
   const symbolFile = declaration.getSourceFile().getFilePath();
   return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
 }
 
-function getPackageBaseTypeName(type: tm.Type): string | undefined {
+function getBaseTypeName(type: tm.Type): string | undefined {
   const symbol = type.getSymbol();
   if (!symbol) return undefined;
   const declaration = getDeclaration(symbol);
@@ -1278,8 +1357,7 @@ function getPackageBaseTypeName(type: tm.Type): string | undefined {
   );
   const extendsTypeNode = heritageClause?.getTypeNodes()[0];
   const baseSymbol = extendsTypeNode?.getType().getSymbol();
-  if (!baseSymbol) return undefined;
-  return isInThisPackage(baseSymbol) ? baseSymbol.getName() : undefined;
+  return baseSymbol?.getName();
 }
 
 /** Assuming there is one base class of the given type argument, gets its nth type argument */

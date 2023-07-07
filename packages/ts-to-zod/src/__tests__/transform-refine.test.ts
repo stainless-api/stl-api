@@ -11,7 +11,7 @@ import {
   ArraySchema,
   StringSchema,
 } from "../index";
-import z from "zod";
+import { z, Includes, Selectable } from "stainless";
 
 class ToString<I extends TypeSchema<any>> extends Transform<I, string> {
   transform(value: output<I>): string {
@@ -72,6 +72,9 @@ type T = {
   >;
   datetime: StringSchema<{ datetime: { offset: true } }>;
   catchall: ObjectSchema<{ a: number }, { catchall: string }>;
+  includes: Includes<Aliased>;
+  deepIncludes: Includes<Aliased, 5>;
+  selectable: Selectable<Aliased>;
 };
 
 it(`transform`, async () =>
@@ -83,15 +86,18 @@ it(`transform`, async () =>
 {
   "src/__tests__/transform-refine.test.codegen.d.ts": "import { z } from "zod";
 import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform-refine.test";
+const Aliased: z.ZodTypeAny;
 const T: z.ZodTypeAny;
 ",
   "src/__tests__/transform-refine.test.codegen.js": "const { z } = require("zod");
 const { ParseFloat, ToString, Coerce, ParsePet, Even } = require("./transform-refine.test");
-const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()) });
+const Aliased = z.object({ x: z.string() });
+const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()), includes: z.includes(z.lazy(() => Aliased), 3), deepIncludes: z.includes(z.lazy(() => Aliased), 5), selectable: z.lazy(() => Aliased).selectable() });
 ",
   "src/__tests__/transform-refine.test.codegen.mjs": "import { z } from "zod";
 import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform-refine.test";
-const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()) });
+const Aliased = z.object({ x: z.string() });
+const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()), includes: z.includes(z.lazy(() => Aliased), 3), deepIncludes: z.includes(z.lazy(() => Aliased), 5), selectable: z.lazy(() => Aliased).selectable() });
 ",
 }
 `));
