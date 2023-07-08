@@ -191,9 +191,68 @@ class ToString<I extends TypeSchema<any>> extends Transform<I, string> {
 
 ## Stainless Zod extension types
 
-:::caution 
+### `PrismaModel<Model>`
 
-Custom Stainless Zod functionality is not yet available when using 
-type-to-schema conversion. We aim to close this gap soon. 
+:::caution
+This is not yet implemented.
+:::
+:::info
+This is only available if using the [`@stl-api/prisma`](/stl/prisma/getting-started) plugin.
+:::
+:::caution
+
+Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
 
 :::
+
+Allows you to declare the Prisma model associated with a response schema. In an endpoint whose
+response schema has a Prisma model declared, [special conveniences](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
+
+### `Includable<T>`
+
+Marks an object property as being [includable](/stl/inclusion) via an `include` query parameter.
+This is only useful when applied on an object or array of object types.
+
+### `Selectable<T>`
+
+Marks an object property as being [selectable](/stl/selection) via a `select` query parameter.
+This is only useful when applied on an object or array of object types.
+
+### `Selection<T>`
+
+Use this to declare the schema for a `Selectable<>` field value:
+
+```ts
+user_fields: Selectable<Selection<User>>;
+```
+
+### `PageResponse<I>`
+
+Represents a page response with the given item type `I`.
+
+## Example
+
+```ts
+interface UserBase {
+  id: StringSchema<{uuid: true}>,
+  name?: string,
+};
+
+interface IncludableUser extends UserBase {
+  posts: Includable<Post[]>,
+}
+
+interface PostBase {
+  id: StringSchema<{uuid: true}>,
+  body: string,
+}
+
+interface IncludablePost extends PostBase {
+  user?: Includable<User>,
+}
+
+// generate a schema value for `IncludableUser`
+const IncludableUserSchema = stl.magic<IncludableUser>(
+  /* filled by `stl` CLI */
+);
+```
