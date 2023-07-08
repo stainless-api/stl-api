@@ -109,7 +109,7 @@ A Zod schema for `sortDirection` (`"asc" | "desc"`).
 
 A helper for declaring response schemas with circular references.
 
-#### Example
+## Example
 
 [See here](/stl/inclusion#implementing-inclusion-with-circular-associations) for a
 more complete example.
