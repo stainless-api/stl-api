@@ -319,11 +319,13 @@ async function evaluate(
       }
 
       // fill in generated schema expression
-      callExpression.addArgument(
-        printer.printNode(
-          ts.EmitHint.Unspecified,
-          schemaExpression,
-          file.compilerNode
+      fileOperations.push(() =>
+        callExpression.addArgument(
+          printer.printNode(
+            ts.EmitHint.Unspecified,
+            schemaExpression,
+            file.compilerNode
+          )
         )
       );
     }
@@ -484,7 +486,7 @@ async function evaluate(
   if (endpointCalls.size) {
     const mapEntries = [];
 
-    outer: for (const [file, calls] of endpointCalls) {
+    for (const [file, calls] of endpointCalls) {
       for (const call of calls) {
         const mangledName = mangleString(call.endpointPath);
         const importExpression = factory.createCallExpression(
