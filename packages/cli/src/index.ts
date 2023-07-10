@@ -76,7 +76,7 @@ async function main() {
 
   const directoryStat = await statOrExit(options.directory);
   if (!directoryStat.isDirectory()) {
-    console.error(`Error: '${options.directory}; is not a directory.`);
+    console.error(`Error: '${options.directory} is not a directory.`);
     process.exit(1);
   }
 
