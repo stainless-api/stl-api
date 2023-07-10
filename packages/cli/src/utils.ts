@@ -16,14 +16,14 @@ export function isSymbolStlMethod(symbol: tm.Symbol): boolean {
   if (!symbolDeclaration) return false;
   const symbolDeclarationFile = symbolDeclaration.getSourceFile().getFilePath();
 
-  return symbolDeclarationFile.indexOf("stl.d.ts") >= 0;
+  return symbolDeclarationFile.endsWith("stl.d.ts");
 }
 
 export function mangleString(str: string): string {
   const unicodeLetterRegex = /\p{L}/u;
   const escapedStringBuilder = ["__"];
   for (const codePointString of str) {
-    if (codePointString === "/") {
+    if (codePointString === Path.sep) {
       escapedStringBuilder.push("$");
     } else if (unicodeLetterRegex.test(codePointString)) {
       escapedStringBuilder.push(codePointString);
@@ -35,10 +35,13 @@ export function mangleString(str: string): string {
 }
 
 function absoluteNodeModulesPath(path: string): string {
-  const nodeModulesPos = path.lastIndexOf("node_modules");
-  if (nodeModulesPos >= 0) {
-    return path.substring(nodeModulesPos + 13);
-  } else return path;
+  const splitPath = path.split(Path.sep);
+  for (let i = 0; i < splitPath.length; i++) {
+    if (splitPath[i] === "node_modules") {
+      return Path.join(...splitPath.slice(i + 1));
+    }
+  }
+  return path;
 }
 
 export function convertPathToImport(path: string): string {

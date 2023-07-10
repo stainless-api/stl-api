@@ -1,6 +1,6 @@
 import z from "zod";
 
-export abstract class SchemaType<I, O=I>{
+export abstract class SchemaType<I, O = I> {
   declare _input: I;
   declare _output: O;
 }
@@ -15,7 +15,9 @@ export abstract class Transform<I, O> extends SchemaType<I, O> {
   ): O | PromiseLike<O>;
 }
 
-export type input<T> = T extends SchemaType<any, infer I>
+export type input<T> = 0 extends 1 & T
+  ? any
+  : T extends SchemaType<any, infer I>
   ? input<I>
   : T extends z.ZodTypeAny
   ? z.input<T>
@@ -33,7 +35,9 @@ export type input<T> = T extends SchemaType<any, infer I>
   ? PromiseLike<input<E>>
   : T;
 
-export type output<T> = T extends SchemaType<any, infer I>
+export type output<T> = 0 extends 1 & T
+  ? any
+  : T extends SchemaType<any, infer I>
   ? output<I>
   : T extends z.ZodTypeAny
   ? z.output<T>
