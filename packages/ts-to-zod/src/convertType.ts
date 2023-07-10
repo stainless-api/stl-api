@@ -381,6 +381,16 @@ export function convertType(
     }
   }
 
+  if (baseTypeName === "ZodType" && isZodSymbol(typeSymbol)) {
+    ctx.addError(
+      diagnosticItem,
+      {
+        message: `Zod schema types are not valid input types (received type \`${typeSymbol?.getName()}\`)`,
+      },
+      true
+    );
+  }
+
   switch (packageTypeName) {
     case "NumberSchema":
       return convertPrimitiveSchemaType(
@@ -824,6 +834,10 @@ function isNativeSymbol(symbol: tm.Symbol | undefined): boolean {
 
 function isStainlessSymbol(symbol: tm.Symbol | undefined): boolean {
   return isSymbolInFile(symbol, /stainless\/dist\/.*\.d\.ts$/);
+}
+
+function isZodSymbol(symbol: tm.Symbol | undefined): boolean {
+  return isSymbolInFile(symbol, /zod\/lib\/.*\.d\.ts$/);
 }
 
 function createZodShape(
