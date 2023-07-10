@@ -37,6 +37,9 @@ jobs:
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
 
+      - name: Check format
+        run: pnpm prettier:check
+
       - name: Build
         run: pnpm build
 

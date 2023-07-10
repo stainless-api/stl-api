@@ -283,7 +283,9 @@ function zodPathIsIncluded(
   include: string[]
 ): boolean {
   const zodPathStr = zodPath.filter((p) => typeof p === "string").join(".");
-  return include.some((e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`));
+  return include.some(
+    (e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`)
+  );
 }
 
 //////////////////////////////////////////////////

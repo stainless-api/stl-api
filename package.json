@@ -39,6 +39,7 @@
     "watch": "pnpm run build:watch",
     "clean": "pnpm -r run clean && rm -rf packages/*/{package,*.tgz}",
     "format": "prettier --write .",
+    "prettier:check": "prettier --list-different .",
     "postinstall": "./node_modules/ghooks/bin/install"
   },
   "devDependencies": {

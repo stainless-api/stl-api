@@ -32,7 +32,7 @@ export const multiFileTestCase = async (options: {
   const ctx = new SchemaGenContext(testProject);
   convertSymbol(ctx, symbol);
   const rootPackageJson = await pkgUp({
-    cwd: __dirname
+    cwd: __dirname,
   });
   if (!rootPackageJson) {
     throw new Error("test must run within npm package");

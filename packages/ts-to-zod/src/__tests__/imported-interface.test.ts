@@ -5,9 +5,9 @@ class TestClass {
   a: string = "hello";
 
   method(): void {
-    console.log("lmaoo")
+    console.log("lmaoo");
   }
-  
+
   constructor() {}
 }
 
@@ -20,10 +20,10 @@ interface T {
 
 it(`imported interface`, async () =>
   expect(
-  await multiFileTestCase({
-    __filename
-  })
-).toMatchInlineSnapshot(`
+    await multiFileTestCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`
 {
   "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 ",

@@ -188,7 +188,7 @@ export class DateSchema<Props extends DateSchemaProps> extends SchemaType<
 interface ObjectSchemaProps {
   passthrough?: OptionalMessage<true>;
   strict?: OptionalMessage<true>;
-  catchall?: any,
+  catchall?: any;
 }
 
 export class ObjectSchema<
@@ -215,4 +215,3 @@ export class SetSchema<T, Props extends SetSchemaProps> extends SchemaType<
   Set<T>,
   Set<T>
 > {}
-

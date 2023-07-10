@@ -13,25 +13,25 @@ type T = {
 
 it(`generating in node_modules`, async () =>
   expect(
-  await multiFileTestCase({
-    __filename,
-    genOptions: {
-      genLocation: {
-        type: "node_modules",
-        genPath: "zodgen/"
+    await multiFileTestCase({
+      __filename,
+      genOptions: {
+        genLocation: {
+          type: "node_modules",
+          genPath: "zodgen/",
+        },
+        rootPath: await (async () => {
+          const rootPackageJson = await pkgUp({
+            cwd: __dirname,
+          });
+          if (!rootPackageJson) {
+            throw new Error("test must run within npm package");
+          }
+          return path.dirname(rootPackageJson);
+        })(),
       },
-      rootPath: await (async () => {
-        const rootPackageJson = await pkgUp({
-            cwd: __dirname
-        });
-        if (!rootPackageJson) {
-          throw new Error("test must run within npm package");
-        }
-        return path.dirname(rootPackageJson);
-      })()
-    }
-  })
-).toMatchInlineSnapshot(`
+    })
+  ).toMatchInlineSnapshot(`
 {
   "node_modules/zodgen/src/__tests__/common.ts": "import { Enum as __enum_Enum } from "../../../../src/__tests__/common.ts";
 export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
