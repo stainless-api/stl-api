@@ -1,4 +1,5 @@
 import { testCase } from "./testCase";
+import { multiFileTestCase } from "./multiFileTestCase";
 
 type anyType = any;
 it(`any`, () =>
@@ -368,3 +369,36 @@ it(`mapped type`, () =>
   ).toMatchInlineSnapshot(
     `"z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })"`
   ));
+
+import { z } from "zod";
+export const objectSchema = z.object({ a: z.string() });
+
+type zodSchemaProperty = {
+  zod: typeof objectSchema;
+};
+
+it(`zod schema property`, async () =>
+  expect(
+  await multiFileTestCase({
+    __filename,
+    getNode: (sourceFile) => sourceFile.getTypeAlias("zodSchemaProperty")
+  })
+).toMatchInlineSnapshot(`
+{
+  "src/__tests__/basics.test.codegen.d.ts": "import { z } from "zod";
+import { objectSchema as __schema_objectSchema } from "./basics.test";
+export const objectSchema: z.ZodTypeAny;
+const zodSchemaProperty: z.ZodTypeAny;
+",
+  "src/__tests__/basics.test.codegen.js": "const { z } = require("zod");
+const { objectSchema: __schema_objectSchema } = require("./basics.test");
+exports.objectSchema = z.lazy(__schema_objectSchema);
+const zodSchemaProperty = z.object({ zod: __schema_objectSchema });
+",
+  "src/__tests__/basics.test.codegen.mjs": "import { z } from "zod";
+import { objectSchema as __schema_objectSchema } from "./basics.test";
+export const objectSchema = z.lazy(__schema_objectSchema);
+const zodSchemaProperty = z.object({ zod: __schema_objectSchema });
+",
+}
+`));
