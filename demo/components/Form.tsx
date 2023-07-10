@@ -1,4 +1,3 @@
-import axios from "axios";
 import { useCallback, useState } from "react";
 import { toast } from "react-hot-toast";
 
@@ -9,8 +8,7 @@ import usePost from "../hooks/usePost";
 
 import Avatar from "./Avatar";
 import Button from "./Button";
-import { client } from "../api/client";
-import { useQueryClient } from "@tanstack/react-query";
+import { useClient } from "../api/client";
 
 interface FormProps {
   placeholder: string;
@@ -21,7 +19,7 @@ interface FormProps {
 const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
   const registerModal = useRegisterModal();
   const loginModal = useLoginModal();
-  const queryClient = useQueryClient();
+  const client = useClient();
 
   const { data: currentUser } = useCurrentUser();
 
@@ -45,14 +43,14 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
 
       toast.success("Tweet created");
       setBody("");
-      client.posts.invalidateList(queryClient);
+      client.posts.list.invalidateQueries();
       mutatePost();
     } catch (error) {
       toast.error("Something went wrong");
     } finally {
       setIsLoading(false);
     }
-  }, [body, queryClient, isComment, postId, mutatePost]);
+  }, [body, isComment, postId, mutatePost]);
 
   return (
     <div className="border-b-[1px] border-neutral-800 px-5 py-2">
