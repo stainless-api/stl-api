@@ -287,6 +287,86 @@ export function convertSymbol(
   ]);
 }
 
+/**
+ * Handles special typeof cases, namely `typeof schemaValue` or
+ * `PrismaModel<typeof model>`
+ */
+export function convertTypeofNode(
+  ctx: ConvertTypeContext,
+  node: tm.Node,
+  type: tm.Type,
+  diagnosticItem: DiagnosticItem
+): ts.Expression | undefined {
+  if (node instanceof tm.TypeQueryNode) {
+    const symbol = type.getSymbol();
+    if (isZodSymbol(symbol)) {
+      const exprName = node.getExprName();
+      const base = baseIdentifier(exprName);
+      const baseSymbol = base.getSymbolOrThrow();
+      const declaration = baseSymbol.getValueDeclarationOrThrow();
+
+      if (!declaration || !isDeclarationExported(declaration)) {
+        ctx.addError(
+          { variant: "node", node: base },
+          {
+            message: `identifier ${base.getText()} must be exported to be used as a schema value`,
+          },
+          true
+        );
+      }
+
+      const as = `__schema_${base.getText()}`;
+
+      const currentFile = ctx.getFileInfo(ctx.currentFilePath);
+
+      if (!ctx.symbols.has(baseSymbol)) {
+        ctx.symbols.add(baseSymbol);
+        currentFile.imports.set(base.getText(), {
+          sourceFile: baseSymbol
+            .getValueDeclarationOrThrow()
+            .getSourceFile()
+            .getFilePath(),
+          importFromUserFile: true,
+          as,
+        });
+        currentFile.generatedSchemas.push({
+          name: base.getText(),
+          expression: zodConstructor("lazy", [
+            renameEntityIdentifier(exprName, as) as ts.Expression,
+          ]),
+          isExported: true,
+        });
+      }
+
+      return factory.createIdentifier(as);
+    } else {
+      ctx.addError(
+        diagnosticItem,
+        { message: "`typeof` can only be used with Zod schema expressions" },
+        true
+      );
+    }
+  }
+}
+
+function baseIdentifier(entityName: tm.EntityName): tm.Identifier {
+  if (entityName instanceof tm.Identifier) return entityName;
+  else return baseIdentifier(entityName.getLeft());
+}
+
+function renameEntityIdentifier(
+  entityName: tm.EntityName,
+  name: string
+): ts.EntityName {
+  if (entityName instanceof tm.Identifier)
+    return factory.createIdentifier(name);
+  else
+    return factory.createQualifiedName(
+      renameEntityIdentifier(entityName.getLeft(), name),
+      entityName.getRight().compilerNode
+    );
+}
+
 export function convertType(
   ctx: ConvertTypeContext,
   ty: tm.Type,
@@ -385,7 +465,9 @@ export function convertType(
     ctx.addError(
       diagnosticItem,
       {
-        message: `Zod schema types are not valid input types (received type \`${typeSymbol?.getName()}\`)`,
+        message:
+          "Zod schema types are not valid input types, except as `typeof schemaValue` " +
+          "within a top-level type argument or object property",
       },
       true
     );
@@ -517,7 +599,7 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__class_${typeSymbol.compilerSymbol.escapedName}`;
+    const escapedName = `__class_${typeSymbol.getEscapedName()}`;
     ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
@@ -545,7 +627,7 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__enum_${typeSymbol.compilerSymbol.escapedName}`;
+    const escapedName = `__enum_${typeSymbol.getEscapedName()}`;
     ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
@@ -851,6 +933,8 @@ function createZodShape(
         ctx.node
       );
 
+      let propertySchema;
+
       // If the current property has a parent type associated with it, use that
       // parent type for diagnostics information ini order to correctly attribute
       // the source of problematic types.
@@ -862,16 +946,34 @@ function createZodShape(
           const parentType = ctx.typeChecker.getTypeAtLocation(parentNode);
           if (parentType) enclosingType = parentType;
         }
+
+        const propertyTypeNode = propertyDeclaration.getTypeNode();
+        if (propertyTypeNode) {
+          // Handle the case where the property type is `typeof ...` or `PrismaModel<...>`
+          propertySchema = convertTypeofNode(
+            ctx,
+            propertyTypeNode,
+            propertyType,
+            {
+              variant: "property",
+              name: property.getName(),
+              symbol: property,
+              enclosingType,
+            }
+          );
+        }
       }
+
+      propertySchema ||= convertType(ctx, propertyType, {
+        variant: "property",
+        name: property.getName(),
+        symbol: property,
+        enclosingType,
+      });
 
       return factory.createPropertyAssignment(
         property.getName(),
-        convertType(ctx, propertyType, {
-          variant: "property",
-          name: property.getName(),
-          symbol: property,
-          enclosingType,
-        })
+        propertySchema
       );
     })
   );
@@ -1413,7 +1515,7 @@ function getNthBaseClassTypeArgument(ty: tm.Type, n: number): tm.Type {
   const typeArgumentNames = targetType
     .getTypeArguments()
     .map((arg) => arg.getText());
-  const rawInputName = rawInputType.getSymbol()?.compilerSymbol.escapedName;
+  const rawInputName = rawInputType.getSymbol()?.getEscapedName();
   if (!rawInputName) return rawInputType;
   const inputTypePos = typeArgumentNames.findIndex(
     (name) => name === rawInputName
@@ -1485,7 +1587,9 @@ function getDeclarationOrThrow(symbol: tm.Symbol): tm.Node {
 }
 
 // TODO: move to utils file
-export function getPropertyDeclaration(symbol: tm.Symbol): tm.Node | undefined {
+export function getPropertyDeclaration(
+  symbol: tm.Symbol
+): tm.PropertyDeclaration | tm.PropertySignature | undefined {
   for (const declaration of symbol.getDeclarations()) {
     if (
       declaration instanceof tm.PropertyDeclaration ||

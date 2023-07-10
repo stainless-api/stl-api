@@ -18,6 +18,7 @@ import {
   ErrorAbort,
   Incident,
   Diagnostics,
+  convertTypeofNode,
 } from "ts-to-zod/dist/convertType";
 
 import {
@@ -241,7 +242,7 @@ async function evaluate(
         });
         continue;
       }
-      
+
       // Handle stl.magic call
 
       const typeRefArguments = callExpression.getTypeArguments();
@@ -255,16 +256,27 @@ async function evaluate(
 
       ctx.isRoot = true;
       ctx.diagnostics = new Map();
-      if (
+
+      const diagnosticItem = {
+        variant: "node",
+        node: typeArgument,
+      } as const;
+
+      const typeofSchema = convertTypeofNode(
+        ctx,
+        typeArgument,
+        type,
+        diagnosticItem
+      );
+      if (typeofSchema) {
+        schemaExpression = typeofSchema;
+      } else if (
         typeArgument instanceof tm.TypeReferenceNode &&
         typeArgument.getTypeArguments().length === 0
       ) {
         const symbol = typeArgument.getTypeName().getSymbolOrThrow();
         try {
-          convertSymbol(ctx, symbol, {
-            variant: "node",
-            node: typeArgument,
-          });
+          convertSymbol(ctx, symbol, diagnosticItem);
         } catch (e) {
           if (e instanceof ErrorAbort) break;
           else throw e;
@@ -286,10 +298,7 @@ async function evaluate(
         schemaExpression = factory.createIdentifier(schemaName);
       } else {
         try {
-          schemaExpression = convertType(ctx, type, {
-            variant: "node",
-            node: typeArgument,
-          });
+          schemaExpression = convertType(ctx, type, diagnosticItem);
         } catch (e) {
           if (e instanceof ErrorAbort) break;
           else throw e;
@@ -637,16 +646,25 @@ function convertEndpointType(
   typeArgument: tm.Node,
   type: tm.Type
 ): ts.Expression | undefined {
+  const diagnosticItem = {
+    variant: "node",
+    node: typeArgument,
+  } as const;
+  const typeofSchema = convertTypeofNode(
+    ctx,
+    typeArgument,
+    type,
+    diagnosticItem
+  );
+  if (typeofSchema) return typeofSchema;
+
   if (
     typeArgument instanceof tm.TypeReferenceNode &&
     typeArgument.getTypeArguments().length === 0
   ) {
     const symbol = typeArgument.getTypeName().getSymbolOrThrow();
     try {
-      convertSymbol(ctx, symbol, {
-        variant: "node",
-        node: typeArgument,
-      });
+      convertSymbol(ctx, symbol, diagnosticItem);
     } catch (e) {
       if (e instanceof ErrorAbort) return;
       else throw e;
@@ -659,10 +677,7 @@ function convertEndpointType(
     return factory.createIdentifier(as || name);
   } else {
     try {
-      return convertType(ctx, type, {
-        variant: "node",
-        node: typeArgument,
-      });
+      return convertType(ctx, type, diagnosticItem);
     } catch (e) {
       if (e instanceof ErrorAbort) return;
       else throw e;
