@@ -5,7 +5,7 @@ sidebar_position: 2
 # Infinite Queries
 
 If `posts.list` is a `get /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
-`client.posts.useInfiniteList([query], [reactQueryOptions])` will be available
+`useClient().posts.useInfiniteList([query], [reactQueryOptions])` will be available
 as a wrapper for [`useInfiniteQuery`](https://tanstack.com/query/v4/docs/react/reference/useInfiniteQuery):
 
 ```ts
@@ -13,7 +13,7 @@ as a wrapper for [`useInfiniteQuery`](https://tanstack.com/query/v4/docs/react/r
 
 import * as React from "react";
 import PostItem from "./PostItem";
-import { client } from "~/api/client";
+import { useClient } from "~/api/useClient";
 import InfiniteScroll, { LoadingProps, ErrorProps } from "../InfiniteScroll";
 
 interface PostFeedProps {
@@ -21,6 +21,7 @@ interface PostFeedProps {
 }
 
 const InfinitePostFeed: React.FC<PostFeedProps> = ({ userId }) => {
+  const client = useClient();
   const { itemAndPlaceholderCount, useItem } = client.posts.useInfiniteList({
     userId,
     include: ["items.user", "items.comments"],

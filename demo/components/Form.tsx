@@ -4,7 +4,6 @@ import { toast } from "react-hot-toast";
 import useLoginModal from "../hooks/useLoginModal";
 import useRegisterModal from "../hooks/useRegisterModal";
 import useCurrentUser from "../hooks/useCurrentUser";
-import usePost from "../hooks/usePost";
 
 import Avatar from "./Avatar";
 import Button from "./Button";
@@ -25,36 +24,40 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
 
   const { data: currentUser } = useCurrentUser();
 
-  const { mutate: mutatePost } = usePost(postId as string);
-
   const [body, setBody] = useState("");
-  const [isLoading, setIsLoading] = useState(false);
 
-  const onSubmit = useCallback(async () => {
-    try {
-      setIsLoading(true);
-
-      if (isComment) {
-        if (!postId) {
-          throw new Error("You must have a post selected to add a comment.");
-        }
-        await client.comments.create({ body }, { query: { postId } });
-      } else {
-        await client.posts.create({ body });
-      }
-
-      toast.success("Tweet created");
-      setBody("");
+  const onSuccess = useCallback(() => {
+    toast.success("Tweet created");
+    setBody("");
+    queryClient.invalidateQueries({
+      queryKey: client.posts.list.getQueryKey(),
+    });
+    if (postId != null) {
       queryClient.invalidateQueries({
-        queryKey: client.posts.list.getQueryKey(),
+        queryKey: client.posts.retrieve.getQueryKey(postId),
       });
-      mutatePost();
-    } catch (error) {
-      toast.error("Something went wrong");
-    } finally {
-      setIsLoading(false);
     }
-  }, [body, isComment, postId, mutatePost]);
+  }, [postId]);
+
+  const onError = useCallback(() => {
+    toast.error("Something went wrong");
+  }, []);
+
+  const createComment = client.comments.useCreate({ onSuccess, onError });
+  const createPost = client.posts.useCreate({ onSuccess, onError });
+  const isLoading = createComment.isLoading || createPost.isLoading;
+
+  const onSubmit = useCallback(() => {
+    if (isComment) {
+      if (!postId) {
+        toast.error("You must have a post selected to add a comment.");
+        return;
+      }
+      createComment.mutate({ body }, { query: { postId } });
+    } else {
+      createPost.mutate({ body });
+    }
+  }, [body, isComment, postId, createComment, createPost]);
 
   return (
     <div className="border-b-[1px] border-neutral-800 px-5 py-2">

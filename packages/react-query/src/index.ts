@@ -134,7 +134,10 @@ function actionMethod(action: string): HttpMethod {
   return "post";
 }
 
-const queryKeyMethods = new Set(["invalidateQueries", "getQueryKey"]);
+const queryKeyMethods = new Set([
+  "getQueryKey",
+  // TODO: invalidateQueries etc
+]);
 
 export function createUseReactQueryClient<Api extends AnyAPIDescription>(
   baseUrl: string,
@@ -234,8 +237,10 @@ export function createUseReactQueryClient<Api extends AnyAPIDescription>(
           ? firstArg
           : undefined;
 
+      const queryKeyCallPath = [...callPath];
+      if (isQueryKeyMethod) queryKeyCallPath.pop();
       const queryKey = [
-        ...callPath,
+        ...queryKeyCallPath,
         ...(path ? [path] : []),
         ...(query ? [query] : []),
       ];
