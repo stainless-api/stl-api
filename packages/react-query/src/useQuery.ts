@@ -29,11 +29,17 @@ export type ClientUseQuery<
         >
       ) => UseQueryResult<TData, TError>
     : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: UseQueryOptions<TQueryFnData, TError, TData>
-      ) => UseQueryResult<TData, TError>
+    ? {} extends EndpointQueryInput<E>
+      ? (
+          path: EndpointPathParam<E>,
+          query?: EndpointQueryInput<E>,
+          options?: UseQueryOptions<TQueryFnData, TError, TData>
+        ) => UseQueryResult<TData, TError>
+      : (
+          path: EndpointPathParam<E>,
+          query: EndpointQueryInput<E>,
+          options?: UseQueryOptions<TQueryFnData, TError, TData>
+        ) => UseQueryResult<TData, TError>
     : (
         path: EndpointPathParam<E>,
         options?: UseQueryOptions<TQueryFnData, TError, TData>
@@ -48,10 +54,15 @@ export type ClientUseQuery<
       >
     ) => UseQueryResult<TData, TError>
   : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: UseQueryOptions<TQueryFnData, TError, TData>
-    ) => UseQueryResult<TData, TError>
+  ? {} extends EndpointQueryInput<E>
+    ? (
+        query?: EndpointQueryInput<E>,
+        options?: UseQueryOptions<TQueryFnData, TError, TData>
+      ) => UseQueryResult<TData, TError>
+    : (
+        query: EndpointQueryInput<E>,
+        options?: UseQueryOptions<TQueryFnData, TError, TData>
+      ) => UseQueryResult<TData, TError>
   : (
       options?: UseQueryOptions<TQueryFnData, TError, TData>
     ) => UseQueryResult<TData, TError>;

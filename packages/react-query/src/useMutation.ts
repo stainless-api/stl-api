@@ -5,12 +5,12 @@ import {
   type EndpointQueryInput,
   type EndpointResponseOutput,
 } from "stainless";
-import { isEmpty } from "lodash";
 import {
   UseMutationOptions as BaseUseMutationOptions,
+  MutateOptions,
   MutationObserverResult,
 } from "@tanstack/react-query";
-import { EndpointPathParam, KeysEnum } from ".";
+import { EndpointPathParam } from ".";
 
 export type ClientUseMutation<
   E extends AnyEndpoint,
@@ -41,14 +41,19 @@ type ClientMutateFunction<
         options?: { query?: EndpointQueryInput<E> } & MutateOptions<
           TData,
           TError,
+          void,
           TContext
         >
       ) => Promise<TData>
     : E["query"] extends z.ZodTypeAny
     ? (
         path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: MutateOptions<TData, TError, TContext>
+        options?: { query?: EndpointQueryInput<E> } & MutateOptions<
+          TData,
+          TError,
+          void,
+          TContext
+        >
       ) => Promise<TData>
     : (
         path: EndpointPathParam<E>,
@@ -60,15 +65,18 @@ type ClientMutateFunction<
       options?: { query?: EndpointQueryInput<E> } & MutateOptions<
         TData,
         TError,
+        void,
         TContext
       >
     ) => Promise<TData>
-  : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: MutateOptions<TData, TError, TContext>
-    ) => Promise<TData>
-  : (options?: MutateOptions<TData, TError, TContext>) => Promise<TData>;
+  : (
+      options?: { query?: EndpointQueryInput<E> } & MutateOptions<
+        TData,
+        TError,
+        void,
+        TContext
+      >
+    ) => Promise<TData>;
 
 type ClientUseMutateFunction<
   E extends AnyEndpoint,
@@ -97,35 +105,3 @@ export type ClientUseMutationResult<
   MutationObserverResult<E, TData, TError, TContext>,
   { mutate: ClientUseMutateFunction<E, TData, TError, TContext> }
 > & { mutateAsync: ClientUseMutateAsyncFunction<E, TData, TError, TContext> };
-
-export interface MutateOptions<
-  TData = unknown,
-  TError = unknown,
-  TContext = unknown
-> {
-  onSuccess?: (data: TData, context: TContext) => void;
-  onError?: (error: TError, context: TContext | undefined) => void;
-  onSettled?: (
-    data: TData | undefined,
-    error: TError | null,
-    context: TContext | undefined
-  ) => void;
-}
-
-// This is required so that we can determine if a given object matches the RequestOptions
-// type at runtime. While this requires duplication, it is enforced by the TypeScript
-// compiler such that any missing / extraneous keys will cause an error.
-const mutateOptionsKeys: KeysEnum<MutateOptions> = {
-  onSuccess: true,
-  onError: true,
-  onSettled: true,
-};
-
-export const isMutateOptions = (obj: unknown): obj is MutateOptions => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    !isEmpty(obj) &&
-    Object.keys(obj).every((k) => Object.hasOwn(mutateOptionsKeys, k))
-  );
-};

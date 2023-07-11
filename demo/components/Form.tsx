@@ -9,6 +9,7 @@ import usePost from "../hooks/usePost";
 import Avatar from "./Avatar";
 import Button from "./Button";
 import { useClient } from "../api/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 interface FormProps {
   placeholder: string;
@@ -20,6 +21,7 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
   const registerModal = useRegisterModal();
   const loginModal = useLoginModal();
   const client = useClient();
+  const queryClient = useQueryClient();
 
   const { data: currentUser } = useCurrentUser();
 
@@ -43,7 +45,9 @@ const Form: React.FC<FormProps> = ({ placeholder, isComment, postId }) => {
 
       toast.success("Tweet created");
       setBody("");
-      client.posts.list.invalidateQueries();
+      queryClient.invalidateQueries({
+        queryKey: client.posts.list.getQueryKey(),
+      });
       mutatePost();
     } catch (error) {
       toast.error("Something went wrong");

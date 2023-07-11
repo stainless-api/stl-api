@@ -30,16 +30,27 @@ export type ClientUseInfiniteQuery<
   TQueryData = TQueryFnData
 > = E["path"] extends z.ZodTypeAny
   ? E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: UseInfiniteQueryOptions<
-          TQueryFnData,
-          TError,
-          TData,
-          TQueryData
-        >
-      ) => UseInfiniteQueryResult<TData, TError>
+    ? {} extends EndpointQueryInput<E>
+      ? (
+          path: EndpointPathParam<E>,
+          query?: EndpointQueryInput<E>,
+          options?: UseInfiniteQueryOptions<
+            TQueryFnData,
+            TError,
+            TData,
+            TQueryData
+          >
+        ) => UseInfiniteQueryResult<TData, TError>
+      : (
+          path: EndpointPathParam<E>,
+          query: EndpointQueryInput<E>,
+          options?: UseInfiniteQueryOptions<
+            TQueryFnData,
+            TError,
+            TData,
+            TQueryData
+          >
+        ) => UseInfiniteQueryResult<TData, TError>
     : (
         path: EndpointPathParam<E>,
         options?: UseInfiniteQueryOptions<
@@ -50,10 +61,25 @@ export type ClientUseInfiniteQuery<
         >
       ) => UseInfiniteQueryResult<TData, TError>
   : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: UseInfiniteQueryOptions<TQueryFnData, TError, TData, TQueryData>
-    ) => UseInfiniteQueryResult<TData, TError>
+  ? {} extends EndpointQueryInput<E>
+    ? (
+        query?: EndpointQueryInput<E>,
+        options?: UseInfiniteQueryOptions<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryData
+        >
+      ) => UseInfiniteQueryResult<TData, TError>
+    : (
+        query: EndpointQueryInput<E>,
+        options?: UseInfiniteQueryOptions<
+          TQueryFnData,
+          TError,
+          TData,
+          TQueryData
+        >
+      ) => UseInfiniteQueryResult<TData, TError>
   : (
       options?: UseInfiniteQueryOptions<TQueryFnData, TError, TData, TQueryData>
     ) => UseInfiniteQueryResult<TData, TError>;

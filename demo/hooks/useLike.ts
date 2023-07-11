@@ -6,11 +6,13 @@ import useCurrentUser from "./useCurrentUser";
 import useLoginModal from "./useLoginModal";
 import usePost from "./usePost";
 import { useClient } from "../api/client";
+import { useQueryClient } from "@tanstack/react-query";
 
 const useLike = ({ postId, userId }: { postId: string; userId?: string }) => {
   const { data: currentUser } = useCurrentUser();
   const { data: fetchedPost, mutate: mutateFetchedPost } = usePost(postId);
   const client = useClient();
+  const queryClient = useQueryClient();
 
   const loginModal = useLoginModal();
 
@@ -36,7 +38,9 @@ const useLike = ({ postId, userId }: { postId: string; userId?: string }) => {
 
       await request();
       mutateFetchedPost();
-      client.posts.list.invalidateQueries();
+      queryClient.invalidateQueries({
+        queryKey: client.posts.list.getQueryKey(),
+      });
 
       toast.success("Success");
     } catch (error) {

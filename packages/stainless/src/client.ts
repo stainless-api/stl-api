@@ -95,11 +95,17 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
         options?: RequestOptions<EndpointQueryInput<E>>
       ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: RequestOptions
-      ) => ExtractClientResponse<E>
+    ? {} extends EndpointQueryInput<E>
+      ? (
+          path: EndpointPathParam<E>,
+          query?: EndpointQueryInput<E>,
+          options?: RequestOptions
+        ) => ExtractClientResponse<E>
+      : (
+          path: EndpointPathParam<E>,
+          query: EndpointQueryInput<E>,
+          options?: RequestOptions
+        ) => ExtractClientResponse<E>
     : (
         path: EndpointPathParam<E>,
         options?: RequestOptions
@@ -110,10 +116,15 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
       options?: RequestOptions<EndpointQueryInput<E>>
     ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: RequestOptions
-    ) => ExtractClientResponse<E>
+  ? {} extends EndpointQueryInput<E>
+    ? (
+        query?: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
+    : (
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
   : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
