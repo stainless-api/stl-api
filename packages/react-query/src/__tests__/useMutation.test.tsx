@@ -292,6 +292,360 @@ describe("useMutation", () => {
   );
 });
 
+it("post with query - onSuccess hook passed to useMutation", async () => {
+  const endpoint = api.resources.query.actions.update;
+  let onSuccessArgs: any[] | undefined;
+  let hookResult: ClientUseMutationResult<typeof endpoint> | undefined;
+  const Comp = () => {
+    const result = useClient().query.useUpdate({
+      onSuccess: (...args) => (onSuccessArgs = args),
+    });
+    hookResult = result;
+    React.useEffect(() => {
+      result.mutate({ query: { bar: "a" } });
+    }, []);
+    return null;
+  };
+  render(
+    <QueryClientProvider client={queryClient}>
+      <Comp />
+    </QueryClientProvider>
+  );
+  await waitFor(
+    () => {
+      expect(hookResult?.isSuccess).toEqual(true);
+      expect(onSuccessArgs).toBeDefined();
+    },
+    {
+      interval: 500,
+      timeout: 10000,
+    }
+  );
+  expect(hookResult?.data?.req).toMatchInlineSnapshot(
+    `"http://localhost:3000/query?bar=a"`
+  );
+  expect(hookResult?.data?.body).toMatchInlineSnapshot(`undefined`);
+  expect(onSuccessArgs).toMatchInlineSnapshot(`
+    [
+      {
+        "req": "http://localhost:3000/query?bar=a",
+      },
+      {
+        "args": [
+          {
+            "query": {
+              "bar": "a",
+            },
+          },
+        ],
+      },
+      undefined,
+    ]
+  `);
+}, 15000);
+it("post with query - onSuccess hook passed to mutate fn", async () => {
+  const endpoint = api.resources.query.actions.update;
+  let onSuccessArgs: any[] | undefined;
+  let hookResult: ClientUseMutationResult<typeof endpoint> | undefined;
+  const Comp = () => {
+    const result = useClient().query.useUpdate();
+    hookResult = result;
+    React.useEffect(() => {
+      result.mutate({
+        query: { bar: "a" },
+        onSuccess: (...args) => (onSuccessArgs = args),
+      });
+    }, []);
+    return null;
+  };
+  render(
+    <QueryClientProvider client={queryClient}>
+      <Comp />
+    </QueryClientProvider>
+  );
+  await waitFor(
+    () => {
+      expect(hookResult?.isSuccess).toEqual(true);
+      expect(onSuccessArgs).toBeDefined();
+    },
+    {
+      interval: 500,
+      timeout: 10000,
+    }
+  );
+  expect(hookResult?.data?.req).toMatchInlineSnapshot(
+    `"http://localhost:3000/query?bar=a"`
+  );
+  expect(hookResult?.data?.body).toMatchInlineSnapshot(`undefined`);
+  expect(onSuccessArgs).toMatchInlineSnapshot(`
+    [
+      {
+        "req": "http://localhost:3000/query?bar=a",
+      },
+      {
+        "args": [
+          {
+            "query": {
+              "bar": "a",
+            },
+          },
+        ],
+      },
+      undefined,
+    ]
+  `);
+}, 15000);
+
+it("post with path, optional query and body - onSuccess hook passed to useMutation", async () => {
+  const endpoint = api.resources.pathOptionalQueryBody.actions.update;
+  let onSuccessArgs: any[] | undefined;
+  let hookResult: ClientUseMutationResult<typeof endpoint> | undefined;
+  const Comp = () => {
+    const result = useClient().pathOptionalQueryBody.useUpdate({
+      onSuccess: (...args) => (onSuccessArgs = args),
+    });
+    hookResult = result;
+    React.useEffect(() => {
+      result.mutate("a", { bar: "b" });
+    }, []);
+    return null;
+  };
+  render(
+    <QueryClientProvider client={queryClient}>
+      <Comp />
+    </QueryClientProvider>
+  );
+  await waitFor(
+    () => {
+      expect(hookResult?.isSuccess).toEqual(true);
+      expect(onSuccessArgs).toBeDefined();
+    },
+    {
+      interval: 500,
+      timeout: 10000,
+    }
+  );
+  expect(hookResult?.data?.req).toMatchInlineSnapshot(
+    `"http://localhost:3000/pathOptionalQueryBody/a"`
+  );
+  expect(hookResult?.data?.body).toMatchInlineSnapshot(`
+    {
+      "bar": "b",
+    }
+  `);
+  expect(onSuccessArgs).toMatchInlineSnapshot(`
+    [
+      {
+        "body": {
+          "bar": "b",
+        },
+        "req": "http://localhost:3000/pathOptionalQueryBody/a",
+      },
+      {
+        "args": [
+          "a",
+          {
+            "bar": "b",
+          },
+        ],
+      },
+      undefined,
+    ]
+  `);
+}, 15000);
+
+it("post with path, optional query and body - onSuccess hook passed to mutate fn", async () => {
+  const endpoint = api.resources.pathOptionalQueryBody.actions.update;
+  let onSuccessArgs: any[] | undefined;
+  let hookResult: ClientUseMutationResult<typeof endpoint> | undefined;
+  const Comp = () => {
+    const result = useClient().pathOptionalQueryBody.useUpdate();
+    hookResult = result;
+    React.useEffect(() => {
+      result.mutate(
+        "a",
+        { bar: "b" },
+        {
+          onSuccess: (...args) => (onSuccessArgs = args),
+        }
+      );
+    }, []);
+    return null;
+  };
+  render(
+    <QueryClientProvider client={queryClient}>
+      <Comp />
+    </QueryClientProvider>
+  );
+  await waitFor(
+    () => {
+      expect(hookResult?.isSuccess).toEqual(true);
+      expect(onSuccessArgs).toBeDefined();
+    },
+    {
+      interval: 500,
+      timeout: 10000,
+    }
+  );
+  expect(hookResult?.data?.req).toMatchInlineSnapshot(
+    `"http://localhost:3000/pathOptionalQueryBody/a"`
+  );
+  expect(hookResult?.data?.body).toMatchInlineSnapshot(`
+    {
+      "bar": "b",
+    }
+  `);
+  expect(onSuccessArgs).toMatchInlineSnapshot(`
+    [
+      {
+        "body": {
+          "bar": "b",
+        },
+        "req": "http://localhost:3000/pathOptionalQueryBody/a",
+      },
+      {
+        "args": [
+          "a",
+          {
+            "bar": "b",
+          },
+        ],
+      },
+      undefined,
+    ]
+  `);
+}, 15000);
+
+it("post with path, query and body - onSuccess hook passed to useMutation", async () => {
+  const endpoint = api.resources.pathQueryBody.actions.update;
+  let onSuccessArgs: any[] | undefined;
+  let hookResult: ClientUseMutationResult<typeof endpoint> | undefined;
+  const Comp = () => {
+    const result = useClient().pathQueryBody.useUpdate({
+      onSuccess: (...args) => (onSuccessArgs = args),
+    });
+    hookResult = result;
+    React.useEffect(() => {
+      result.mutate("a", { bar: "b" }, { query: { baz: "c" } });
+    }, []);
+    return null;
+  };
+  render(
+    <QueryClientProvider client={queryClient}>
+      <Comp />
+    </QueryClientProvider>
+  );
+  await waitFor(
+    () => {
+      expect(hookResult?.isSuccess).toEqual(true);
+      expect(onSuccessArgs).toBeDefined();
+    },
+    {
+      interval: 500,
+      timeout: 10000,
+    }
+  );
+  expect(hookResult?.data?.req).toMatchInlineSnapshot(
+    `"http://localhost:3000/pathQueryBody/a?baz=c"`
+  );
+  expect(hookResult?.data?.body).toMatchInlineSnapshot(`
+    {
+      "bar": "b",
+    }
+  `);
+  expect(onSuccessArgs).toMatchInlineSnapshot(`
+    [
+      {
+        "body": {
+          "bar": "b",
+        },
+        "req": "http://localhost:3000/pathQueryBody/a?baz=c",
+      },
+      {
+        "args": [
+          "a",
+          {
+            "bar": "b",
+          },
+          {
+            "query": {
+              "baz": "c",
+            },
+          },
+        ],
+      },
+      undefined,
+    ]
+  `);
+}, 15000);
+it("post with path, query and body - onSuccess hook passed to mutate fn", async () => {
+  const endpoint = api.resources.pathQueryBody.actions.update;
+  let onSuccessArgs: any[] | undefined;
+  let hookResult: ClientUseMutationResult<typeof endpoint> | undefined;
+  const Comp = () => {
+    const result = useClient().pathQueryBody.useUpdate();
+    hookResult = result;
+    React.useEffect(() => {
+      result.mutate(
+        "a",
+        { bar: "b" },
+        {
+          query: { baz: "c" },
+          onSuccess: (...args) => (onSuccessArgs = args),
+        }
+      );
+    }, []);
+    return null;
+  };
+  render(
+    <QueryClientProvider client={queryClient}>
+      <Comp />
+    </QueryClientProvider>
+  );
+  await waitFor(
+    () => {
+      expect(hookResult?.isSuccess).toEqual(true);
+      expect(onSuccessArgs).toBeDefined();
+    },
+    {
+      interval: 500,
+      timeout: 10000,
+    }
+  );
+  expect(hookResult?.data?.req).toMatchInlineSnapshot(
+    `"http://localhost:3000/pathQueryBody/a?baz=c"`
+  );
+  expect(hookResult?.data?.body).toMatchInlineSnapshot(`
+    {
+      "bar": "b",
+    }
+  `);
+  expect(onSuccessArgs).toMatchInlineSnapshot(`
+    [
+      {
+        "body": {
+          "bar": "b",
+        },
+        "req": "http://localhost:3000/pathQueryBody/a?baz=c",
+      },
+      {
+        "args": [
+          "a",
+          {
+            "bar": "b",
+          },
+          {
+            "query": {
+              "baz": "c",
+            },
+          },
+        ],
+      },
+      undefined,
+    ]
+  `);
+}, 15000);
+
 function typeTests() {
   const client = useClient();
 

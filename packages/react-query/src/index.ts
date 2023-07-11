@@ -177,6 +177,7 @@ export function createUseReactQueryClient<Api extends AnyAPIDescription>(
         method === "delete"
       ) {
         const { mutate, mutateAsync, ...rest } = useMutation({
+          ...(typeof args[0] === "object" ? args[0] : null),
           mutationFn: ({ args }: { args: any[] }) =>
             callPath
               .reduce((acc: any, elem: string) => acc[elem], baseClient)
