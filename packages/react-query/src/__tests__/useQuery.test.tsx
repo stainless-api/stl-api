@@ -1,5 +1,5 @@
 import * as React from "react";
-import { APIMetadata, Stl, z } from "stainless";
+import { Stl, z } from "stainless";
 import { StainlessReactQueryClient, createUseReactQueryClient } from "..";
 import {
   QueryClient,

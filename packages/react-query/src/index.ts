@@ -18,13 +18,17 @@ import {
   useQuery,
   useInfiniteQuery,
   useMutation,
-  QueryClient,
   ContextOptions,
   useQueryClient,
+  MutateOptions,
 } from "@tanstack/react-query";
 import { type UpperFirst } from "./util";
 import { ClientUseQuery, UseQueryOptions, isUseQueryOptions } from "./useQuery";
-import { ClientUseMutation } from "./useMutation";
+import {
+  ClientUseMutation,
+  UseMutationOptions,
+  isMutateOptions,
+} from "./useMutation";
 import {
   ClientUseInfiniteQueryHooks,
   UseInfiniteQueryOptions,
@@ -41,6 +45,7 @@ export {
   PaginatorPromise,
   UseQueryOptions,
   UseInfiniteQueryOptions,
+  UseMutationOptions,
   UseItem,
   UseItemResult,
 };
@@ -165,12 +170,57 @@ export function createUseReactQueryClient<Api extends AnyAPIDescription>(
         : lowerFirst(action.replace(/^use(Infinite)?/, ""));
       const method = isQueryKeyMethod ? "get" : actionMethod(action);
 
-      const reactQueryOptions: ({ query?: any } & UseQueryOptions) | undefined =
-        (isInfinite ? isUseInfiniteQueryOptions : isUseQueryOptions)(
-          args.at(-1)
-        )
-          ? (args.pop() as any)
-          : undefined;
+      if (
+        method === "post" ||
+        method === "patch" ||
+        method === "put" ||
+        method === "delete"
+      ) {
+        const { mutate, mutateAsync, ...rest } = useMutation({
+          mutationFn: ({ args }: { args: any[] }) =>
+            callPath
+              .reduce((acc: any, elem: string) => acc[elem], baseClient)
+              [baseAction](...args),
+        });
+
+        const mutateArgs = React.useCallback(
+          (
+            args: any[]
+          ): [{ args: any[] }, MutateOptions<any, any, { args: any[] }>] => {
+            const last = args.at(-1);
+            if (last && isMutateOptions(last)) {
+              args = [...args];
+              const { query, ...mutateOptions } = args.pop();
+              if (query) args.push({ query });
+              return [{ args }, mutateOptions];
+            }
+            return [{ args }, {}];
+          },
+          []
+        );
+
+        return {
+          ...rest,
+          mutate: React.useCallback(
+            (...args: any[]) => {
+              return mutate(...mutateArgs(args));
+            },
+            [mutate]
+          ),
+          mutateAsync: React.useCallback(
+            (...args: any[]) => mutateAsync(...mutateArgs(args)),
+            [mutateAsync]
+          ),
+        };
+      }
+
+      const reactQueryOptions:
+        | ({ query?: any } & UseQueryOptions<any>)
+        | undefined = (isInfinite
+        ? isUseInfiniteQueryOptions
+        : isUseQueryOptions)(args.at(-1))
+        ? (args.pop() as any)
+        : undefined;
       const query: Record<string, any> =
         reactQueryOptions?.query ||
         (isPlainObject(args.at(-1))

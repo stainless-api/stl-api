@@ -178,6 +178,12 @@ export type EndpointQueryInput<E extends AnyEndpoint> =
   E["query"] extends z.ZodTypeAny ? z.input<E["query"]> : undefined;
 export type EndpointQueryOutput<E extends AnyEndpoint> =
   E["query"] extends z.ZodTypeAny ? z.output<E["query"]> : undefined;
+export type EndpointHasRequiredQuery<E extends AnyEndpoint> =
+  E["query"] extends z.ZodTypeAny
+    ? {} extends EndpointQueryInput<E>
+      ? false
+      : true
+    : false;
 
 export type EndpointBodyInput<E extends AnyEndpoint> =
   E["body"] extends z.ZodTypeAny ? z.input<E["body"]> : undefined;

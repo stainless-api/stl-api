@@ -2,6 +2,7 @@ import { isEmpty } from "lodash";
 import {
   AnyEndpoint,
   AnyResourceConfig,
+  EndpointHasRequiredQuery,
   EndpointQueryInput,
   EndpointResponseOutput,
   z,
@@ -30,10 +31,10 @@ export type ClientUseInfiniteQuery<
   TQueryData = TQueryFnData
 > = E["path"] extends z.ZodTypeAny
   ? E["query"] extends z.ZodTypeAny
-    ? {} extends EndpointQueryInput<E>
+    ? EndpointHasRequiredQuery<E> extends true
       ? (
           path: EndpointPathParam<E>,
-          query?: EndpointQueryInput<E>,
+          query: EndpointQueryInput<E>,
           options?: UseInfiniteQueryOptions<
             TQueryFnData,
             TError,
@@ -43,7 +44,7 @@ export type ClientUseInfiniteQuery<
         ) => UseInfiniteQueryResult<TData, TError>
       : (
           path: EndpointPathParam<E>,
-          query: EndpointQueryInput<E>,
+          query?: EndpointQueryInput<E>,
           options?: UseInfiniteQueryOptions<
             TQueryFnData,
             TError,
@@ -61,9 +62,9 @@ export type ClientUseInfiniteQuery<
         >
       ) => UseInfiniteQueryResult<TData, TError>
   : E["query"] extends z.ZodTypeAny
-  ? {} extends EndpointQueryInput<E>
+  ? EndpointHasRequiredQuery<E> extends true
     ? (
-        query?: EndpointQueryInput<E>,
+        query: EndpointQueryInput<E>,
         options?: UseInfiniteQueryOptions<
           TQueryFnData,
           TError,
@@ -72,7 +73,7 @@ export type ClientUseInfiniteQuery<
         >
       ) => UseInfiniteQueryResult<TData, TError>
     : (
-        query: EndpointQueryInput<E>,
+        query?: EndpointQueryInput<E>,
         options?: UseInfiniteQueryOptions<
           TQueryFnData,
           TError,
