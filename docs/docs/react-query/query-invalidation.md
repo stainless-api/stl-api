@@ -25,10 +25,6 @@ const RefreshPostsButton: React.FC<FormProps> = ({
 
   const refresh = React.useCallback(() => {
     queryClient.invalidatePost({
-      queryKey: client.posts.getQueryKey(),
-    });
-    // or:
-    queryClient.invalidatePost({
       queryKey: client.posts.list.getQueryKey(),
     });
   }, []);
