@@ -1,12 +1,5 @@
 import express, { Application, NextFunction, Request, Response } from "express";
-import {
-  AnyEndpoint,
-  EndpointResponseOutput,
-  Stl,
-  StlContext,
-  StlError,
-  z,
-} from "stainless";
+import { AnyEndpoint, Stl, StlContext, StlError, z } from "stainless";
 import {
   addStlAPIToExpress,
   addStlEndpointToExpress,
@@ -14,6 +7,7 @@ import {
 } from "../index";
 import { promisify } from "util";
 import { Server } from "http";
+import fetch from "node-fetch";
 
 const port = 7594;
 const baseUrl = `http://localhost:${port}`;
