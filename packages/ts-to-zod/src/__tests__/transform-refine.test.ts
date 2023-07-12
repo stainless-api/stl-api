@@ -1,48 +1,36 @@
 import { multiFileTestCase } from "./multiFileTestCase";
-import {
-  TypeSchema,
-  Transform,
-  Refine,
-  SuperRefine,
-  DateSchema,
-  output,
-  NumberSchema,
-  ObjectSchema,
-  ArraySchema,
-  StringSchema,
-} from "../index";
-import { z, Includes, Selectable, Selection, PageResponse } from "stainless";
+import { z, t } from "stainless";
 
 z.pageResponse(z.any())["_input"];
 
-class ToString<I extends TypeSchema<any>> extends Transform<I, string> {
-  transform(value: output<I>): string {
+class ToString<I extends t.TypeSchema<any>> extends t.Transform<I, string> {
+  transform(value: t.output<I>): string {
     return String(value);
   }
 }
 
-class ParseFloat<I extends TypeSchema<string>> extends Transform<I, number> {
-  transform(value: output<I>): number {
+class ParseFloat<I extends t.TypeSchema<string>> extends t.Transform<I, number> {
+  transform(value: t.output<I>): number {
     return parseFloat(value);
   }
 }
 
-class Coerce<I, O> extends Transform<I, O> {
-  transform(value: output<I>): O {
+class Coerce<I, O> extends t.Transform<I, O> {
+  transform(value: t.output<I>): O {
     return value as O;
   }
 }
 
 type Pet = "cat" | "dog";
 
-class ParsePet extends Refine<string, Pet> {
+class ParsePet extends t.Refine<string, Pet> {
   refine(value: string): value is Pet {
     return value === "cat" || value === "dog";
   }
 }
 
-class Even<I extends TypeSchema<number>> extends SuperRefine<I> {
-  superRefine(value: output<I>, ctx: z.RefinementCtx) {
+class Even<I extends t.TypeSchema<number>> extends t.SuperRefine<I> {
+  superRefine(value: t.output<I>, ctx: z.RefinementCtx) {
     if (value % 2 !== 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
@@ -60,26 +48,28 @@ type T = {
   c: ParsePet;
   d: Even<number>;
 
-  date: DateSchema<{ min: "2023-01-10" }>;
-  number: NumberSchema<{
+  date: t.DateSchema<{ min: "2023-01-10" }>;
+  number: t.NumberSchema<{
     finite: true;
     safe: "too big";
     gt: [5, "5 and below too small!"];
   }>;
-  object: ObjectSchema<{}, { passthrough: true }>;
-  aliasedObject: ObjectSchema<Aliased, { strict: true }>;
-  array: ArraySchema<
+  object: t.ObjectSchema<{}, { passthrough: true }>;
+  aliasedObject: t.ObjectSchema<Aliased, { strict: true }>;
+  array: t.ArraySchema<
     number | null,
     { nonempty: true; min: [5, "at least five elements needed"] }
   >;
-  datetime: StringSchema<{ datetime: { offset: true } }>;
-  catchall: ObjectSchema<{ a: number }, { catchall: string }>;
-  includes: Includes<Aliased>;
-  deepIncludes: Includes<Aliased, 5>;
-  selectable: Selectable<Aliased>;
-  selection: Selection<Aliased>;
-  pageResponse: PageResponse<Aliased>;
+  datetime: t.StringSchema<{ datetime: { offset: true } }>;
+  catchall: t.ObjectSchema<{ a: number }, { catchall: string }>;
+  includes: t.Includes<Aliased>;
+  deepIncludes: t.Includes<Aliased, 5>;
+  selectable: t.Selectable<Aliased>;
+  selection: t.Selection<Aliased>;
+  pageResponse: t.PageResponse<Aliased>;
 };
+
+type Test = ParseFloat<string>;
 
 it(`transform`, async () =>
   expect(
