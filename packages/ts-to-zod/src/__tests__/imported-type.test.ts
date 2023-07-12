@@ -18,7 +18,8 @@ it(`imported type`, async () =>
 export const Address: z.ZodTypeAny;
 ",
   "src/__tests__/common.codegen.js": "const { z } = require("zod");
-exports.Address = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+const Address = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+exports.Address = Address;
 ",
   "src/__tests__/common.codegen.mjs": "import { z } from "zod";
 export const Address = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });

@@ -42,6 +42,8 @@ class Even<I extends t.TypeSchema<number>> extends t.SuperRefine<I> {
 
 type Aliased = { x: string };
 
+type DateTime = t.StringSchema<{ datetime: { offset: true } }>;
+
 type T = {
   a: ParseFloat<ToString<Date>>;
   b: Coerce<string, "a" | "b">;

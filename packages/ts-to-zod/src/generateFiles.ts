@@ -1,5 +1,10 @@
 import { Dictionary, groupBy } from "lodash";
-import { FileInfo, ImportInfo, SchemaGenContext } from "./convertType";
+import {
+  NamespaceImportInfo as NamespaceImportInfo,
+  FileInfo,
+  ImportInfo,
+  SchemaGenContext,
+} from "./convertType";
 import { ts } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
@@ -49,10 +54,11 @@ function generateStatementsESM(
     generationConfig,
     generatedPath,
     options.zPackage,
-    info.imports
+    info.imports,
+    info.namespaceImports
   );
 
-  for (const schema of info.generatedSchemas) {
+  for (const schema of info.generatedSchemas.values()) {
     const declaration = factory.createVariableDeclaration(
       schema.name,
       undefined,
@@ -80,10 +86,11 @@ function generateStatementsDTS(
     generationConfig,
     generatedPath,
     options.zPackage,
-    info.imports
+    info.imports,
+    info.namespaceImports
   );
 
-  for (const schema of info.generatedSchemas) {
+  for (const schema of info.generatedSchemas.values()) {
     if (schema.private) continue;
     const declaration = factory.createVariableDeclaration(
       schema.name,
@@ -111,10 +118,22 @@ function generateStatementsCJS(
     generationConfig,
     generatedPath,
     options.zPackage,
-    info.imports
+    info.imports,
+    info.namespaceImports
   );
 
-  for (const schema of info.generatedSchemas) {
+  for (const schema of info.generatedSchemas.values()) {
+    const declaration = factory.createVariableDeclaration(
+      schema.name,
+      undefined,
+      undefined,
+      schema.expression
+    );
+    const variableStatement = factory.createVariableStatement(
+      undefined,
+      factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
+    );
+    statements.push(variableStatement);
     if (schema.isExported) {
       const exportTarget = factory.createPropertyAccessExpression(
         factory.createIdentifier("exports"),
@@ -122,21 +141,12 @@ function generateStatementsCJS(
       );
       statements.push(
         factory.createExpressionStatement(
-          factory.createAssignment(exportTarget, schema.expression)
+          factory.createAssignment(
+            exportTarget,
+            factory.createIdentifier(schema.name)
+          )
         )
       );
-    } else {
-      const declaration = factory.createVariableDeclaration(
-        schema.name,
-        undefined,
-        undefined,
-        schema.expression
-      );
-      const variableStatement = factory.createVariableStatement(
-        undefined,
-        factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
-      );
-      statements.push(variableStatement);
     }
   }
   return statements;
@@ -217,7 +227,8 @@ export function generateImportStatementsESM(
   config: GenerationConfig,
   filePath: string,
   zPackage: string | undefined,
-  imports: Map<string, ImportInfo>
+  imports: Map<string, ImportInfo>,
+  namespaceImports: Map<string, NamespaceImportInfo>
 ): ts.ImportDeclaration[] {
   const zImportClause = factory.createImportClause(
     false,
@@ -266,6 +277,27 @@ export function generateImportStatementsESM(
     );
     importDeclarations.push(importDeclaration);
   }
+
+  for (const [name, info] of namespaceImports.entries()) {
+    const sourceFile = relativeImportPath(
+      filePath,
+      info.importFromUserFile
+        ? info.sourceFile
+        : generatePath(info.sourceFile, config)
+    );
+    const importClause = factory.createImportClause(
+      false,
+      undefined,
+      factory.createNamespaceImport(factory.createIdentifier(name))
+    );
+    const importDeclaration = factory.createImportDeclaration(
+      undefined,
+      importClause,
+      factory.createStringLiteral(sourceFile)
+    );
+    importDeclarations.push(importDeclaration);
+  }
+
   return importDeclarations;
 }
 
@@ -273,7 +305,8 @@ export function generateImportStatementsCJS(
   config: GenerationConfig,
   filePath: string,
   zPackage: string | undefined,
-  imports: Map<string, ImportInfo>
+  imports: Map<string, ImportInfo>,
+  namespaceImports: Map<string, NamespaceImportInfo>
 ): ts.Statement[] {
   const zRequireExpression = factory.createCallExpression(
     factory.createIdentifier("require"),
@@ -327,6 +360,35 @@ export function generateImportStatementsCJS(
         [
           factory.createVariableDeclaration(
             requireDestructure,
+            undefined,
+            undefined,
+            requireExpression
+          ),
+        ],
+        ts.NodeFlags.Const
+      )
+    );
+    importStatements.push(importStatement);
+  }
+
+  for (const [name, info] of namespaceImports.entries()) {
+    const sourceFile = relativeImportPath(
+      filePath,
+      info.importFromUserFile
+        ? info.sourceFile
+        : generatePath(info.sourceFile, config)
+    );
+    const requireExpression = factory.createCallExpression(
+      factory.createIdentifier("require"),
+      undefined,
+      [factory.createStringLiteral(sourceFile)]
+    );
+    const importStatement = factory.createVariableStatement(
+      undefined,
+      factory.createVariableDeclarationList(
+        [
+          factory.createVariableDeclaration(
+            name,
             undefined,
             undefined,
             requireExpression

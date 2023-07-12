@@ -1,16 +1,16 @@
 import { z } from "stainless";
 import { stl } from "../../libs/stl";
-import { PostPage } from "./models";
+import { PostPageSchema } from "./models";
 
 export const list = stl.endpoint({
   endpoint: "get /api/posts",
-  response: PostPage,
+  response: PostPageSchema,
 
   query: z.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),
     userId: z.string().optional(),
-    include: z.includes(PostPage).optional(),
-    select: z.selects(PostPage).optional(),
+    include: z.includes(PostPageSchema).optional(),
+    select: z.selects(PostPageSchema).optional(),
   }),
   async handler({ userId, include, ...params }, ctx) {
     if (userId && typeof userId === "string") {
