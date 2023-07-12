@@ -1,13 +1,15 @@
 ---
-sidebar_position: 4
+sidebar_position: 5
 ---
 
 # Query Invalidation
 
-Right now to invalidate queries you have to use `useClient().<resource>.getQueryKey()` or `useClient().<resource>.<method>.getQueryKey([path], [query])` to get the `queryKey` to pass to `QueryClient.invalidateQueries`.
+Right now to invalidate queries you have to use
+`client.<Resource>.<Action>.getQueryKey([path], [query])` to get the `queryKey` to pass
+to `QueryClient.invalidateQueries`.
 
-In the future, we plan to add methods like `useClient().<resource>.invalidateQueries()` and
-`useClient().<resource>.<method>.invalidateQueries([path], [query])`.
+In the future, we plan to add methods like `client.<Resource>.invalidateQueries()` and
+`client.<Resource>.<Action>.invalidateQueries([path], [query])`.
 
 ```ts
 import * as React from "react";

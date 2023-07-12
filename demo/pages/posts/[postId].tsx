@@ -14,12 +14,8 @@ const PostView = () => {
   const client = useClient();
   const { data: fetchedPost, isLoading } = client.posts.useRetrieve(
     typeof postId === "string" ? postId : "",
-    {
-      include: ["user", "comments.user"],
-    },
-    {
-      enabled: typeof postId === "string",
-    }
+    { include: ["user", "comments.user"] },
+    { enabled: typeof postId === "string" }
   );
 
   if (isLoading || !fetchedPost) {

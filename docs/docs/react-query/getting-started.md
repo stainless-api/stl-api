@@ -17,7 +17,11 @@ But we're eager for you to try it out and let us know what you think!
 npm i --save stainless-api/stl-api#react-query-0.0.2
 ```
 
-## Create useClient hook
+## Create client hook
+
+Using React Query with Stainless begins with creating a `useClient`
+[React custom hook](https://react.dev/learn/reusing-logic-with-custom-hooks)
+(analogous to React Query's `useQueryClient`):
 
 ```ts
 // ~/api/useClient.ts
@@ -27,10 +31,12 @@ import { createUseReactQueryClient } from "@stl-api/react-query";
 export const useClient = createUseReactQueryClient<typeof api>("/api");
 ```
 
-## Use hooks for GET methods
+`useClient()` returns a Stainless React Query client instance.
+
+## Use queries
 
 If `posts.retrieve` is a `get /api/posts/{postId}` endpoint, then
-`useClient().posts.useRetrieve(postId, [query], [reactQueryOptions])` will be available
+`client.posts.useRetrieve(postId, [query], [reactQueryOptions])` will be available
 as a wrapper for [`useQuery`](https://tanstack.com/query/v4/docs/react/reference/useQuery):
 
 ```ts
@@ -54,10 +60,10 @@ const PostView = () => {
 };
 ```
 
-## Use infinite hooks for paginated methods
+## Use infinite queries for paginated methods
 
 If `posts.list` is a `get /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
-`useClient().posts.useInfiniteList([query], [reactQueryOptions])` will be available
+`client.posts.useInfiniteList([query], [reactQueryOptions])` will be available
 as a wrapper for [`useInfiniteQuery`](https://tanstack.com/query/v4/docs/react/reference/useInfiniteQuery):
 
 ```ts

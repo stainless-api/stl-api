@@ -1,12 +1,14 @@
 ---
-sidebar_position: 2
+sidebar_position: 3
 ---
 
 # Infinite Queries
 
-If `posts.list` is a `get /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
-`useClient().posts.useInfiniteList([query], [reactQueryOptions])` will be available
-as a wrapper for [`useInfiniteQuery`](https://tanstack.com/query/v4/docs/react/reference/useInfiniteQuery):
+For every paginated endpoint in your API, there will be a `useInfinite<Action>()` method on the Stainless
+React Query client that wraps [`useInfiniteQuery`](https://tanstack.com/query/v4/docs/react/reference/useInfiniteQuery)
+
+For example, if `posts.list` is a `get /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
+`client.posts.useInfiniteList([query], [reactQueryOptions])` will be available:
 
 ```ts
 // ~/components/posts/InfinitePostFeed.tsx
@@ -44,9 +46,25 @@ const InfinitePostFeed: React.FC<PostFeedProps> = ({ userId }) => {
 export default InfinitePostFeed;
 ```
 
+## Method signature
+
+`useInfinite<Action>([path], [query], [reactQueryOptions])`
+
+The signature of `useInfinite<Action>` methods varies depending
+on whether the endpoint has path and query parameters.
+
+If the method has path parameters one path parameter will be the first argument
+(multiple path parameters aren't currently supported).
+
+If the method has query parameters the next argument will be the
+query; this argument is optional if all query parameters are optional.
+
+The last argument is the `useInfiniteQuery` options (except for
+`queryKey`, `queryFn`, `getNextPageParam` and `getPreviousPageParam`, which are managed by the Stainless React Query client).
+
 ## Additional return properties
 
-`useInfinite*` methods return the same properties as React Query's `useInfiniteQuery`
+`useInfinite<Action>` methods return the same properties as React Query's `useInfiniteQuery`
 plus additional helpful properties for implementing infinite scroll views with
 `react-window` or similar:
 
