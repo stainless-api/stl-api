@@ -2,13 +2,10 @@ import * as z from "./z";
 import * as t from "./t";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
-import { Config } from "prettier";
 export { SelectTree, parseSelect } from "./parseSelect";
-export { z };
-export { t };
+export { z, t };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
-
 export {
   type StainlessClient,
   ClientPromise,

@@ -1,4 +1,4 @@
-lockfileVersion: '6.1'
+lockfileVersion: '6.0'
 
 settings:
   autoInstallPeers: true
@@ -412,9 +412,6 @@ importers:
       qs:
         specifier: ^6.11.2
         version: 6.11.2
-      ts-to-zod:
-        specifier: workspace:*
-        version: link:../ts-to-zod
       zod:
         specifier: ^3.21.4
         version: 3.21.4

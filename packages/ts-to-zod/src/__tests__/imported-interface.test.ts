@@ -29,7 +29,8 @@ it(`imported interface`, async () =>
 export const AddressIface: z.ZodTypeAny;
 ",
   "src/__tests__/common.codegen.js": "const { z } = require("zod");
-exports.AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+exports.AddressIface = AddressIface;
 ",
   "src/__tests__/common.codegen.mjs": "import { z } from "zod";
 export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });

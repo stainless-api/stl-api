@@ -1,7 +1,7 @@
 import * as tm from "ts-morph";
 
 import { isSymbolStlMethod } from "./utils";
-import { getPropertyDeclaration } from "ts-to-zod/dist/convertType";
+import { ConvertTypeContext, getPropertyDeclaration } from "ts-to-zod/dist/convertType";
 
 export type NodeType = [tm.Node, tm.Type];
 
@@ -93,5 +93,5 @@ export function preprocessEndpoint(
 function propertyToNodeType(property: tm.Symbol, location: tm.Node): NodeType {
   const node = getPropertyDeclaration(property);
   if (!node) throw new Error("internal error: invalid property encountered");
-  return [node, property.getTypeAtLocation(location)];
+  return [node.getTypeNodeOrThrow(), property.getTypeAtLocation(location)];
 }

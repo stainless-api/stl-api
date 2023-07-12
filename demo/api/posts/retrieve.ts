@@ -1,21 +1,25 @@
 import { stl } from "../../libs/stl";
-import { z } from "stainless";
-import prisma from "../../libs/prismadb";
+import { z, t } from "stainless";
+import { PrismaModelLoader } from "@stl-api/prisma";
+import { prisma } from "../../libs/prismadb";
 import { Post } from "./models";
 
-export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
-  response: Post,
 
-  path: z.path({
-    post: z.string().prismaModelLoader(prisma.post),
-  }),
-  query: z.query({
-    include: z.includes(Post, 3).optional(),
-    select: z.selects(Post, 3).optional(),
-  }),
+type Path = {
+  post: PrismaModelLoader<string, typeof prisma.post>;
+};
 
-  async handler({ post }, ctx) {
-    return post;
-  },
-});
+type Query = {
+  include?: t.Includes<Post, 3>,
+  select?: t.Selects<Post, 3>
+}
+
+export const retrieve = stl
+  .types<{ response: Post; path: Path; query: Query }>()
+  .endpoint({
+    endpoint: "get /api/posts/{post}",
+
+    async handler({ post }, ctx) {
+      return post;
+    },
+  });

@@ -14,11 +14,12 @@ import {
   ConvertTypeContext,
   SchemaGenContext,
   ImportInfo,
+  NamespaceImportInfo,
   convertSymbol,
   ErrorAbort,
   Incident,
   Diagnostics,
-  convertTypeofNode,
+  convertTypeof,
 } from "ts-to-zod/dist/convertType";
 
 import {
@@ -191,15 +192,16 @@ async function evaluate(
   // every stl.types.endpoint call found per file
   const endpointCalls: Map<tm.SourceFile, EndpointCall[]> = new Map();
 
+  // a list of closures to call to modify the file before saving it
+  // performs modifications that invalidate ast information after
+  // all tree visiting is complete
+  const fileOperations: (() => void)[] = [];
+
   for (const file of project.getSourceFiles()) {
     const ctx = new ConvertTypeContext(baseCtx, file);
     const imports = new Map<string, ImportInfo>();
+    const namespacedImports = new Map<string, NamespaceImportInfo>();
     let hasMagicCall = false;
-
-    // a list of closures to call to modify the file before saving it
-    // performs modifications that invalidate ast information after
-    // all tree visiting is complete
-    const fileOperations: (() => void)[] = [];
 
     for (const callExpression of file.getDescendantsOfKind(
       ts.SyntaxKind.CallExpression
@@ -216,12 +218,22 @@ async function evaluate(
         const call = preprocessEndpoint(callExpression);
         if (!call) continue;
         const fileCalls = getOrInsert(endpointCalls, file, () => []);
-        const endpointSchema = convertEndpointCall(
-          ctx,
-          call,
-          file,
-          callDiagnostics
-        );
+
+        let endpointSchema: ts.Expression;
+        try {
+          endpointSchema = convertEndpointCall(
+            ctx,
+            call,
+            file,
+            callDiagnostics
+          );
+        } catch (e) {
+          if (e instanceof ErrorAbort) {
+            break;
+          } else throw e;
+        } finally {
+          addDiagnostics(ctx, file, callExpression, callDiagnostics);
+        }
         if (!endpointSchema) {
           break;
         }
@@ -231,10 +243,11 @@ async function evaluate(
         });
         const ctxFile = getOrInsert(ctx.files, file.getFilePath(), () => ({
           imports: new Map(),
-          generatedSchemas: [],
+          generatedSchemas: new Map(),
         }));
-        ctxFile.generatedSchemas.push({
-          name: mangleString(call.endpointPath),
+        const name = mangleString(call.endpointPath);
+        ctxFile.generatedSchemas.set(name, {
+          name,
           expression: endpointSchema,
           isExported: true,
           /** non-user-visible value should not be generated in .d.ts */
@@ -262,7 +275,7 @@ async function evaluate(
         node: typeArgument,
       } as const;
 
-      const typeofSchema = convertTypeofNode(
+      const typeofSchema = convertTypeof(
         ctx,
         typeArgument,
         type,
@@ -339,16 +352,18 @@ async function evaluate(
         // currently processing. This is relevant when handling enums and
         // classes.
         // TODO: is handling multiple declarations relevant here?
-        if (importInfo.sourceFile === file.getFilePath()) {
-          imports.set(name, {
-            ...importInfo,
-            sourceFile: Path.join(
-              rootPath,
-              FOLDER_GEN_PATH,
-              Path.relative(rootPath, importInfo.sourceFile)
-            ),
-          });
-        } else imports.set(name, importInfo);
+        if (!importInfo.importFromUserFile) {
+          if (importInfo.sourceFile === file.getFilePath()) {
+            imports.set(name, {
+              ...importInfo,
+              sourceFile: Path.join(
+                rootPath,
+                FOLDER_GEN_PATH,
+                Path.relative(rootPath, importInfo.sourceFile)
+              ),
+            });
+          } else imports.set(name, importInfo);
+        }
       }
     }
 
@@ -357,7 +372,8 @@ async function evaluate(
       generationConfig,
       file.getFilePath(),
       "stainless",
-      imports
+      imports,
+      namespacedImports
     );
 
     let hasZImport = false;
@@ -394,11 +410,13 @@ async function evaluate(
 
     // Insert imports after the last import already in the file.
     const insertPosition = fileImportDeclarations.length;
-    file.insertStatements(insertPosition, importsString);
-
-    // Commit all operations potentially destructive to AST visiting.
-    fileOperations.forEach((op) => op());
+    fileOperations.push(() =>
+      file.insertStatements(insertPosition, importsString)
+    );
   }
+
+  // Commit all operations potentially destructive to AST visiting.
+  fileOperations.forEach((op) => op());
 
   const generatedFileContents = generateFiles(baseCtx, generationOptions);
 
@@ -646,17 +664,12 @@ function convertEndpointType(
   diagnosticsFile: tm.SourceFile,
   typeArgument: tm.Node,
   type: tm.Type
-): ts.Expression | undefined {
+): ts.Expression {
   const diagnosticItem = {
     variant: "node",
     node: typeArgument,
   } as const;
-  const typeofSchema = convertTypeofNode(
-    ctx,
-    typeArgument,
-    type,
-    diagnosticItem
-  );
+  const typeofSchema = convertTypeof(ctx, typeArgument, type, diagnosticItem);
   if (typeofSchema) return typeofSchema;
 
   if (
@@ -664,27 +677,16 @@ function convertEndpointType(
     typeArgument.getTypeArguments().length === 0
   ) {
     const symbol = typeArgument.getTypeName().getSymbolOrThrow();
-    try {
-      convertSymbol(ctx, symbol, diagnosticItem);
-    } catch (e) {
-      if (e instanceof ErrorAbort) return;
-      else throw e;
-    } finally {
-      addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);
-    }
+    convertSymbol(ctx, symbol, diagnosticItem);
+    addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);
     const name = symbol.getName();
     const as = mangleTypeName(type, name);
 
     return factory.createIdentifier(as || name);
   } else {
-    try {
-      return convertType(ctx, type, diagnosticItem);
-    } catch (e) {
-      if (e instanceof ErrorAbort) return;
-      else throw e;
-    } finally {
-      addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);
-    }
+    const schema = convertType(ctx, type, diagnosticItem);
+    addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);
+    return schema;
   }
 }
 
@@ -693,7 +695,7 @@ function convertEndpointCall(
   call: EndpointTypeInstance,
   file: tm.SourceFile,
   callDiagnostics: CallDiagnostics[]
-): ts.Expression | undefined {
+): ts.Expression {
   const objectProperties = [];
   const requestTypes = [
     ["query", call.query],
@@ -709,7 +711,6 @@ function convertEndpointCall(
       nodeType[0],
       nodeType[1]
     );
-    if (!schemaExpression) return;
     objectProperties.push(
       factory.createPropertyAssignment(name, schemaExpression)
     );
@@ -725,7 +726,6 @@ function convertEndpointCall(
       call.response[0],
       call.response[1]
     );
-    if (!schemaExpression) return;
   } else {
     // if no response type is provided, use the default schema z.void() to indicate no response
     schemaExpression = factory.createCallExpression(

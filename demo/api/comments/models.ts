@@ -1,5 +1,5 @@
 import { User, UserSelection } from "../users/models";
-import { Post, PostSelection } from "../posts/models";
+import { PostSchema, PostSelectionSchema } from "../posts/models";
 import { z } from "stainless";
 import prisma from "../../libs/prismadb";
 
@@ -20,16 +20,16 @@ type Comment1 = z.CircularModel<
   {
     user?: z.IncludableZodType<typeof User>;
     user_fields?: z.SelectableZodType<typeof User>;
-    post?: z.IncludableZodType<typeof Post>;
-    post_fields?: z.SelectableZodType<typeof Post>;
+    post?: z.IncludableZodType<typeof PostSchema>;
+    post_fields?: z.SelectableZodType<typeof PostSchema>;
   }
 >;
 
 const Comment1: Comment1 = Comment0.extend({
   user: z.lazy(() => User).includable(),
   user_fields: z.lazy(() => UserSelection).selectable(),
-  post: z.lazy(() => Post).includable(),
-  post_fields: z.lazy(() => PostSelection).selectable(),
+  post: z.lazy(() => PostSchema).includable(),
+  post_fields: z.lazy(() => PostSelectionSchema).selectable(),
 });
 
 export const Comment = Comment1.prismaModel(prisma.comment);

@@ -386,19 +386,19 @@ it(`zod schema property`, async () =>
 ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.d.ts": "import { z } from "zod";
-import { objectSchema as __schema_objectSchema } from "./basics.test";
-export const objectSchema: z.ZodTypeAny;
+import { objectSchema } from "./basics.test";
 const zodSchemaProperty: z.ZodTypeAny;
 ",
   "src/__tests__/basics.test.codegen.js": "const { z } = require("zod");
-const { objectSchema: __schema_objectSchema } = require("./basics.test");
-exports.objectSchema = z.lazy(__schema_objectSchema);
-const zodSchemaProperty = z.object({ zod: __schema_objectSchema });
+const { objectSchema } = require("./basics.test");
+const zodSchemaProperty = z.object({ zod: z.lazy(() => objectSchema) });
 ",
   "src/__tests__/basics.test.codegen.mjs": "import { z } from "zod";
-import { objectSchema as __schema_objectSchema } from "./basics.test";
-export const objectSchema = z.lazy(__schema_objectSchema);
-const zodSchemaProperty = z.object({ zod: __schema_objectSchema });
+import { objectSchema } from "./basics.test";
+const zodSchemaProperty = z.object({ zod: z.lazy(() => objectSchema) });
 ",
 }
-`));
+`
+
+
+));

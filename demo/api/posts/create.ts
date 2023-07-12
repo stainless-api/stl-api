@@ -1,15 +1,15 @@
 import { stl } from "../../libs/stl";
 import { z } from "stainless";
-import { Post } from "./models";
+import { PostSchema } from "./models";
 
 export const create = stl.endpoint({
   endpoint: "post /api/posts",
-  response: Post,
+  response: PostSchema,
   config: {
     authenticated: true,
   },
   query: z.query({
-    include: z.includes(Post, 3).optional(),
+    include: z.includes(PostSchema, 3).optional(),
   }),
   body: z.body({
     body: z.string(),
