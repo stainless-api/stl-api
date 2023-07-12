@@ -57,7 +57,7 @@ argParser
   )
   .allowExcessArguments(false);
 
-const NODE_MODULES_GEN_PATH = "@stl-api/gen";
+const FOLDER_GEN_PATH = "stl-api-gen";
 
 interface CallDiagnostics {
   line: number;
@@ -120,8 +120,8 @@ async function main() {
 
   const generationOptions = {
     genLocation: {
-      type: "node_modules",
-      genPath: NODE_MODULES_GEN_PATH,
+      type: "folder",
+      genPath: FOLDER_GEN_PATH,
     },
     rootPath,
     zPackage: "stainless",
@@ -344,8 +344,7 @@ async function evaluate(
             ...importInfo,
             sourceFile: Path.join(
               rootPath,
-              "node_modules",
-              NODE_MODULES_GEN_PATH,
+              FOLDER_GEN_PATH,
               Path.relative(rootPath, importInfo.sourceFile)
             ),
           });
@@ -367,7 +366,7 @@ async function evaluate(
     const fileImportDeclarations = file.getImportDeclarations();
     for (const importDecl of fileImportDeclarations) {
       const sourcePath = importDecl.getModuleSpecifier().getLiteralValue();
-      if (sourcePath.indexOf(NODE_MODULES_GEN_PATH) == 0) {
+      if (sourcePath.indexOf(FOLDER_GEN_PATH) >= 0) {
         fileOperations.push(() => importDecl.remove());
       } else if (sourcePath === "stainless") {
         for (const specifier of importDecl.getNamedImports()) {
@@ -565,7 +564,7 @@ async function evaluate(
       0
     );
 
-    const genPath = Path.join(rootPath, "node_modules", NODE_MODULES_GEN_PATH);
+    const genPath = Path.join(rootPath, FOLDER_GEN_PATH);
     await fs.promises.mkdir(genPath, { recursive: true });
 
     const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");

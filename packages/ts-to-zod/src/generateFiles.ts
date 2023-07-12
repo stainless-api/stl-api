@@ -18,22 +18,23 @@ export function generateFiles(
   for (const [path, info] of ctx.files.entries()) {
     const generatedPath = generatePath(path, generationConfig);
 
-    const esmPath = `${generatedPath}.mjs`;
+    const tsPath = `${generatedPath}.ts`;
     const dtsPath = `${generatedPath}.d.ts`;
     const cjsPath = `${generatedPath}.js`;
 
+    // TODO: clean up by removing duplicate functions, rename function
     outputMap.set(
-      esmPath,
+      tsPath,
       generateStatementsESM(info, generationConfig, generatedPath, options)
     );
-    outputMap.set(
-      dtsPath,
-      generateStatementsDTS(info, generationConfig, generatedPath, options)
-    );
-    outputMap.set(
-      cjsPath,
-      generateStatementsCJS(info, generationConfig, generatedPath, options)
-    );
+    // outputMap.set(
+    //   dtsPath,
+    //   generateStatementsDTS(info, generationConfig, generatedPath, options)
+    // );
+    // outputMap.set(
+    //   cjsPath,
+    //   generateStatementsCJS(info, generationConfig, generatedPath, options)
+    // );
   }
   return outputMap;
 }
