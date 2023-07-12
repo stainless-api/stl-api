@@ -10,7 +10,7 @@ import { Server } from "http";
 import fetch from "node-fetch";
 
 const port = 7594;
-const baseUrl = `http://localhost:${port}`;
+const baseUrl = `http://0.0.0.0:${port}`;
 
 const cleanup: (() => any)[] = [];
 
