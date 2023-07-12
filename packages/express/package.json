@@ -1,0 +1,37 @@
+{
+  "name": "@stl-api/express",
+  "version": "0.0.2",
+  "license": "ISC",
+  "description": "express integration for stainless api",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/express"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/express",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api",
+    "express"
+  ],
+  "source": "src/index.ts",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/express": "^4.17.17",
+    "@types/node": "^20.2.3",
+    "typescript": "^5.0.4"
+  },
+  "dependencies": {
+    "express": "^4.18.1",
+    "lodash": "^4.17.21",
+    "stainless": "workspace:*"
+  }
+}
