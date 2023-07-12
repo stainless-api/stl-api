@@ -1,4 +1,4 @@
-import z from "zod";
+import * as z from "./z";
 
 export abstract class SchemaType<I, O = I> {
   declare _input: I;
@@ -214,4 +214,43 @@ type SetSchemaProps = ArraySchemaProps;
 export class SetSchema<T, Props extends SetSchemaProps> extends SchemaType<
   Set<T>,
   Set<T>
+> {}
+import { IncludablePaths } from "./includes";
+import { SelectTree } from "./parseSelect";
+
+export class Includable<T extends TypeSchema<any>> extends SchemaType<
+  z.IncludableInput<input<T>>,
+  z.IncludableOutput<output<T>>
+> {}
+
+export class Includes<
+  T extends TypeSchema<any>,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends SchemaType<IncludablePaths<output<T>, Depth>[]> {}
+
+export class Selectable<T extends TypeSchema<any>> extends SchemaType<
+  z.SelectableInput<input<T>>,
+  z.SelectableOutput<output<T>>
+> {}
+
+export class Selects<
+  T extends TypeSchema<object>,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends SchemaType<string, SelectTree | null | undefined> {}
+
+export class Selection<T extends TypeSchema<any>> extends SchemaType<
+  input<T>,
+  output<T>
+> {}
+
+interface PageResponseType<I> {
+  startCursor: string | null;
+  endCursor: string | null;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+  items: I[];
+}
+
+export class PageResponse<I extends TypeSchema<any>> extends SchemaType<
+  PageResponseType<I>
 > {}

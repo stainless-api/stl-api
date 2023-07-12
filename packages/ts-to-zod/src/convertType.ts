@@ -299,7 +299,7 @@ export function convertTypeofNode(
 ): ts.Expression | undefined {
   if (node instanceof tm.TypeQueryNode) {
     const symbol = type.getSymbol();
-    if (isZodSymbol(symbol)) {
+    if (isZodSymbol(symbol) || !symbol) {
       const exprName = node.getExprName();
       const base = baseIdentifier(exprName);
       const baseSymbol = base.getSymbolOrThrow();
@@ -332,7 +332,7 @@ export function convertTypeofNode(
         currentFile.generatedSchemas.push({
           name: base.getText(),
           expression: zodConstructor("lazy", [
-            renameEntityIdentifier(exprName, as) as ts.Expression,
+            entityNameToExpression(exprName, as) as ts.Expression,
           ]),
           isExported: true,
         });
@@ -354,15 +354,15 @@ function baseIdentifier(entityName: tm.EntityName): tm.Identifier {
   else return baseIdentifier(entityName.getLeft());
 }
 
-function renameEntityIdentifier(
+function entityNameToExpression(
   entityName: tm.EntityName,
   name: string
-): ts.EntityName {
+): ts.Expression {
   if (entityName instanceof tm.Identifier)
     return factory.createIdentifier(name);
   else
-    return factory.createQualifiedName(
-      renameEntityIdentifier(entityName.getLeft(), name),
+    return factory.createPropertyAccessExpression(
+      entityNameToExpression(entityName.getLeft(), name),
       entityName.getRight().compilerNode
     );
 }
@@ -380,7 +380,6 @@ export function convertType(
 
   const baseTypeName = getBaseTypeName(ty);
   let packageTypeName = undefined;
-  if (isInThisPackage(typeSymbol)) {
     if (typeSymbol) {
       packageTypeName = typeSymbol.getName();
     }
@@ -424,7 +423,7 @@ export function convertType(
           diagnosticItem
         );
     }
-  } else if (isStainlessSymbol(typeSymbol)) {
+   if (isStainlessSymbol(typeSymbol)) {
     switch (typeSymbol?.getName()) {
       case "Includable":
         return convertSimpleSchemaClassSuffix(
@@ -919,7 +918,11 @@ function isStainlessSymbol(symbol: tm.Symbol | undefined): boolean {
 }
 
 function isZodSymbol(symbol: tm.Symbol | undefined): boolean {
-  return isSymbolInFile(symbol, /zod\/lib\/.*\.d\.ts$/);
+  return isSymbolInFile(symbol, /zod\/lib\/.*\.d\.ts$/) || isStainlessSymbol(symbol);
+}
+
+function isTsToZodSymbol(symbol: tm.Symbol | undefined): boolean {
+  return isStainlessSymbol(symbol);
 }
 
 function createZodShape(
@@ -1478,13 +1481,6 @@ function getTypeId(type: tm.Type): number {
   return type.compilerType.id;
 }
 
-function isInThisPackage(symbol: tm.Symbol | undefined): boolean {
-  if (!symbol) return false;
-  const declaration = getDeclaration(symbol);
-  if (!declaration) return false;
-  const symbolFile = declaration.getSourceFile().getFilePath();
-  return !Path.relative(Path.dirname(__filename), symbolFile).startsWith(".");
-}
 
 function getBaseTypeName(type: tm.Type): string | undefined {
   const symbol = type.getSymbol();

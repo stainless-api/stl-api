@@ -1,12 +1,12 @@
 import { multiFileTestCase } from "./multiFileTestCase";
 
 import { AddrIface, Enum } from "./common";
-import { StringSchema } from "../types";
+import { t } from "stainless";
 import pkgUp from "pkg-up";
 import path from "path";
 
 type T = {
-  datetime: StringSchema<{ max: 20; datetime: true, regex: ["[A-Z]", "oops"] }>;
+  datetime: t.StringSchema<{ max: 20; datetime: true, regex: ["[A-Z]", "oops"] }>;
   addresses: AddrIface[];
   enum: Enum;
 };

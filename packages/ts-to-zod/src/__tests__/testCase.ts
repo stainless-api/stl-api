@@ -42,7 +42,7 @@ export const testCase = ({
   }
   if (time) console.time("convertType");
   const ctx = new ConvertTypeContext(new SchemaGenContext(testProject), node);
-  const actual = convertType(ctx, type);
+  const actual = convertType(ctx, type, { variant: "type", type });
   if (time) console.timeEnd("convertType");
   return tm.printNode(actual);
 };

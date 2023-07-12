@@ -1,13 +1,14 @@
 import * as z from "./z";
-import { type toZod } from "ts-to-zod";
+import * as t from "./t";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 import { Config } from "prettier";
 export { SelectTree, parseSelect } from "./parseSelect";
 export { z };
+export { t };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
-export { Includable, Includes, Selectable, Selects, Selection, PageResponse } from "./magicTypes";
+
 export {
   type StainlessClient,
   ClientPromise,
@@ -993,7 +994,7 @@ export class Stl<Plugins extends AnyPlugins> {
     TypeArgToZod<T, "path">,
     TypeArgToZod<T, "query">,
     TypeArgToZod<T, "body">,
-    "response" extends keyof T ? toZod<T["response"]> : z.ZodVoid
+    "response" extends keyof T ? t.toZod<T["response"]> : z.ZodVoid
   > {
     return {
       endpoint: <
@@ -1031,7 +1032,7 @@ export class Stl<Plugins extends AnyPlugins> {
 }
 
 type TypeArgToZod<T extends Types, K extends keyof Types> = K extends keyof T
-  ? toZod<T[K]>
+  ? t.toZod<T[K]>
   : undefined;
 
 interface Types {
