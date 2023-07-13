@@ -951,7 +951,7 @@ export class Stl<Plugins extends AnyPlugins> {
    * const partialSchema = stl.magic<Partial<{a: string}>>(z.object({a: z.string().optional()}));
    * ```
    */
-  magic<T>(schema: z.ZodTypeAny): z.ZodType<T, any, any> {
+  magic<T>(schema: z.ZodTypeAny): t.toZod<T> {
     return schema;
   }
 
