@@ -24,33 +24,23 @@ export function generateFiles(
     const generatedPath = generatePath(path, generationConfig);
 
     const tsPath = `${generatedPath}.ts`;
-    const dtsPath = `${generatedPath}.d.ts`;
-    const cjsPath = `${generatedPath}.js`;
 
     // TODO: clean up by removing duplicate functions, rename function
     outputMap.set(
       tsPath,
-      generateStatementsTS(info, generationConfig, generatedPath, options)
+      generateStatements(info, generationConfig, generatedPath, options)
     );
-    // outputMap.set(
-    //   dtsPath,
-    //   generateStatementsDTS(info, generationConfig, generatedPath, options)
-    // );
-    // outputMap.set(
-    //   cjsPath,
-    //   generateStatementsCJS(info, generationConfig, generatedPath, options)
-    // );
   }
   return outputMap;
 }
 
-function generateStatementsTS(
+function generateStatements(
   info: FileInfo,
   generationConfig: GenerationConfig,
   generatedPath: string,
   options: GenOptions
 ): ts.Statement[] {
-  const statements: ts.Statement[] = generateImportStatementsESM(
+  const statements: ts.Statement[] = generateImportStatements(
     generationConfig,
     generatedPath,
     options.zPackage,
@@ -72,82 +62,6 @@ function generateStatementsTS(
       factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
     );
     statements.push(variableStatement);
-  }
-  return statements;
-}
-
-function generateStatementsDTS(
-  info: FileInfo,
-  generationConfig: GenerationConfig,
-  generatedPath: string,
-  options: GenOptions
-): ts.Statement[] {
-  const statements: ts.Statement[] = generateImportStatementsESM(
-    generationConfig,
-    generatedPath,
-    options.zPackage,
-    info.imports,
-    info.namespaceImports
-  );
-
-  for (const schema of info.generatedSchemas.values()) {
-    if (schema.private) continue;
-    const declaration = factory.createVariableDeclaration(
-      schema.name,
-      undefined,
-      schema.type || factory.createTypeReferenceNode("z.ZodTypeAny")
-    );
-    const variableStatement = factory.createVariableStatement(
-      schema.isExported
-        ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
-        : [],
-      factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
-    );
-    statements.push(variableStatement);
-  }
-  return statements;
-}
-
-function generateStatementsCJS(
-  info: FileInfo,
-  generationConfig: GenerationConfig,
-  generatedPath: string,
-  options: GenOptions
-): ts.Statement[] {
-  const statements: ts.Statement[] = generateImportStatementsCJS(
-    generationConfig,
-    generatedPath,
-    options.zPackage,
-    info.imports,
-    info.namespaceImports
-  );
-
-  for (const schema of info.generatedSchemas.values()) {
-    const declaration = factory.createVariableDeclaration(
-      schema.name,
-      undefined,
-      undefined,
-      schema.expression
-    );
-    const variableStatement = factory.createVariableStatement(
-      undefined,
-      factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
-    );
-    statements.push(variableStatement);
-    if (schema.isExported) {
-      const exportTarget = factory.createPropertyAccessExpression(
-        factory.createIdentifier("exports"),
-        schema.name
-      );
-      statements.push(
-        factory.createExpressionStatement(
-          factory.createAssignment(
-            exportTarget,
-            factory.createIdentifier(schema.name)
-          )
-        )
-      );
-    }
   }
   return statements;
 }
@@ -223,7 +137,7 @@ function normalizeImport(relativePath: string): string {
   return extensionlessRelativePath;
 }
 
-export function generateImportStatementsESM(
+export function generateImportStatements(
   config: GenerationConfig,
   filePath: string,
   zPackage: string | undefined,
@@ -301,105 +215,4 @@ export function generateImportStatementsESM(
   }
 
   return importDeclarations;
-}
-
-export function generateImportStatementsCJS(
-  config: GenerationConfig,
-  filePath: string,
-  zPackage: string | undefined,
-  imports: Map<string, ImportInfo>,
-  namespaceImports: Map<string, NamespaceImportInfo>
-): ts.Statement[] {
-  const zRequireExpression = factory.createCallExpression(
-    factory.createIdentifier("require"),
-    undefined,
-    [factory.createStringLiteral(zPackage || "zod")]
-  );
-  const zImportStatement = factory.createVariableStatement(
-    [],
-    factory.createVariableDeclarationList(
-      [
-        factory.createVariableDeclaration(
-          factory.createObjectBindingPattern([
-            factory.createBindingElement(undefined, undefined, "z"),
-          ]),
-          undefined,
-          undefined,
-          zRequireExpression
-        ),
-      ],
-      ts.NodeFlags.Const
-    )
-  );
-
-  const importStatements: ts.Statement[] = [zImportStatement];
-
-  const importGroups = generateImportGroups(imports, filePath, config);
-
-  for (let [relativePath, entries] of Object.entries(importGroups)) {
-    const bindingElements = entries.map(([name, { as }]) => {
-      if (as === name) as = undefined;
-
-      return factory.createBindingElement(
-        undefined,
-        as ? factory.createIdentifier(name) : undefined,
-        factory.createIdentifier(as || name)
-      );
-    });
-    const requireDestructure =
-      factory.createObjectBindingPattern(bindingElements);
-
-    const normalizedImport = normalizeImport(relativePath);
-    const requireExpression = factory.createCallExpression(
-      factory.createIdentifier("require"),
-      undefined,
-      [factory.createStringLiteral(normalizedImport)]
-    );
-
-    const importStatement = factory.createVariableStatement(
-      undefined,
-      factory.createVariableDeclarationList(
-        [
-          factory.createVariableDeclaration(
-            requireDestructure,
-            undefined,
-            undefined,
-            requireExpression
-          ),
-        ],
-        ts.NodeFlags.Const
-      )
-    );
-    importStatements.push(importStatement);
-  }
-
-  for (const [name, info] of namespaceImports.entries()) {
-    const sourceFile = relativeImportPath(
-      filePath,
-      info.importFromUserFile
-        ? info.sourceFile
-        : generatePath(info.sourceFile, config)
-    );
-    const requireExpression = factory.createCallExpression(
-      factory.createIdentifier("require"),
-      undefined,
-      [factory.createStringLiteral(sourceFile)]
-    );
-    const importStatement = factory.createVariableStatement(
-      undefined,
-      factory.createVariableDeclarationList(
-        [
-          factory.createVariableDeclaration(
-            name,
-            undefined,
-            undefined,
-            requireExpression
-          ),
-        ],
-        ts.NodeFlags.Const
-      )
-    );
-    importStatements.push(importStatement);
-  }
-  return importStatements;
 }
