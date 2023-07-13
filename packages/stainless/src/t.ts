@@ -12,7 +12,6 @@ export const MetadataSymbol = Symbol("Metadata");
 
 export abstract class Metadata<T, M extends object> extends SchemaType<T> {
   [MetadataSymbol] = true;
-  declare _schema: T;
   declare _metadata: M;
 }
 
@@ -103,7 +102,7 @@ export type toZod<T> = [T] extends [z.ZodTypeAny]
   : [T] extends [Selectable<infer U>]
   ? z.SelectableZodType<toZod<U>>
   : [T] extends [SchemaType<infer I, infer O>]
-  ? z.ZodType<toZod<O>, any, toZod<I>>
+  ? z.ZodType<output<O>, any, input<I>>
   : [T] extends [Date]
   ? z.ZodDate
   : [T] extends [Array<infer E>]

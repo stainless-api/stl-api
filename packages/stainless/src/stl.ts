@@ -2,7 +2,7 @@ import * as z from "./z";
 import * as t from "./t";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
-export { SelectTree, parseSelect } from "./parseSelect";
+export { type SelectTree, parseSelect } from "./parseSelect";
 export { z, t };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
@@ -1054,15 +1054,15 @@ type TypeArgToZodObject<
   T extends Types,
   K extends keyof Types
 > = K extends keyof T
-  ? t.toZod<T[K]> extends infer U extends z.AnyZodObject
+  ? t.toZod<T[K]> extends infer U extends ZodObjectSchema
     ? U
     : undefined
   : undefined;
 
 interface Types {
-  path?: any;
-  query?: any;
-  body?: any;
+  path?: object;
+  query?: object;
+  body?: object;
   response?: any;
 }
 

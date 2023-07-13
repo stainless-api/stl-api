@@ -1,0 +1,1 @@
+export const endpointToSchema = { "post /api/posts": import("./api/posts/create").then(mod => mod.__postu32$api$posts), "get /api/posts/{post}": import("./api/posts/retrieve").then(mod => mod.__getu32$api$posts$u123postu125) };

@@ -43,6 +43,6 @@
     "rimraf": "^5.0.1",
     "start-server-and-test": "^2.0.0",
     "ts-jest": "^29.1.0",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.3"
   }
 }
