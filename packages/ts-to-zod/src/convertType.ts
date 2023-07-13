@@ -269,7 +269,26 @@ export function convertSymbol(
   }
   if (!ctx.symbols.has(symbol)) {
     ctx.symbols.add(symbol);
-    const generated = convertType(internalCtx, type, diagnosticItem);
+
+    let generated;
+    if (declaration instanceof tm.TypeAliasDeclaration) {
+      const typeNode = declaration.getTypeNode();
+      if (typeNode) {
+        try {
+          generated = convertTypeof(
+            internalCtx,
+            declaration,
+            type,
+            diagnosticItem
+          );
+        } catch (e) {
+          if (e instanceof ErrorAbort) {
+          } else throw e;
+        }
+      }
+    }
+
+    generated ||= convertType(internalCtx, type, diagnosticItem);
     const generatedSchema = {
       name: symbol.getName(),
       expression: generated,

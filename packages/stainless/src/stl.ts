@@ -952,7 +952,7 @@ export class Stl<Plugins extends AnyPlugins> {
    * ```
    */
   magic<T>(schema: z.ZodTypeAny): t.toZod<T> {
-    return schema;
+    return schema as any;
   }
 
   /**
@@ -1004,19 +1004,21 @@ export class Stl<Plugins extends AnyPlugins> {
    * ```
    */
   types<T extends Types>(): TypeEndpointBuilder<
-    TypeArgToZod<T, "path">,
-    TypeArgToZod<T, "query">,
-    TypeArgToZod<T, "body">,
+    TypeArgToZodObject<T, "path">,
+    TypeArgToZodObject<T, "query">,
+    TypeArgToZodObject<T, "body">,
     "response" extends keyof T ? t.toZod<T["response"]> : z.ZodVoid
   > {
+    type Path = TypeArgToZodObject<T, "path">;
+    type Query = TypeArgToZodObject<T, "query">;
+    type Body = TypeArgToZodObject<T, "body">;
+    type Response = "response" extends keyof T
+      ? t.toZod<T["response"]>
+      : z.ZodVoid;
     return {
       endpoint: <
         MethodAndUrl extends HttpEndpoint,
-        Config extends EndpointConfig | undefined,
-        Path extends ZodObjectSchema | undefined,
-        Query extends ZodObjectSchema | undefined,
-        Body extends ZodObjectSchema | undefined,
-        Response extends z.ZodTypeAny = z.ZodVoid
+        Config extends EndpointConfig | undefined
       >({
         endpoint,
         config,
@@ -1046,6 +1048,15 @@ export class Stl<Plugins extends AnyPlugins> {
 
 type TypeArgToZod<T extends Types, K extends keyof Types> = K extends keyof T
   ? t.toZod<T[K]>
+  : undefined;
+
+type TypeArgToZodObject<
+  T extends Types,
+  K extends keyof Types
+> = K extends keyof T
+  ? t.toZod<T[K]> extends infer U extends z.AnyZodObject
+    ? U
+    : undefined
   : undefined;
 
 interface Types {

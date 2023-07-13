@@ -540,6 +540,12 @@ function convertSelect(
   return result;
 }
 
-export class PrismaModel<T, P> extends t.SchemaType<T> {}
+export class PrismaModel<T, P> extends t.Metadata<
+  T,
+  { stainless: { prismaModel: P } }
+> {}
 
-export class PrismaModelLoader<T, M extends PrismaHelpers> extends t.SchemaType<T, FindUniqueOrThrowResult<M>> {}
+export class PrismaModelLoader<T, M extends PrismaHelpers> extends t.SchemaType<
+  T,
+  FindUniqueOrThrowResult<M>
+> {}
