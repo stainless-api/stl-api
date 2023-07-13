@@ -24,7 +24,7 @@ import {
 
 import {
   generateFiles,
-  generateImportStatementsESM,
+  generateImportStatements,
   generatePath,
   relativeImportPath,
 } from "ts-to-zod/dist/generateFiles";
@@ -370,7 +370,7 @@ async function evaluate(
     }
 
     // add new imports necessary for schema generation
-    let importDeclarations = generateImportStatementsESM(
+    let importDeclarations = generateImportStatements(
       generationConfig,
       file.getFilePath(),
       "stainless",
@@ -506,7 +506,7 @@ async function evaluate(
     const mapEntries = [];
 
     const genPath = Path.join(rootPath, FOLDER_GEN_PATH);
-    const endpointMapGenPathTS = Path.join(genPath, "__endpointMap.ts");
+    const endpointMapGenPath = Path.join(genPath, "__endpointMap.ts");
 
     for (const [file, calls] of endpointCalls) {
       for (const call of calls) {
@@ -517,7 +517,7 @@ async function evaluate(
           [
             factory.createStringLiteral(
               `${relativeImportPath(
-                endpointMapGenPathTS,
+                endpointMapGenPath,
                 convertPathToImport(
                   generatePath(file.getFilePath(), generationConfig)
                 )
@@ -550,23 +550,6 @@ async function evaluate(
       }
     }
 
-    const mapExpression = factory.createObjectLiteralExpression(mapEntries);
-
-    const mapStatementCJS = factory.createExpressionStatement(
-      factory.createAssignment(
-        factory.createPropertyAccessExpression(
-          factory.createIdentifier("exports"),
-          "map"
-        ),
-        mapExpression
-      )
-    );
-
-    const mapSourceFileCJS = factory.createSourceFile(
-      [mapStatementCJS],
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
 
     const mapDeclaration = factory.createVariableDeclarationList(
       [
@@ -579,28 +562,22 @@ async function evaluate(
       ],
       ts.NodeFlags.Const
     );
-    const mapStatementESM = factory.createVariableStatement(
+    const mapStatement = factory.createVariableStatement(
       [factory.createToken(ts.SyntaxKind.ExportKeyword)],
       mapDeclaration
     );
 
-    const mapSourceFileESM = factory.createSourceFile(
-      [mapStatementESM],
+    const mapSourceFile = factory.createSourceFile(
+      [mapStatement],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       0
     );
 
     await fs.promises.mkdir(genPath, { recursive: true });
 
-    // const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");
-    // await fs.promises.writeFile(
-    //   endpointMapGenPathCJS,
-    //   printer.printFile(mapSourceFileCJS)
-    // );
-
     await fs.promises.writeFile(
-      endpointMapGenPathTS,
-      printer.printFile(mapSourceFileESM)
+      endpointMapGenPath,
+      printer.printFile(mapSourceFile)
     );
 
     const stainlessTypeImport = factory.createImportDeclaration(
