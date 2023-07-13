@@ -371,6 +371,12 @@ export type CreateStlOptions<Plugins extends AnyPlugins> = {
    * Some plugins provide context information under `ctx.plugins.{name of plugin}.
    */
   plugins: Plugins;
+  /**
+   * Injects generated magic schemas into the `stl` instance.
+   * `typeSchemas` is exported from the module where you're configured
+   * magic schemas to generate in. By default, this is `stl-api-gen`.
+   */
+  typeSchemas?: () => Promise<TypeSchemas>;
 };
 
 /** The raw headers provided on a request. */
@@ -591,6 +597,8 @@ export class Stl<Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
   plugins = {} as ExtractStatics<Plugins>;
   private stainlessPlugins: Record<string, StainlessPlugin<any>> = {};
+  private typeSchemasGen?: () => Promise<TypeSchemas>;
+  private typeSchemas?: TypeSchemas;
 
   /**
    *
@@ -607,6 +615,7 @@ export class Stl<Plugins extends AnyPlugins> {
         // @ts-expect-error
         this.plugins[key] = plugin.statics;
       }
+      this.typeSchemasGen = opts.typeSchemas;
     }
   }
 
@@ -656,9 +665,16 @@ export class Stl<Plugins extends AnyPlugins> {
       !context.endpoint.body &&
       !context.endpoint.response
     ) {
+      if (!this.typeSchemasGen) {
+        throw new Error(
+          "Failed to provide `typeSchemas` to stl instance while using magic schemas"
+        );
+      }
       try {
-        const module = await eval?.("import('@stl-api/gen/__endpointMap.js')");
-        const schemas = await module.map[context.endpoint.endpoint];
+        this.typeSchemas ||= await this.typeSchemasGen();
+        const schemas = await this.typeSchemas.endpointToSchema[
+          context.endpoint.endpoint
+        ];
         if (schemas) {
           context.endpoint.path = schemas.path;
           context.endpoint.query = schemas.query;
@@ -668,7 +684,7 @@ export class Stl<Plugins extends AnyPlugins> {
           throw new Error(
             "error encountered while handling endpoint " +
               context.endpoint.endpoint +
-              ": no schema found. run the cli on the project to generate the schema for the endpoint."
+              ": no schema found. run the `stl` cli on the project to generate the schema for the endpoint."
           );
         }
       } catch (e) {
@@ -1078,3 +1094,15 @@ interface TypeEndpointBuilder<
     >
   ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response>;
 }
+
+export type TypeSchemas = {
+  endpointToSchema: Record<
+    string,
+    Promise<{
+      path?: z.ZodTypeAny;
+      query?: z.ZodTypeAny;
+      body?: z.ZodTypeAny;
+      response?: z.ZodTypeAny;
+    }>
+  >;
+};

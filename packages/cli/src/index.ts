@@ -26,6 +26,7 @@ import {
   generateFiles,
   generateImportStatementsESM,
   generatePath,
+  relativeImportPath,
 } from "ts-to-zod/dist/generateFiles";
 
 import {
@@ -252,6 +253,7 @@ async function evaluate(
           isExported: true,
           /** non-user-visible value should not be generated in .d.ts */
           private: true,
+          type: factory.createTypeReferenceNode("any"),
         });
         continue;
       }
@@ -503,6 +505,9 @@ async function evaluate(
   if (endpointCalls.size) {
     const mapEntries = [];
 
+    const genPath = Path.join(rootPath, FOLDER_GEN_PATH);
+    const endpointMapGenPathTS = Path.join(genPath, "__endpointMap.ts");
+
     for (const [file, calls] of endpointCalls) {
       for (const call of calls) {
         const mangledName = mangleString(call.endpointPath);
@@ -511,9 +516,12 @@ async function evaluate(
           undefined,
           [
             factory.createStringLiteral(
-              `${convertPathToImport(
-                generatePath(file.getFilePath(), generationConfig)
-              )}.js`
+              `${relativeImportPath(
+                endpointMapGenPathTS,
+                convertPathToImport(
+                  generatePath(file.getFilePath(), generationConfig)
+                )
+              )}`
             ),
           ]
         );
@@ -563,7 +571,7 @@ async function evaluate(
     const mapDeclaration = factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(
-          "someName",
+          "endpointToSchema",
           undefined,
           undefined,
           factory.createObjectLiteralExpression(mapEntries)
@@ -582,20 +590,71 @@ async function evaluate(
       0
     );
 
-    const genPath = Path.join(rootPath, FOLDER_GEN_PATH);
     await fs.promises.mkdir(genPath, { recursive: true });
 
-    const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");
-    await fs.promises.writeFile(
-      endpointMapGenPathCJS,
-      printer.printFile(mapSourceFileCJS)
-    );
+    // const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");
+    // await fs.promises.writeFile(
+    //   endpointMapGenPathCJS,
+    //   printer.printFile(mapSourceFileCJS)
+    // );
 
-    const endpointMapGenPathESM = Path.join(genPath, "__endpointMap.mjs");
     await fs.promises.writeFile(
-      endpointMapGenPathESM,
+      endpointMapGenPathTS,
       printer.printFile(mapSourceFileESM)
     );
+
+    const stainlessTypeImport = factory.createImportDeclaration(
+      undefined,
+      factory.createImportClause(
+        true,
+        undefined,
+        factory.createNamedImports([
+          factory.createImportSpecifier(
+            false,
+            undefined,
+            factory.createIdentifier("TypeSchemas")
+          ),
+        ])
+      ),
+      factory.createStringLiteral("stainless")
+    );
+
+    const indexReturnStatement = factory.createReturnStatement(
+      factory.createAsExpression(
+        factory.createAwaitExpression(
+          factory.createCallExpression(
+            factory.createIdentifier("import"),
+            undefined,
+            [factory.createStringLiteral("./__endpointMap")]
+          )
+        ),
+        factory.createTypeReferenceNode("any")
+      )
+    );
+
+    const indexTypeSchemasDeclaration = factory.createFunctionDeclaration(
+      [
+        factory.createToken(ts.SyntaxKind.ExportKeyword),
+        factory.createToken(ts.SyntaxKind.AsyncKeyword),
+      ],
+      undefined,
+      "typeSchemas",
+      undefined,
+      [],
+      factory.createTypeReferenceNode("Promise", [
+        factory.createTypeReferenceNode("TypeSchemas"),
+      ]),
+      factory.createBlock([indexReturnStatement])
+    );
+
+    const indexSourceFile = factory.createSourceFile(
+      [stainlessTypeImport, indexTypeSchemasDeclaration],
+      factory.createToken(ts.SyntaxKind.EndOfFileToken),
+      0
+    );
+
+    const indexPath = Path.join(genPath, "index.ts");
+    await fs.promises.writeFile(indexPath, printer.printFile(indexSourceFile));
   }
 
   for (const [file, fileStatments] of generatedFileContents) {
@@ -677,12 +736,9 @@ function convertEndpointType(
     typeArgument.getTypeArguments().length === 0
   ) {
     const symbol = typeArgument.getTypeName().getSymbolOrThrow();
-    convertSymbol(ctx, symbol, diagnosticItem);
+    const schema = convertSymbol(ctx, symbol, diagnosticItem);
     addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);
-    const name = symbol.getName();
-    const as = mangleTypeName(type, name);
-
-    return factory.createIdentifier(as || name);
+    return schema;
   } else {
     const schema = convertType(ctx, type, diagnosticItem);
     addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);

@@ -1,4 +1,4 @@
-import { PostSchema, PostSelectionSchema } from "../posts/models";
+import { Post, PostSelection } from "../posts/models";
 import { Comment, CommentSelection } from "../comments/models";
 import { Notification, NotificationSelection } from "../notifications/models";
 import { z } from "stainless";
@@ -29,8 +29,8 @@ const User0 = z.response({
 type User1 = z.CircularModel<
   typeof User0,
   {
-    posts?: z.IncludableZodType<z.ZodArray<typeof PostSchema>>;
-    posts_fields?: z.SelectableZodType<z.ZodArray<typeof PostSchema>>;
+    posts?: z.IncludableZodType<z.ZodArray<typeof Post>>;
+    posts_fields?: z.SelectableZodType<z.ZodArray<typeof Post>>;
     comments?: z.IncludableZodType<z.ZodArray<typeof Comment>>;
     comments_fields?: z.SelectableZodType<z.ZodArray<typeof Comment>>;
     notifications?: z.IncludableZodType<z.ZodArray<typeof Notification>>;
@@ -38,8 +38,8 @@ type User1 = z.CircularModel<
   }
 >;
 const User1: User1 = User0.extend({
-  posts: z.array(z.lazy(() => PostSchema)).includable(),
-  posts_fields: z.array(z.lazy(() => PostSelectionSchema)).selectable(),
+  posts: z.array(z.lazy(() => Post)).includable(),
+  posts_fields: z.array(z.lazy(() => PostSelection)).selectable(),
   comments: z.array(z.lazy(() => Comment)).includable(),
   comments_fields: z.array(z.lazy(() => CommentSelection)).selectable(),
   notifications: z.array(z.lazy(() => Notification)).includable(),

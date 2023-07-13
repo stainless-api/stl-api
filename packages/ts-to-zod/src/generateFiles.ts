@@ -30,7 +30,7 @@ export function generateFiles(
     // TODO: clean up by removing duplicate functions, rename function
     outputMap.set(
       tsPath,
-      generateStatementsESM(info, generationConfig, generatedPath, options)
+      generateStatementsTS(info, generationConfig, generatedPath, options)
     );
     // outputMap.set(
     //   dtsPath,
@@ -44,7 +44,7 @@ export function generateFiles(
   return outputMap;
 }
 
-function generateStatementsESM(
+function generateStatementsTS(
   info: FileInfo,
   generationConfig: GenerationConfig,
   generatedPath: string,
@@ -62,7 +62,7 @@ function generateStatementsESM(
     const declaration = factory.createVariableDeclaration(
       schema.name,
       undefined,
-      undefined,
+      schema.type || factory.createTypeReferenceNode("z.ZodTypeAny"),
       schema.expression
     );
     const variableStatement = factory.createVariableStatement(
@@ -152,7 +152,7 @@ function generateStatementsCJS(
   return statements;
 }
 
-function relativeImportPath(
+export function relativeImportPath(
   importingFile: string,
   importedFile: string
 ): string {
@@ -279,12 +279,14 @@ export function generateImportStatementsESM(
   }
 
   for (const [name, info] of namespaceImports.entries()) {
-    const sourceFile = relativeImportPath(
+    const relativeImport = relativeImportPath(
       filePath,
       info.importFromUserFile
         ? info.sourceFile
         : generatePath(info.sourceFile, config)
     );
+    const normalizedImport = normalizeImport(relativeImport);
+
     const importClause = factory.createImportClause(
       false,
       undefined,
@@ -293,7 +295,7 @@ export function generateImportStatementsESM(
     const importDeclaration = factory.createImportDeclaration(
       undefined,
       importClause,
-      factory.createStringLiteral(sourceFile)
+      factory.createStringLiteral(normalizedImport)
     );
     importDeclarations.push(importDeclaration);
   }
