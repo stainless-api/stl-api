@@ -17,7 +17,7 @@ export abstract class Transform<I, O> extends SchemaType<I, O> {
 
 export type input<T> = 0 extends 1 & T
   ? any
-  : T extends SchemaType<any, infer I>
+  : T extends SchemaType<infer I, any>
   ? input<I>
   : T extends z.ZodTypeAny
   ? z.input<T>
@@ -37,8 +37,8 @@ export type input<T> = 0 extends 1 & T
 
 export type output<T> = 0 extends 1 & T
   ? any
-  : T extends SchemaType<any, infer I>
-  ? output<I>
+  : T extends SchemaType<any, infer O>
+  ? output<O>
   : T extends z.ZodTypeAny
   ? z.output<T>
   : T extends Date
