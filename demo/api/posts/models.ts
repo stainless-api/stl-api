@@ -1,16 +1,16 @@
-import { User } from "../users/models";
+import { User, UserSelection } from "../users/models";
 import { Comment, CommentSelection } from "../comments/models";
 import prisma from "../../libs/prismadb";
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
 type Uuid = t.StringSchema<{ uuid: true }>;
-import { Post as __symbol_Post } from "@stl-api/gen/api/posts/models";
-export const IncludableUserSchema = User.includable();
-export const SelectableUserSchema = User.selectable();
+import { PostType as __symbol_PostType } from "../../stl-api-gen/api/posts/models";
+export const IncludableUserSchema = z.lazy(() => User).includable();
+export const SelectableUserSchema = z.lazy(() => User).selectable();
 export const CommentsSchema = z.array(z.lazy(() => Comment)).includable();
 export const CommentsFieldSchema = z.array(z.lazy(() => Comment)).selectable();
 
-export type Post = {
+export type PostType = {
   id: Uuid;
   body: string;
   createdAt: Date;
@@ -18,16 +18,14 @@ export type Post = {
   userId: Uuid;
   likedIds: Uuid[];
   image?: string | null;
-  // dummy_includable?: t.Includable<{}>,
-  // dummy_selectable_fields?: t.Selectable<{}>,
   user?: typeof IncludableUserSchema;
   user_fields?: typeof SelectableUserSchema;
   comments?: typeof CommentsSchema;
   comments_field?: typeof CommentsFieldSchema;
 };
 
-export const PostSchema = stl.magic<Post>(__symbol_Post).prismaModel(prisma.post);
+export const Post = stl.magic<PostType>(__symbol_PostType).prismaModel(prisma.post);
 
-export const PostSelectionSchema = PostSchema.selection();
+export const PostSelection = Post.selection();
 
-export const PostPageSchema = z.pageResponse(PostSchema);
+export const PostPage = z.pageResponse(Post);

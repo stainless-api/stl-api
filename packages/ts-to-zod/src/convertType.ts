@@ -370,35 +370,23 @@ function convertTypeofNode(
     !declaration ||
     !(
       isDeclarationExported(declaration) ||
-      declaration instanceof tm.ImportSpecifier
+      declaration instanceof tm.ImportSpecifier ||
+      declaration instanceof tm.ImportClause ||
+      declaration instanceof tm.ImportDeclaration
     )
   ) {
+    console.dir(declaration);
     ctx.addError(
       { variant: "node", node: base },
       {
-        message: `identifier ${base.getText()} must be exported to be used within a schema`,
+        message: `identifier \`${base.getText()}\` must be exported to be used within a schema`,
       },
       true
     );
   }
 
   const currentFile = ctx.getFileInfo(ctx.currentFilePath);
-
-  let importPath: string = declaration.getSourceFile().getFilePath();
-
-  if (declaration instanceof tm.ImportSpecifier) {
-    const declFile = declaration
-      .getImportDeclaration()
-      .getModuleSpecifierSourceFile();
-    if (!declFile) {
-      throw new Error(
-        `encountered fatal error while processing import ${declaration
-          .getImportDeclaration()
-          .getText()}`
-      );
-    }
-    importPath = declFile.getFilePath();
-  }
+  const importPath = getDeclarationDefinitionPath(declaration);
 
   const mangledModuleIdentifier = mangleString(
     Path.relative(ctx.currentFilePath, importPath)
@@ -426,6 +414,17 @@ function convertTypeofNode(
         ),
       ])
     : baseSchema;
+}
+
+function getDeclarationDefinitionPath(declaration: tm.Node): string {
+  if (declaration instanceof tm.ImportSpecifier) {
+    return getDeclarationDefinitionPath(declaration.getImportDeclaration());
+  }
+  if (declaration instanceof tm.ImportClause) {
+    return getDeclarationDefinitionPath(declaration.getParent());
+  } else if (declaration instanceof tm.ImportDeclaration) {
+    return declaration.getModuleSpecifierSourceFileOrThrow().getFilePath();
+  } else return declaration.getSourceFile().getFilePath();
 }
 
 function baseIdentifier(entityName: tm.EntityName): tm.Identifier {
@@ -462,50 +461,50 @@ export function convertType(
 
   const baseTypeName = getBaseTypeName(ty);
   let packageTypeName = undefined;
-    if (typeSymbol) {
-      packageTypeName = typeSymbol.getName();
-    }
+  if (typeSymbol) {
+    packageTypeName = typeSymbol.getName();
+  }
 
-    switch (baseTypeName) {
-      case "Transform": {
-        const symbol = ty.getSymbolOrThrow(
-          `failed to get symbol for transform: ${ty.getText()}`
-        );
-        const inputType = getNthBaseClassTypeArgument(ty, 0);
+  switch (baseTypeName) {
+    case "Transform": {
+      const symbol = ty.getSymbolOrThrow(
+        `failed to get symbol for transform: ${ty.getText()}`
+      );
+      const inputType = getNthBaseClassTypeArgument(ty, 0);
 
-        // import the transform class
-        ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
-          importFromUserFile: true,
-          sourceFile: getTypeFilePath(ty)!,
-        });
+      // import the transform class
+      ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+        importFromUserFile: true,
+        sourceFile: getTypeFilePath(ty)!,
+      });
 
-        return methodCall(
-          convertType(ctx, inputType, diagnosticItem),
-          "transform",
-          [
-            factory.createPropertyAccessExpression(
-              factory.createNewExpression(
-                factory.createIdentifier(symbol.getName()),
-                undefined,
-                []
-              ),
-              factory.createIdentifier("transform")
+      return methodCall(
+        convertType(ctx, inputType, diagnosticItem),
+        "transform",
+        [
+          factory.createPropertyAccessExpression(
+            factory.createNewExpression(
+              factory.createIdentifier(symbol.getName()),
+              undefined,
+              []
             ),
-          ]
-        );
-      }
-      case "Refine":
-        return convertRefineType(ctx, ty, typeSymbol, "refine", diagnosticItem);
-      case "SuperRefine":
-        return convertRefineType(
-          ctx,
-          ty,
-          typeSymbol,
-          "superRefine",
-          diagnosticItem
-        );
+            factory.createIdentifier("transform")
+          ),
+        ]
+      );
     }
-   if (isStainlessSymbol(typeSymbol)) {
+    case "Refine":
+      return convertRefineType(ctx, ty, typeSymbol, "refine", diagnosticItem);
+    case "SuperRefine":
+      return convertRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "superRefine",
+        diagnosticItem
+      );
+  }
+  if (isStainlessSymbol(typeSymbol)) {
     switch (typeSymbol?.getName()) {
       case "Includable":
         return convertSimpleSchemaClassSuffix(
@@ -1000,7 +999,9 @@ function isStainlessSymbol(symbol: tm.Symbol | undefined): boolean {
 }
 
 function isZodSymbol(symbol: tm.Symbol | undefined): boolean {
-  return isSymbolInFile(symbol, /zod\/lib\/.*\.d\.ts$/) || isStainlessSymbol(symbol);
+  return (
+    isSymbolInFile(symbol, /zod\/lib\/.*\.d\.ts$/) || isStainlessSymbol(symbol)
+  );
 }
 
 function isTsToZodSymbol(symbol: tm.Symbol | undefined): boolean {
