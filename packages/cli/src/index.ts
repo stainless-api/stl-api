@@ -246,7 +246,7 @@ async function evaluate(
           imports: new Map(),
           generatedSchemas: new Map(),
         }));
-        const name = convertPathToImport(call.endpointPath);
+        const name = mangleRouteToIdentifier(call.endpointPath);
         ctxFile.generatedSchemas.set(name, {
           name,
           expression: endpointSchema,
@@ -280,12 +280,7 @@ async function evaluate(
       let typeofSchema;
 
       try {
-        typeofSchema = convertTypeof(
-          ctx,
-          typeArgument,
-          type,
-          diagnosticItem
-        );
+        typeofSchema = convertTypeof(ctx, typeArgument, type, diagnosticItem);
       } catch (e) {
         if (e instanceof ErrorAbort) {
           break;
@@ -512,12 +507,12 @@ async function evaluate(
     }
   }
 
-  // Generate __endpointMap
+  // Generate index.ts
   if (endpointCalls.size) {
     const mapEntries = [];
 
     const genPath = Path.join(rootPath, FOLDER_GEN_PATH);
-    const endpointMapGenPath = Path.join(genPath, "__endpointMap.ts");
+    const endpointMapGenPath = Path.join(genPath, "index.ts");
 
     for (const [file, calls] of endpointCalls) {
       for (const call of calls) {
@@ -555,7 +550,7 @@ async function evaluate(
         );
         const entry = factory.createPropertyAssignment(
           factory.createStringLiteral(call.endpointPath),
-          callExpression
+          createThunk(callExpression)
         );
         mapEntries.push(entry);
       }
@@ -564,7 +559,7 @@ async function evaluate(
     const mapDeclaration = factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(
-          "endpointToSchema",
+          "typeSchemas",
           undefined,
           undefined,
           factory.createObjectLiteralExpression(mapEntries)
@@ -589,59 +584,6 @@ async function evaluate(
       endpointMapGenPath,
       printer.printFile(mapSourceFile)
     );
-
-    const stainlessTypeImport = factory.createImportDeclaration(
-      undefined,
-      factory.createImportClause(
-        true,
-        undefined,
-        factory.createNamedImports([
-          factory.createImportSpecifier(
-            false,
-            undefined,
-            factory.createIdentifier("TypeSchemas")
-          ),
-        ])
-      ),
-      factory.createStringLiteral("stainless")
-    );
-
-    const indexReturnStatement = factory.createReturnStatement(
-      factory.createAsExpression(
-        factory.createAwaitExpression(
-          factory.createCallExpression(
-            factory.createIdentifier("import"),
-            undefined,
-            [factory.createStringLiteral("./__endpointMap")]
-          )
-        ),
-        factory.createTypeReferenceNode("any")
-      )
-    );
-
-    const indexTypeSchemasDeclaration = factory.createFunctionDeclaration(
-      [
-        factory.createToken(ts.SyntaxKind.ExportKeyword),
-        factory.createToken(ts.SyntaxKind.AsyncKeyword),
-      ],
-      undefined,
-      "typeSchemas",
-      undefined,
-      [],
-      factory.createTypeReferenceNode("Promise", [
-        factory.createTypeReferenceNode("TypeSchemas"),
-      ]),
-      factory.createBlock([indexReturnStatement])
-    );
-
-    const indexSourceFile = factory.createSourceFile(
-      [stainlessTypeImport, indexTypeSchemasDeclaration],
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-
-    const indexPath = Path.join(genPath, "index.ts");
-    await fs.promises.writeFile(indexPath, printer.printFile(indexSourceFile));
   }
 
   for (const [file, fileStatments] of generatedFileContents) {
@@ -804,4 +746,15 @@ function getOrInsert<K, V>(map: Map<K, V>, key: K, create: () => V): V {
     map.set(key, value);
   }
   return value;
+}
+
+function createThunk(expression: ts.Expression): ts.Expression {
+  return factory.createArrowFunction(
+    undefined,
+    undefined,
+    [],
+    undefined,
+    undefined,
+    expression
+  );
 }

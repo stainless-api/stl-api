@@ -376,7 +376,7 @@ export type CreateStlOptions<Plugins extends AnyPlugins> = {
    * `typeSchemas` is exported from the module where you're configured
    * magic schemas to generate in. By default, this is `stl-api-gen`.
    */
-  typeSchemas?: () => Promise<TypeSchemas>;
+  typeSchemas?: TypeSchemas;
 };
 
 /** The raw headers provided on a request. */
@@ -597,7 +597,6 @@ export class Stl<Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
   plugins = {} as ExtractStatics<Plugins>;
   private stainlessPlugins: Record<string, StainlessPlugin<any>> = {};
-  private typeSchemasGen?: () => Promise<TypeSchemas>;
   private typeSchemas?: TypeSchemas;
 
   /**
@@ -615,8 +614,8 @@ export class Stl<Plugins extends AnyPlugins> {
         // @ts-expect-error
         this.plugins[key] = plugin.statics;
       }
-      this.typeSchemasGen = opts.typeSchemas;
     }
+    this.typeSchemas = opts.typeSchemas;
   }
 
   /**
@@ -665,16 +664,15 @@ export class Stl<Plugins extends AnyPlugins> {
       !context.endpoint.body &&
       !context.endpoint.response
     ) {
-      if (!this.typeSchemasGen) {
+      if (!this.typeSchemas) {
         throw new Error(
           "Failed to provide `typeSchemas` to stl instance while using magic schemas"
         );
       }
       try {
-        this.typeSchemas ||= await this.typeSchemasGen();
-        const schemas = await this.typeSchemas.endpointToSchema[
+        const schemas = await this.typeSchemas[
           context.endpoint.endpoint
-        ];
+        ]?.();
         if (schemas) {
           context.endpoint.path = schemas.path;
           context.endpoint.query = schemas.query;
@@ -1106,14 +1104,12 @@ interface TypeEndpointBuilder<
   ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response>;
 }
 
-export type TypeSchemas = {
-  endpointToSchema: Record<
-    string,
-    Promise<{
-      path?: z.ZodTypeAny;
-      query?: z.ZodTypeAny;
-      body?: z.ZodTypeAny;
-      response?: z.ZodTypeAny;
-    }>
-  >;
-};
+export type TypeSchemas = Record<
+  string,
+  () => Promise<{
+    path?: z.ZodTypeAny;
+    query?: z.ZodTypeAny;
+    body?: z.ZodTypeAny;
+    response?: z.ZodTypeAny;
+  }>
+>;
