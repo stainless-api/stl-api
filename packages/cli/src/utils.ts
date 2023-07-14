@@ -1,6 +1,9 @@
 import * as tm from "ts-morph";
 import Path from "path";
 import fs from "fs";
+import memoize from "lodash/memoize";
+import { promisify } from "util";
+import _resolve from "resolve";
 
 export async function statOrExit(path: string): Promise<fs.Stats> {
   try {
@@ -9,6 +12,13 @@ export async function statOrExit(path: string): Promise<fs.Stats> {
     console.error(`${e}.`);
     process.exit(1);
   }
+}
+
+export function pathExists(path: string): Promise<boolean> {
+  return fs.promises.stat(path).then(
+    () => true,
+    () => false
+  );
 }
 
 export function isSymbolStlMethod(symbol: tm.Symbol): boolean {
@@ -60,3 +70,18 @@ export function convertPathToImport(path: string): string {
   const { dir, name } = Path.parse(withAbsolute);
   return Path.join(dir, name);
 }
+
+export const resolve = memoize(
+  async (specifier: string, basedir: string): Promise<string | undefined> => {
+    // sometimes we'll be trying to resolve prettier for a codegen output dir
+    // that doesn't exist yet
+    while (!(await pathExists(basedir))) {
+      basedir = Path.dirname(basedir);
+    }
+
+    return await promisify<string | undefined>((cb) =>
+      _resolve(specifier, { basedir }, cb)
+    )();
+  },
+  (specifier: string, basedir: string) => JSON.stringify({ specifier, basedir })
+);

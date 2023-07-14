@@ -226,9 +226,6 @@ importers:
 
   packages/cli:
     dependencies:
-      '@types/lodash':
-        specifier: ^4.14.195
-        version: 4.14.195
       chalk:
         specifier: 4.1.2
         version: 4.1.2
@@ -260,6 +257,9 @@ importers:
       '@types/jest':
         specifier: ^29.5.2
         version: 29.5.2
+      '@types/lodash':
+        specifier: ^4.14.195
+        version: 4.14.195
       '@types/node':
         specifier: ^20.3.1
         version: 20.3.1
@@ -4033,7 +4033,6 @@ packages:
 
   /@types/lodash@4.14.195:
     resolution: {integrity: sha512-Hwx9EUgdwf2GLarOjQp5ZH8ZmblzcbTBC2wtQWNKARBSxM9ezRIAUpeDTgoQRAFB0+8CNWXVA9+MaSOzOF3nPg==}
-    dev: false
 
   /@types/mdast@3.0.11:
     resolution: {integrity: sha512-Y/uImid8aAwrEA24/1tcRZwpxX3pIFTSilcNDKSPn+Y2iDywSEachzRuvgAYYLR3wpGXAsMbv5lvKLDZLeYPAw==}

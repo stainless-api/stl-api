@@ -9,7 +9,8 @@
     "start": "next start",
     "lint": "next lint",
     "psql": "docker compose exec db psql -U postgres",
-    "prisma": "prisma"
+    "prisma": "prisma",
+    "stl": "ts-node --transpileOnly --swc ../packages/cli/src/index.ts"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"

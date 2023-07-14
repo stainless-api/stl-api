@@ -1,7 +1,6 @@
-import { promisify } from "util";
 import path from "path";
-import resolve from "resolve";
 import defaultPrettier from "prettier";
+import { resolve } from "./utils";
 
 export async function format(
   source: string,
@@ -10,13 +9,11 @@ export async function format(
   let prettier = defaultPrettier;
 
   try {
-    const prettierPath = await promisify<string | undefined>((cb) =>
-      resolve("prettier", { basedir: path.dirname(filepath) }, cb)
-    )();
-    if (prettierPath) {
-      prettier = await import(prettierPath);
-    }
-  } catch (error) {}
+    const prettierPath = await resolve("prettier", path.dirname(filepath));
+    if (prettierPath) prettier = await import(prettierPath);
+  } catch (error) {
+    // ignore
+  }
 
   const config = await prettier.resolveConfig(filepath);
   return prettier.format(source, config || { filepath });
