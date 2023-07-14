@@ -40,6 +40,9 @@ jobs:
       - name: Check format
         run: pnpm prettier:check
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Build
         run: pnpm build
 
