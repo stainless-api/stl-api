@@ -6,7 +6,7 @@
     "mongo": "yarn prisma generate",
     "dev": "next dev",
     "build": "prisma generate && pnpm build:api-route-map && next build && tsc -b",
-    "build:api-route-map": "gen-stl-api-route-map api/api.ts",
+    "build:api-route-map": "node ../packages/stainless/dist/cli/gen-stl-api-route-map.js api/api.ts",
     "watch:api-route-map": "nodemon -e js,json,ts --ignore *-route-map.ts --exec pnpm build:api-route-map",
     "start": "next start",
     "lint": "next lint",
