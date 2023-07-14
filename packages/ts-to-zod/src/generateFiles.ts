@@ -16,10 +16,9 @@ import {
 
 export function generateFiles(
   ctx: SchemaGenContext,
-  options: GenOptions
+  generationConfig: GenerationConfig
 ): Map<string, ts.Statement[]> {
   const outputMap = new Map();
-  const generationConfig = createGenerationConfig(options);
   for (const [path, info] of ctx.files.entries()) {
     const generatedPath = generatePath(path, generationConfig);
 
@@ -28,7 +27,7 @@ export function generateFiles(
     // TODO: clean up by removing duplicate functions, rename function
     outputMap.set(
       tsPath,
-      generateStatements(info, generationConfig, generatedPath, options)
+      generateStatements(info, generationConfig, generatedPath)
     );
   }
   return outputMap;
@@ -38,12 +37,10 @@ function generateStatements(
   info: FileInfo,
   generationConfig: GenerationConfig,
   generatedPath: string,
-  options: GenOptions
 ): ts.Statement[] {
   const statements: ts.Statement[] = generateImportStatements(
     generationConfig,
     generatedPath,
-    options.zPackage,
     info.imports,
     info.namespaceImports
   );
@@ -140,7 +137,6 @@ function normalizeImport(relativePath: string): string {
 export function generateImportStatements(
   config: GenerationConfig,
   filePath: string,
-  zPackage: string | undefined,
   imports: Map<string, ImportInfo>,
   namespaceImports: Map<string, NamespaceImportInfo>
 ): ts.ImportDeclaration[] {
@@ -158,7 +154,7 @@ export function generateImportStatements(
   const zImportDeclaration = factory.createImportDeclaration(
     [],
     zImportClause,
-    factory.createStringLiteral(zPackage || "zod")
+    factory.createStringLiteral(config.zPackage || "zod")
   );
 
   const importDeclarations = [zImportDeclaration];

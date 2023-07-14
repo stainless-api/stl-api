@@ -1,4 +1,4 @@
-import chokidar, {FSWatcher} from "chokidar";
+import chokidar, { FSWatcher } from "chokidar";
 import * as tm from "ts-morph";
 import path from "path";
 import { SchemaGenContext } from "ts-to-zod/dist/convertType";
@@ -46,7 +46,7 @@ export class Watcher {
     }
   }
 
-  constructor(rootPath: string) {
+  constructor(rootPath: string, genFolderPath: string) {
     this.tsConfigFilePath = path.join(rootPath, "tsconfig.json");
     this.project = new tm.Project({
       tsConfigFilePath: this.tsConfigFilePath,
@@ -54,7 +54,9 @@ export class Watcher {
 
     this.baseCtx = new SchemaGenContext(this.project);
 
-    this.watcher = chokidar.watch(path.join(rootPath, "**"));
+    this.watcher = chokidar.watch(path.join(rootPath, "**"), {
+      ignored: path.join(genFolderPath, "**") 
+    });
     this.watcher.on("ready", () => {
       console.log("Watching for file changes...");
       this.ready = true;
@@ -96,7 +98,7 @@ export class Watcher {
       if (sourceFile) {
         this.project.removeSourceFile(sourceFile);
       }
-      this.pushEvent({path, type: "unlink"});
+      this.pushEvent({ path, type: "unlink" });
     });
 
     // handle an error occuring during the file watching process
@@ -107,12 +109,12 @@ export class Watcher {
   }
   async *getEvents(): AsyncGenerator<Event, never, unknown> {
     while (true) {
-      const event = this.eventQueue.shift()
+      const event = this.eventQueue.shift();
       if (event) {
         yield event;
       } else {
         yield new Promise<Event>((resolve) => {
-          this.resolvers.push(resolve)
+          this.resolvers.push(resolve);
         });
       }
     }

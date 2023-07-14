@@ -31,6 +31,7 @@ import {
 
 import {
   GenOptions,
+  GenerationConfig,
   createGenerationConfig,
 } from "ts-to-zod/dist/filePathConfig";
 
@@ -48,6 +49,7 @@ import {
   mangleRouteToIdentifier,
   statOrExit,
 } from "./utils";
+import { format } from "./format";
 
 // TODO: add dry run functionality?
 argParser.option("-w, --watch", "enables watch mode");
@@ -106,9 +108,19 @@ async function main() {
     console.error(`Error: '${tsConfigFilePath}' is not a file.`);
   }
 
+  const generationOptions = {
+    genLocation: {
+      type: "folder",
+      genPath: FOLDER_GEN_PATH,
+    },
+    rootPath,
+    zPackage: "stainless",
+  } as const;
+  const generationConfig = createGenerationConfig(generationOptions);
+
   let watcher: Watcher | undefined;
   if (options.watch) {
-    watcher = new Watcher(rootPath);
+    watcher = new Watcher(rootPath, generationConfig.basePath);
   }
 
   const project =
@@ -120,21 +132,12 @@ async function main() {
 
   const baseCtx = new SchemaGenContext(project);
 
-  const generationOptions = {
-    genLocation: {
-      type: "folder",
-      genPath: FOLDER_GEN_PATH,
-    },
-    rootPath,
-    zPackage: "stainless",
-  } as const;
-
   const printer = tm.ts.createPrinter();
 
   const succeeded = await evaluate(
     project,
     baseCtx,
-    generationOptions,
+    generationConfig,
     rootPath,
     printer
   );
@@ -147,7 +150,7 @@ async function main() {
       const succeeded = await evaluate(
         watcher.project,
         watcher.baseCtx,
-        generationOptions,
+        generationConfig,
         rootPath,
         printer
       );
@@ -182,12 +185,10 @@ function generateIncidentLocation(
 async function evaluate(
   project: tm.Project,
   baseCtx: SchemaGenContext,
-  generationOptions: GenOptions,
+  generationConfig: GenerationConfig,
   rootPath: string,
   printer: ts.Printer
 ): Promise<boolean> {
-  const generationConfig = createGenerationConfig(generationOptions);
-
   // accumulated diagnostics to emit
   const callDiagnostics: CallDiagnostics[] = [];
   // every stl.types.endpoint call found per file
@@ -365,8 +366,7 @@ async function evaluate(
             imports.set(name, {
               ...importInfo,
               sourceFile: Path.join(
-                rootPath,
-                FOLDER_GEN_PATH,
+                generationConfig.basePath,
                 Path.relative(rootPath, importInfo.sourceFile)
               ),
             });
@@ -379,7 +379,6 @@ async function evaluate(
     let importDeclarations = generateImportStatements(
       generationConfig,
       file.getFilePath(),
-      "stainless",
       imports,
       namespacedImports
     );
@@ -426,7 +425,7 @@ async function evaluate(
   // Commit all operations potentially destructive to AST visiting.
   fileOperations.forEach((op) => op());
 
-  const generatedFileContents = generateFiles(baseCtx, generationOptions);
+  const generatedFileContents = generateFiles(baseCtx, generationConfig);
 
   if (callDiagnostics.length) {
     const output = [];
@@ -511,8 +510,7 @@ async function evaluate(
   if (endpointCalls.size) {
     const mapEntries = [];
 
-    const genPath = Path.join(rootPath, FOLDER_GEN_PATH);
-    const endpointMapGenPath = Path.join(genPath, "index.ts");
+    const endpointMapGenPath = Path.join(generationConfig.basePath, "index.ts");
 
     for (const [file, calls] of endpointCalls) {
       for (const call of calls) {
@@ -578,11 +576,11 @@ async function evaluate(
       0
     );
 
-    await fs.promises.mkdir(genPath, { recursive: true });
+    await fs.promises.mkdir(generationConfig.basePath, { recursive: true });
 
     await fs.promises.writeFile(
       endpointMapGenPath,
-      printer.printFile(mapSourceFile)
+      await format(printer.printFile(mapSourceFile), endpointMapGenPath)
     );
   }
 
@@ -600,7 +598,10 @@ async function evaluate(
     );
 
     // write sourceFile to file
-    await fs.promises.writeFile(file, printer.printFile(sourceFile));
+    await fs.promises.writeFile(
+      file,
+      await format(printer.printFile(sourceFile), file)
+    );
   }
 
   project.save();
