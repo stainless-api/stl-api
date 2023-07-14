@@ -676,18 +676,13 @@ export function convertType(
   }
 
   if (isStainlessPrismaSymbol(typeSymbol)) {
-    if (
-      baseTypeName === "PrismaModel" ||
-      baseTypeName === "PrismaModelLoader"
-    ) {
-      ctx.addError(
-        diagnosticItem,
-        {
-          message: `${baseTypeName} must be instantiated with two type arguments inline`,
-        },
-        true
-      );
-    }
+    ctx.addError(
+      diagnosticItem,
+      {
+        message: `${baseTypeName} must be instantiated with two type arguments inline`,
+      },
+      true
+    );
   }
 
   if (ty.isClass()) {
