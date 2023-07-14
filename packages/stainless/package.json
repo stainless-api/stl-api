@@ -19,7 +19,7 @@
   "license": "ISC",
   "source": "src/stl.ts",
   "bin": {
-    "gen-stl-api-metadata": "./dist/cli/gen-stl-api-metadata.js"
+    "gen-stl-api-route-map": "./dist/cli/gen-stl-api-route-map.js"
   },
   "main": "dist/stl.js",
   "types": "dist/stl.d.ts",
@@ -27,10 +27,6 @@
     ".": {
       "types": "./dist/stl.d.ts",
       "default": "./dist/stl.js"
-    },
-    "./genApiMetadata": {
-      "types": "./dist/gen/genApiMetadata.d.ts",
-      "default": "./dist/gen/genApiMetadata.js"
     }
   },
   "scripts": {

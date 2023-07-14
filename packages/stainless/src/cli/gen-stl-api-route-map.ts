@@ -1,6 +1,6 @@
 #!/usr/bin/env node
 
-import { genApiMetadata } from "../gen/genApiMetadata";
+import { genApiRouteMap } from "../gen/genApiRouteMap";
 import "ts-node/register/transpile-only";
 import dedent from "dedent-js";
 
@@ -24,7 +24,7 @@ async function go() {
   if (!files.length) {
     // eslint-disable-next-line no-console
     console.error(dedent`
-      Usage: gen-stl-api-metadata <api files>
+      Usage: gen-stl-api-route-map <api files>
 
       Options:
         -r, --require <path>      require the given path before loading api files
@@ -37,7 +37,7 @@ async function go() {
   }
 
   for (const file of files) {
-    await genApiMetadata(file);
+    await genApiRouteMap(file);
   }
 }
 go();

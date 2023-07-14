@@ -7,7 +7,7 @@ import {
   AnyResourceConfig,
   ResourceConfig,
   HttpMethod,
-  APIMetadata,
+  APIRouteMap,
   EndpointPathInput,
   EndpointBodyInput,
   EndpointQueryInput,
@@ -167,7 +167,7 @@ class HTTPResponseError extends Error {
 /** Options for the {@link createClient} function. */
 export type CreateClientOptions = {
   fetch?: typeof fetch;
-  metadata?: APIMetadata;
+  routeMap?: APIRouteMap;
   basePathMap?: Record<string, string>;
 };
 
@@ -207,7 +207,7 @@ export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
   options?: CreateClientOptions
 ): StainlessClient<Api> {
-  const metadata = options?.metadata;
+  const routeMap = options?.routeMap;
   const basePathMap = options?.basePathMap;
 
   function mapPathname(pathname: string): string {
@@ -238,13 +238,13 @@ export function createClient<Api extends AnyAPIDescription>(
     pathname: string;
     uri: string;
   } {
-    if (metadata) {
+    if (routeMap) {
       const endpoint = callPath.reduce(
         (
-          resource: APIMetadata | undefined,
+          resource: APIRouteMap | undefined,
           name: string
-        ): APIMetadata | undefined => resource?.namespacedResources?.[name],
-        metadata
+        ): APIRouteMap | undefined => resource?.namespacedResources?.[name],
+        routeMap
       )?.actions?.[action]?.endpoint;
 
       const match = endpoint ? /^([a-z]+)\s+(.+)/i.exec(endpoint) : null;

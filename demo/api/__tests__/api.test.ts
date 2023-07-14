@@ -1,8 +1,8 @@
 import { api } from "../api";
-import { getApiMetadata } from "stainless";
+import { getApiRouteMap } from "stainless";
 
-it("getApiMetadata(api)", () => {
-  expect(getApiMetadata(api)).toMatchInlineSnapshot(`
+it("getApiRouteMap(api)", () => {
+  expect(getApiRouteMap(api)).toMatchInlineSnapshot(`
     {
       "actions": {
         "getOpenapi": {

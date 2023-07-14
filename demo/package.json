@@ -5,9 +5,9 @@
   "scripts": {
     "mongo": "yarn prisma generate",
     "dev": "next dev",
-    "build": "prisma generate && pnpm build:api-metadata && next build && tsc -b",
-    "build:api-metadata": "gen-stl-api-metadata api/api.ts",
-    "watch:api-metadata": "nodemon -e js,json,ts --ignore *-metadata.ts --exec pnpm build:api-metadata",
+    "build": "prisma generate && pnpm build:api-route-map && next build && tsc -b",
+    "build:api-route-map": "gen-stl-api-route-map api/api.ts",
+    "watch:api-route-map": "nodemon -e js,json,ts --ignore *-route-map.ts --exec pnpm build:api-route-map",
     "start": "next start",
     "lint": "next lint",
     "psql": "docker compose exec db psql -U postgres",

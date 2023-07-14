@@ -14,7 +14,7 @@ export {
   type Page,
   type RequestOptions,
 } from "./client";
-export { getApiMetadata } from "./gen/getApiMetadata";
+export { getApiRouteMap } from "./gen/getApiRouteMap";
 
 /** The standard HTTP methods, in lowercase. */
 export type HttpMethod =
@@ -278,12 +278,12 @@ export type APIDescription<
   resources: Resources;
 };
 
-export type APIMetadata = {
-  actions?: Record<string, ActionMetadata>;
-  namespacedResources?: Record<string, APIMetadata>;
+export type APIRouteMap = {
+  actions?: Record<string, RouteMapAction>;
+  namespacedResources?: Record<string, APIRouteMap>;
 };
 
-export type ActionMetadata = {
+export type RouteMapAction = {
   endpoint: HttpEndpoint;
 };
 

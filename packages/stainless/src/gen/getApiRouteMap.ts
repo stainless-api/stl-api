@@ -1,21 +1,20 @@
-import { isEmpty, mapValues } from "lodash";
+import { isEmpty } from "lodash";
 import {
-  APIMetadata,
-  ActionMetadata,
+  APIRouteMap as APIRouteMap,
+  RouteMapAction,
   AnyAPIDescription,
   AnyEndpoint,
-  parseEndpoint,
 } from "../stl";
 import { guessRequestEndpoint } from "../client";
 
-export function getApiMetadata({
+export function getApiRouteMap({
   basePath,
   topLevel,
   resources,
-}: AnyAPIDescription): APIMetadata {
-  type ResourceForGetMetadata = {
+}: AnyAPIDescription): APIRouteMap {
+  type ResourceForGetRouteMap = {
     actions?: Record<string, AnyEndpoint>;
-    namespacedResources?: Record<string, ResourceForGetMetadata>;
+    namespacedResources?: Record<string, ResourceForGetRouteMap>;
   };
 
   /**
@@ -38,10 +37,10 @@ export function getApiMetadata({
   }
 
   function getResourceMetadata(
-    { actions, namespacedResources }: ResourceForGetMetadata,
+    { actions, namespacedResources }: ResourceForGetRouteMap,
     path: string[] = []
-  ): APIMetadata {
-    const result: APIMetadata = {};
+  ): APIRouteMap {
+    const result: APIRouteMap = {};
     if (actions) {
       for (const action of Object.keys(actions)) {
         const endpoint = actions[action];
@@ -63,7 +62,7 @@ export function getApiMetadata({
     return result;
   }
 
-  function getActionMetadata({ endpoint }: AnyEndpoint): ActionMetadata {
+  function getActionMetadata({ endpoint }: AnyEndpoint): RouteMapAction {
     return { endpoint };
   }
 

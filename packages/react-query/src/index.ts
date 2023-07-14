@@ -12,7 +12,7 @@ import {
   createClient,
   ClientPromise as BaseClientPromise,
   PaginatorPromise as BasePaginatorPromise,
-  APIMetadata,
+  APIRouteMap,
 } from "stainless";
 import { lowerFirst, isPlainObject } from "lodash";
 import {
@@ -144,7 +144,7 @@ export function createUseReactQueryClient<Api extends AnyAPIDescription>(
   baseUrl: string,
   options?: {
     fetch?: typeof fetch;
-    metadata?: APIMetadata;
+    routeMap?: APIRouteMap;
     basePathMap?: Record<string, string>;
   }
 ): UseStainlessReactQueryClient<Api> {

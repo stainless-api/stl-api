@@ -1,6 +1,6 @@
 import { createClient } from "stainless";
 import type { api } from "./api";
-import { api as metadata } from "./api-metadata";
+import { api as routeMap } from "./api-route-map";
 import fetch from "node-fetch";
 
 export const baseUrl = `http://${
@@ -9,12 +9,12 @@ export const baseUrl = `http://${
 
 export const testClient = createClient<typeof api>(baseUrl, {
   fetch: fetch as any,
-  metadata,
+  routeMap,
 });
 
 export const testClientPagesCatchAll = createClient<typeof api>(baseUrl, {
   fetch: fetch as any,
-  metadata,
+  routeMap,
   basePathMap: {
     "/api": "/api/v2",
   },
@@ -22,7 +22,7 @@ export const testClientPagesCatchAll = createClient<typeof api>(baseUrl, {
 
 export const testClientAppCatchAll = createClient<typeof api>(baseUrl, {
   fetch: fetch as any,
-  metadata,
+  routeMap,
   basePathMap: {
     "/api": "/api/v3",
   },
