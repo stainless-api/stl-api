@@ -642,6 +642,38 @@ export class Stl<Plugins extends AnyPlugins> {
     return p;
   }
 
+  async loadEndpointTypeSchemas(endpoint: AnyEndpoint): Promise<void> {
+    if (
+      !endpoint.query &&
+      !endpoint.path &&
+      !endpoint.body &&
+      !endpoint.response
+    ) {
+      if (!this.typeSchemas) {
+        throw new Error(
+          "Failed to provide `typeSchemas` to stl instance while using magic schemas"
+        );
+      }
+      try {
+        const schemas = await this.typeSchemas[endpoint.endpoint]?.();
+        if (schemas) {
+          endpoint.path = schemas.path;
+          endpoint.query = schemas.query;
+          endpoint.body = schemas.body;
+          endpoint.response = schemas.response;
+        } else {
+          throw new Error(
+            "error encountered while handling endpoint " +
+              endpoint.endpoint +
+              ": no schema found. run the `stl` cli on the project to generate the schema for the endpoint."
+          );
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
   /**
    * Handles an incoming request by invoking the endpoint for it.
    * This should not be called in typical use.
@@ -658,37 +690,7 @@ export class Stl<Plugins extends AnyPlugins> {
     params: Params,
     context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
-    if (
-      !context.endpoint.query &&
-      !context.endpoint.path &&
-      !context.endpoint.body &&
-      !context.endpoint.response
-    ) {
-      if (!this.typeSchemas) {
-        throw new Error(
-          "Failed to provide `typeSchemas` to stl instance while using magic schemas"
-        );
-      }
-      try {
-        const schemas = await this.typeSchemas[
-          context.endpoint.endpoint
-        ]?.();
-        if (schemas) {
-          context.endpoint.path = schemas.path;
-          context.endpoint.query = schemas.query;
-          context.endpoint.body = schemas.body;
-          context.endpoint.response = schemas.response;
-        } else {
-          throw new Error(
-            "error encountered while handling endpoint " +
-              context.endpoint.endpoint +
-              ": no schema found. run the `stl` cli on the project to generate the schema for the endpoint."
-          );
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
+    await this.loadEndpointTypeSchemas(context.endpoint);
 
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
@@ -892,10 +894,6 @@ export class Stl<Plugins extends AnyPlugins> {
     const apiDescription = {
       openapi: {
         endpoint: openapiEndpoint,
-        get spec() {
-          // TODO memoize
-          return openapiSpec(apiDescription);
-        },
       },
       topLevel: {
         ...topLevel,
@@ -909,7 +907,7 @@ export class Stl<Plugins extends AnyPlugins> {
         endpoint: openapiEndpoint,
         response: OpenAPIResponse,
         async handler() {
-          return openapiSpec(apiDescription) as any;
+          return (await openapiSpec(apiDescription)) as any;
         },
       });
     }
