@@ -75,13 +75,13 @@ export type toZod<T> = [T] extends [z.ZodTypeAny]
   ? z.ZodNullable<toZod<NonNullable<T>>>
   : [undefined] extends [T]
   ? z.ZodOptional<toZod<NonNullable<T>>>
-  : // : T extends Transform<infer I, infer O>
-  // ? z.ZodEffects<toZod<I>, output<O>, input<I>>
-  // : T extends Refine<infer I, infer O>
-  // ? z.ZodEffects<toZod<I>, output<O>, input<I>>
-  // : T extends SuperRefine<infer I, infer O>
-  // ? z.ZodEffects<toZod<I>, output<O>, input<I>>
-  [T] extends [Metadata<infer U, infer M>]
+  : [T] extends [Transform<infer I, infer O>]
+  ? z.ZodEffects<toZod<I>, output<O>, input<I>>
+  : [T] extends [Refine<infer I, infer O>]
+  ? z.ZodEffects<toZod<I>, output<O>, input<I>>
+  : [T] extends [SuperRefine<infer I, infer O>]
+  ? z.ZodEffects<toZod<I>, output<O>, input<I>>
+  : [T] extends [Metadata<infer U, infer M>]
   ? z.ZodMetadata<toZod<U>, M>
   : [T] extends [StringSchema<any>]
   ? z.ZodString
