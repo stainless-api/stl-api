@@ -7,9 +7,12 @@ import {
   AnyResourceConfig,
   ResourceConfig,
   HttpMethod,
+  APIRouteMap,
   EndpointPathInput,
   EndpointBodyInput,
   EndpointQueryInput,
+  HttpPath,
+  HttpEndpoint,
   EndpointHasRequiredQuery,
 } from "./stl";
 import { isEmpty, once } from "lodash";
@@ -162,9 +165,18 @@ class HTTPResponseError extends Error {
 }
 
 /** Options for the {@link createClient} function. */
-interface CreateClientOptions {
-  /** Replaces the default global `fetch` function to make requests. */
+export type CreateClientOptions = {
   fetch?: typeof fetch;
+  routeMap?: APIRouteMap;
+  basePathMap?: Record<string, string>;
+};
+
+export function guessRequestEndpoint(
+  baseUrl: HttpPath,
+  callPath: string[],
+  action: string
+): HttpEndpoint {
+  return `${actionMethod(action)} ${baseUrl}/${callPath.join("/")}`;
 }
 
 /**
@@ -195,6 +207,19 @@ export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
   options?: CreateClientOptions
 ): StainlessClient<Api> {
+  const routeMap = options?.routeMap;
+  const basePathMap = options?.basePathMap;
+
+  function mapPathname(pathname: string): string {
+    if (!basePathMap) return pathname;
+    for (const k in basePathMap) {
+      if (pathname.startsWith(k)) {
+        return pathname.replace(k, basePathMap[k]);
+      }
+    }
+    return pathname;
+  }
+
   const checkStatus = (response: Response) => {
     if (response.ok) {
       // response.status >= 200 && response.status < 300
@@ -204,26 +229,69 @@ export function createClient<Api extends AnyAPIDescription>(
     }
   };
 
+  function getMethodAndUri(
+    callPath: string[],
+    action: string,
+    args: unknown[]
+  ): {
+    method: HttpMethod;
+    pathname: string;
+    uri: string;
+  } {
+    if (routeMap) {
+      const endpoint = callPath.reduce(
+        (
+          resource: APIRouteMap | undefined,
+          name: string
+        ): APIRouteMap | undefined => resource?.namespacedResources?.[name],
+        routeMap
+      )?.actions?.[action]?.endpoint;
+
+      const match = endpoint ? /^([a-z]+)\s+(.+)/i.exec(endpoint) : null;
+      if (match) {
+        const method = match[1];
+        const pathname = mapPathname(
+          match[2]
+            .split("/")
+            .map((part) =>
+              part.startsWith("{") && part.endsWith("}")
+                ? encodeURIComponent(args.shift() as string | number)
+                : part
+            )
+            .join("/")
+        );
+        const url = new URL(baseUrl);
+        url.pathname = pathname;
+        const uri = url.toString();
+        return { method: method as HttpMethod, pathname, uri };
+      }
+    }
+    let path = callPath.join("/"); // eg; /issuing/cards
+    if (typeof args[0] === "string" || typeof args[0] === "number") {
+      path += `/${encodeURIComponent(args.shift() as string | number)}`;
+    }
+    const method = actionMethod(action);
+    const pathname = mapPathname(`${baseUrl}/${path}`);
+    return {
+      method,
+      pathname,
+      uri: pathname,
+    };
+  }
+
   const client = createRecursiveProxy((opts) => {
     const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
     let requestOptions: RequestOptions<any> | undefined;
 
-    let path = callPath.join("/"); // eg; /issuing/cards
-    if (typeof args[0] === "string" || typeof args[0] === "number") {
-      path += `/${encodeURIComponent(args.shift() as string | number)}`;
-    }
+    let { method, pathname, uri } = getMethodAndUri(callPath, action, args);
 
     if (isRequestOptions(args.at(-1))) {
       requestOptions = args.pop() as any;
     }
-    const method = actionMethod(action);
 
     const body = method === "get" ? undefined : args[0];
-
-    const pathname = `${baseUrl}/${path}`;
-    let uri = pathname;
 
     const query: Record<string, any> = {
       ...(method === "get" && typeof args[0] === "object" ? args[0] : null),

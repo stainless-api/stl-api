@@ -7,14 +7,14 @@ export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
 export {
   type StainlessClient,
+  type CreateClientOptions,
   ClientPromise,
   type ClientPromiseProps,
   PaginatorPromise,
   type Page,
   type RequestOptions,
 } from "./client";
-
-export { getApiMetadata } from "./gen/getApiMetadata";
+export { getApiRouteMap } from "./gen/getApiRouteMap";
 
 /** The standard HTTP methods, in lowercase. */
 export type HttpMethod =
@@ -38,7 +38,23 @@ export type HttpPath = `/${string}`;
  */
 export type HttpEndpoint = `${HttpMethod} ${HttpPath}`;
 
-export function parseEndpoint(endpoint: HttpEndpoint): [HttpMethod, HttpPath] {
+export type GetEndpointMethod<E extends AnyEndpoint> = GetHttpEndpointMethod<
+  E["endpoint"]
+>;
+
+export type GetHttpEndpointMethod<E extends HttpEndpoint> =
+  E extends `${infer M extends HttpMethod} ${string}` ? M : never;
+
+export type GetEndpointUrl<E extends AnyEndpoint> = GetHttpEndpointUrl<
+  E["endpoint"]
+>;
+
+export type GetHttpEndpointUrl<E extends HttpEndpoint> =
+  E extends `${HttpMethod} ${infer Url}` ? Url : never;
+
+export function parseEndpoint<E extends HttpEndpoint>(
+  endpoint: E
+): [GetHttpEndpointMethod<E>, GetHttpEndpointUrl<E>] {
   const [method, path] = endpoint.split(/\s+/, 2);
   switch (method) {
     case "get":
@@ -57,7 +73,7 @@ export function parseEndpoint(endpoint: HttpEndpoint): [HttpMethod, HttpPath] {
       `Invalid path must start with a slash (/); got: "${endpoint}"`
     );
   }
-  return [method, path as HttpPath];
+  return [method as GetHttpEndpointMethod<E>, path as GetHttpEndpointUrl<E>];
 }
 
 /**
@@ -195,12 +211,6 @@ export type EndpointResponseInput<E extends AnyEndpoint> =
 export type EndpointResponseOutput<E extends AnyEndpoint> =
   E["response"] extends z.ZodTypeAny ? z.output<E["response"]> : undefined;
 
-export type GetEndpointMethod<E extends AnyEndpoint> =
-  E["endpoint"] extends `${infer M extends HttpMethod} ${string}` ? M : never;
-
-export type GetEndpointUrl<E extends AnyEndpoint> =
-  E["endpoint"] extends `${HttpMethod} ${infer Url}` ? Url : never;
-
 /**
  * Gets all endpoints associated with a given resource
  */
@@ -246,29 +256,38 @@ type OpenAPIConfig = {
   spec: OpenAPIObject;
 };
 
+export const apiSymbol = Symbol("api");
+
+export function isAPIDescription(value: unknown): value is AnyAPIDescription {
+  return (value as any)?.[apiSymbol] === true;
+}
+
 /**
  * A type containing information about an API defined by the
  * {@link Stl.api} method.
  */
 export type APIDescription<
+  BasePath extends HttpPath,
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > = {
+  [apiSymbol]: true;
+  basePath: BasePath;
   openapi: OpenAPIConfig;
   topLevel: TopLevel;
   resources: Resources;
 };
 
-export type APIMetadata = {
-  actions?: Record<string, ActionMetadata>;
-  namespacedResources?: Record<string, APIMetadata>;
+export type APIRouteMap = {
+  actions?: Record<string, RouteMapAction>;
+  namespacedResources?: Record<string, APIRouteMap>;
 };
 
-export type ActionMetadata = {
+export type RouteMapAction = {
   endpoint: HttpEndpoint;
 };
 
-export type AnyAPIDescription = APIDescription<any, any>;
+export type AnyAPIDescription = APIDescription<any, any, any>;
 
 /**
  * Throw `StlError` and its subclasses within endpoint `handler` methods
@@ -553,9 +572,11 @@ interface CreateResourceOptions<
 
 /** Parameters for {@link Stl.api} */
 interface CreateApiOptions<
+  BasePath extends HttpPath,
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > {
+  basePath: BasePath;
   /**
    * Optionally configure an endpoint for retrieving the API's
    * generated OpenAPI schema.
@@ -842,19 +863,24 @@ export class Stl<Plugins extends AnyPlugins> {
    * ```
    */
   api<
+    BasePath extends HttpPath,
     TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
     Resources extends Record<string, AnyResourceConfig> | undefined
   >({
+    basePath,
     openapi,
     topLevel,
     resources,
-  }: CreateApiOptions<TopLevel, Resources>): APIDescription<
+  }: CreateApiOptions<BasePath, TopLevel, Resources>): APIDescription<
+    BasePath,
     TopLevel & OpenAPITopLevel<typeof openapi>,
     Resources
   > {
-    const openapiEndpoint = openapi?.endpoint ?? "get /api/openapi";
+    const openapiEndpoint = openapi?.endpoint ?? `get ${basePath}/openapi`;
     const topLevelActions = topLevel?.actions || {};
     const apiDescription = {
+      [apiSymbol]: true,
+      basePath,
       openapi: {
         endpoint: openapiEndpoint,
         get spec() {
@@ -867,7 +893,7 @@ export class Stl<Plugins extends AnyPlugins> {
         actions: topLevelActions,
       },
       resources: resources || {},
-    } as APIDescription<TopLevel, Resources>;
+    } as APIDescription<BasePath, TopLevel, Resources>;
 
     if (openapiEndpoint !== false) {
       (topLevelActions as any).getOpenapi = this.endpoint({
@@ -882,6 +908,7 @@ export class Stl<Plugins extends AnyPlugins> {
     // Type system is not powerful enough to understand that if statement above
     // ensures if openApi.endpoint !== false, then getOpenapi is provided
     return apiDescription as APIDescription<
+      BasePath,
       TopLevel & OpenAPITopLevel<typeof openapi>,
       Resources
     >;
