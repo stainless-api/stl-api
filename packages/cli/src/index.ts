@@ -277,12 +277,23 @@ async function evaluate(
         node: typeArgument,
       } as const;
 
-      const typeofSchema = convertTypeof(
-        ctx,
-        typeArgument,
-        type,
-        diagnosticItem
-      );
+      let typeofSchema;
+
+      try {
+        typeofSchema = convertTypeof(
+          ctx,
+          typeArgument,
+          type,
+          diagnosticItem
+        );
+      } catch (e) {
+        if (e instanceof ErrorAbort) {
+          break;
+        } else throw e;
+      } finally {
+        addDiagnostics(ctx, file, callExpression, callDiagnostics);
+      }
+
       if (typeofSchema) {
         schemaExpression = typeofSchema;
       } else if (
@@ -549,7 +560,6 @@ async function evaluate(
         mapEntries.push(entry);
       }
     }
-
 
     const mapDeclaration = factory.createVariableDeclarationList(
       [

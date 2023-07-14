@@ -165,11 +165,21 @@ export class ConvertTypeContext extends SchemaGenContext {
   currentFilePath: string;
 
   isSymbolImported(symbol: tm.Symbol): boolean {
-    const symbolFileName: string = getDeclarationOrThrow(symbol)
-      .getSourceFile()
-      .getFilePath();
-    return this.currentFilePath !== symbolFileName;
+    const declaration = getDeclarationOrThrow(symbol);
+    const symbolFileName: string = declaration.getSourceFile().getFilePath();
+    return (
+      this.currentFilePath !== symbolFileName ||
+      isDeclarationImported(declaration)
+    );
   }
+}
+
+function isDeclarationImported(declaration: tm.Node): boolean {
+  return (
+    declaration instanceof tm.ImportSpecifier ||
+    declaration instanceof tm.ImportClause ||
+    declaration instanceof tm.ImportDeclaration
+  );
 }
 
 export interface ImportInfo {
@@ -269,7 +279,26 @@ export function convertSymbol(
   }
   if (!ctx.symbols.has(symbol)) {
     ctx.symbols.add(symbol);
-    const generated = convertType(internalCtx, type, diagnosticItem);
+
+    let generated;
+    if (declaration instanceof tm.TypeAliasDeclaration) {
+      const typeNode = declaration.getTypeNode();
+      if (typeNode) {
+        try {
+          generated = convertTypeof(
+            internalCtx,
+            typeNode,
+            type,
+            diagnosticItem
+          );
+        } catch (e) {
+          if (e instanceof ErrorAbort) {
+          } else throw e;
+        }
+      }
+    }
+
+    generated ||= convertType(internalCtx, type, diagnosticItem);
     const generatedSchema = {
       name: symbol.getName(),
       expression: generated,
@@ -316,13 +345,7 @@ export function convertTypeof(
         const typeArguments = node.getTypeArguments();
         const types = type.getTypeArguments();
         if (typeArguments.length !== 2) {
-          ctx.addError(
-            diagnosticItem,
-            {
-              message: `${name} must be instantiated with two type arguments inline`,
-            },
-            true
-          );
+          return undefined;
         }
 
         const baseSchema = convertType(ctx, types[0], diagnosticItem);
@@ -368,12 +391,7 @@ function convertTypeofNode(
 
   if (
     !declaration ||
-    !(
-      isDeclarationExported(declaration) ||
-      declaration instanceof tm.ImportSpecifier ||
-      declaration instanceof tm.ImportClause ||
-      declaration instanceof tm.ImportDeclaration
-    )
+    !(isDeclarationExported(declaration) || isDeclarationImported(declaration))
   ) {
     console.dir(declaration);
     ctx.addError(
@@ -661,6 +679,17 @@ export function convertType(
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
   }
+
+  if (isStainlessPrismaSymbol(typeSymbol)) {
+    ctx.addError(
+      diagnosticItem,
+      {
+        message: `${baseTypeName} must be instantiated with two type arguments inline`,
+      },
+      true
+    );
+  }
+
   if (ty.isClass()) {
     if (!typeSymbol) {
       ctx.addError(
