@@ -5,12 +5,13 @@ import { toast } from "react-hot-toast";
 import useCurrentUser from "./useCurrentUser";
 import useLoginModal from "./useLoginModal";
 import usePost from "./usePost";
-import { client } from "../api/client";
+import { useClient } from "../api/client";
 import { useQueryClient } from "@tanstack/react-query";
 
 const useLike = ({ postId, userId }: { postId: string; userId?: string }) => {
   const { data: currentUser } = useCurrentUser();
   const { data: fetchedPost, mutate: mutateFetchedPost } = usePost(postId);
+  const client = useClient();
   const queryClient = useQueryClient();
 
   const loginModal = useLoginModal();
@@ -37,20 +38,15 @@ const useLike = ({ postId, userId }: { postId: string; userId?: string }) => {
 
       await request();
       mutateFetchedPost();
-      client.posts.invalidateList(queryClient);
+      queryClient.invalidateQueries({
+        queryKey: client.posts.list.getQueryKey(),
+      });
 
       toast.success("Success");
     } catch (error) {
       toast.error("Something went wrong");
     }
-  }, [
-    currentUser,
-    queryClient,
-    hasLiked,
-    postId,
-    mutateFetchedPost,
-    loginModal,
-  ]);
+  }, [currentUser, hasLiked, postId, mutateFetchedPost, loginModal]);
 
   return {
     hasLiked,

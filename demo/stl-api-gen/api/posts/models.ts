@@ -18,6 +18,6 @@ export const PostType: z.ZodTypeAny = z
     user: z.lazy(() => IncludableUserSchema),
     user_fields: z.lazy(() => SelectableUserSchema),
     comments: z.lazy(() => IncludableCommentsSchema),
-    comments_field: z.lazy(() => IncludableCommentsFieldSchema),
+    comments_fields: z.lazy(() => IncludableCommentsFieldSchema),
   })
   .prismaModel(prisma.post);

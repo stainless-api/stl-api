@@ -1,4 +1,6 @@
 import * as z from "./z";
+import { IncludablePaths } from "./includes";
+import { SelectTree } from "./parseSelect";
 
 export const SchemaSymbol = Symbol("SchemaType");
 
@@ -273,8 +275,6 @@ export class SetSchema<T, Props extends SetSchemaProps> extends SchemaType<
   Set<T>,
   Set<T>
 > {}
-import { IncludablePaths } from "./includes";
-import { SelectTree } from "./parseSelect";
 
 export class Includable<T extends TypeSchema<any>> extends Metadata<
   SchemaType<z.IncludableInput<input<T>>, z.IncludableOutput<output<T>>>,

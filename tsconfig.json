@@ -6,6 +6,7 @@
     { "path": "packages/next" },
     { "path": "packages/prisma" },
     { "path": "packages/react-query" },
+    { "path": "packages/react-query/tsconfig.esm.json" },
     { "path": "packages/stainless" },
     { "path": "packages/ts-to-zod" }
   ],

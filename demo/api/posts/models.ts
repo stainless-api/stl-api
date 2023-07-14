@@ -14,7 +14,7 @@ export const IncludableCommentsSchema = z
 export const IncludableCommentsFieldSchema = z
   .array(z.lazy(() => CommentSelection))
   .selectable();
-  
+
 export type PostType = PrismaModel<
   {
     id: Uuid;
@@ -27,7 +27,7 @@ export type PostType = PrismaModel<
     user?: typeof IncludableUserSchema;
     user_fields?: typeof SelectableUserSchema;
     comments?: typeof IncludableCommentsSchema;
-    comments_field?: typeof IncludableCommentsFieldSchema;
+    comments_fields?: typeof IncludableCommentsFieldSchema;
   },
   typeof prisma.post
 >;

@@ -490,11 +490,6 @@ type includeFromQuery<T extends string> = {
         : never);
 };
 
-const x = {
-  user: { include: { comments: true } },
-  comments: { include: { user: true } },
-};
-
 /**
  * Converts an include parameter from stainless format
  * e.g. `['user.comments', 'comments.user'] to prisma
@@ -513,9 +508,9 @@ function includeFromQuery<T extends string[]>(
     let prismaInclude = result;
     for (let i = 0; i < parts.length - 1; i++) {
       if (!(prismaInclude[parts[i]] instanceof Object)) {
-        const next = { prismaInclude: {} };
+        const next = { include: {} };
         prismaInclude[parts[i]] = next;
-        prismaInclude = next.prismaInclude;
+        prismaInclude = next.include;
       }
     }
     prismaInclude[parts[parts.length - 1]] = true;
