@@ -1,4 +1,5 @@
 {
+  "packages/express": "0.0.2",
   "packages/next-auth": "0.0.2",
   "packages/next": "0.0.2",
   "packages/prisma": "0.0.2",

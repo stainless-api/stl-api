@@ -6,6 +6,7 @@
   "draft": false,
   "prerelease": false,
   "packages": {
+    "packages/express": {},
     "packages/next": {},
     "packages/next-auth": {},
     "packages/prisma": {},

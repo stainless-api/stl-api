@@ -102,6 +102,7 @@ See [`stainless` package docs](/packages/stainless/README.md#getting-started) to
 # Packages
 
 - [stainless](/packages/stainless)
+- [@stl-api/express](/packages/express)
 - [@stl-api/next](/packages/next)
 - [@stl-api/next-auth](/packages/next-auth)
 - [@stl-api/prisma](/packages/prisma)
