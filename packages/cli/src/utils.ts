@@ -19,16 +19,25 @@ export function isSymbolStlMethod(symbol: tm.Symbol): boolean {
   return symbolDeclarationFile.endsWith("stl.d.ts");
 }
 
-export function mangleString(str: string): string {
+export function mangleRouteToIdentifier(str: string): string {
+  let pathSep = "_";
+  for (const match of str.matchAll(/_+/g)) {
+    if (match.length >= pathSep.length) pathSep = match[0] + "_";
+  }
+
   const unicodeLetterRegex = /\p{L}/u;
-  const escapedStringBuilder = ["__"];
+  const escapedStringBuilder = [];
   for (const codePointString of str) {
-    if (codePointString === Path.sep) {
+    if (codePointString === " ") {
+      escapedStringBuilder.push("_");
+    } else if (codePointString === "/") {
+      escapedStringBuilder.push(pathSep);
+    } else if (codePointString === "{" || codePointString === "}") {
       escapedStringBuilder.push("$");
     } else if (unicodeLetterRegex.test(codePointString)) {
       escapedStringBuilder.push(codePointString);
     } else {
-      escapedStringBuilder.push(`u${codePointString.codePointAt(0)}`);
+      escapedStringBuilder.push(`$${codePointString.codePointAt(0)}`);
     }
   }
   return escapedStringBuilder.join("");

@@ -45,7 +45,7 @@ import { program as argParser } from "commander";
 import {
   convertPathToImport,
   isSymbolStlMethod,
-  mangleString,
+  mangleRouteToIdentifier,
   statOrExit,
 } from "./utils";
 
@@ -246,7 +246,7 @@ async function evaluate(
           imports: new Map(),
           generatedSchemas: new Map(),
         }));
-        const name = mangleString(call.endpointPath);
+        const name = convertPathToImport(call.endpointPath);
         ctxFile.generatedSchemas.set(name, {
           name,
           expression: endpointSchema,
@@ -521,7 +521,7 @@ async function evaluate(
 
     for (const [file, calls] of endpointCalls) {
       for (const call of calls) {
-        const mangledName = mangleString(call.endpointPath);
+        const mangledName = mangleRouteToIdentifier(call.endpointPath);
         const importExpression = factory.createCallExpression(
           factory.createToken(ts.SyntaxKind.ImportKeyword) as ts.Expression,
           undefined,

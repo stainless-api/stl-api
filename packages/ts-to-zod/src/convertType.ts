@@ -402,21 +402,16 @@ function convertTypeofNode(
       true
     );
   }
-
+  
   const currentFile = ctx.getFileInfo(ctx.currentFilePath);
   const importPath = getDeclarationDefinitionPath(declaration);
 
-  const mangledModuleIdentifier = mangleString(
-    Path.relative(ctx.currentFilePath, importPath)
-  );
-
-  currentFile.namespaceImports.set(mangledModuleIdentifier, {
+  currentFile.imports.set(base.getText(), {
     sourceFile: importPath,
     importFromUserFile: true,
   });
 
-  const baseSchema = rebaseEntityNameOnExpression(
-    factory.createIdentifier(mangledModuleIdentifier),
+  const baseSchema = convertEntityNameToExpression(
     exprName
   );
 
@@ -450,18 +445,14 @@ function baseIdentifier(entityName: tm.EntityName): tm.Identifier {
   else return baseIdentifier(entityName.getLeft());
 }
 
-function rebaseEntityNameOnExpression(
-  expression: ts.Expression,
+function convertEntityNameToExpression(
   entityName: tm.EntityName
 ): ts.Expression {
   if (entityName instanceof tm.Identifier) {
-    return factory.createPropertyAccessExpression(
-      expression,
-      entityName.compilerNode
-    );
+    return entityName.compilerNode;
   } else
     return factory.createPropertyAccessExpression(
-      rebaseEntityNameOnExpression(expression, entityName.getLeft()),
+      convertEntityNameToExpression(entityName.getLeft()),
       entityName.getRight().compilerNode
     );
 }
