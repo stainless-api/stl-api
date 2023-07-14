@@ -731,7 +731,7 @@ it("/api/openapi", async function () {
               },
               {
                 "in": "query",
-                "name": "expand",
+                "name": "include",
                 "schema": {
                   "items": {
                     "enum": [
@@ -825,7 +825,7 @@ it("/api/openapi", async function () {
             "parameters": [
               {
                 "in": "query",
-                "name": "expand",
+                "name": "include",
                 "schema": {
                   "items": {
                     "enum": [
@@ -1118,7 +1118,7 @@ it("/api/openapi", async function () {
               },
               {
                 "in": "query",
-                "name": "expand",
+                "name": "include",
                 "schema": {
                   "items": {
                     "enum": [

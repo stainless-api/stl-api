@@ -16,6 +16,7 @@ export {
 } from "./client";
 export { getApiMetadata } from "./gen/getApiMetadata";
 
+/** The standard HTTP methods, in lowercase. */
 export type HttpMethod =
   | "get"
   | "post"
@@ -24,7 +25,17 @@ export type HttpMethod =
   | "delete"
   | "options"
   | "head";
+
+/**
+ * A type for a string representing an HTTP path.
+ * Must begin with a leading `/`.
+ */
 export type HttpPath = `/${string}`;
+
+/**
+ * Defines the HTTP method and path by which an endpoint
+ * is accessed.
+ */
 export type HttpEndpoint = `${HttpMethod} ${HttpPath}`;
 
 export type GetEndpointMethod<E extends AnyEndpoint> = GetHttpEndpointMethod<
@@ -69,11 +80,12 @@ export function parseEndpoint<E extends HttpEndpoint>(
  * Ensures that the input and output types are both
  * objects; plays well with z.object(...).transform(() => ({...}))
  * whereas z.AnyZodObject doesn't.
- *
- * TODO: is there a z.Something for this already?
  */
 export type ZodObjectSchema = z.ZodType<object, any, object>;
 
+/**
+ * Endpoints take in `handler` methods of this type.
+ */
 export type Handler<
   Ctx,
   Path extends ZodObjectSchema | undefined,
@@ -81,11 +93,16 @@ export type Handler<
   Body extends ZodObjectSchema | undefined,
   Response
 > = (
-  request: MakeRequest<Path, Query, Body>,
+  /** request object with parsed params */
+  request: RequestData<Path, Query, Body>,
+  /** context with stainless, plugin, and user-provided data */
   ctx: Ctx
 ) => Response | Promise<Response>;
 
-type MakeRequest<
+/**
+ * An object merging properties from path, query, and body params
+ */
+type RequestData<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined
@@ -93,6 +110,35 @@ type MakeRequest<
   (Query extends z.ZodTypeAny ? z.infer<Query> : {}) &
   (Body extends z.ZodTypeAny ? z.infer<Body> : {});
 
+/**
+ * An interface for per-endpoint configuration, accessible to and extendable by
+ * plugins/middleware.
+ *
+ * When creating endpoints, users can specify a `config` object of
+ * type `EndpointConfig`. This allows plugins to accept custom properties.
+ *
+ * ```ts
+ * // example-plugin.ts
+ * declare module "stainless" {
+ *   // This interface must be declared within the "stainless" module
+ *   interface EndpointConfig {
+ *   rateLimit?: number,
+ *   }
+ * }
+ *
+ * // api/users/retrieve.ts
+ *
+ * stl.endpoint(
+ *   endpoint: "get /api/users/{userId}",
+ *   response: User,
+ *   config: {
+ *     rateLimit: 10,
+ *   },
+ *   ...
+ *   }
+ * )
+ * ```
+ */
 export interface EndpointConfig {
   // auth etc goes here.
 }
@@ -116,6 +162,10 @@ export interface BaseEndpoint<
 
 export type AnyBaseEndpoint = BaseEndpoint<any, any, any, any, any, any>;
 
+/**
+ * An endpoint created on an instance of {@link Stl} via the
+ * {@link Stl.endpoint} method.
+ */
 export interface Endpoint<
   Config extends EndpointConfig | undefined,
   MethodAndUrl extends HttpEndpoint,
@@ -144,6 +194,12 @@ export type EndpointQueryInput<E extends AnyEndpoint> =
   E["query"] extends z.ZodTypeAny ? z.input<E["query"]> : undefined;
 export type EndpointQueryOutput<E extends AnyEndpoint> =
   E["query"] extends z.ZodTypeAny ? z.output<E["query"]> : undefined;
+export type EndpointHasRequiredQuery<E extends AnyEndpoint> =
+  E["query"] extends z.ZodTypeAny
+    ? {} extends EndpointQueryInput<E>
+      ? false
+      : true
+    : false;
 
 export type EndpointBodyInput<E extends AnyEndpoint> =
   E["body"] extends z.ZodTypeAny ? z.input<E["body"]> : undefined;
@@ -155,6 +211,9 @@ export type EndpointResponseInput<E extends AnyEndpoint> =
 export type EndpointResponseOutput<E extends AnyEndpoint> =
   E["response"] extends z.ZodTypeAny ? z.output<E["response"]> : undefined;
 
+/**
+ * Gets all endpoints associated with a given resource
+ */
 export function allEndpoints(
   resource:
     | AnyResourceConfig
@@ -172,6 +231,9 @@ export function allEndpoints(
 
 export type AnyActionsConfig = Record<string, AnyEndpoint | null>;
 
+/**
+ * A resource configuration created by {@link Stl.resource}.
+ */
 export type ResourceConfig<
   Actions extends AnyActionsConfig | undefined,
   NamespacedResources extends
@@ -200,6 +262,10 @@ export function isAPIDescription(value: unknown): value is AnyAPIDescription {
   return (value as any)?.[apiSymbol] === true;
 }
 
+/**
+ * A type containing information about an API defined by the
+ * {@link Stl.api} method.
+ */
 export type APIDescription<
   BasePath extends HttpPath,
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
@@ -222,7 +288,20 @@ export type ActionMetadata = {
 };
 
 export type AnyAPIDescription = APIDescription<any, any, any>;
+
+/**
+ * Throw `StlError` and its subclasses within endpoint `handler` methods
+ * to return 4xx or 5xx HTTP error responses to the user, with well-formatted
+ * bodies.
+ *
+ * `StlError` is best used to create custom subclasses if you need HTTP status
+ * codes we don't yet provide out of the box.
+ */
 export class StlError extends Error {
+  /**
+   * @param statusCode
+   * @param response optional data included in the body of the response JSON.
+   */
   constructor(
     public statusCode: number,
     public response?: Record<string, any>
@@ -231,23 +310,41 @@ export class StlError extends Error {
   }
 }
 
+/** When thrown in an endpoint handler, responds with HTTP status code 400. */
 export class BadRequestError extends StlError {
+  /**
+   * @param response  optional data included in the body of the response JSON.
+   */
   constructor(response?: Record<string, any>) {
     super(400, { error: "bad request", ...response });
   }
 }
+
+/** When thrown in an endpoint handler, responds with HTTP status code 401. */
 export class UnauthorizedError extends StlError {
+  /**
+   * @param response  optional data included in the body of the response JSON.
+   */
   constructor(response?: Record<string, any>) {
     super(401, { error: "unauthorized", ...response });
   }
 }
+
+/** When thrown in an endpoint handler, responds with HTTP status code 403. */
 export class ForbiddenError extends StlError {
+  /**
+   * @param response  optional data included in the body of the response JSON.
+   */
   constructor(response?: Record<string, any>) {
     super(403, { error: "forbidden", ...response });
   }
 }
 
+/** When thrown in an endpoint handler, responds with HTTP status code 404. */
 export class NotFoundError extends StlError {
+  /**
+   * @param response  optional data included in the body of the response JSON.
+   */
   constructor(response?: Record<string, any>) {
     super(404, { error: "not found", ...response });
   }
@@ -258,13 +355,29 @@ type AnyStatics = Record<string, any>; // TODO?
 export type StainlessPlugin<
   Statics extends AnyStatics | undefined = undefined
 > = {
+  /**
+   * Optionally provide data to every endpoint handler.
+   * This will be available under {@link StlContext.plugins},
+   * under the field with the user's name for the plugin.
+   */
   statics?: Statics;
+  /**
+   * Optionally inject middleware on each endpoint handler
+   * to customize their behavior.
+   * @param params parsed parameters of the request
+   * @param context request context, potentially including
+   * endpoint-specific configuration
+   */
   middleware?: <EC extends AnyEndpoint>(
     params: Params,
     context: StlContext<EC>
   ) => void | Promise<void>;
 };
 
+/**
+ * An interface allowing `stainless` to initialize plugins
+ * passed to the {@link Stl} constructor's `plugins` parameter.
+ */
 export type MakeStainlessPlugin<
   Statics extends AnyStatics | undefined = undefined,
   Plugins extends AnyPlugins = {}
@@ -272,33 +385,68 @@ export type MakeStainlessPlugin<
 
 type AnyPlugins = Record<string, MakeStainlessPlugin<any, any>>;
 
-export type StainlessOpts<Plugins extends AnyPlugins> = {
+/**
+ * Options for customizing the behavior of an {@link Stl} instance.
+ */
+export type CreateStlOptions<Plugins extends AnyPlugins> = {
+  /**
+   * Provide plugins to customize `stainless` endpoint behavior.
+   * Each plugin is named by the user, and must be of type {@link MakeStainlessPlugin}.
+   * Some plugins provide context information under `ctx.plugins.{name of plugin}.
+   */
   plugins: Plugins;
 };
 
+/** The raw headers provided on a request. */
 export type StainlessHeaders = Record<string, string | string[] | undefined>; // TODO
 
+/**
+ * An interface for extending base stainless context information
+ * with additional data.
+ *
+ * In order to extend stainless context, declare an instance of
+ * `StlCustomContext` within the `stainless` module:
+ * ```ts
+ * declare module "stainless" {
+ *   interface StlCustomContext {
+ *     // custom context data here
+ *   }
+ * }
+ * ```
+ */
 export interface StlCustomContext {}
 
 export interface BaseStlContext<EC extends AnyBaseEndpoint> {
+  /** The current endpoint being processed. */
   endpoint: EC; // what is the config?
   // url: URL;
+  /** The raw headers passed to the current request. */
   headers: StainlessHeaders;
+  /** The parsed path, query, and body parameters of the current request. */
   parsedParams?: {
     path: any;
     query: any;
     body: any;
   };
+  /**
+   * Raw server request data and information.
+   * This will depend on the underlying server implementation
+   * being used to serve the request, like Next.js or Express. */
   server: {
     type: string; // eg nextjs
     args: unknown[]; // eg [req, rsp]
   };
 }
 
+/**
+ * Request data provided to an endpoint. This includes things like
+ * request parameters and data injected by plugin middleware.
+ */
 export interface StlContext<EC extends AnyBaseEndpoint>
   extends BaseStlContext<EC>,
     StlCustomContext {}
 
+/** Parsed, but untyped, parameters provided to an endpoint. */
 export interface Params {
   path: any;
   query: any;
@@ -312,6 +460,10 @@ type ExtractStatics<Plugins extends AnyPlugins> = {
   >;
 };
 
+/**
+ * Provides static data created by plugins to
+ * endpoint request handlers.
+ */
 export type PluginsWithStaticsKeys<Plugins extends AnyPlugins> = {
   [k in keyof Plugins]: NonNullable<
     ReturnType<Plugins[k]>["statics"]
@@ -326,6 +478,7 @@ type ExtractExecuteResponse<EC extends AnyEndpoint> =
 export const OpenAPIResponse = z.object({}).passthrough();
 export type OpenAPIResponse = z.infer<typeof OpenAPIResponse>;
 
+/** Type of an endpoint serving OpenAPI schema data. */
 export type OpenAPIEndpoint = Endpoint<
   any,
   any,
@@ -344,6 +497,7 @@ const prependZodPath = (path: string) => (error: any) => {
   throw error;
 };
 
+/** Extension of top-level API to include serving OpenAPI schema data. */
 type OpenAPITopLevel<
   openapi extends
     | {
@@ -356,12 +510,119 @@ type OpenAPITopLevel<
   ? {}
   : { actions: { getOpenapi: OpenAPIEndpoint } };
 
+/** Parameters for {@link Stl.endpoint}. */
+interface CreateEndpointOptions<
+  MethodAndUrl extends HttpEndpoint,
+  Config extends EndpointConfig | undefined,
+  Path extends ZodObjectSchema | undefined,
+  Query extends ZodObjectSchema | undefined,
+  Body extends ZodObjectSchema | undefined,
+  Response extends z.ZodTypeAny = z.ZodVoid
+> {
+  /**
+   * a string declaring the HTTP method
+   * and URL for this endpoint, e.g. `"get /items/{id}"`
+   */
+  endpoint: MethodAndUrl;
+  /** Optional plugin configuration specific to the endpoint. */
+  config?: Config;
+  /** The schema for the response defining its properties. */
+  response?: Response;
+  /** The schema for the path parameters. */
+  path?: Path;
+  /** The schema for the query (search) parameters. */
+  query?: Query;
+  /** The schema for the body parameters. */
+  body?: Body;
+  /**
+   * The function that handles requests to the `endpoint`.
+   * Called with an object holding a combination of the endpoint's
+   * path, query, and body params, and an {@link StlContext} holding
+   * additional global and plugin- and endpoint-specific context.
+   */
+  handler: Handler<
+    StlContext<BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>>,
+    Path,
+    Query,
+    Body,
+    Response extends z.ZodTypeAny ? z.input<Response> : undefined
+  >;
+}
+
+/** Parameters for {@link Stl.resource} */
+interface CreateResourceOptions<
+  Actions extends AnyActionsConfig | undefined,
+  Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
+  Models extends Record<string, z.ZodTypeAny> | undefined
+> {
+  /**
+   * A summary describing the resource;
+   * included in the generated OpenAPI schema.
+   */
+  summary: string;
+  /** TODO what does this do, we don't use it for anything... */
+  internal?: boolean;
+  /** An object of endpoints for performing methods on the resource. */
+  actions?: Actions;
+  /** An object of sub-resources of the resource. */
+  namespacedResources?: Resources;
+  /** An object of named models; values must be response schemas. */
+  models?: Models;
+}
+
+/** Parameters for {@link Stl.api} */
+interface CreateApiOptions<
+  BasePath extends HttpPath,
+  TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
+  Resources extends Record<string, AnyResourceConfig> | undefined
+> {
+  basePath: BasePath;
+  /**
+   * Optionally configure an endpoint for retrieving the API's
+   * generated OpenAPI schema.
+   */
+  openapi?: {
+    /**
+     * The endpoint for serving the OpenAPI schema,
+     * or `false` to disable schema serving.
+     */
+    endpoint?: HttpEndpoint | false;
+  };
+
+  /**
+   * Add endpoints directly onto the API, without utilizing the
+   * resource abstraction. This should be used sparingly,
+   * as resourceless endpoints are less idiomatic and may result in
+   * less organized SDKs if misused.
+   */
+  topLevel?: TopLevel;
+  /** An object containing the resources of which the API is composed. */
+  resources?: Resources;
+}
+
+/**
+ * The entry-point into using Stainless. Used to create the core
+ * structures of the framework: endpoints, resources, and APIs.
+ *
+ * ## Usage
+ * Creating an instance is easy:
+ * ```ts
+ * export const stl = new Stl({})
+ * ```
+ *
+ * For a higher-level overview of how to use `Stl` to build APIs,
+ * see [the docs](https://stainlessapi.com/stl/getting-started).
+ */
 export class Stl<Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
   plugins = {} as ExtractStatics<Plugins>;
   private stainlessPlugins: Record<string, StainlessPlugin<any>> = {};
 
-  constructor(opts: StainlessOpts<Plugins>) {
+  /**
+   *
+   * @param opts {CreateStlOptions<Plugins>} customize the created instance with plugins
+   */
+  constructor(opts: CreateStlOptions<Plugins>) {
     for (const key in opts.plugins) {
       const makePlugin = opts.plugins[key];
       const plugin = (this.stainlessPlugins[key] = makePlugin(this));
@@ -374,14 +635,43 @@ export class Stl<Plugins extends AnyPlugins> {
       }
     }
   }
+
+  /**
+   * Initializes a {@link StlContext} for a request. This should only
+   * be used for advanced use-cases like implementing a plugin for
+   * integrating with an underlying server implementation.
+   * For a usage example, see `../../next/src/nextPlugin.rs`.
+   * @param c the context to initialize
+   * @returns initialized context
+   */
   initContext<EC extends AnyEndpoint>(c: StlContext<EC>): StlContext<EC> {
     return c;
   }
 
+  /**
+   * Initializes parameters for handling requests. This should only
+   * be used for advanced use-cases like implementing a plugin for
+   * integrating with an underluing server implementation.
+   * For a usage example, see `../../next/src/nextPlugin.rs`.
+   * @param p the parameters to initialize
+   * @returns initialized parameters
+   */
   initParams(p: Params) {
     return p;
   }
 
+  /**
+   * Handles an incoming request by invoking the endpoint for it.
+   * This should not be called in typical use.
+   * It is primarily useful for implementing a plugin for
+   * integrating with an underluing server implementation.
+   * For a usage example, see `../../next/src/nextPlugin.rs`.
+   * @param endpoint endpoint to handle incoming request
+   * @param params request params
+   * @param context context with `stl` and request-specific
+   * data
+   * @returns request response
+   */
   async execute<EC extends AnyEndpoint>(
     params: Params,
     context: StlContext<EC>
@@ -430,6 +720,40 @@ export class Stl<Plugins extends AnyPlugins> {
     return response;
   }
 
+  /**
+   * Creates an endpoint.
+   *
+   * @param endpoint
+   * @param config
+   * @param response
+   * @param path
+   * @param query
+   * @param body
+   * @param handler
+   * @returns endpoint instance
+   *
+   * ## Example
+   * ```ts
+   * // ~/api/users/retrieve.ts
+   *
+   * export const retrieve = stl.endpoint({
+   *   endpoint: "get /api/users/{userId}",
+   *   response: User,
+   *   path: z.object({
+   *     userId: z.string(),
+   *   }),
+   *   async handler({ userId }, ctx) {
+   *     const user = await prisma.user.findUnique({
+   *       where: {
+   *         id: userId,
+   *       },
+   *     });
+   *     if (!user) throw new NotFoundError();
+   *     return user;
+   *   },
+   * });
+   * ```
+   */
   endpoint<
     MethodAndUrl extends HttpEndpoint,
     Config extends EndpointConfig | undefined,
@@ -437,30 +761,17 @@ export class Stl<Plugins extends AnyPlugins> {
     Query extends ZodObjectSchema | undefined,
     Body extends ZodObjectSchema | undefined,
     Response extends z.ZodTypeAny = z.ZodVoid
-  >({
-    config,
-    response,
-    path,
-    query,
-    body,
-    ...rest
-  }: {
-    endpoint: MethodAndUrl;
-    config?: Config;
-    response?: Response;
-    path?: Path;
-    query?: Query;
-    body?: Body;
-    handler: Handler<
-      StlContext<
-        BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>
-      >,
+  >(
+    params: CreateEndpointOptions<
+      MethodAndUrl,
+      Config,
       Path,
       Query,
       Body,
-      Response extends z.ZodTypeAny ? z.input<Response> : undefined
-    >;
-  }): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
+      Response
+    >
+  ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
+    const { config, response, path, query, body, ...rest } = params;
     return {
       stl: this as any,
       config: config as Config,
@@ -472,6 +783,36 @@ export class Stl<Plugins extends AnyPlugins> {
     };
   }
 
+  /**
+   * Creates a resource.
+   *
+   * @param models
+   * @param actions
+   * @param namespacedResources
+   * @param internal
+   * @param summary
+   * @returns resource instance
+   *
+   * ## Example
+   * ```ts
+   * // ~/api/posts/index.ts
+   *
+   * export const posts = stl.resource({
+   *   summary: "Posts; the tweets of this twitter clone",
+   *   internal: false,
+   *   models: {
+   *     Post,
+   *     PostPage,
+   *     PostSelection,
+   *   },
+   *   actions: {
+   *     create,
+   *     list,
+   *     retrieve,
+   *   },
+   * });
+   * ```
+   */
   resource<
     Actions extends AnyActionsConfig | undefined,
     Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
@@ -481,13 +822,11 @@ export class Stl<Plugins extends AnyPlugins> {
     namespacedResources,
     models,
     ...config
-  }: {
-    summary: string;
-    internal?: boolean;
-    actions?: Actions;
-    namespacedResources?: Resources;
-    models?: Models;
-  }): ResourceConfig<Actions, Resources, Models> {
+  }: CreateResourceOptions<Actions, Resources, Models>): ResourceConfig<
+    Actions,
+    Resources,
+    Models
+  > {
     return {
       ...config,
       actions: actions || {},
@@ -496,6 +835,33 @@ export class Stl<Plugins extends AnyPlugins> {
     } as ResourceConfig<Actions, Resources, Models>;
   }
 
+  /**
+   * Creates a top-level API, which is composed primarily of resources
+   * and optionally an endpoint to retrieve an OpenAPI schema documenting
+   * the API.
+   *
+   * @param resources
+   * @param openapi
+   * @param topLevel
+   * @returns api instance
+   *
+   * ## Example
+   * ```ts
+   * // ~/api/index.ts
+   *
+   * import { stl } from "~/libs/stl";
+   * import { users } from "./users";
+   *
+   * export const api = stl.api({
+   *   openapi: {
+   *     endpoint: "get /api/openapi",
+   *   },
+   *   resources: {
+   *     users,
+   *   },
+   * });
+   * ```
+   */
   api<
     BasePath extends HttpPath,
     TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
@@ -505,14 +871,7 @@ export class Stl<Plugins extends AnyPlugins> {
     openapi,
     topLevel,
     resources,
-  }: {
-    basePath: BasePath;
-    openapi?: {
-      endpoint?: HttpEndpoint | false;
-    };
-    topLevel?: TopLevel;
-    resources?: Resources;
-  }): APIDescription<
+  }: CreateApiOptions<BasePath, TopLevel, Resources>): APIDescription<
     BasePath,
     TopLevel & OpenAPITopLevel<typeof openapi>,
     Resources

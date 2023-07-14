@@ -6,6 +6,7 @@ import {
   UnauthorizedError,
 } from "stainless";
 import { User } from ".prisma/client";
+import prisma from "./prismadb";
 
 export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
   async middleware<EC extends AnyEndpoint>(
@@ -14,14 +15,18 @@ export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
   ) {
     const { session } = context;
 
+    const email = session?.user?.email;
+    const currentUser = email
+      ? await prisma.user.findUniqueOrThrow({ where: { email } })
+      : undefined;
+
     context.requireCurrentUser = (): User => {
-      const { currentUser } = context;
       if (!currentUser) {
         throw new UnauthorizedError({ naughty: "you aint logged in!" });
       }
       return currentUser;
     };
 
-    context.currentUser = session?.user as any;
+    context.currentUser = currentUser;
   },
 });

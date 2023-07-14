@@ -8,13 +8,8 @@ import {
   NotFoundError,
   z,
 } from "stainless";
-import {
-  expandsOptions,
-  expandSubPaths,
-  addExpandParents,
-} from "./expandsUtils";
+import { includeSubPaths } from "./includeUtils";
 import { isPlainObject } from "lodash";
-import { inspect } from "util";
 
 declare module "zod" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
@@ -103,44 +98,44 @@ export type PrismaContext<M extends PrismaModel> = {
    */
   prismaModel: M;
   /**
-   * Injects query options from `expand`, `select`, and pagination
+   * Injects query options from `include`, `select`, and pagination
    * params into the given Prisma query options for the response
    * `prismaModel`.
    */
   wrapQuery: <Q extends { include?: any }>(query: Q) => Q;
   /**
    * Shortcut for `findUnique` on the response `prismaModel` with
-   * injected options from `expand`, `select`, and pagination params.
+   * injected options from `include`, `select`, and pagination params.
    */
   findUnique: FindUnique<M>;
   /**
    * Shortcut for `findUniqueOrThrow` on the response `prismaModel` with
-   * injected options from `expand`, `select`, and pagination params.
+   * injected options from `include`, `select`, and pagination params.
    */
   findUniqueOrThrow: FindUniqueOrThrow<M>;
   /**
    * Shortcut for `findMany` on the response `prismaModel` with
-   * injected options from `expand`, `select`, and pagination params.
+   * injected options from `include`, `select`, and pagination params.
    */
   findMany: FindMany<M>;
   /**
    * Shortcut for `create` on the response `prismaModel` with
-   * injected options from `expand` and `select` params.
+   * injected options from `include` and `select` params.
    */
   create: Create<M>;
   /**
    * Shortcut for `update` on the response `prismaModel` with
-   * injected options from `expand` and `select` params.
+   * injected options from `include` and `select` params.
    */
   update: Update<M>;
   /**
    * Shortcut for `delete` on the response `prismaModel` with
-   * injected options from `expand` and `select` params.
+   * injected options from `include` and `select` params.
    */
   delete: Delete<M>;
   /**
    * Fetches items from the database for the given Prisma query
-   * options and `expand`, `select`, and pagination params, and
+   * options and `include`, `select`, and pagination params, and
    * returns a page response.
    */
   paginate: (args: FindManyArgs<M>) => Promise<z.PageData<FindManyItem<M>>>;
@@ -152,7 +147,6 @@ export type PrismaStatics = {
     makeResponse: typeof makeResponse;
   };
   paginate: typeof paginate;
-  expandToInclude: typeof expandToInclude;
 };
 function stringifyCursor(values: any): string | undefined {
   if (values == null) return undefined;
@@ -341,68 +335,33 @@ function createIncludeSelect<
   prismaQuery: Q
 ): IncludeSelect | null | undefined {
   const queryShape = endpoint.query?.shape;
-  const expandSchema = queryShape?.expand;
-  const userInclude = prismaQuery?.include;
+  const callerInclude = prismaQuery?.include;
   let select: SelectTree | null | undefined = queryShape?.select
     ? context.parsedParams?.query?.select
     : undefined;
   if (select != null && !isPlainObject(select)) {
     throw new Error(`invalid select query param`);
   }
-  let expand = context.parsedParams?.query?.expand;
+  let include = context.parsedParams?.query?.include;
   if (
-    expand != null &&
-    (!Array.isArray(expand) || expand.some((e) => typeof e !== "string"))
+    include != null &&
+    (!Array.isArray(include) || include.some((e) => typeof e !== "string"))
   ) {
-    throw new Error(`invalid expand query param`);
+    throw new Error(`invalid include query param`);
   }
   if (z.isPageResponse(endpoint.response)) {
-    expand = expand ? expandSubPaths(expand, "items") : undefined;
+    include = include ? includeSubPaths(include, "items") : undefined;
     select = select?.select?.items;
   }
-  const include =
-    userInclude && expandSchema
-      ? removeUnexpandedIncludes(
-          userInclude,
-          expandsOptions(expandSchema),
-          addExpandParents(expand || [])
-        )
-      : userInclude;
-  let result: IncludeSelect | null | undefined = { include };
-  if (expand) {
+  let result: IncludeSelect | null | undefined = { include: callerInclude };
+  if (include) {
     result = mergeIncludeSelect(result, {
-      include: expandToInclude(expand) as AnyInclude,
+      include: includeFromQuery(include) as AnyInclude,
     });
   }
   const convertedSelect = select ? convertSelect(select) : undefined;
   if (convertedSelect instanceof Object) {
     result = mergeIncludeSelect(result, { include: convertedSelect });
-  }
-  return result;
-}
-
-function removeUnexpandedIncludes(
-  include: AnyInclude,
-  possibleExpands: string[],
-  expand: Set<string>,
-  path: string[] = []
-): AnyInclude {
-  const result: AnyInclude = {};
-  for (const key in include) {
-    const value = include[key];
-    const keyPath = [...path, key];
-    const keyPathStr = keyPath.join(".");
-    if (!possibleExpands.includes(keyPathStr) || expand.has(keyPathStr)) {
-      result[key] =
-        value instanceof Object && value.include
-          ? removeUnexpandedIncludes(
-              value.include,
-              possibleExpands,
-              expand,
-              keyPath
-            )
-          : value;
-    }
   }
   return result;
 }
@@ -474,7 +433,6 @@ export const makePrismaPlugin =
           makeResponse,
         },
         paginate: paginate,
-        expandToInclude: expandToInclude,
       },
       middleware<EC extends AnyEndpoint>(
         params: Params,
@@ -523,29 +481,38 @@ type NextLevel<
   Prefix extends string
 > = E extends `${Prefix}.${infer B}` ? B : never;
 
-type ExpandToInclude<T extends string> = {
+type includeFromQuery<T extends string> = {
   [K in TopLevel<T>]?:
     | boolean
     | (NextLevel<T, K> extends string
-        ? { include: ExpandToInclude<NextLevel<T, K>> }
+        ? { include: includeFromQuery<NextLevel<T, K>> }
         : never);
 };
 
-function expandToInclude<T extends string[]>(
-  expand: T
-): ExpandToInclude<T[number]> {
+/**
+ * Converts an include parameter from stainless format
+ * e.g. `['user.comments', 'comments.user'] to prisma
+ * include format e.g.
+ * {
+ *   user: { include: { comments: true } },
+ *   comments: { include: { user: true } },
+ * }
+ */
+function includeFromQuery<T extends string[]>(
+  include: T
+): includeFromQuery<T[number]> {
   const result: any = {};
-  for (const path of expand) {
+  for (const path of include) {
     const parts = path.split(".");
-    let include = result;
+    let prismaInclude = result;
     for (let i = 0; i < parts.length - 1; i++) {
-      if (!(include[parts[i]] instanceof Object)) {
+      if (!(prismaInclude[parts[i]] instanceof Object)) {
         const next = { include: {} };
-        include[parts[i]] = next;
-        include = next.include;
+        prismaInclude[parts[i]] = next;
+        prismaInclude = next.include;
       }
     }
-    include[parts[parts.length - 1]] = true;
+    prismaInclude[parts[parts.length - 1]] = true;
   }
   return result;
 }

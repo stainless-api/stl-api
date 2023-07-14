@@ -12,13 +12,13 @@ export const Notification0 = z.response({
 type Notification1 = z.CircularModel<
   typeof Notification0,
   {
-    user?: z.ExpandableZodType<typeof User>;
+    user?: z.IncludableZodType<typeof User>;
     user_fields?: z.SelectableZodType<typeof User>;
   }
 >;
 
 const Notification1: Notification1 = Notification0.extend({
-  user: z.lazy(() => User).expandable(),
+  user: z.lazy(() => User).includable(),
   user_fields: z.lazy(() => UserSelection).selectable(),
 });
 export const Notification = Notification1.prismaModel(prisma.notification);

@@ -3,7 +3,9 @@ import type { api } from "./api";
 import { api as metadata } from "./api-metadata";
 import fetch from "node-fetch";
 
-export const baseUrl = "http://localhost:3000/api";
+export const baseUrl = `http://${
+  process.env.CI ? "0.0.0.0:3005" : "localhost:3000"
+}/api`;
 
 export const testClient = createClient<typeof api>(baseUrl, {
   fetch: fetch as any,

@@ -35,9 +35,9 @@ Make sure `@stl-api/prisma` gets imported before code that declares schemas is r
 Allows you to declare the Prisma model associated with a response schema. In an endpoint whose
 response schema has a Prisma model declared, [special conveniences](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
 
-### `.expandable()`
+### `.includable()`
 
-Marks an object property as being [expandable](/stl/expansion) via an `expand` query parameter.
+Marks an object property as being [includable](/stl/inclusion) via an `include` query parameter.
 This is only useful object or array of object types.
 
 ### `.selectable()`
@@ -111,7 +111,7 @@ A helper for declaring response schemas with circular references.
 
 #### Example
 
-[See here](/stl/expansion#implementing-expansion-with-circular-associations) for a
+[See here](/stl/inclusion#implementing-inclusion-with-circular-associations) for a
 more complete example.
 
 ```ts
@@ -120,13 +120,13 @@ const UserBase = z.response({
   name: z.string().optional(),
 });
 
-const ExpandableUser: z.CircularModel<
+const IncludableUser: z.CircularModel<
   typeof UserBase,
   {
-    posts?: z.ExpandableZodType<z.ZodArray<Post>>;
+    posts?: z.IncludableZodType<z.ZodArray<Post>>;
   }
 > = UserBase.extend({
-  posts: z.array(z.lazy(() => Post)).expandable(),
+  posts: z.array(z.lazy(() => Post)).includable(),
 });
 
 const PostBase = z.response({
@@ -134,12 +134,12 @@ const PostBase = z.response({
   body: z.string(),
 });
 
-const ExpandablePost: z.CircularModel<
+const IncludablePost: z.CircularModel<
   typeof PostBase,
   {
-    user?: z.ExpandableZodType<User>;
+    user?: z.IncludableZodType<User>;
   }
 > = PostBase.extend({
-  user: z.lazy(() => User).expandable(),
+  user: z.lazy(() => User).includable(),
 });
 ```

@@ -4,13 +4,14 @@ import {
   type EndpointBodyInput,
   type EndpointQueryInput,
   type EndpointResponseOutput,
+  type EndpointHasRequiredQuery,
 } from "stainless";
-import { isEmpty } from "lodash";
 import {
   UseMutationOptions as BaseUseMutationOptions,
+  MutateOptions as BaseMutateOptions,
   MutationObserverResult,
 } from "@tanstack/react-query";
-import { EndpointPathParam, KeysEnum } from ".";
+import { EndpointPathParam } from ".";
 
 export type ClientUseMutation<
   E extends AnyEndpoint,
@@ -21,56 +22,78 @@ export type ClientUseMutation<
   options?: UseMutationOptions<E, TData, TError, TContext>
 ) => ClientUseMutationResult<E, TData, TError, TContext>;
 
-type UseMutationOptions<
+export type UseMutationOptions<
   E extends AnyEndpoint,
   TData = EndpointResponseOutput<E>,
   TError = unknown,
   TContext = unknown
 > = Omit<BaseUseMutationOptions<TData, TError, void, TContext>, "mutationFn">;
 
-type ClientMutateFunction<
+export type MutateOptions<
+  E extends AnyEndpoint,
+  TData = EndpointResponseOutput<E>,
+  TError = unknown,
+  TContext = unknown
+> = BaseMutateOptions<TData, TError, void, TContext> &
+  (E["query"] extends z.ZodTypeAny
+    ? {} extends EndpointQueryInput<E>
+      ? { query?: EndpointQueryInput<E> }
+      : { query: EndpointQueryInput<E> }
+    : {});
+
+export function isMutateOptions(o: any): o is MutateOptions<AnyEndpoint> {
+  return (
+    o != null &&
+    typeof o === "object" &&
+    (typeof o.onSuccess === "function" ||
+      typeof o.onError === "function" ||
+      typeof o.onSettled === "function" ||
+      (o.query != null && typeof o.query === "object"))
+  );
+}
+
+export type ClientMutateFunction<
   E extends AnyEndpoint,
   TData = EndpointResponseOutput<E>,
   TError = unknown,
   TContext = unknown
 > = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
+    ? EndpointHasRequiredQuery<E> extends true
+      ? (
+          path: EndpointPathParam<E>,
+          body: EndpointBodyInput<E>,
+          options: MutateOptions<E, TData, TError, TContext>
+        ) => Promise<TData>
+      : (
+          path: EndpointPathParam<E>,
+          body: EndpointBodyInput<E>,
+          options?: MutateOptions<E, TData, TError, TContext>
+        ) => Promise<TData>
+    : EndpointHasRequiredQuery<E> extends true
     ? (
         path: EndpointPathParam<E>,
-        body: EndpointBodyInput<E>,
-        options?: { query?: EndpointQueryInput<E> } & MutateOptions<
-          TData,
-          TError,
-          TContext
-        >
-      ) => Promise<TData>
-    : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: MutateOptions<TData, TError, TContext>
+        options: MutateOptions<E, TData, TError, TContext>
       ) => Promise<TData>
     : (
         path: EndpointPathParam<E>,
-        options?: MutateOptions<TData, TError, TContext>
+        options?: MutateOptions<E, TData, TError, TContext>
       ) => Promise<TData>
   : E["body"] extends z.ZodTypeAny
-  ? (
-      body: EndpointBodyInput<E>,
-      options?: { query?: EndpointQueryInput<E> } & MutateOptions<
-        TData,
-        TError,
-        TContext
-      >
-    ) => Promise<TData>
-  : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: MutateOptions<TData, TError, TContext>
-    ) => Promise<TData>
-  : (options?: MutateOptions<TData, TError, TContext>) => Promise<TData>;
+  ? EndpointHasRequiredQuery<E> extends true
+    ? (
+        body: EndpointBodyInput<E>,
+        options: MutateOptions<E, TData, TError, TContext>
+      ) => Promise<TData>
+    : (
+        body: EndpointBodyInput<E>,
+        options?: MutateOptions<E, TData, TError, TContext>
+      ) => Promise<TData>
+  : EndpointHasRequiredQuery<E> extends true
+  ? (options: MutateOptions<E, TData, TError, TContext>) => Promise<TData>
+  : (options?: MutateOptions<E, TData, TError, TContext>) => Promise<TData>;
 
-type ClientUseMutateFunction<
+export type ClientUseMutateFunction<
   E extends AnyEndpoint,
   TData = EndpointResponseOutput<E>,
   TError = unknown,
@@ -79,7 +102,7 @@ type ClientUseMutateFunction<
   ...args: Parameters<ClientMutateFunction<E, TData, TError, TContext>>
 ) => void;
 
-type ClientUseMutateAsyncFunction<
+export type ClientUseMutateAsyncFunction<
   E extends AnyEndpoint,
   TData = EndpointResponseOutput<E>,
   TError = unknown,
@@ -94,38 +117,6 @@ export type ClientUseMutationResult<
   TError = unknown,
   TContext = unknown
 > = Override<
-  MutationObserverResult<E, TData, TError, TContext>,
+  MutationObserverResult<TData, TError, void, TContext>,
   { mutate: ClientUseMutateFunction<E, TData, TError, TContext> }
 > & { mutateAsync: ClientUseMutateAsyncFunction<E, TData, TError, TContext> };
-
-export interface MutateOptions<
-  TData = unknown,
-  TError = unknown,
-  TContext = unknown
-> {
-  onSuccess?: (data: TData, context: TContext) => void;
-  onError?: (error: TError, context: TContext | undefined) => void;
-  onSettled?: (
-    data: TData | undefined,
-    error: TError | null,
-    context: TContext | undefined
-  ) => void;
-}
-
-// This is required so that we can determine if a given object matches the RequestOptions
-// type at runtime. While this requires duplication, it is enforced by the TypeScript
-// compiler such that any missing / extraneous keys will cause an error.
-const mutateOptionsKeys: KeysEnum<MutateOptions> = {
-  onSuccess: true,
-  onError: true,
-  onSettled: true,
-};
-
-export const isMutateOptions = (obj: unknown): obj is MutateOptions => {
-  return (
-    typeof obj === "object" &&
-    obj !== null &&
-    !isEmpty(obj) &&
-    Object.keys(obj).every((k) => Object.hasOwn(mutateOptionsKeys, k))
-  );
-};

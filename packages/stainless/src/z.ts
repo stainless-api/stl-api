@@ -10,13 +10,13 @@ import {
 import { StlContext } from "./stl";
 import { SelectTree } from "./parseSelect";
 import { getSelects } from "./selects";
-import { getExpands } from "./expands";
+import { getIncludes } from "./includes";
 import { omitBy, pickBy } from "lodash/fp";
 import { mapValues } from "lodash";
 
 export * from "zod";
 export { selects } from "./selects";
-export { expands } from "./expands";
+export { includes } from "./includes";
 
 /**
  * TODO: try to come up with a better error message
@@ -46,7 +46,7 @@ export interface ZodMetadataDef<T extends z.ZodTypeAny, M extends object>
 
 /**
  * Class for storing custom metadata like `prismaModel`,
- * `pageResponse: true`, `expandable: true`, etc.
+ * `pageResponse: true`, `includable: true`, etc.
  *
  * zod-openapi errors out on any new class that extends the base
  * ZodType, so I made this extend a no-op refinement for compatibility.
@@ -217,73 +217,75 @@ export function extractDeepMetadata<
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
-/////////////// Expandable ///////////////////////
+/////////////// Includable ///////////////////////
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 
 declare module "zod" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     /**
-     * Marks this schema as expandable via an `expand[]` query param.
+     * Marks this schema as includable via an `include[]` query param.
      * This should only be used on object or array of object property schemas.
      */
-    expandable(): ExpandableZodType<this>;
+    includable(): IncludableZodType<this>;
   }
 }
 
-export const expandableSymbol = Symbol("expandable");
+export const includableSymbol = Symbol("includable");
 
-export type ExpandableOutput<T> =
+export type IncludableOutput<T> =
   | (NonNullable<T> & {
-      readonly [expandableSymbol]: { value: T };
+      readonly [includableSymbol]: { value: T };
     })
   | null
   | undefined;
 
-export type ExpandableInput<T> = T | null | undefined;
+export type IncludableInput<T> = T | null | undefined;
 
-export type ExpandableZodType<T extends z.ZodTypeAny> = ZodMetadata<
+export type IncludableZodType<T extends z.ZodTypeAny> = ZodMetadata<
   z.ZodType<
-    ExpandableOutput<z.output<T>>,
+    IncludableOutput<z.output<T>>,
     T["_def"],
-    ExpandableInput<z.input<T>>
+    IncludableInput<z.input<T>>
   >,
-  { stainless: { expandable: true } }
+  { stainless: { includable: true } }
 >;
 
-z.ZodType.prototype.expandable = function expandable(this: z.ZodTypeAny) {
+z.ZodType.prototype.includable = function includable(this: z.ZodTypeAny) {
   return stlPreprocess(
     (input: StlTransformInput<any>, stlContext: StlContext<any>) => {
       const { data, path } = input;
-      const expand = getExpands(stlContext);
-      return expand && zodPathIsExpanded(path, expand) ? data : undefined;
+      const include = getIncludes(stlContext);
+      return include && zodPathIsIncluded(path, include) ? data : undefined;
     },
     this.optional()
   )
     .openapi({ effectType: "input" })
-    .withMetadata({ stainless: { expandable: true } });
+    .withMetadata({ stainless: { includable: true } });
 };
 
-export type isExpandable<T extends z.ZodTypeAny> = extractDeepMetadata<
+export type isIncludable<T extends z.ZodTypeAny> = extractDeepMetadata<
   T,
-  { stainless: { expandable: true } }
-> extends { stainless: { expandable: true } }
+  { stainless: { includable: true } }
+> extends { stainless: { includable: true } }
   ? true
   : false;
 
-export function isExpandable<T extends z.ZodTypeAny>(
+export function isIncludable<T extends z.ZodTypeAny>(
   schema: T
-): isExpandable<T> {
-  return (extractDeepMetadata(schema, { stainless: { expandable: true } }) !=
-    null) as isExpandable<T>;
+): isIncludable<T> {
+  return (extractDeepMetadata(schema, { stainless: { includable: true } }) !=
+    null) as isIncludable<T>;
 }
 
-function zodPathIsExpanded(
+function zodPathIsIncluded(
   zodPath: (string | number)[],
-  expand: string[]
+  include: string[]
 ): boolean {
   const zodPathStr = zodPath.filter((p) => typeof p === "string").join(".");
-  return expand.some((e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`));
+  return include.some(
+    (e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`)
+  );
 }
 
 //////////////////////////////////////////////////
