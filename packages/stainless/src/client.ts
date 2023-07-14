@@ -10,6 +10,7 @@ import {
   EndpointPathInput,
   EndpointBodyInput,
   EndpointQueryInput,
+  EndpointHasRequiredQuery,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
@@ -77,43 +78,68 @@ export type StainlessClient<Api extends AnyAPIDescription> = ClientResource<
   >
 >;
 
-type ClientResource<Resource extends AnyResourceConfig> = {
-  [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
-    ? ClientFunction<Resource["actions"][Action]>
-    : never;
-} & {
-  [S in keyof Resource["namespacedResources"]]: ClientResource<
-    Resource["namespacedResources"][S]
-  >;
-};
+type ClientResource<Resource extends AnyResourceConfig> =
+  (string extends keyof Resource["actions"]
+    ? {}
+    : {
+        [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
+          ? ClientFunction<Resource["actions"][Action]>
+          : never;
+      }) & {
+    [S in keyof Resource["namespacedResources"]]: ClientResource<
+      Resource["namespacedResources"][S]
+    >;
+  };
 
 type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        body: EndpointBodyInput<E>,
-        options?: RequestOptions<EndpointQueryInput<E>>
-      ) => ExtractClientResponse<E>
+    ? EndpointHasRequiredQuery<E> extends true
+      ? (
+          path: EndpointPathParam<E>,
+          body: EndpointBodyInput<E>,
+          options: RequestOptions<EndpointQueryInput<E>>
+        ) => ExtractClientResponse<E>
+      : (
+          path: EndpointPathParam<E>,
+          body: EndpointBodyInput<E>,
+          options?: RequestOptions<EndpointQueryInput<E>>
+        ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: RequestOptions
-      ) => ExtractClientResponse<E>
+    ? EndpointHasRequiredQuery<E> extends true
+      ? (
+          path: EndpointPathParam<E>,
+          query: EndpointQueryInput<E>,
+          options?: RequestOptions
+        ) => ExtractClientResponse<E>
+      : (
+          path: EndpointPathParam<E>,
+          query?: EndpointQueryInput<E>,
+          options?: RequestOptions
+        ) => ExtractClientResponse<E>
     : (
         path: EndpointPathParam<E>,
         options?: RequestOptions
       ) => ExtractClientResponse<E>
   : E["body"] extends z.ZodTypeAny
-  ? (
-      body: EndpointBodyInput<E>,
-      options?: RequestOptions<EndpointQueryInput<E>>
-    ) => ExtractClientResponse<E>
+  ? EndpointHasRequiredQuery<E> extends true
+    ? (
+        body: EndpointBodyInput<E>,
+        options: RequestOptions<EndpointQueryInput<E>>
+      ) => ExtractClientResponse<E>
+    : (
+        body: EndpointBodyInput<E>,
+        options?: RequestOptions<EndpointQueryInput<E>>
+      ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: RequestOptions
-    ) => ExtractClientResponse<E>
+  ? EndpointHasRequiredQuery<E> extends true
+    ? (
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
+    : (
+        query?: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
   : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {

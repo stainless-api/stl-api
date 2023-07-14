@@ -1,6 +1,6 @@
 import * as React from "react";
 import PostItem from "./PostItem";
-import { client } from "../../api/client";
+import { useClient } from "../../api/client";
 import InfiniteScroll, { LoadingProps, ErrorProps } from "../InfiniteScroll";
 
 interface PostFeedProps {
@@ -8,6 +8,7 @@ interface PostFeedProps {
 }
 
 const InfinitePostFeed: React.FC<PostFeedProps> = ({ userId }) => {
+  const client = useClient();
   const { itemAndPlaceholderCount, useItem } = client.posts.useInfiniteList({
     userId,
     include: ["items.user", "items.comments"],

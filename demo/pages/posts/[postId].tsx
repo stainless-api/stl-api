@@ -5,20 +5,17 @@ import Header from "../../components/Header";
 import Form from "../../components/Form";
 import PostItem from "../../components/posts/PostItem";
 import CommentFeed from "../../components/posts/CommentFeed";
-import { client } from "../../api/client";
+import { useClient } from "../../api/client";
 
 const PostView = () => {
   const router = useRouter();
   const { postId } = router.query;
 
+  const client = useClient();
   const { data: fetchedPost, isLoading } = client.posts.useRetrieve(
     typeof postId === "string" ? postId : "",
-    {
-      include: ["user", "comments.user"],
-    },
-    {
-      enabled: typeof postId === "string",
-    }
+    { include: ["user", "comments.user"] },
+    { enabled: typeof postId === "string" }
   );
 
   if (isLoading || !fetchedPost) {

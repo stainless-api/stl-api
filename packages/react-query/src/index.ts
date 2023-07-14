@@ -18,12 +18,17 @@ import {
   useQuery,
   useInfiniteQuery,
   useMutation,
-  QueryClient,
+  ContextOptions,
+  useQueryClient,
+  MutateOptions,
 } from "@tanstack/react-query";
 import { type UpperFirst } from "./util";
 import { ClientUseQuery, UseQueryOptions, isUseQueryOptions } from "./useQuery";
-import { ClientUseMutation } from "./useMutation";
-import { ClientInvalidateQueriesMethods } from "./invalidateQueries";
+import {
+  ClientUseMutation,
+  UseMutationOptions,
+  isMutateOptions,
+} from "./useMutation";
 import {
   ClientUseInfiniteQueryHooks,
   UseInfiniteQueryOptions,
@@ -40,6 +45,7 @@ export {
   PaginatorPromise,
   UseQueryOptions,
   UseInfiniteQueryOptions,
+  UseMutationOptions,
   UseItem,
   UseItemResult,
 };
@@ -60,10 +66,17 @@ export type StainlessReactQueryClient<Api extends AnyAPIDescription> =
     >
   >;
 
+export type UseStainlessReactQueryClientOptions = {
+  reactQueryContext?: ContextOptions["context"];
+};
+
+export type UseStainlessReactQueryClient<Api extends AnyAPIDescription> = (
+  options?: UseStainlessReactQueryClientOptions
+) => StainlessReactQueryClient<Api>;
+
 export type ClientResource<Resource extends AnyResourceConfig> =
   ClientMethods<Resource> &
     ClientUseQueryAndMutationHooks<Resource> &
-    ClientInvalidateQueriesMethods<Resource> &
     ClientUseInfiniteQueryHooks<Resource> & {
       [S in keyof Resource["namespacedResources"]]: ClientResource<
         Resource["namespacedResources"][S]
@@ -121,176 +134,230 @@ function actionMethod(action: string): HttpMethod {
   return "post";
 }
 
-export function createReactQueryClient<Api extends AnyAPIDescription>(
+const queryKeyMethods = new Set([
+  "getQueryKey",
+  // TODO: invalidateQueries etc
+]);
+
+export function createUseReactQueryClient<Api extends AnyAPIDescription>(
   baseUrl: string,
   options?: { fetch?: typeof fetch }
-): StainlessReactQueryClient<Api> {
-  const baseClient = createClient<Api>(baseUrl, options);
+): UseStainlessReactQueryClient<Api> {
+  return ({
+    reactQueryContext,
+  }: UseStainlessReactQueryClientOptions = {}): StainlessReactQueryClient<Api> => {
+    const queryClient = useQueryClient({ context: reactQueryContext });
 
-  const client = createRecursiveProxy((opts) => {
-    const args = [...opts.args];
-    const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
-    const action = callPath.pop()!; // TODO validate
+    const baseClient = createClient<Api>(baseUrl, options);
 
-    if (action === "invalidateQueries") {
-      return (client: QueryClient) =>
-        client.invalidateQueries({ queryKey: [...callPath] });
-    }
+    const client = createRecursiveProxy((opts) => {
+      const args = [...opts.args];
+      const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
+      const action = callPath.pop()!; // TODO validate
 
-    const isHook = /^use[_A-Z]/.test(action);
-    const isInvalidate = /^invalidate[_A-Z]/.test(action);
+      const isHook = /^use[_A-Z]/.test(action);
+      const isQueryKeyMethod = queryKeyMethods.has(action);
 
-    if (!isHook && !isInvalidate) {
-      const baseMethod = opts.path.reduce(
-        (acc: any, elem: string) => acc[elem],
-        baseClient
-      );
-      return baseMethod(...args);
-    }
+      if (!isHook && !isQueryKeyMethod) {
+        const baseMethod = opts.path.reduce(
+          (acc: any, elem: string) => acc[elem],
+          baseClient
+        );
+        return baseMethod(...args);
+      }
 
-    const isInfinite = /^useInfinite([_A-Z]|$)/.test(action);
+      const isInfinite = /^useInfinite([_A-Z]|$)/.test(action);
 
-    const queryClient = isInvalidate ? args.shift() : undefined;
+      const baseAction = isQueryKeyMethod
+        ? callPath.at(-1) || "get"
+        : lowerFirst(action.replace(/^use(Infinite)?/, ""));
+      const method = isQueryKeyMethod ? "get" : actionMethod(action);
 
-    const baseAction = lowerFirst(
-      action.replace(/^invalidate|use(Infinite)?/, "")
-    );
-    const method = actionMethod(action);
+      if (
+        method === "post" ||
+        method === "patch" ||
+        method === "put" ||
+        method === "delete"
+      ) {
+        const { mutate, mutateAsync, ...rest } = useMutation({
+          ...(typeof args[0] === "object" ? args[0] : null),
+          mutationFn: ({ args }: { args: any[] }) =>
+            callPath
+              .reduce((acc: any, elem: string) => acc[elem], baseClient)
+              [baseAction](...args),
+        });
 
-    const reactQueryOptions: ({ query?: any } & UseQueryOptions) | undefined =
-      (isInfinite ? isUseInfiniteQueryOptions : isUseQueryOptions)(args.at(-1))
+        const mutateArgs = React.useCallback(
+          (
+            args: any[]
+          ): [{ args: any[] }, MutateOptions<any, any, { args: any[] }>] => {
+            const last = args.at(-1);
+            if (last && isMutateOptions(last)) {
+              args = [...args];
+              const { query, ...mutateOptions } = args.pop();
+              if (query) args.push({ query });
+              return [{ args }, mutateOptions];
+            }
+            return [{ args }, {}];
+          },
+          []
+        );
+
+        return {
+          ...rest,
+          mutate: React.useCallback(
+            (...args: any[]) => {
+              return mutate(...mutateArgs(args));
+            },
+            [mutate]
+          ),
+          mutateAsync: React.useCallback(
+            (...args: any[]) => mutateAsync(...mutateArgs(args)),
+            [mutateAsync]
+          ),
+        };
+      }
+
+      const reactQueryOptions:
+        | ({ query?: any } & UseQueryOptions<any>)
+        | undefined = (isInfinite
+        ? isUseInfiniteQueryOptions
+        : isUseQueryOptions)(args.at(-1))
         ? (args.pop() as any)
         : undefined;
-    const query: Record<string, any> =
-      reactQueryOptions?.query ||
-      (isPlainObject(args.at(-1))
-        ? (args.pop() as Record<string, any>)
-        : undefined);
+      const query: Record<string, any> =
+        reactQueryOptions?.query ||
+        (isPlainObject(args.at(-1))
+          ? (args.pop() as Record<string, any>)
+          : undefined);
 
-    const firstArg = args[0];
-    const path =
-      typeof firstArg === "string" || typeof firstArg === "number"
-        ? firstArg
-        : undefined;
+      const firstArg = args[0];
+      const path =
+        typeof firstArg === "string" || typeof firstArg === "number"
+          ? firstArg
+          : undefined;
 
-    const queryKey = [
-      ...callPath,
-      ...(path ? [path] : []),
-      ...(query ? [query] : []),
-    ];
+      const queryKeyCallPath = [...callPath];
+      if (isQueryKeyMethod) queryKeyCallPath.pop();
+      const queryKey = [
+        ...queryKeyCallPath,
+        ...(path ? [path] : []),
+        ...(query ? [query] : []),
+      ];
 
-    if (isInvalidate) {
-      if (!(queryClient instanceof QueryClient)) {
-        throw new Error(
-          `the first argument to ${action} must be a QueryClient instance`
+      if (isQueryKeyMethod) {
+        switch (action) {
+          case "getQueryKey":
+            return queryKey;
+          case "invalidateQueries":
+            return queryClient.invalidateQueries({ queryKey });
+        }
+        return;
+      }
+
+      const doFetch = (moreQuery?: object): ClientPromise<any> => {
+        const finalArgs = [...args];
+        if (query || moreQuery) {
+          const lastArg = finalArgs.at(-1);
+          if (
+            method === "get" &&
+            typeof lastArg === "object" &&
+            lastArg != null
+          ) {
+            finalArgs[finalArgs.length - 1] = {
+              ...lastArg,
+              ...query,
+              ...moreQuery,
+            };
+          } else {
+            finalArgs.push({ query: { ...query, ...moreQuery } });
+          }
+        }
+
+        const basePromise: BaseClientPromise<any> = callPath
+          .reduce((acc: any, elem: string) => acc[elem], baseClient)
+          [baseAction](...finalArgs);
+
+        return basePromise instanceof BasePaginatorPromise
+          ? PaginatorPromise.from(basePromise, { queryKey })
+          : ClientPromise.from(basePromise, { queryKey });
+      };
+
+      if (isInfinite) {
+        const result = useInfiniteQuery({
+          ...options,
+          queryKey,
+          queryFn: ({ pageParam }: { pageParam?: string }) =>
+            doFetch({
+              ...(pageParam
+                ? (JSON.parse(pageParam) as {
+                    pageAfter?: string;
+                    pageBefore?: string;
+                  })
+                : {}),
+              ...query,
+            }),
+          getNextPageParam: (lastPage: z.PageData<any>) =>
+            lastPage.endCursor
+              ? JSON.stringify({ pageAfter: lastPage.endCursor })
+              : undefined,
+          getPreviousPageParam: (firstPage: z.PageData<any>) =>
+            firstPage.startCursor
+              ? JSON.stringify({ pageBefore: firstPage.startCursor })
+              : undefined,
+        });
+
+        const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = result;
+        const pages = data?.pages;
+
+        const items = React.useMemo(
+          () => pages?.flatMap((p: any) => p.items) || [],
+          [pages]
+        );
+        const itemCount = items.length;
+        const itemAndPlaceholderCount = items.length + (hasNextPage ? 1 : 0);
+
+        /**
+         * This is a custom hook for infinite scroll views to use, it gets the
+         * item at the given index.  If the index is after the last item and
+         * there is more, triggers fetchNextPage and returns a loading placeholder.
+         * TODO: evict items at the beginning if the user scrolls far enough
+         */
+        const useItem = React.useCallback(
+          (index: number): UseItemResult<any> => {
+            const needNextPage = hasNextPage && index >= items.length;
+            // eslint-disable-next-line react-hooks/rules-of-hooks
+            React.useEffect(() => {
+              if (needNextPage && !isFetchingNextPage) fetchNextPage();
+              // eslint-disable-next-line react-hooks/exhaustive-deps
+            }, [needNextPage, isFetchingNextPage]);
+
+            if (items[index]) return { status: "loaded", data: items[index] };
+            if (hasNextPage && index === items.length) {
+              return { status: "loading" };
+            }
+          },
+          [items, hasNextPage, isFetchingNextPage, fetchNextPage]
+        );
+
+        return React.useMemo(
+          () => ({
+            ...result,
+            items,
+            itemCount,
+            itemAndPlaceholderCount,
+            useItem,
+          }),
+          [result, items, itemCount, itemAndPlaceholderCount, useItem]
         );
       }
-      queryClient.invalidateQueries({ queryKey });
-      return;
-    }
 
-    const doFetch = (moreQuery?: object): ClientPromise<any> => {
-      const finalArgs = [...args];
-      if (query || moreQuery) {
-        const lastArg = finalArgs.at(-1);
-        if (
-          method === "get" &&
-          typeof lastArg === "object" &&
-          lastArg != null
-        ) {
-          finalArgs[finalArgs.length - 1] = {
-            ...lastArg,
-            ...query,
-            ...moreQuery,
-          };
-        } else {
-          finalArgs.push({ query: { ...query, ...moreQuery } });
-        }
-      }
-
-      const basePromise: BaseClientPromise<any> = callPath
-        .reduce((acc: any, elem: string) => acc[elem], baseClient)
-        [baseAction](...finalArgs);
-
-      return basePromise instanceof BasePaginatorPromise
-        ? PaginatorPromise.from(basePromise, { queryKey })
-        : ClientPromise.from(basePromise, { queryKey });
-    };
-
-    if (isInfinite) {
-      const result = useInfiniteQuery({
-        ...options,
+      return useQuery({
+        ...reactQueryOptions,
         queryKey,
-        queryFn: ({ pageParam }: { pageParam?: string }) =>
-          doFetch({
-            ...(pageParam
-              ? (JSON.parse(pageParam) as {
-                  pageAfter?: string;
-                  pageBefore?: string;
-                })
-              : {}),
-            ...query,
-          }),
-        getNextPageParam: (lastPage: z.PageData<any>) =>
-          lastPage.endCursor
-            ? JSON.stringify({ pageAfter: lastPage.endCursor })
-            : undefined,
-        getPreviousPageParam: (firstPage: z.PageData<any>) =>
-          firstPage.startCursor
-            ? JSON.stringify({ pageBefore: firstPage.startCursor })
-            : undefined,
+        queryFn: () => doFetch(),
       });
-
-      const { data, hasNextPage, isFetchingNextPage, fetchNextPage } = result;
-      const pages = data?.pages;
-
-      const items = React.useMemo(
-        () => pages?.flatMap((p: any) => p.items) || [],
-        [pages]
-      );
-      const itemCount = items.length;
-      const itemAndPlaceholderCount = items.length + (hasNextPage ? 1 : 0);
-
-      /**
-       * This is a custom hook for infinite scroll views to use, it gets the
-       * item at the given index.  If the index is after the last item and
-       * there is more, triggers fetchNextPage and returns a loading placeholder.
-       * TODO: evict items at the beginning if the user scrolls far enough
-       */
-      const useItem = React.useCallback(
-        (index: number): UseItemResult<any> => {
-          const needNextPage = hasNextPage && index >= items.length;
-          // eslint-disable-next-line react-hooks/rules-of-hooks
-          React.useEffect(() => {
-            if (needNextPage && !isFetchingNextPage) fetchNextPage();
-            // eslint-disable-next-line react-hooks/exhaustive-deps
-          }, [needNextPage, isFetchingNextPage]);
-
-          if (items[index]) return { status: "loaded", data: items[index] };
-          if (hasNextPage && index === items.length) {
-            return { status: "loading" };
-          }
-        },
-        [items, hasNextPage, isFetchingNextPage, fetchNextPage]
-      );
-
-      return React.useMemo(
-        () => ({
-          ...result,
-          items,
-          itemCount,
-          itemAndPlaceholderCount,
-          useItem,
-        }),
-        [result, items, itemCount, itemAndPlaceholderCount, useItem]
-      );
-    }
-
-    return useQuery({
-      ...reactQueryOptions,
-      queryKey,
-      queryFn: () => doFetch(),
-    });
-  }, []) as StainlessReactQueryClient<Api>;
-  return client;
+    }, []) as StainlessReactQueryClient<Api>;
+    return client;
+  };
 }

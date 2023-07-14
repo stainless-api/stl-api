@@ -3,7 +3,8 @@
   "include": ["src"],
   "compilerOptions": {
     "outDir": "dist/cjs",
-    "rootDir": "src"
+    "rootDir": "src",
+    "jsx": "react"
   },
   "references": [{ "path": "../stainless" }]
 }
