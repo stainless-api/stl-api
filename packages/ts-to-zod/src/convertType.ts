@@ -165,11 +165,21 @@ export class ConvertTypeContext extends SchemaGenContext {
   currentFilePath: string;
 
   isSymbolImported(symbol: tm.Symbol): boolean {
-    const symbolFileName: string = getDeclarationOrThrow(symbol)
-      .getSourceFile()
-      .getFilePath();
-    return this.currentFilePath !== symbolFileName;
+    const declaration = getDeclarationOrThrow(symbol);
+    const symbolFileName: string = declaration.getSourceFile().getFilePath();
+    return (
+      this.currentFilePath !== symbolFileName ||
+      isDeclarationImported(declaration)
+    );
   }
+}
+
+function isDeclarationImported(declaration: tm.Node): boolean {
+  return (
+    declaration instanceof tm.ImportSpecifier ||
+    declaration instanceof tm.ImportClause ||
+    declaration instanceof tm.ImportDeclaration
+  );
 }
 
 export interface ImportInfo {
@@ -381,12 +391,7 @@ function convertTypeofNode(
 
   if (
     !declaration ||
-    !(
-      isDeclarationExported(declaration) ||
-      declaration instanceof tm.ImportSpecifier ||
-      declaration instanceof tm.ImportClause ||
-      declaration instanceof tm.ImportDeclaration
-    )
+    !(isDeclarationExported(declaration) || isDeclarationImported(declaration))
   ) {
     console.dir(declaration);
     ctx.addError(
