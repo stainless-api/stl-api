@@ -277,7 +277,7 @@ export function convertSymbol(
         try {
           generated = convertTypeof(
             internalCtx,
-            declaration,
+            typeNode,
             type,
             diagnosticItem
           );
@@ -335,13 +335,7 @@ export function convertTypeof(
         const typeArguments = node.getTypeArguments();
         const types = type.getTypeArguments();
         if (typeArguments.length !== 2) {
-          ctx.addError(
-            diagnosticItem,
-            {
-              message: `${name} must be instantiated with two type arguments inline`,
-            },
-            true
-          );
+          return undefined;
         }
 
         const baseSchema = convertType(ctx, types[0], diagnosticItem);
@@ -680,6 +674,22 @@ export function convertType(
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
   }
+
+  if (isStainlessPrismaSymbol(typeSymbol)) {
+    if (
+      baseTypeName === "PrismaModel" ||
+      baseTypeName === "PrismaModelLoader"
+    ) {
+      ctx.addError(
+        diagnosticItem,
+        {
+          message: `${baseTypeName} must be instantiated with two type arguments inline`,
+        },
+        true
+      );
+    }
+  }
+
   if (ty.isClass()) {
     if (!typeSymbol) {
       ctx.addError(
