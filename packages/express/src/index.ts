@@ -37,6 +37,14 @@ export type AddToExpressOptions = CreateExpressHandlerOptions & {
   basePathMap?: BasePathMap;
 };
 
+/**
+ * Executes the given Express request on the given Stainless API Endpoint
+ * @param endpoint the endpoint to execute the request on
+ * @param req the Express request
+ * @param res the Express response
+ * @returns a Promise that resolves to the return value of the endpoint handler,
+ * or rejects if it throws an error
+ */
 export async function stlExecuteExpressRequest<EC extends AnyEndpoint>(
   endpoint: AnyEndpoint,
   req: Request,
