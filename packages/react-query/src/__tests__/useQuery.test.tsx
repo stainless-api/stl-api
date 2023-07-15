@@ -11,6 +11,7 @@ import { render, waitFor } from "@testing-library/react";
 const stl = new Stl({ plugins: {} });
 
 const api = stl.api({
+  basePath: "/",
   resources: {
     query: stl.resource({
       summary: "query",

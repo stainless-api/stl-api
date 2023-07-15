@@ -598,6 +598,47 @@ it("/api/openapi", async function () {
             "summary": "TODO",
           },
         },
+        "/api/foo/{value}": {
+          "put": {
+            "description": "TODO",
+            "parameters": [
+              {
+                "in": "path",
+                "name": "value",
+                "required": true,
+                "schema": {
+                  "type": "number",
+                },
+              },
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {},
+              },
+            },
+            "responses": {
+              "200": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "properties": {
+                        "foo": {
+                          "type": "number",
+                        },
+                      },
+                      "required": [
+                        "foo",
+                      ],
+                      "type": "object",
+                    },
+                  },
+                },
+                "description": "success",
+              },
+            },
+            "summary": "TODO",
+          },
+        },
         "/api/openapi": {
           "get": {
             "description": "TODO",

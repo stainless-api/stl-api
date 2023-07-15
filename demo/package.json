@@ -5,7 +5,9 @@
   "scripts": {
     "mongo": "yarn prisma generate",
     "dev": "next dev",
-    "build": "prisma generate && next build && tsc -b",
+    "build": "prisma generate && pnpm build:api-route-map && next build && tsc -b",
+    "build:api-route-map": "node ../packages/stainless/dist/cli/gen-stl-api-route-map.js api/api.ts",
+    "watch:api-route-map": "nodemon -e js,json,ts --ignore *-route-map.ts --exec pnpm build:api-route-map",
     "start": "next start",
     "lint": "next lint",
     "psql": "docker compose exec db psql -U postgres",
@@ -64,6 +66,7 @@
     "jest-watch-typeahead": "^2.2.2",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.11",
+    "nodemon": "^2.0.22",
     "postcss": "^8.4.21",
     "swr": "^2.0.4",
     "tailwindcss": "^3.2.7",

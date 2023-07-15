@@ -18,8 +18,17 @@
   ],
   "license": "ISC",
   "source": "src/stl.ts",
+  "bin": {
+    "gen-stl-api-route-map": "./dist/cli/gen-stl-api-route-map.js"
+  },
   "main": "dist/stl.js",
   "types": "dist/stl.d.ts",
+  "exports": {
+    ".": {
+      "types": "./dist/stl.d.ts",
+      "default": "./dist/stl.js"
+    }
+  },
   "scripts": {
     "clean": "rimraf dist *.tsbuildinfo",
     "prebuild": "mkdir -p dist/esm && echo '{\"type\": \"module\"}' > dist/esm/package.json",
@@ -37,8 +46,10 @@
     "typescript": "^5.1.3"
   },
   "dependencies": {
+    "dedent-js": "^1.0.1",
     "lodash": "^4.17.21",
     "qs": "^6.11.2",
+    "ts-node": "^10.9.1",
     "zod": "^3.21.4",
     "zod-openapi": "github:stainless-api/zod-openapi#2.5.1"
   }
