@@ -1,8 +1,20 @@
-import z from "zod";
+import * as z from "./z";
+import { IncludablePaths } from "./includes";
+import { SelectTree } from "./parseSelect";
 
-export abstract class SchemaType<I, O> {
+export const SchemaSymbol = Symbol("SchemaType");
+
+export abstract class SchemaType<I, O = I> {
+  [SchemaSymbol] = true;
   declare _input: I;
   declare _output: O;
+}
+
+export const MetadataSymbol = Symbol("Metadata");
+
+export abstract class Metadata<T, M extends object> extends SchemaType<T> {
+  [MetadataSymbol] = true;
+  declare _metadata: M;
 }
 
 export const TransformSymbol = Symbol("Transform");
@@ -15,9 +27,9 @@ export abstract class Transform<I, O> extends SchemaType<I, O> {
   ): O | PromiseLike<O>;
 }
 
-export type input<T> = any extends T
+export type input<T> = 0 extends 1 & T
   ? any
-  : T extends SchemaType<any, infer I>
+  : T extends SchemaType<infer I, any>
   ? input<I>
   : T extends z.ZodTypeAny
   ? z.input<T>
@@ -35,10 +47,10 @@ export type input<T> = any extends T
   ? PromiseLike<input<E>>
   : T;
 
-export type output<T> = any extends T
+export type output<T> = 0 extends 1 & T
   ? any
-  : T extends SchemaType<any, infer I>
-  ? output<I>
+  : T extends SchemaType<any, infer O>
+  ? output<O>
   : T extends z.ZodTypeAny
   ? z.output<T>
   : T extends Date
@@ -57,7 +69,55 @@ export type output<T> = any extends T
 
 export type TypeSchema<Output> = Output | SchemaType<any, Output>;
 
-export type toZod<T> = z.ZodType<output<T>, z.ZodTypeDef, input<T>>;
+export type toZod<T> = [T] extends [z.ZodTypeAny]
+  ? T
+  : [null | undefined] extends [T]
+  ? z.ZodOptional<z.ZodNullable<toZod<NonNullable<T>>>>
+  : [null] extends [T]
+  ? z.ZodNullable<toZod<NonNullable<T>>>
+  : [undefined] extends [T]
+  ? z.ZodOptional<toZod<NonNullable<T>>>
+  : [T] extends [Transform<infer I, infer O>]
+  ? z.ZodEffects<toZod<I>, output<O>, input<I>>
+  : [T] extends [Refine<infer I, infer O>]
+  ? z.ZodEffects<toZod<I>, output<O>, input<I>>
+  : [T] extends [SuperRefine<infer I, infer O>]
+  ? z.ZodEffects<toZod<I>, output<O>, input<I>>
+  : [T] extends [Metadata<infer U, infer M>]
+  ? z.ZodMetadata<toZod<U>, M>
+  : [T] extends [StringSchema<any>]
+  ? z.ZodString
+  : [T] extends [NumberSchema<any>]
+  ? z.ZodNumber
+  : [T] extends [BigIntSchema<any>]
+  ? z.ZodBigInt
+  : [T] extends [DateSchema<any>]
+  ? z.ZodDate
+  : [T] extends [ObjectSchema<infer Shape, any>]
+  ? z.ZodObject<{ [k in keyof Shape]-?: NonNullable<toZod<Shape[k]>> }>
+  : [T] extends [ArraySchema<infer E, any>]
+  ? z.ZodArray<toZod<E>>
+  : [T] extends [SetSchema<infer E, any>]
+  ? z.ZodSet<toZod<E>>
+  : [T] extends [Includable<infer U>]
+  ? z.IncludableZodType<toZod<U>>
+  : [T] extends [Selectable<infer U>]
+  ? z.SelectableZodType<toZod<U>>
+  : [T] extends [SchemaType<infer I, infer O>]
+  ? z.ZodType<output<O>, any, input<I>>
+  : [T] extends [Date]
+  ? z.ZodDate
+  : [T] extends [Array<infer E>]
+  ? z.ZodArray<toZod<E>>
+  : [T] extends [Set<infer E>]
+  ? z.ZodSet<toZod<E>>
+  : [T] extends [Map<infer K, infer V>]
+  ? z.ZodMap<toZod<K>, toZod<V>>
+  : [T] extends [PromiseLike<infer E>]
+  ? z.ZodPromise<toZod<E>>
+  : [T] extends [object]
+  ? z.ZodObject<{ [k in keyof T]-?: NonNullable<toZod<T[k]>> }>
+  : z.ZodType<output<T>, any, input<T>>;
 
 export const RefineSymbol = Symbol("Refine");
 
@@ -214,4 +274,47 @@ type SetSchemaProps = ArraySchemaProps;
 export class SetSchema<T, Props extends SetSchemaProps> extends SchemaType<
   Set<T>,
   Set<T>
+> {}
+
+export class Includable<T extends TypeSchema<any>> extends Metadata<
+  SchemaType<z.IncludableInput<input<T>>, z.IncludableOutput<output<T>>>,
+  { stainless: { includable: true } }
+> {}
+
+export class Includes<
+  T,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends Metadata<
+  IncludablePaths<output<T>, Depth>[],
+  { stainless: { includes: true } }
+> {}
+
+export class Selectable<T extends TypeSchema<any>> extends Metadata<
+  SchemaType<z.SelectableInput<input<T>>, z.SelectableOutput<output<T>>>,
+  { stainless: { selectable: true } }
+> {}
+
+export class Selects<
+  T extends TypeSchema<object>,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends Metadata<
+  SchemaType<string, SelectTree | null | undefined>,
+  { stainless: { selects: true } }
+> {}
+
+export class Selection<T extends TypeSchema<any>> extends SchemaType<
+  input<T>,
+  output<T>
+> {}
+
+interface PageResponseType<I> {
+  startCursor: string | null;
+  endCursor: string | null;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+  items: I[];
+}
+
+export class PageResponse<I extends TypeSchema<any>> extends SchemaType<
+  PageResponseType<I>
 > {}

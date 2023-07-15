@@ -19,7 +19,7 @@ function main(fileName: string) {
   const ctx = new ConvertTypeContext(new SchemaGenContext(project), node);
   const type = node.getType();
   if (!type) throw new Error(`type not found`);
-  console.log(printNode(convertType(ctx, type)));
+  console.log(printNode(convertType(ctx, type, { variant: "node", node })));
 }
 
 main(path.resolve(__dirname, "../test_code/simple.ts"));

@@ -5,6 +5,7 @@ import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { authOptions } from "../pages/api/auth/[...nextauth]";
 import { makeCurrentUserPlugin } from "./currentUserPlugin";
 import { User } from "@prisma/client";
+import { typeSchemas } from "../stl-api-gen";
 
 declare module "stainless" {
   interface StlCustomContext {
@@ -20,6 +21,7 @@ const plugins = {
   currentUser: makeCurrentUserPlugin(),
 };
 
-export const stl = new Stl<typeof plugins>({
+export const stl = new Stl({
   plugins,
+  typeSchemas
 });

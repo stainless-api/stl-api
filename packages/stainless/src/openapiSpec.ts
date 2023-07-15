@@ -24,7 +24,9 @@ function allModels(
   };
 }
 
-export function openapiSpec(apiDescription: AnyAPIDescription): OpenAPIObject {
+export async function openapiSpec(
+  apiDescription: AnyAPIDescription
+): Promise<OpenAPIObject> {
   const models = allModels({
     models: apiDescription.topLevel?.models,
     namespacedResources: apiDescription.resources,
@@ -37,6 +39,8 @@ export function openapiSpec(apiDescription: AnyAPIDescription): OpenAPIObject {
     actions: apiDescription.topLevel?.actions,
     namespacedResources: apiDescription.resources,
   });
+
+  await Promise.all(endpoints.map((e) => e.stl.loadEndpointTypeSchemas(e)));
 
   const paths: ZodOpenApiPathsObject = {};
   for (const route of endpoints) {

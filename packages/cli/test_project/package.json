@@ -1,0 +1,23 @@
+{
+  "name": "test_project",
+  "version": "1.0.0",
+  "description": "",
+  "main": "dist/index.js",
+  "scripts": {
+    "start": "ts-node scripts/start.ts",
+    "watch": "nodemon -e js,ts --exec ts-node scripts/watch.ts",
+    "test": "jest",
+    "clean": "rimraf dist",
+    "format": "prettier -w .",
+    "build": "tsc -p tsconfig.json",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "stainless": "workspace:*"
+  },
+  "devDependencies": {
+    "typescript": "^5.1.3"
+  }
+}

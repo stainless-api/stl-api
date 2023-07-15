@@ -1,6 +1,6 @@
 import { testCase } from "./testCase";
 
-enum T {
+export enum T {
   a = "a",
   b = "b",
 }
