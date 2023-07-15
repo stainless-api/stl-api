@@ -43,7 +43,9 @@ export type AddToExpressOptions = CreateExpressHandlerOptions & {
 };
 
 /**
- * Executes the given Express request on the given Stainless API Endpoint
+ * Executes the given Express request on the given Stainless API Endpoint, returning
+ * the result from the endpoint handler without sending it in a response.
+ *
  * @param endpoint the endpoint to execute the request on
  * @param req the Express request
  * @param res the Express response
