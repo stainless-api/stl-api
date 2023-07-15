@@ -259,6 +259,9 @@ export function stlExpressResourceRouter(
   options?: AddEndpointsToExpressOptions & RouterOptions
 ): Router {
   const router = makeRouter(options);
+  router.use(express.json());
+  router.use(express.text());
+  router.use(express.raw());
   addStlResourceToExpress(router, resource, options);
   return router;
 }
@@ -290,6 +293,9 @@ export function stlExpressAPIRouter(
   options?: AddEndpointsToExpressOptions
 ): Router {
   const router = makeRouter();
+  router.use(express.json());
+  router.use(express.text());
+  router.use(express.raw());
   addStlAPIToExpress(router, api, options);
   return router;
 }
