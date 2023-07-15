@@ -34,6 +34,11 @@ export type CreateExpressHandlerOptions = {
 type BasePathMap = Record<string, string>;
 
 export type AddToExpressOptions = CreateExpressHandlerOptions & {
+  /**
+   * Mappings to apply to Stainless API Endpoint paths.  For example
+   * with `basePathMap: { '/api/', '/api/v2/' }, the endpoint
+   * `get /api/posts` would get transformed to `get /api/v2/posts`
+   */
   basePathMap?: BasePathMap;
 };
 
@@ -210,13 +215,21 @@ function addMethodNotAllowedHandlers(
   }
 }
 
+type AddEndpointsToExpressOptions = AddToExpressOptions & {
+  /**
+   * Whether to add 405 method not allowed handlers to the Express
+   * Router or Application (defaults to true)
+   */
+  addMethodNotAllowedHandlers?: boolean;
+};
+
 /**
  * Registers all endpoints in a Stainless resource with the given Express Application or Router.
  */
 export function addStlResourceToExpress(
   router: Application | Router,
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
-  options?: AddToExpressOptions
+  options?: AddEndpointsToExpressOptions
 ) {
   const { actions, namespacedResources } = resource;
   if (actions) {
@@ -226,12 +239,14 @@ export function addStlResourceToExpress(
       addStlEndpointToExpress(router, endpoint, options);
     }
   }
-  if (namespacedResources) {
-    for (const name of Object.keys(namespacedResources)) {
-      addStlResourceToExpress(router, namespacedResources[name], options);
+  if (options?.addMethodNotAllowedHandlers !== false) {
+    if (namespacedResources) {
+      for (const name of Object.keys(namespacedResources)) {
+        addStlResourceToExpress(router, namespacedResources[name], options);
+      }
     }
+    addMethodNotAllowedHandlers(router, resource, options);
   }
-  addMethodNotAllowedHandlers(router, resource, options);
 }
 
 /**
@@ -239,7 +254,7 @@ export function addStlResourceToExpress(
  */
 export function stlExpressResourceRouter(
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
-  options?: AddToExpressOptions & RouterOptions
+  options?: AddEndpointsToExpressOptions & RouterOptions
 ): Router {
   const router = makeRouter(options);
   addStlResourceToExpress(router, resource, options);
@@ -252,7 +267,7 @@ export function stlExpressResourceRouter(
 export function addStlAPIToExpress(
   router: Application | Router,
   api: AnyAPIDescription,
-  options?: AddToExpressOptions
+  options?: AddEndpointsToExpressOptions
 ) {
   const { topLevel, resources } = api;
   addStlResourceToExpress(
@@ -270,7 +285,7 @@ export function addStlAPIToExpress(
  */
 export function stlExpressAPIRouter(
   api: AnyAPIDescription,
-  options?: AddToExpressOptions
+  options?: AddEndpointsToExpressOptions
 ): Router {
   const router = makeRouter();
   addStlAPIToExpress(router, api, options);
@@ -279,7 +294,7 @@ export function stlExpressAPIRouter(
 
 export function stlExpressAPI(
   api: AnyAPIDescription,
-  options?: AddToExpressOptions
+  options?: AddEndpointsToExpressOptions
 ): Application {
   const app = express();
   app.use(express.json());
