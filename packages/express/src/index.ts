@@ -9,7 +9,12 @@ import express, {
   type ErrorRequestHandler,
   RouterOptions,
 } from "express";
-import { StlError, AnyAPIDescription, AnyActionsConfig } from "stainless";
+import {
+  StlError,
+  AnyAPIDescription,
+  AnyActionsConfig,
+  EndpointResponseOutput,
+} from "stainless";
 import { parseEndpoint, type AnyEndpoint } from "stainless";
 
 export type ExpressServerContext = {
@@ -32,6 +37,36 @@ export type AddToExpressOptions = CreateExpressHandlerOptions & {
   basePathMap?: BasePathMap;
 };
 
+export async function stlExecuteExpressRequest<EC extends AnyEndpoint>(
+  endpoint: AnyEndpoint,
+  req: Request,
+  res: Response
+): Promise<EndpointResponseOutput<EC>> {
+  const { params: path, headers, body, query } = req;
+
+  const { stl } = endpoint;
+
+  const server: ExpressServerContext = {
+    type: "express",
+    args: [req, res],
+  };
+
+  const context = stl.initContext({
+    endpoint,
+    headers,
+    server,
+  });
+
+  const params = stl.initParams({
+    path,
+    query,
+    body,
+    headers,
+  });
+
+  return await stl.execute(params, context);
+}
+
 /**
  * Creates an express route handler function for the given stainless endpoint.
  */
@@ -39,35 +74,13 @@ export function stlExpressRouteHandler(
   endpoint: AnyEndpoint,
   options: CreateExpressHandlerOptions
 ): RequestHandler {
-  const { stl } = endpoint;
-
   return async (
     req: Request,
     res: Response,
     next: NextFunction
   ): Promise<void> => {
     try {
-      const { params: path, headers, body, query } = req;
-
-      const server: ExpressServerContext = {
-        type: "express",
-        args: [req, res],
-      };
-
-      const context = stl.initContext({
-        endpoint,
-        headers,
-        server,
-      });
-
-      const params = stl.initParams({
-        path,
-        query,
-        body,
-        headers,
-      });
-
-      const result = await stl.execute(params, context);
+      const result = await stlExecuteExpressRequest(endpoint, req, res);
       res.status(200).json(result);
       return;
     } catch (error) {
