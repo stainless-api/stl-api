@@ -7,7 +7,6 @@ import {
 } from "../index";
 import { promisify } from "util";
 import { Server } from "http";
-import fetch from "node-fetch";
 
 const port = 7594;
 const baseUrl = `http://0.0.0.0:${port}`;
@@ -65,6 +64,7 @@ it("routing and basePathMap", async function () {
   await serve(
     stlExpressAPI(
       stl.api({
+        basePath: "/",
         resources: {
           posts: stl.resource({
             summary: "posts",
@@ -250,6 +250,7 @@ it(`handleErrors: false`, async function () {
   addStlAPIToExpress(
     app,
     stl.api({
+      basePath: "/",
       resources: {
         comments: stl.resource({
           summary: "comments",
