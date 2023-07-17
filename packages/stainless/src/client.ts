@@ -7,9 +7,13 @@ import {
   AnyResourceConfig,
   ResourceConfig,
   HttpMethod,
+  APIRouteMap,
   EndpointPathInput,
   EndpointBodyInput,
   EndpointQueryInput,
+  HttpPath,
+  HttpEndpoint,
+  EndpointHasRequiredQuery,
 } from "./stl";
 import { isEmpty, once } from "lodash";
 
@@ -20,13 +24,12 @@ type EndpointPathParam<E extends AnyEndpoint> =
     ? ValueOf<EndpointPathInput<E>>
     : undefined;
 
-type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
-  E["response"]
-> extends z.PageData<any>
-  ? PaginatorPromise<z.infer<E["response"]>>
-  : E["response"] extends z.ZodTypeAny
-  ? ClientPromise<z.infer<E["response"]>>
-  : ClientPromise<undefined>;
+type ExtractClientResponse<E extends AnyEndpoint> =
+  E["response"] extends z.ZodTypeAny
+    ? z.infer<E["response"]> extends z.PageData<any>
+      ? PaginatorPromise<z.infer<E["response"]>>
+      : ClientPromise<z.infer<E["response"]>>
+    : ClientPromise<undefined>;
 
 /**
  * A client for making requests to the REST API described by the `Api` type.
@@ -77,43 +80,68 @@ export type StainlessClient<Api extends AnyAPIDescription> = ClientResource<
   >
 >;
 
-type ClientResource<Resource extends AnyResourceConfig> = {
-  [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
-    ? ClientFunction<Resource["actions"][Action]>
-    : never;
-} & {
-  [S in keyof Resource["namespacedResources"]]: ClientResource<
-    Resource["namespacedResources"][S]
-  >;
-};
+type ClientResource<Resource extends AnyResourceConfig> =
+  (string extends keyof Resource["actions"]
+    ? {}
+    : {
+        [Action in keyof Resource["actions"]]: Resource["actions"][Action] extends AnyEndpoint
+          ? ClientFunction<Resource["actions"][Action]>
+          : never;
+      }) & {
+    [S in keyof Resource["namespacedResources"]]: ClientResource<
+      Resource["namespacedResources"][S]
+    >;
+  };
 
 type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   ? E["body"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        body: EndpointBodyInput<E>,
-        options?: RequestOptions<EndpointQueryInput<E>>
-      ) => ExtractClientResponse<E>
+    ? EndpointHasRequiredQuery<E> extends true
+      ? (
+          path: EndpointPathParam<E>,
+          body: EndpointBodyInput<E>,
+          options: RequestOptions<EndpointQueryInput<E>>
+        ) => ExtractClientResponse<E>
+      : (
+          path: EndpointPathParam<E>,
+          body: EndpointBodyInput<E>,
+          options?: RequestOptions<EndpointQueryInput<E>>
+        ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
-    ? (
-        path: EndpointPathParam<E>,
-        query: EndpointQueryInput<E>,
-        options?: RequestOptions
-      ) => ExtractClientResponse<E>
+    ? EndpointHasRequiredQuery<E> extends true
+      ? (
+          path: EndpointPathParam<E>,
+          query: EndpointQueryInput<E>,
+          options?: RequestOptions
+        ) => ExtractClientResponse<E>
+      : (
+          path: EndpointPathParam<E>,
+          query?: EndpointQueryInput<E>,
+          options?: RequestOptions
+        ) => ExtractClientResponse<E>
     : (
         path: EndpointPathParam<E>,
         options?: RequestOptions
       ) => ExtractClientResponse<E>
   : E["body"] extends z.ZodTypeAny
-  ? (
-      body: EndpointBodyInput<E>,
-      options?: RequestOptions<EndpointQueryInput<E>>
-    ) => ExtractClientResponse<E>
+  ? EndpointHasRequiredQuery<E> extends true
+    ? (
+        body: EndpointBodyInput<E>,
+        options: RequestOptions<EndpointQueryInput<E>>
+      ) => ExtractClientResponse<E>
+    : (
+        body: EndpointBodyInput<E>,
+        options?: RequestOptions<EndpointQueryInput<E>>
+      ) => ExtractClientResponse<E>
   : E["query"] extends z.ZodTypeAny
-  ? (
-      query: EndpointQueryInput<E>,
-      options?: RequestOptions
-    ) => ExtractClientResponse<E>
+  ? EndpointHasRequiredQuery<E> extends true
+    ? (
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
+    : (
+        query?: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
   : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
@@ -136,9 +164,18 @@ class HTTPResponseError extends Error {
 }
 
 /** Options for the {@link createClient} function. */
-interface CreateClientOptions {
-  /** Replaces the default global `fetch` function to make requests. */
+export type CreateClientOptions = {
   fetch?: typeof fetch;
+  routeMap?: APIRouteMap;
+  basePathMap?: Record<string, string>;
+};
+
+export function guessRequestEndpoint(
+  baseUrl: HttpPath,
+  callPath: string[],
+  action: string
+): HttpEndpoint {
+  return `${actionMethod(action)} ${baseUrl}/${callPath.join("/")}`;
 }
 
 /**
@@ -169,6 +206,19 @@ export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
   options?: CreateClientOptions
 ): StainlessClient<Api> {
+  const routeMap = options?.routeMap;
+  const basePathMap = options?.basePathMap;
+
+  function mapPathname(pathname: string): string {
+    if (!basePathMap) return pathname;
+    for (const k in basePathMap) {
+      if (pathname.startsWith(k)) {
+        return pathname.replace(k, basePathMap[k]);
+      }
+    }
+    return pathname;
+  }
+
   const checkStatus = (response: Response) => {
     if (response.ok) {
       // response.status >= 200 && response.status < 300
@@ -178,26 +228,69 @@ export function createClient<Api extends AnyAPIDescription>(
     }
   };
 
+  function getMethodAndUri(
+    callPath: string[],
+    action: string,
+    args: unknown[]
+  ): {
+    method: HttpMethod;
+    pathname: string;
+    uri: string;
+  } {
+    if (routeMap) {
+      const endpoint = callPath.reduce(
+        (
+          resource: APIRouteMap | undefined,
+          name: string
+        ): APIRouteMap | undefined => resource?.namespacedResources?.[name],
+        routeMap
+      )?.actions?.[action]?.endpoint;
+
+      const match = endpoint ? /^([a-z]+)\s+(.+)/i.exec(endpoint) : null;
+      if (match) {
+        const method = match[1];
+        const pathname = mapPathname(
+          match[2]
+            .split("/")
+            .map((part) =>
+              part.startsWith("{") && part.endsWith("}")
+                ? encodeURIComponent(args.shift() as string | number)
+                : part
+            )
+            .join("/")
+        );
+        const url = new URL(baseUrl);
+        url.pathname = pathname;
+        const uri = url.toString();
+        return { method: method as HttpMethod, pathname, uri };
+      }
+    }
+    let path = callPath.join("/"); // eg; /issuing/cards
+    if (typeof args[0] === "string" || typeof args[0] === "number") {
+      path += `/${encodeURIComponent(args.shift() as string | number)}`;
+    }
+    const method = actionMethod(action);
+    const pathname = mapPathname(`${baseUrl}/${path}`);
+    return {
+      method,
+      pathname,
+      uri: pathname,
+    };
+  }
+
   const client = createRecursiveProxy((opts) => {
     const args = [...opts.args];
     const callPath = [...opts.path]; // e.g. ["issuing", "cards", "create"]
     const action = callPath.pop()!; // TODO validate
     let requestOptions: RequestOptions<any> | undefined;
 
-    let path = callPath.join("/"); // eg; /issuing/cards
-    if (typeof args[0] === "string" || typeof args[0] === "number") {
-      path += `/${encodeURIComponent(args.shift() as string | number)}`;
-    }
+    let { method, pathname, uri } = getMethodAndUri(callPath, action, args);
 
     if (isRequestOptions(args.at(-1))) {
       requestOptions = args.pop() as any;
     }
-    const method = actionMethod(action);
 
     const body = method === "get" ? undefined : args[0];
-
-    const pathname = `${baseUrl}/${path}`;
-    let uri = pathname;
 
     const query: Record<string, any> = {
       ...(method === "get" && typeof args[0] === "object" ? args[0] : null),

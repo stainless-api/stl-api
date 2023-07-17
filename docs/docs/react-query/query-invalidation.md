@@ -1,16 +1,20 @@
 ---
-sidebar_position: 3
+sidebar_position: 5
 ---
 
 # Query Invalidation
 
-`createReactQueryClient` adds `invalidateQueries` methods to each resource, and for each `list`, `retrieve`, etc. method it
-adds an `invalidateList`, `invalidateRetrieve`, etc. method next to it:
+Right now to invalidate queries you have to use
+`client.<Resource>.<Action>.getQueryKey([path], [query])` to get the `queryKey` to pass
+to `QueryClient.invalidateQueries`.
+
+In the future, we plan to add methods like `client.<Resource>.invalidateQueries()` and
+`client.<Resource>.<Action>.invalidateQueries([path], [query])`.
 
 ```ts
 import * as React from "react";
 
-import { client } from "~/api/client";
+import { useClient } from "~/api/useClient";
 import { useQueryClient } from "@tanstack/react-query";
 
 const RefreshPostsButton: React.FC<FormProps> = ({
@@ -18,12 +22,13 @@ const RefreshPostsButton: React.FC<FormProps> = ({
   isComment,
   postId,
 }) => {
+  const client = useClient();
   const queryClient = useQueryClient();
 
   const refresh = React.useCallback(() => {
-    client.posts.invalidateQueries(queryClient);
-    // or:
-    client.posts.invalidateList(queryClient);
+    queryClient.invalidatePost({
+      queryKey: client.posts.list.getQueryKey(),
+    });
   }, []);
 
   // ...

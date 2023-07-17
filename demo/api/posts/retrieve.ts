@@ -4,16 +4,14 @@ import { PrismaModelLoader } from "@stl-api/prisma";
 import { prisma } from "../../libs/prismadb";
 import { PostType } from "./models";
 
-
 type Path = {
   post: PrismaModelLoader<string, typeof prisma.post>;
 };
 
 type Query = {
-  include?: t.Includes<PostType, 3>,
-  select?: t.Selects<PostType, 3>
-}
-
+  include?: t.Includes<PostType, 3>;
+  select?: t.Selects<PostType, 3>;
+};
 
 export const retrieve = stl
   .types<{ response: PostType; path: Path; query: Query }>()

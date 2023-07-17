@@ -1,8 +1,6 @@
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
 import { PostType } from "./models";
-import prisma from "../../libs/prismadb";
-import { PrismaModel } from "@stl-api/prisma";
 
 type Query = {
   include?: t.Includes<PostType, 3>;
@@ -16,7 +14,7 @@ export const create = stl
   .types<{
     query: Query;
     body: Body;
-    response: PrismaModel<PostType, typeof prisma.post>;
+    response: PostType;
   }>()
   .endpoint({
     endpoint: "post /api/posts",

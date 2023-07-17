@@ -1,8 +1,8 @@
 import { api } from "../api";
-import { getApiMetadata } from "stainless";
+import { getApiRouteMap } from "stainless";
 
-it("getApiMetadata(api)", () => {
-  expect(getApiMetadata(api)).toMatchInlineSnapshot(`
+it("getApiRouteMap(api)", () => {
+  expect(getApiRouteMap(api)).toMatchInlineSnapshot(`
     {
       "actions": {
         "getOpenapi": {
@@ -10,33 +10,10 @@ it("getApiMetadata(api)", () => {
         },
       },
       "namespacedResources": {
-        "comments": {
+        "test": {
           "actions": {
-            "create": {
-              "endpoint": "post /api/comments",
-            },
-          },
-        },
-        "posts": {
-          "actions": {
-            "create": {
-              "endpoint": "post /api/posts",
-            },
-            "list": {
-              "endpoint": "get /api/posts",
-            },
-            "retrieve": {
-              "endpoint": "get /api/posts/{post}",
-            },
-          },
-        },
-        "users": {
-          "actions": {
-            "list": {
-              "endpoint": "get /api/users",
-            },
-            "retrieve": {
-              "endpoint": "get /api/users/{userId}",
+            "foo": {
+              "endpoint": "put /api/foo/{value}",
             },
           },
         },

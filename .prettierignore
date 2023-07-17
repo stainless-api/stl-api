@@ -1,2 +1,19 @@
-**/.next
+.vscode/
+.swc/
+.docusaurus/
+dist/
+node_modules/
 pnpm-lock.yaml
+
+packages/ts-to-zod/brainstorm/layout/
+packages/ts-to-zod/prisma-client/
+
+# next.js
+.next/
+out/
+next-env.d.ts
+
+# Local Netlify folder
+.netlify/
+
+*-route-map.ts

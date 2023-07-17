@@ -4,7 +4,7 @@ const factory = ts.factory;
 import { SchemaGenContext, convertSymbol } from "../convertType";
 import { testProject } from "./testProject";
 import { generateFiles } from "../generateFiles";
-import { GenOptions } from "../filePathConfig";
+import { GenOptions, createGenerationConfig } from "../filePathConfig";
 import * as path from "path";
 import pkgUp from "pkg-up";
 
@@ -49,7 +49,8 @@ export const multiFileTestCase = async (options: {
     },
     rootPath,
   };
-  for (const [file, statements] of generateFiles(ctx, genOptions)) {
+  const generationConfig = createGenerationConfig(genOptions);
+  for (const [file, statements] of generateFiles(ctx, generationConfig)) {
     const relativeFile = path.relative(rootPath, file);
     const sourceFile = factory.createSourceFile(
       statements,

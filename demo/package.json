@@ -5,11 +5,15 @@
   "scripts": {
     "mongo": "yarn prisma generate",
     "dev": "next dev",
-    "build": "prisma generate && next build && tsc -b",
+    "build": "prisma generate && pnpm build:api-route-map && next build && tsc -b",
+    "build:api-route-map": "node ../packages/stainless/dist/cli/gen-stl-api-route-map.js api/api.ts",
+    "watch:api-route-map": "nodemon -e js,json,ts --ignore *-route-map.ts --exec pnpm build:api-route-map",
     "start": "next start",
     "lint": "next lint",
     "psql": "docker compose exec db psql -U postgres",
-    "prisma": "prisma"
+    "prisma": "prisma",
+    "stl": "ts-node --transpileOnly --swc ../packages/cli/src/index.ts",
+    "test": "jest"
   },
   "prisma": {
     "seed": "ts-node --compiler-options {\"module\":\"CommonJS\"} prisma/seed.ts"
@@ -17,6 +21,7 @@
   "dependencies": {
     "@next-auth/prisma-adapter": "^1.0.5",
     "@prisma/client": "^4.14.1",
+    "@stl-api/gen": "workspace:*",
     "@stl-api/next": "workspace:*",
     "@stl-api/next-auth": "workspace:*",
     "@stl-api/prisma": "workspace:*",
@@ -47,6 +52,7 @@
   "devDependencies": {
     "@faker-js/faker": "^7.6.0",
     "@types/bcrypt": "^5.0.0",
+    "@types/jest": "^29.5.1",
     "@types/lodash": "^4.14.191",
     "@types/node": "18.14.2",
     "@types/node-fetch": "^2.6.4",
@@ -56,12 +62,16 @@
     "@types/react-virtualized-auto-sizer": "^1.0.1",
     "@types/react-window": "^1.8.5",
     "autoprefixer": "^10.4.13",
+    "jest": "^29.5.0",
+    "jest-watch-typeahead": "^2.2.2",
     "lodash": "^4.17.21",
     "node-fetch": "^2.6.11",
+    "nodemon": "^2.0.22",
     "postcss": "^8.4.21",
     "swr": "^2.0.4",
     "tailwindcss": "^3.2.7",
+    "ts-jest": "^29.1.0",
     "ts-node": "^10.9.1",
-    "typescript": "^5.0.4"
+    "typescript": "^5.1.3"
   }
 }

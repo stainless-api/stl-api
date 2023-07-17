@@ -1,21 +1,22 @@
 import { z, Stl } from "stainless";
 import { ExternalInterface, TestEnumAdditional } from "./additional";
-<<<<<<< Updated upstream
-import { ExternalInterface as __symbol_ExternalInterface, InThisFile as __symbol_InThisFile } from "../stl-api-gen/src/index";
-import { Test as __class_Test, EnumTest as __enum_EnumTest } from "../stl-api-gen/src/index";
+import {
+  ExternalInterface as __symbol_ExternalInterface,
+  InThisFile as __symbol_InThisFile,
+} from "../stl-api-gen/src/index";
+import {
+  Test as __class_Test,
+  EnumTest as __enum_EnumTest,
+} from "../stl-api-gen/src/index";
 import { TestEnumAdditional as __enum_TestEnumAdditional } from "../stl-api-gen/src/additional";
-=======
-import { TestEnumAdditional as __enum_TestEnumAdditional } from "@stl-api/gen/src/additional";
->>>>>>> Stashed changes
 const stl = new Stl({
   plugins: {},
 });
 
-
 export enum EnumTest {
-    A,
-    B,
-    C,
+  A,
+  B,
+  C,
 }
 
 export class X {}
@@ -29,19 +30,24 @@ export class Test {}
 // stl.magic<Test>(__class_Test);
 
 type BadType = {
-  a: string,
-  b: [...string[], number],
-}
+  a: string;
+  b: [...string[], number];
+};
 
-type Mapped = Partial<{a: string}>;
+type Mapped = Partial<{ a: string }>;
 
 // stl.magic<Partial<{a: string}>>(z.object({ a: z.string().optional() }));
 
 type InThisFile = {
-    id: string,
-}
+  id: string;
+};
 
-stl.magic<{nested: EnumTest, nested2: TestEnumAdditional}>(z.object({ nested: z.lazy(() => __enum_EnumTest), nested2: z.lazy(() => __enum_TestEnumAdditional) }));
+stl.magic<{ nested: EnumTest; nested2: TestEnumAdditional }>(
+  z.object({
+    nested: z.lazy(() => __enum_EnumTest),
+    nested2: z.lazy(() => __enum_TestEnumAdditional),
+  })
+);
 
 // stl.endpoint({
 //   endpoint: "get /users",

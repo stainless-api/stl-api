@@ -24,13 +24,14 @@ import {
 
 import {
   generateFiles,
-  generateImportStatementsESM,
+  generateImportStatements,
   generatePath,
   relativeImportPath,
 } from "ts-to-zod/dist/generateFiles";
 
 import {
   GenOptions,
+  GenerationConfig,
   createGenerationConfig,
 } from "ts-to-zod/dist/filePathConfig";
 
@@ -45,9 +46,10 @@ import { program as argParser } from "commander";
 import {
   convertPathToImport,
   isSymbolStlMethod,
-  mangleString,
+  mangleRouteToIdentifier,
   statOrExit,
 } from "./utils";
+import { format } from "./format";
 
 // TODO: add dry run functionality?
 argParser.option("-w, --watch", "enables watch mode");
@@ -106,9 +108,19 @@ async function main() {
     console.error(`Error: '${tsConfigFilePath}' is not a file.`);
   }
 
+  const generationOptions = {
+    genLocation: {
+      type: "folder",
+      genPath: FOLDER_GEN_PATH,
+    },
+    rootPath,
+    zPackage: "stainless",
+  } as const;
+  const generationConfig = createGenerationConfig(generationOptions);
+
   let watcher: Watcher | undefined;
   if (options.watch) {
-    watcher = new Watcher(rootPath);
+    watcher = new Watcher(rootPath, generationConfig.basePath);
   }
 
   const project =
@@ -120,21 +132,12 @@ async function main() {
 
   const baseCtx = new SchemaGenContext(project);
 
-  const generationOptions = {
-    genLocation: {
-      type: "folder",
-      genPath: FOLDER_GEN_PATH,
-    },
-    rootPath,
-    zPackage: "stainless",
-  } as const;
-
   const printer = tm.ts.createPrinter();
 
   const succeeded = await evaluate(
     project,
     baseCtx,
-    generationOptions,
+    generationConfig,
     rootPath,
     printer
   );
@@ -147,7 +150,7 @@ async function main() {
       const succeeded = await evaluate(
         watcher.project,
         watcher.baseCtx,
-        generationOptions,
+        generationConfig,
         rootPath,
         printer
       );
@@ -182,12 +185,10 @@ function generateIncidentLocation(
 async function evaluate(
   project: tm.Project,
   baseCtx: SchemaGenContext,
-  generationOptions: GenOptions,
+  generationConfig: GenerationConfig,
   rootPath: string,
   printer: ts.Printer
 ): Promise<boolean> {
-  const generationConfig = createGenerationConfig(generationOptions);
-
   // accumulated diagnostics to emit
   const callDiagnostics: CallDiagnostics[] = [];
   // every stl.types.endpoint call found per file
@@ -246,7 +247,7 @@ async function evaluate(
           imports: new Map(),
           generatedSchemas: new Map(),
         }));
-        const name = mangleString(call.endpointPath);
+        const name = mangleRouteToIdentifier(call.endpointPath);
         ctxFile.generatedSchemas.set(name, {
           name,
           expression: endpointSchema,
@@ -277,12 +278,18 @@ async function evaluate(
         node: typeArgument,
       } as const;
 
-      const typeofSchema = convertTypeof(
-        ctx,
-        typeArgument,
-        type,
-        diagnosticItem
-      );
+      let typeofSchema;
+
+      try {
+        typeofSchema = convertTypeof(ctx, typeArgument, type, diagnosticItem);
+      } catch (e) {
+        if (e instanceof ErrorAbort) {
+          break;
+        } else throw e;
+      } finally {
+        addDiagnostics(ctx, file, callExpression, callDiagnostics);
+      }
+
       if (typeofSchema) {
         schemaExpression = typeofSchema;
       } else if (
@@ -359,8 +366,7 @@ async function evaluate(
             imports.set(name, {
               ...importInfo,
               sourceFile: Path.join(
-                rootPath,
-                FOLDER_GEN_PATH,
+                generationConfig.basePath,
                 Path.relative(rootPath, importInfo.sourceFile)
               ),
             });
@@ -370,10 +376,9 @@ async function evaluate(
     }
 
     // add new imports necessary for schema generation
-    let importDeclarations = generateImportStatementsESM(
+    let importDeclarations = generateImportStatements(
       generationConfig,
       file.getFilePath(),
-      "stainless",
       imports,
       namespacedImports
     );
@@ -420,7 +425,7 @@ async function evaluate(
   // Commit all operations potentially destructive to AST visiting.
   fileOperations.forEach((op) => op());
 
-  const generatedFileContents = generateFiles(baseCtx, generationOptions);
+  const generatedFileContents = generateFiles(baseCtx, generationConfig);
 
   if (callDiagnostics.length) {
     const output = [];
@@ -501,23 +506,22 @@ async function evaluate(
     }
   }
 
-  // Generate __endpointMap
+  // Generate index.ts
   if (endpointCalls.size) {
     const mapEntries = [];
 
-    const genPath = Path.join(rootPath, FOLDER_GEN_PATH);
-    const endpointMapGenPathTS = Path.join(genPath, "__endpointMap.ts");
+    const endpointMapGenPath = Path.join(generationConfig.basePath, "index.ts");
 
     for (const [file, calls] of endpointCalls) {
       for (const call of calls) {
-        const mangledName = mangleString(call.endpointPath);
+        const mangledName = mangleRouteToIdentifier(call.endpointPath);
         const importExpression = factory.createCallExpression(
           factory.createToken(ts.SyntaxKind.ImportKeyword) as ts.Expression,
           undefined,
           [
             factory.createStringLiteral(
               `${relativeImportPath(
-                endpointMapGenPathTS,
+                endpointMapGenPath,
                 convertPathToImport(
                   generatePath(file.getFilePath(), generationConfig)
                 )
@@ -544,34 +548,16 @@ async function evaluate(
         );
         const entry = factory.createPropertyAssignment(
           factory.createStringLiteral(call.endpointPath),
-          callExpression
+          createThunk(callExpression)
         );
         mapEntries.push(entry);
       }
     }
 
-    const mapExpression = factory.createObjectLiteralExpression(mapEntries);
-
-    const mapStatementCJS = factory.createExpressionStatement(
-      factory.createAssignment(
-        factory.createPropertyAccessExpression(
-          factory.createIdentifier("exports"),
-          "map"
-        ),
-        mapExpression
-      )
-    );
-
-    const mapSourceFileCJS = factory.createSourceFile(
-      [mapStatementCJS],
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-
     const mapDeclaration = factory.createVariableDeclarationList(
       [
         factory.createVariableDeclaration(
-          "endpointToSchema",
+          "typeSchemas",
           undefined,
           undefined,
           factory.createObjectLiteralExpression(mapEntries)
@@ -579,82 +565,23 @@ async function evaluate(
       ],
       ts.NodeFlags.Const
     );
-    const mapStatementESM = factory.createVariableStatement(
+    const mapStatement = factory.createVariableStatement(
       [factory.createToken(ts.SyntaxKind.ExportKeyword)],
       mapDeclaration
     );
 
-    const mapSourceFileESM = factory.createSourceFile(
-      [mapStatementESM],
+    const mapSourceFile = factory.createSourceFile(
+      [mapStatement],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
       0
     );
 
-    await fs.promises.mkdir(genPath, { recursive: true });
-
-    // const endpointMapGenPathCJS = Path.join(genPath, "__endpointMap.js");
-    // await fs.promises.writeFile(
-    //   endpointMapGenPathCJS,
-    //   printer.printFile(mapSourceFileCJS)
-    // );
+    await fs.promises.mkdir(generationConfig.basePath, { recursive: true });
 
     await fs.promises.writeFile(
-      endpointMapGenPathTS,
-      printer.printFile(mapSourceFileESM)
+      endpointMapGenPath,
+      await format(printer.printFile(mapSourceFile), endpointMapGenPath)
     );
-
-    const stainlessTypeImport = factory.createImportDeclaration(
-      undefined,
-      factory.createImportClause(
-        true,
-        undefined,
-        factory.createNamedImports([
-          factory.createImportSpecifier(
-            false,
-            undefined,
-            factory.createIdentifier("TypeSchemas")
-          ),
-        ])
-      ),
-      factory.createStringLiteral("stainless")
-    );
-
-    const indexReturnStatement = factory.createReturnStatement(
-      factory.createAsExpression(
-        factory.createAwaitExpression(
-          factory.createCallExpression(
-            factory.createIdentifier("import"),
-            undefined,
-            [factory.createStringLiteral("./__endpointMap")]
-          )
-        ),
-        factory.createTypeReferenceNode("any")
-      )
-    );
-
-    const indexTypeSchemasDeclaration = factory.createFunctionDeclaration(
-      [
-        factory.createToken(ts.SyntaxKind.ExportKeyword),
-        factory.createToken(ts.SyntaxKind.AsyncKeyword),
-      ],
-      undefined,
-      "typeSchemas",
-      undefined,
-      [],
-      factory.createTypeReferenceNode("Promise", [
-        factory.createTypeReferenceNode("TypeSchemas"),
-      ]),
-      factory.createBlock([indexReturnStatement])
-    );
-
-    const indexSourceFile = factory.createSourceFile(
-      [stainlessTypeImport, indexTypeSchemasDeclaration],
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-
-    const indexPath = Path.join(genPath, "index.ts");
-    await fs.promises.writeFile(indexPath, printer.printFile(indexSourceFile));
   }
 
   for (const [file, fileStatments] of generatedFileContents) {
@@ -671,7 +598,10 @@ async function evaluate(
     );
 
     // write sourceFile to file
-    await fs.promises.writeFile(file, printer.printFile(sourceFile));
+    await fs.promises.writeFile(
+      file,
+      await format(printer.printFile(sourceFile), file)
+    );
   }
 
   project.save();
@@ -817,4 +747,15 @@ function getOrInsert<K, V>(map: Map<K, V>, key: K, create: () => V): V {
     map.set(key, value);
   }
   return value;
+}
+
+function createThunk(expression: ts.Expression): ts.Expression {
+  return factory.createArrowFunction(
+    undefined,
+    undefined,
+    [],
+    undefined,
+    undefined,
+    expression
+  );
 }

@@ -2,20 +2,20 @@ import * as z from "./z";
 import * as t from "./t";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
-export { SelectTree, parseSelect } from "./parseSelect";
+export { type SelectTree, parseSelect } from "./parseSelect";
 export { z, t };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
 export {
   type StainlessClient,
+  type CreateClientOptions,
   ClientPromise,
   type ClientPromiseProps,
   PaginatorPromise,
   type Page,
   type RequestOptions,
 } from "./client";
-
-export { getApiMetadata } from "./gen/getApiMetadata";
+export { getApiRouteMap } from "./gen/getApiRouteMap";
 
 /** The standard HTTP methods, in lowercase. */
 export type HttpMethod =
@@ -39,7 +39,23 @@ export type HttpPath = `/${string}`;
  */
 export type HttpEndpoint = `${HttpMethod} ${HttpPath}`;
 
-export function parseEndpoint(endpoint: HttpEndpoint): [HttpMethod, HttpPath] {
+export type GetEndpointMethod<E extends AnyEndpoint> = GetHttpEndpointMethod<
+  E["endpoint"]
+>;
+
+export type GetHttpEndpointMethod<E extends HttpEndpoint> =
+  E extends `${infer M extends HttpMethod} ${string}` ? M : never;
+
+export type GetEndpointUrl<E extends AnyEndpoint> = GetHttpEndpointUrl<
+  E["endpoint"]
+>;
+
+export type GetHttpEndpointUrl<E extends HttpEndpoint> =
+  E extends `${HttpMethod} ${infer Url}` ? Url : never;
+
+export function parseEndpoint<E extends HttpEndpoint>(
+  endpoint: E
+): [GetHttpEndpointMethod<E>, GetHttpEndpointUrl<E>] {
   const [method, path] = endpoint.split(/\s+/, 2);
   switch (method) {
     case "get":
@@ -58,7 +74,7 @@ export function parseEndpoint(endpoint: HttpEndpoint): [HttpMethod, HttpPath] {
       `Invalid path must start with a slash (/); got: "${endpoint}"`
     );
   }
-  return [method, path as HttpPath];
+  return [method as GetHttpEndpointMethod<E>, path as GetHttpEndpointUrl<E>];
 }
 
 /**
@@ -179,6 +195,12 @@ export type EndpointQueryInput<E extends AnyEndpoint> =
   E["query"] extends z.ZodTypeAny ? z.input<E["query"]> : undefined;
 export type EndpointQueryOutput<E extends AnyEndpoint> =
   E["query"] extends z.ZodTypeAny ? z.output<E["query"]> : undefined;
+export type EndpointHasRequiredQuery<E extends AnyEndpoint> =
+  E["query"] extends z.ZodTypeAny
+    ? {} extends EndpointQueryInput<E>
+      ? false
+      : true
+    : false;
 
 export type EndpointBodyInput<E extends AnyEndpoint> =
   E["body"] extends z.ZodTypeAny ? z.input<E["body"]> : undefined;
@@ -189,12 +211,6 @@ export type EndpointResponseInput<E extends AnyEndpoint> =
   E["response"] extends z.ZodTypeAny ? z.input<E["response"]> : undefined;
 export type EndpointResponseOutput<E extends AnyEndpoint> =
   E["response"] extends z.ZodTypeAny ? z.output<E["response"]> : undefined;
-
-export type GetEndpointMethod<E extends AnyEndpoint> =
-  E["endpoint"] extends `${infer M extends HttpMethod} ${string}` ? M : never;
-
-export type GetEndpointUrl<E extends AnyEndpoint> =
-  E["endpoint"] extends `${HttpMethod} ${infer Url}` ? Url : never;
 
 /**
  * Gets all endpoints associated with a given resource
@@ -241,29 +257,38 @@ type OpenAPIConfig = {
   spec: OpenAPIObject;
 };
 
+export const apiSymbol = Symbol("api");
+
+export function isAPIDescription(value: unknown): value is AnyAPIDescription {
+  return (value as any)?.[apiSymbol] === true;
+}
+
 /**
  * A type containing information about an API defined by the
  * {@link Stl.api} method.
  */
 export type APIDescription<
+  BasePath extends HttpPath,
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > = {
+  [apiSymbol]: true;
+  basePath: BasePath;
   openapi: OpenAPIConfig;
   topLevel: TopLevel;
   resources: Resources;
 };
 
-export type APIMetadata = {
-  actions?: Record<string, ActionMetadata>;
-  namespacedResources?: Record<string, APIMetadata>;
+export type APIRouteMap = {
+  actions?: Record<string, RouteMapAction>;
+  namespacedResources?: Record<string, APIRouteMap>;
 };
 
-export type ActionMetadata = {
+export type RouteMapAction = {
   endpoint: HttpEndpoint;
 };
 
-export type AnyAPIDescription = APIDescription<any, any>;
+export type AnyAPIDescription = APIDescription<any, any, any>;
 
 /**
  * Throw `StlError` and its subclasses within endpoint `handler` methods
@@ -376,7 +401,7 @@ export type CreateStlOptions<Plugins extends AnyPlugins> = {
    * `typeSchemas` is exported from the module where you're configured
    * magic schemas to generate in. By default, this is `stl-api-gen`.
    */
-  typeSchemas?: () => Promise<TypeSchemas>;
+  typeSchemas?: TypeSchemas;
 };
 
 /** The raw headers provided on a request. */
@@ -554,9 +579,11 @@ interface CreateResourceOptions<
 
 /** Parameters for {@link Stl.api} */
 interface CreateApiOptions<
+  BasePath extends HttpPath,
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > {
+  basePath: BasePath;
   /**
    * Optionally configure an endpoint for retrieving the API's
    * generated OpenAPI schema.
@@ -597,7 +624,6 @@ export class Stl<Plugins extends AnyPlugins> {
   // this gets filled in later, we just declare the type here.
   plugins = {} as ExtractStatics<Plugins>;
   private stainlessPlugins: Record<string, StainlessPlugin<any>> = {};
-  private typeSchemasGen?: () => Promise<TypeSchemas>;
   private typeSchemas?: TypeSchemas;
 
   /**
@@ -615,8 +641,8 @@ export class Stl<Plugins extends AnyPlugins> {
         // @ts-expect-error
         this.plugins[key] = plugin.statics;
       }
-      this.typeSchemasGen = opts.typeSchemas;
     }
+    this.typeSchemas = opts.typeSchemas;
   }
 
   /**
@@ -643,6 +669,38 @@ export class Stl<Plugins extends AnyPlugins> {
     return p;
   }
 
+  async loadEndpointTypeSchemas(endpoint: AnyEndpoint): Promise<void> {
+    if (
+      !endpoint.query &&
+      !endpoint.path &&
+      !endpoint.body &&
+      !endpoint.response
+    ) {
+      if (!this.typeSchemas) {
+        throw new Error(
+          "Failed to provide `typeSchemas` to stl instance while using magic schemas"
+        );
+      }
+      try {
+        const schemas = await this.typeSchemas[endpoint.endpoint]?.();
+        if (schemas) {
+          endpoint.path = schemas.path;
+          endpoint.query = schemas.query;
+          endpoint.body = schemas.body;
+          endpoint.response = schemas.response;
+        } else {
+          throw new Error(
+            "error encountered while handling endpoint " +
+              endpoint.endpoint +
+              ": no schema found. run the `stl` cli on the project to generate the schema for the endpoint."
+          );
+        }
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }
+
   /**
    * Handles an incoming request by invoking the endpoint for it.
    * This should not be called in typical use.
@@ -659,38 +717,7 @@ export class Stl<Plugins extends AnyPlugins> {
     params: Params,
     context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
-    if (
-      !context.endpoint.query &&
-      !context.endpoint.path &&
-      !context.endpoint.body &&
-      !context.endpoint.response
-    ) {
-      if (!this.typeSchemasGen) {
-        throw new Error(
-          "Failed to provide `typeSchemas` to stl instance while using magic schemas"
-        );
-      }
-      try {
-        this.typeSchemas ||= await this.typeSchemasGen();
-        const schemas = await this.typeSchemas.endpointToSchema[
-          context.endpoint.endpoint
-        ];
-        if (schemas) {
-          context.endpoint.path = schemas.path;
-          context.endpoint.query = schemas.query;
-          context.endpoint.body = schemas.body;
-          context.endpoint.response = schemas.response;
-        } else {
-          throw new Error(
-            "error encountered while handling endpoint " +
-              context.endpoint.endpoint +
-              ": no schema found. run the `stl` cli on the project to generate the schema for the endpoint."
-          );
-        }
-      } catch (e) {
-        console.error(e);
-      }
-    }
+    await this.loadEndpointTypeSchemas(context.endpoint);
 
     for (const plugin of Object.values(this.stainlessPlugins)) {
       const middleware = plugin.middleware;
@@ -879,39 +906,40 @@ export class Stl<Plugins extends AnyPlugins> {
    * ```
    */
   api<
+    BasePath extends HttpPath,
     TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
     Resources extends Record<string, AnyResourceConfig> | undefined
   >({
+    basePath,
     openapi,
     topLevel,
     resources,
-  }: CreateApiOptions<TopLevel, Resources>): APIDescription<
+  }: CreateApiOptions<BasePath, TopLevel, Resources>): APIDescription<
+    BasePath,
     TopLevel & OpenAPITopLevel<typeof openapi>,
     Resources
   > {
-    const openapiEndpoint = openapi?.endpoint ?? "get /api/openapi";
+    const openapiEndpoint = openapi?.endpoint ?? `get ${basePath}/openapi`;
     const topLevelActions = topLevel?.actions || {};
     const apiDescription = {
+      [apiSymbol]: true,
+      basePath,
       openapi: {
         endpoint: openapiEndpoint,
-        get spec() {
-          // TODO memoize
-          return openapiSpec(apiDescription);
-        },
       },
       topLevel: {
         ...topLevel,
         actions: topLevelActions,
       },
       resources: resources || {},
-    } as APIDescription<TopLevel, Resources>;
+    } as APIDescription<BasePath, TopLevel, Resources>;
 
     if (openapiEndpoint !== false) {
       (topLevelActions as any).getOpenapi = this.endpoint({
         endpoint: openapiEndpoint,
         response: OpenAPIResponse,
         async handler() {
-          return openapiSpec(apiDescription) as any;
+          return (await openapiSpec(apiDescription)) as any;
         },
       });
     }
@@ -919,6 +947,7 @@ export class Stl<Plugins extends AnyPlugins> {
     // Type system is not powerful enough to understand that if statement above
     // ensures if openApi.endpoint !== false, then getOpenapi is provided
     return apiDescription as APIDescription<
+      BasePath,
       TopLevel & OpenAPITopLevel<typeof openapi>,
       Resources
     >;
@@ -952,7 +981,7 @@ export class Stl<Plugins extends AnyPlugins> {
    * ```
    */
   magic<T>(schema: z.ZodTypeAny): t.toZod<T> {
-    return schema;
+    return schema as any;
   }
 
   /**
@@ -1004,19 +1033,21 @@ export class Stl<Plugins extends AnyPlugins> {
    * ```
    */
   types<T extends Types>(): TypeEndpointBuilder<
-    TypeArgToZod<T, "path">,
-    TypeArgToZod<T, "query">,
-    TypeArgToZod<T, "body">,
+    TypeArgToZodObject<T, "path">,
+    TypeArgToZodObject<T, "query">,
+    TypeArgToZodObject<T, "body">,
     "response" extends keyof T ? t.toZod<T["response"]> : z.ZodVoid
   > {
+    type Path = TypeArgToZodObject<T, "path">;
+    type Query = TypeArgToZodObject<T, "query">;
+    type Body = TypeArgToZodObject<T, "body">;
+    type Response = "response" extends keyof T
+      ? t.toZod<T["response"]>
+      : z.ZodVoid;
     return {
       endpoint: <
         MethodAndUrl extends HttpEndpoint,
-        Config extends EndpointConfig | undefined,
-        Path extends ZodObjectSchema | undefined,
-        Query extends ZodObjectSchema | undefined,
-        Body extends ZodObjectSchema | undefined,
-        Response extends z.ZodTypeAny = z.ZodVoid
+        Config extends EndpointConfig | undefined
       >({
         endpoint,
         config,
@@ -1048,10 +1079,19 @@ type TypeArgToZod<T extends Types, K extends keyof Types> = K extends keyof T
   ? t.toZod<T[K]>
   : undefined;
 
+type TypeArgToZodObject<
+  T extends Types,
+  K extends keyof Types
+> = K extends keyof T
+  ? t.toZod<T[K]> extends infer U extends ZodObjectSchema
+    ? U
+    : undefined
+  : undefined;
+
 interface Types {
-  path?: any;
-  query?: any;
-  body?: any;
+  path?: object;
+  query?: object;
+  body?: object;
   response?: any;
 }
 
@@ -1095,14 +1135,12 @@ interface TypeEndpointBuilder<
   ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response>;
 }
 
-export type TypeSchemas = {
-  endpointToSchema: Record<
-    string,
-    Promise<{
-      path?: z.ZodTypeAny;
-      query?: z.ZodTypeAny;
-      body?: z.ZodTypeAny;
-      response?: z.ZodTypeAny;
-    }>
-  >;
-};
+export type TypeSchemas = Record<
+  string,
+  () => Promise<{
+    path?: z.ZodTypeAny;
+    query?: z.ZodTypeAny;
+    body?: z.ZodTypeAny;
+    response?: z.ZodTypeAny;
+  }>
+>;

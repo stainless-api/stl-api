@@ -10,423 +10,423 @@ it(`crazy prisma types`, async () =>
   })
 ).toMatchInlineSnapshot(`
 {
-  "prisma-client/index.d.codegen.d.ts": "import { z } from "zod";
-export const CommentInclude: z.ZodTypeAny;
-export const QueryMode: z.ZodTypeAny;
-export const NestedUuidFilter: z.ZodTypeAny;
-export const UuidFilter: z.ZodTypeAny;
-export const NestedStringFilter: z.ZodTypeAny;
-export const StringFilter: z.ZodTypeAny;
-export const NestedDateTimeFilter: z.ZodTypeAny;
-export const DateTimeFilter: z.ZodTypeAny;
-export const NestedStringNullableFilter: z.ZodTypeAny;
-export const StringNullableFilter: z.ZodTypeAny;
-export const NestedDateTimeNullableFilter: z.ZodTypeAny;
-export const DateTimeNullableFilter: z.ZodTypeAny;
-export const StringNullableListFilter: z.ZodTypeAny;
-export const NestedBoolNullableFilter: z.ZodTypeAny;
-export const BoolNullableFilter: z.ZodTypeAny;
-export const UserRelationFilter: z.ZodTypeAny;
-export const CommentListRelationFilter: z.ZodTypeAny;
-export const PostWhereInput: z.ZodTypeAny;
-export const PostListRelationFilter: z.ZodTypeAny;
-export const NotificationWhereInput: z.ZodTypeAny;
-export const NotificationListRelationFilter: z.ZodTypeAny;
-export const UserWhereInput: z.ZodTypeAny;
-export const PostRelationFilter: z.ZodTypeAny;
-export const CommentWhereInput: z.ZodTypeAny;
-export const SortOrder: z.ZodTypeAny;
-export const PostOrderByRelationAggregateInput: z.ZodTypeAny;
-export const CommentOrderByRelationAggregateInput: z.ZodTypeAny;
-export const NotificationOrderByRelationAggregateInput: z.ZodTypeAny;
-export const UserOrderByWithRelationInput: z.ZodTypeAny;
-export const PostOrderByWithRelationInput: z.ZodTypeAny;
-export const CommentOrderByWithRelationInput: z.ZodTypeAny;
-export const CommentWhereUniqueInput: z.ZodTypeAny;
-export const CommentScalarFieldEnum: z.ZodTypeAny;
-export const Post$commentsArgs: z.ZodTypeAny;
-export const PostCountOutputTypeSelect: z.ZodTypeAny;
-export const PostCountOutputTypeArgs: z.ZodTypeAny;
-export const PostInclude: z.ZodTypeAny;
-export const PostArgs: z.ZodTypeAny;
-export const CommentSelect: z.ZodTypeAny;
-export const User$commentsArgs: z.ZodTypeAny;
-export const NotificationSelect: z.ZodTypeAny;
-export const NotificationInclude: z.ZodTypeAny;
-export const NotificationOrderByWithRelationInput: z.ZodTypeAny;
-export const NotificationWhereUniqueInput: z.ZodTypeAny;
-export const NotificationScalarFieldEnum: z.ZodTypeAny;
-export const User$notificationsArgs: z.ZodTypeAny;
-export const UserCountOutputTypeSelect: z.ZodTypeAny;
-export const UserCountOutputTypeArgs: z.ZodTypeAny;
-export const UserInclude: z.ZodTypeAny;
-export const UserArgs: z.ZodTypeAny;
-export const PostSelect: z.ZodTypeAny;
-export const PostWhereUniqueInput: z.ZodTypeAny;
-export const PostScalarFieldEnum: z.ZodTypeAny;
-export const User$postsArgs: z.ZodTypeAny;
-export const UserSelect: z.ZodTypeAny;
-export const UserCreatefollowingIdsInput: z.ZodTypeAny;
-export const PostCreatelikedIdsInput: z.ZodTypeAny;
-export const CommentUncheckedCreateWithoutPostInput: z.ZodTypeAny;
-export const NotificationUncheckedCreateWithoutUserInput: z.ZodTypeAny;
-export const NotificationCreateWithoutUserInput: z.ZodTypeAny;
-export const NotificationCreateOrConnectWithoutUserInput: z.ZodTypeAny;
-export const NotificationCreateManyUserInput: z.ZodTypeAny;
-export const NotificationCreateManyUserInputEnvelope: z.ZodTypeAny;
-export const NotificationUncheckedCreateNestedManyWithoutUserInput: z.ZodTypeAny;
-export const UserUncheckedCreateWithoutCommentsInput: z.ZodTypeAny;
-export const CommentCreateOrConnectWithoutPostInput: z.ZodTypeAny;
-export const CommentCreateManyPostInput: z.ZodTypeAny;
-export const CommentCreateManyPostInputEnvelope: z.ZodTypeAny;
-export const CommentCreateNestedManyWithoutPostInput: z.ZodTypeAny;
-export const PostCreateWithoutUserInput: z.ZodTypeAny;
-export const PostCreateOrConnectWithoutUserInput: z.ZodTypeAny;
-export const PostCreateManyUserInput: z.ZodTypeAny;
-export const PostCreateManyUserInputEnvelope: z.ZodTypeAny;
-export const PostCreateNestedManyWithoutUserInput: z.ZodTypeAny;
-export const NotificationCreateNestedManyWithoutUserInput: z.ZodTypeAny;
-export const UserCreateWithoutCommentsInput: z.ZodTypeAny;
-export const UserWhereUniqueInput: z.ZodTypeAny;
-export const UserCreateOrConnectWithoutCommentsInput: z.ZodTypeAny;
-export const UserCreateNestedOneWithoutCommentsInput: z.ZodTypeAny;
-export const CommentCreateWithoutPostInput: z.ZodTypeAny;
-export const CommentUncheckedCreateNestedManyWithoutPostInput: z.ZodTypeAny;
-export const PostUncheckedCreateWithoutUserInput: z.ZodTypeAny;
-export const PostUncheckedCreateNestedManyWithoutUserInput: z.ZodTypeAny;
-export const CommentUncheckedCreateWithoutUserInput: z.ZodTypeAny;
-export const PostUncheckedCreateWithoutCommentsInput: z.ZodTypeAny;
-export const UserUncheckedCreateWithoutPostsInput: z.ZodTypeAny;
-export const CommentCreateOrConnectWithoutUserInput: z.ZodTypeAny;
-export const CommentCreateManyUserInput: z.ZodTypeAny;
-export const CommentCreateManyUserInputEnvelope: z.ZodTypeAny;
-export const CommentCreateNestedManyWithoutUserInput: z.ZodTypeAny;
-export const UserCreateWithoutPostsInput: z.ZodTypeAny;
-export const UserCreateOrConnectWithoutPostsInput: z.ZodTypeAny;
-export const UserCreateNestedOneWithoutPostsInput: z.ZodTypeAny;
-export const PostCreateWithoutCommentsInput: z.ZodTypeAny;
-export const PostCreateOrConnectWithoutCommentsInput: z.ZodTypeAny;
-export const PostCreateNestedOneWithoutCommentsInput: z.ZodTypeAny;
-export const CommentCreateWithoutUserInput: z.ZodTypeAny;
-export const CommentUncheckedCreateNestedManyWithoutUserInput: z.ZodTypeAny;
-export const UserUncheckedCreateInput: z.ZodTypeAny;
-export const UserCreateInput: z.ZodTypeAny;
+  "prisma-client/index.d.codegen.ts": "import { z } from "zod";
+export const CommentInclude: z.ZodTypeAny = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
+export const QueryMode: z.ZodTypeAny = z.enum(["default", "insensitive"]);
+export const NestedUuidFilter: z.ZodTypeAny = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
+export const UuidFilter: z.ZodTypeAny = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
+export const NestedStringFilter: z.ZodTypeAny = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedStringFilter)]).optional() });
+export const StringFilter: z.ZodTypeAny = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedStringFilter)]).optional() });
+export const NestedDateTimeFilter: z.ZodTypeAny = z.object({ equals: z.union([z.string(), z.date()]).optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeFilter)]).optional() });
+export const DateTimeFilter: z.ZodTypeAny = z.object({ equals: z.union([z.string(), z.date()]).optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeFilter)]).optional() });
+export const NestedStringNullableFilter: z.ZodTypeAny = z.object({ equals: z.string().nullable().optional(), in: z.union([z.string(), z.array(z.string())]).nullable().optional(), notIn: z.union([z.string(), z.array(z.string())]).nullable().optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedStringNullableFilter)]).nullable().optional() });
+export const StringNullableFilter: z.ZodTypeAny = z.object({ equals: z.string().nullable().optional(), in: z.union([z.string(), z.array(z.string())]).nullable().optional(), notIn: z.union([z.string(), z.array(z.string())]).nullable().optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedStringNullableFilter)]).nullable().optional() });
+export const NestedDateTimeNullableFilter: z.ZodTypeAny = z.object({ equals: z.union([z.string(), z.date()]).nullable().optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeNullableFilter)]).nullable().optional() });
+export const DateTimeNullableFilter: z.ZodTypeAny = z.object({ equals: z.union([z.string(), z.date()]).nullable().optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeNullableFilter)]).nullable().optional() });
+export const StringNullableListFilter: z.ZodTypeAny = z.object({ equals: z.union([z.string(), z.array(z.string())]).nullable().optional(), has: z.string().nullable().optional(), hasEvery: z.union([z.string(), z.array(z.string())]).optional(), hasSome: z.union([z.string(), z.array(z.string())]).optional(), isEmpty: z.boolean().optional() });
+export const NestedBoolNullableFilter: z.ZodTypeAny = z.object({ equals: z.boolean().nullable().optional(), not: z.union([z.lazy(() => NestedBoolNullableFilter), z.boolean()]).nullable().optional() });
+export const BoolNullableFilter: z.ZodTypeAny = z.object({ equals: z.boolean().nullable().optional(), not: z.union([z.lazy(() => NestedBoolNullableFilter), z.boolean()]).nullable().optional() });
+export const UserRelationFilter: z.ZodTypeAny = z.object({ is: z.lazy(() => UserWhereInput).optional(), isNot: z.lazy(() => UserWhereInput).optional() });
+export const CommentListRelationFilter: z.ZodTypeAny = z.object({ every: z.lazy(() => CommentWhereInput).optional(), some: z.lazy(() => CommentWhereInput).optional(), none: z.lazy(() => CommentWhereInput).optional() });
+export const PostWhereInput: z.ZodTypeAny = z.object({ AND: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), OR: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), NOT: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), likedIds: z.lazy(() => StringNullableListFilter).optional(), image: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional(), comments: z.lazy(() => CommentListRelationFilter).optional() });
+export const PostListRelationFilter: z.ZodTypeAny = z.object({ every: z.lazy(() => PostWhereInput).optional(), some: z.lazy(() => PostWhereInput).optional(), none: z.lazy(() => PostWhereInput).optional() });
+export const NotificationWhereInput: z.ZodTypeAny = z.object({ AND: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), OR: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), NOT: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional() });
+export const NotificationListRelationFilter: z.ZodTypeAny = z.object({ every: z.lazy(() => NotificationWhereInput).optional(), some: z.lazy(() => NotificationWhereInput).optional(), none: z.lazy(() => NotificationWhereInput).optional() });
+export const UserWhereInput: z.ZodTypeAny = z.object({ AND: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), OR: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), NOT: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), name: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), username: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), bio: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), email: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), emailVerified: z.union([z.string(), z.date(), z.lazy(() => DateTimeNullableFilter)]).nullable().optional(), image: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), coverImage: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), profileImage: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), hashedPassword: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), followingIds: z.lazy(() => StringNullableListFilter).optional(), hasNotification: z.union([z.lazy(() => BoolNullableFilter), z.boolean()]).nullable().optional(), posts: z.lazy(() => PostListRelationFilter).optional(), comments: z.lazy(() => CommentListRelationFilter).optional(), notifications: z.lazy(() => NotificationListRelationFilter).optional() });
+export const PostRelationFilter: z.ZodTypeAny = z.object({ is: z.lazy(() => PostWhereInput).optional(), isNot: z.lazy(() => PostWhereInput).optional() });
+export const CommentWhereInput: z.ZodTypeAny = z.object({ AND: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), OR: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), NOT: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), postId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional(), post: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => PostWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), userId: z.undefined(), likedIds: z.undefined(), user: z.undefined() }).and(z.lazy(() => PostRelationFilter))]).optional() });
+export const SortOrder: z.ZodTypeAny = z.enum(["asc", "desc"]);
+export const PostOrderByRelationAggregateInput: z.ZodTypeAny = z.object({ _count: z.lazy(() => SortOrder).optional() });
+export const CommentOrderByRelationAggregateInput: z.ZodTypeAny = z.object({ _count: z.lazy(() => SortOrder).optional() });
+export const NotificationOrderByRelationAggregateInput: z.ZodTypeAny = z.object({ _count: z.lazy(() => SortOrder).optional() });
+export const UserOrderByWithRelationInput: z.ZodTypeAny = z.object({ id: z.lazy(() => SortOrder).optional(), name: z.lazy(() => SortOrder).optional(), username: z.lazy(() => SortOrder).optional(), bio: z.lazy(() => SortOrder).optional(), email: z.lazy(() => SortOrder).optional(), emailVerified: z.lazy(() => SortOrder).optional(), image: z.lazy(() => SortOrder).optional(), coverImage: z.lazy(() => SortOrder).optional(), profileImage: z.lazy(() => SortOrder).optional(), hashedPassword: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), followingIds: z.lazy(() => SortOrder).optional(), hasNotification: z.lazy(() => SortOrder).optional(), posts: z.lazy(() => PostOrderByRelationAggregateInput).optional(), comments: z.lazy(() => CommentOrderByRelationAggregateInput).optional(), notifications: z.lazy(() => NotificationOrderByRelationAggregateInput).optional() });
+export const PostOrderByWithRelationInput: z.ZodTypeAny = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), likedIds: z.lazy(() => SortOrder).optional(), image: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional(), comments: z.lazy(() => CommentOrderByRelationAggregateInput).optional() });
+export const CommentOrderByWithRelationInput: z.ZodTypeAny = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), postId: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional(), post: z.lazy(() => PostOrderByWithRelationInput).optional() });
+export const CommentWhereUniqueInput: z.ZodTypeAny = z.object({ id: z.string().optional() });
+export const CommentScalarFieldEnum: z.ZodTypeAny = z.enum(["id", "createdAt", "updatedAt", "body", "userId", "postId"]);
+export const Post$commentsArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => CommentSelect).nullable().optional(), include: z.lazy(() => CommentInclude).nullable().optional(), where: z.lazy(() => CommentWhereInput).optional(), orderBy: z.union([z.lazy(() => CommentOrderByWithRelationInput), z.array(z.lazy(() => CommentOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => CommentWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => CommentScalarFieldEnum), z.array(z.lazy(() => CommentScalarFieldEnum))]).optional() });
+export const PostCountOutputTypeSelect: z.ZodTypeAny = z.object({ comments: z.boolean().optional() });
+export const PostCountOutputTypeArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => PostCountOutputTypeSelect).nullable().optional() });
+export const PostInclude: z.ZodTypeAny = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => Post$commentsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => PostCountOutputTypeArgs), z.boolean()]).optional() });
+export const PostArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => PostSelect).nullable().optional(), include: z.lazy(() => PostInclude).nullable().optional() });
+export const CommentSelect: z.ZodTypeAny = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), userId: z.boolean().optional(), postId: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
+export const User$commentsArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => CommentSelect).nullable().optional(), include: z.lazy(() => CommentInclude).nullable().optional(), where: z.lazy(() => CommentWhereInput).optional(), orderBy: z.union([z.lazy(() => CommentOrderByWithRelationInput), z.array(z.lazy(() => CommentOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => CommentWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => CommentScalarFieldEnum), z.array(z.lazy(() => CommentScalarFieldEnum))]).optional() });
+export const NotificationSelect: z.ZodTypeAny = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), userId: z.boolean().optional(), createdAt: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional() });
+export const NotificationInclude: z.ZodTypeAny = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional() });
+export const NotificationOrderByWithRelationInput: z.ZodTypeAny = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional() });
+export const NotificationWhereUniqueInput: z.ZodTypeAny = z.object({ id: z.string().optional() });
+export const NotificationScalarFieldEnum: z.ZodTypeAny = z.enum(["id", "createdAt", "body", "userId"]);
+export const User$notificationsArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => NotificationSelect).nullable().optional(), include: z.lazy(() => NotificationInclude).nullable().optional(), where: z.lazy(() => NotificationWhereInput).optional(), orderBy: z.union([z.lazy(() => NotificationOrderByWithRelationInput), z.array(z.lazy(() => NotificationOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => NotificationWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => NotificationScalarFieldEnum), z.array(z.lazy(() => NotificationScalarFieldEnum))]).optional() });
+export const UserCountOutputTypeSelect: z.ZodTypeAny = z.object({ posts: z.boolean().optional(), comments: z.boolean().optional(), notifications: z.boolean().optional() });
+export const UserCountOutputTypeArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => UserCountOutputTypeSelect).nullable().optional() });
+export const UserInclude: z.ZodTypeAny = z.object({ posts: z.union([z.lazy(() => User$postsArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => User$commentsArgs), z.boolean()]).optional(), notifications: z.union([z.lazy(() => User$notificationsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => UserCountOutputTypeArgs), z.boolean()]).optional() });
+export const UserArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => UserSelect).nullable().optional(), include: z.lazy(() => UserInclude).nullable().optional() });
+export const PostSelect: z.ZodTypeAny = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), userId: z.boolean().optional(), likedIds: z.boolean().optional(), image: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => Post$commentsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => PostCountOutputTypeArgs), z.boolean()]).optional() });
+export const PostWhereUniqueInput: z.ZodTypeAny = z.object({ id: z.string().optional() });
+export const PostScalarFieldEnum: z.ZodTypeAny = z.enum(["id", "image", "createdAt", "updatedAt", "body", "userId", "likedIds"]);
+export const User$postsArgs: z.ZodTypeAny = z.object({ select: z.lazy(() => PostSelect).nullable().optional(), include: z.lazy(() => PostInclude).nullable().optional(), where: z.lazy(() => PostWhereInput).optional(), orderBy: z.union([z.lazy(() => PostOrderByWithRelationInput), z.array(z.lazy(() => PostOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => PostWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => PostScalarFieldEnum), z.array(z.lazy(() => PostScalarFieldEnum))]).optional() });
+export const UserSelect: z.ZodTypeAny = z.object({ id: z.boolean().optional(), name: z.boolean().optional(), username: z.boolean().optional(), bio: z.boolean().optional(), email: z.boolean().optional(), emailVerified: z.boolean().optional(), image: z.boolean().optional(), coverImage: z.boolean().optional(), profileImage: z.boolean().optional(), hashedPassword: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), followingIds: z.boolean().optional(), hasNotification: z.boolean().optional(), posts: z.union([z.lazy(() => User$postsArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => User$commentsArgs), z.boolean()]).optional(), notifications: z.union([z.lazy(() => User$notificationsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => UserCountOutputTypeArgs), z.boolean()]).optional() });
+export const UserCreatefollowingIdsInput: z.ZodTypeAny = z.object({ set: z.union([z.string(), z.array(z.string())]) });
+export const PostCreatelikedIdsInput: z.ZodTypeAny = z.object({ set: z.union([z.string(), z.array(z.string())]) });
+export const CommentUncheckedCreateWithoutPostInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string() });
+export const NotificationUncheckedCreateWithoutUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
+export const NotificationCreateWithoutUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
+export const NotificationCreateOrConnectWithoutUserInput: z.ZodTypeAny = z.object({ where: z.lazy(() => NotificationWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput))]) });
+export const NotificationCreateManyUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
+export const NotificationCreateManyUserInputEnvelope: z.ZodTypeAny = z.object({ data: z.union([z.lazy(() => NotificationCreateManyUserInput), z.array(z.lazy(() => NotificationCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
+export const NotificationUncheckedCreateNestedManyWithoutUserInput: z.ZodTypeAny = z.object({ create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => NotificationCreateOrConnectWithoutUserInput), z.array(z.lazy(() => NotificationCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => NotificationCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => NotificationWhereUniqueInput), z.array(z.lazy(() => NotificationWhereUniqueInput))]).optional() });
+export const UserUncheckedCreateWithoutCommentsInput: z.ZodTypeAny = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
+export const CommentCreateOrConnectWithoutPostInput: z.ZodTypeAny = z.object({ where: z.lazy(() => CommentWhereUniqueInput), create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput))]) });
+export const CommentCreateManyPostInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string() });
+export const CommentCreateManyPostInputEnvelope: z.ZodTypeAny = z.object({ data: z.union([z.lazy(() => CommentCreateManyPostInput), z.array(z.lazy(() => CommentCreateManyPostInput))]), skipDuplicates: z.boolean().optional() });
+export const CommentCreateNestedManyWithoutPostInput: z.ZodTypeAny = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), user: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutPostInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), userId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutPostInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutPostInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutPostInput))]).optional(), createMany: z.lazy(() => CommentCreateManyPostInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
+export const PostCreateWithoutUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutPostInput).optional() });
+export const PostCreateOrConnectWithoutUserInput: z.ZodTypeAny = z.object({ where: z.lazy(() => PostWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput))]) });
+export const PostCreateManyUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional() });
+export const PostCreateManyUserInputEnvelope: z.ZodTypeAny = z.object({ data: z.union([z.lazy(() => PostCreateManyUserInput), z.array(z.lazy(() => PostCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
+export const PostCreateNestedManyWithoutUserInput: z.ZodTypeAny = z.object({ create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => PostCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => PostCreateOrConnectWithoutUserInput), z.array(z.lazy(() => PostCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => PostCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => PostWhereUniqueInput), z.array(z.lazy(() => PostWhereUniqueInput))]).optional() });
+export const NotificationCreateNestedManyWithoutUserInput: z.ZodTypeAny = z.object({ create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => NotificationCreateOrConnectWithoutUserInput), z.array(z.lazy(() => NotificationCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => NotificationCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => NotificationWhereUniqueInput), z.array(z.lazy(() => NotificationWhereUniqueInput))]).optional() });
+export const UserCreateWithoutCommentsInput: z.ZodTypeAny = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
+export const UserWhereUniqueInput: z.ZodTypeAny = z.object({ id: z.string().optional(), username: z.string().optional(), email: z.string().optional() });
+export const UserCreateOrConnectWithoutCommentsInput: z.ZodTypeAny = z.object({ where: z.lazy(() => UserWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutCommentsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutCommentsInput))]) });
+export const UserCreateNestedOneWithoutCommentsInput: z.ZodTypeAny = z.object({ create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutCommentsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutCommentsInput))]).optional(), connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutCommentsInput).optional(), connect: z.lazy(() => UserWhereUniqueInput).optional() });
+export const CommentCreateWithoutPostInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), user: z.lazy(() => UserCreateNestedOneWithoutCommentsInput) });
+export const CommentUncheckedCreateNestedManyWithoutPostInput: z.ZodTypeAny = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), user: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutPostInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), userId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutPostInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutPostInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutPostInput))]).optional(), createMany: z.lazy(() => CommentCreateManyPostInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
+export const PostUncheckedCreateWithoutUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutPostInput).optional() });
+export const PostUncheckedCreateNestedManyWithoutUserInput: z.ZodTypeAny = z.object({ create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => PostCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => PostCreateOrConnectWithoutUserInput), z.array(z.lazy(() => PostCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => PostCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => PostWhereUniqueInput), z.array(z.lazy(() => PostWhereUniqueInput))]).optional() });
+export const CommentUncheckedCreateWithoutUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), postId: z.string() });
+export const PostUncheckedCreateWithoutCommentsInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional() });
+export const UserUncheckedCreateWithoutPostsInput: z.ZodTypeAny = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
+export const CommentCreateOrConnectWithoutUserInput: z.ZodTypeAny = z.object({ where: z.lazy(() => CommentWhereUniqueInput), create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput))]) });
+export const CommentCreateManyUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), postId: z.string() });
+export const CommentCreateManyUserInputEnvelope: z.ZodTypeAny = z.object({ data: z.union([z.lazy(() => CommentCreateManyUserInput), z.array(z.lazy(() => CommentCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
+export const CommentCreateNestedManyWithoutUserInput: z.ZodTypeAny = z.object({ create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), post: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), postId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutUserInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => CommentCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
+export const UserCreateWithoutPostsInput: z.ZodTypeAny = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
+export const UserCreateOrConnectWithoutPostsInput: z.ZodTypeAny = z.object({ where: z.lazy(() => UserWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutPostsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutPostsInput))]) });
+export const UserCreateNestedOneWithoutPostsInput: z.ZodTypeAny = z.object({ create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutPostsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutPostsInput))]).optional(), connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutPostsInput).optional(), connect: z.lazy(() => UserWhereUniqueInput).optional() });
+export const PostCreateWithoutCommentsInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), user: z.lazy(() => UserCreateNestedOneWithoutPostsInput) });
+export const PostCreateOrConnectWithoutCommentsInput: z.ZodTypeAny = z.object({ where: z.lazy(() => PostWhereUniqueInput), create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => PostUncheckedCreateWithoutCommentsInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => PostCreateWithoutCommentsInput))]) });
+export const PostCreateNestedOneWithoutCommentsInput: z.ZodTypeAny = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => PostUncheckedCreateWithoutCommentsInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => PostCreateWithoutCommentsInput))]).optional(), connectOrCreate: z.lazy(() => PostCreateOrConnectWithoutCommentsInput).optional(), connect: z.lazy(() => PostWhereUniqueInput).optional() });
+export const CommentCreateWithoutUserInput: z.ZodTypeAny = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), post: z.lazy(() => PostCreateNestedOneWithoutCommentsInput) });
+export const CommentUncheckedCreateNestedManyWithoutUserInput: z.ZodTypeAny = z.object({ create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), post: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), postId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutUserInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => CommentCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
+export const UserUncheckedCreateInput: z.ZodTypeAny = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostUncheckedCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
+export const UserCreateInput: z.ZodTypeAny = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
 ",
-  "prisma-client/index.d.codegen.js": "const { z } = require("zod");
-const CommentInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
-exports.CommentInclude = CommentInclude;
-const QueryMode = z.enum(["default", "insensitive"]);
-exports.QueryMode = QueryMode;
-const NestedUuidFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
-exports.NestedUuidFilter = NestedUuidFilter;
-const UuidFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
-exports.UuidFilter = UuidFilter;
-const NestedStringFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedStringFilter)]).optional() });
-exports.NestedStringFilter = NestedStringFilter;
-const StringFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedStringFilter)]).optional() });
-exports.StringFilter = StringFilter;
-const NestedDateTimeFilter = z.object({ equals: z.union([z.string(), z.date()]).optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeFilter)]).optional() });
-exports.NestedDateTimeFilter = NestedDateTimeFilter;
-const DateTimeFilter = z.object({ equals: z.union([z.string(), z.date()]).optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeFilter)]).optional() });
-exports.DateTimeFilter = DateTimeFilter;
-const NestedStringNullableFilter = z.object({ equals: z.string().nullable().optional(), in: z.union([z.string(), z.array(z.string())]).nullable().optional(), notIn: z.union([z.string(), z.array(z.string())]).nullable().optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedStringNullableFilter)]).nullable().optional() });
-exports.NestedStringNullableFilter = NestedStringNullableFilter;
-const StringNullableFilter = z.object({ equals: z.string().nullable().optional(), in: z.union([z.string(), z.array(z.string())]).nullable().optional(), notIn: z.union([z.string(), z.array(z.string())]).nullable().optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedStringNullableFilter)]).nullable().optional() });
-exports.StringNullableFilter = StringNullableFilter;
-const NestedDateTimeNullableFilter = z.object({ equals: z.union([z.string(), z.date()]).nullable().optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeNullableFilter)]).nullable().optional() });
-exports.NestedDateTimeNullableFilter = NestedDateTimeNullableFilter;
-const DateTimeNullableFilter = z.object({ equals: z.union([z.string(), z.date()]).nullable().optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeNullableFilter)]).nullable().optional() });
-exports.DateTimeNullableFilter = DateTimeNullableFilter;
-const StringNullableListFilter = z.object({ equals: z.union([z.string(), z.array(z.string())]).nullable().optional(), has: z.string().nullable().optional(), hasEvery: z.union([z.string(), z.array(z.string())]).optional(), hasSome: z.union([z.string(), z.array(z.string())]).optional(), isEmpty: z.boolean().optional() });
-exports.StringNullableListFilter = StringNullableListFilter;
-const NestedBoolNullableFilter = z.object({ equals: z.boolean().nullable().optional(), not: z.union([z.lazy(() => NestedBoolNullableFilter), z.boolean()]).nullable().optional() });
-exports.NestedBoolNullableFilter = NestedBoolNullableFilter;
-const BoolNullableFilter = z.object({ equals: z.boolean().nullable().optional(), not: z.union([z.lazy(() => NestedBoolNullableFilter), z.boolean()]).nullable().optional() });
-exports.BoolNullableFilter = BoolNullableFilter;
-const UserRelationFilter = z.object({ is: z.lazy(() => UserWhereInput).optional(), isNot: z.lazy(() => UserWhereInput).optional() });
-exports.UserRelationFilter = UserRelationFilter;
-const CommentListRelationFilter = z.object({ every: z.lazy(() => CommentWhereInput).optional(), some: z.lazy(() => CommentWhereInput).optional(), none: z.lazy(() => CommentWhereInput).optional() });
-exports.CommentListRelationFilter = CommentListRelationFilter;
-const PostWhereInput = z.object({ AND: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), OR: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), NOT: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), likedIds: z.lazy(() => StringNullableListFilter).optional(), image: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional(), comments: z.lazy(() => CommentListRelationFilter).optional() });
-exports.PostWhereInput = PostWhereInput;
-const PostListRelationFilter = z.object({ every: z.lazy(() => PostWhereInput).optional(), some: z.lazy(() => PostWhereInput).optional(), none: z.lazy(() => PostWhereInput).optional() });
-exports.PostListRelationFilter = PostListRelationFilter;
-const NotificationWhereInput = z.object({ AND: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), OR: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), NOT: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional() });
-exports.NotificationWhereInput = NotificationWhereInput;
-const NotificationListRelationFilter = z.object({ every: z.lazy(() => NotificationWhereInput).optional(), some: z.lazy(() => NotificationWhereInput).optional(), none: z.lazy(() => NotificationWhereInput).optional() });
-exports.NotificationListRelationFilter = NotificationListRelationFilter;
-const UserWhereInput = z.object({ AND: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), OR: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), NOT: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), name: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), username: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), bio: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), email: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), emailVerified: z.union([z.string(), z.date(), z.lazy(() => DateTimeNullableFilter)]).nullable().optional(), image: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), coverImage: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), profileImage: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), hashedPassword: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), followingIds: z.lazy(() => StringNullableListFilter).optional(), hasNotification: z.union([z.lazy(() => BoolNullableFilter), z.boolean()]).nullable().optional(), posts: z.lazy(() => PostListRelationFilter).optional(), comments: z.lazy(() => CommentListRelationFilter).optional(), notifications: z.lazy(() => NotificationListRelationFilter).optional() });
-exports.UserWhereInput = UserWhereInput;
-const PostRelationFilter = z.object({ is: z.lazy(() => PostWhereInput).optional(), isNot: z.lazy(() => PostWhereInput).optional() });
-exports.PostRelationFilter = PostRelationFilter;
-const CommentWhereInput = z.object({ AND: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), OR: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), NOT: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), postId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional(), post: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => PostWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), userId: z.undefined(), likedIds: z.undefined(), user: z.undefined() }).and(z.lazy(() => PostRelationFilter))]).optional() });
-exports.CommentWhereInput = CommentWhereInput;
-const SortOrder = z.enum(["asc", "desc"]);
-exports.SortOrder = SortOrder;
-const PostOrderByRelationAggregateInput = z.object({ _count: z.lazy(() => SortOrder).optional() });
-exports.PostOrderByRelationAggregateInput = PostOrderByRelationAggregateInput;
-const CommentOrderByRelationAggregateInput = z.object({ _count: z.lazy(() => SortOrder).optional() });
-exports.CommentOrderByRelationAggregateInput = CommentOrderByRelationAggregateInput;
-const NotificationOrderByRelationAggregateInput = z.object({ _count: z.lazy(() => SortOrder).optional() });
-exports.NotificationOrderByRelationAggregateInput = NotificationOrderByRelationAggregateInput;
-const UserOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), name: z.lazy(() => SortOrder).optional(), username: z.lazy(() => SortOrder).optional(), bio: z.lazy(() => SortOrder).optional(), email: z.lazy(() => SortOrder).optional(), emailVerified: z.lazy(() => SortOrder).optional(), image: z.lazy(() => SortOrder).optional(), coverImage: z.lazy(() => SortOrder).optional(), profileImage: z.lazy(() => SortOrder).optional(), hashedPassword: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), followingIds: z.lazy(() => SortOrder).optional(), hasNotification: z.lazy(() => SortOrder).optional(), posts: z.lazy(() => PostOrderByRelationAggregateInput).optional(), comments: z.lazy(() => CommentOrderByRelationAggregateInput).optional(), notifications: z.lazy(() => NotificationOrderByRelationAggregateInput).optional() });
-exports.UserOrderByWithRelationInput = UserOrderByWithRelationInput;
-const PostOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), likedIds: z.lazy(() => SortOrder).optional(), image: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional(), comments: z.lazy(() => CommentOrderByRelationAggregateInput).optional() });
-exports.PostOrderByWithRelationInput = PostOrderByWithRelationInput;
-const CommentOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), postId: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional(), post: z.lazy(() => PostOrderByWithRelationInput).optional() });
-exports.CommentOrderByWithRelationInput = CommentOrderByWithRelationInput;
-const CommentWhereUniqueInput = z.object({ id: z.string().optional() });
-exports.CommentWhereUniqueInput = CommentWhereUniqueInput;
-const CommentScalarFieldEnum = z.enum(["id", "createdAt", "updatedAt", "body", "userId", "postId"]);
-exports.CommentScalarFieldEnum = CommentScalarFieldEnum;
-const Post$commentsArgs = z.object({ select: z.lazy(() => CommentSelect).nullable().optional(), include: z.lazy(() => CommentInclude).nullable().optional(), where: z.lazy(() => CommentWhereInput).optional(), orderBy: z.union([z.lazy(() => CommentOrderByWithRelationInput), z.array(z.lazy(() => CommentOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => CommentWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => CommentScalarFieldEnum), z.array(z.lazy(() => CommentScalarFieldEnum))]).optional() });
-exports.Post$commentsArgs = Post$commentsArgs;
-const PostCountOutputTypeSelect = z.object({ comments: z.boolean().optional() });
-exports.PostCountOutputTypeSelect = PostCountOutputTypeSelect;
-const PostCountOutputTypeArgs = z.object({ select: z.lazy(() => PostCountOutputTypeSelect).nullable().optional() });
-exports.PostCountOutputTypeArgs = PostCountOutputTypeArgs;
-const PostInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => Post$commentsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => PostCountOutputTypeArgs), z.boolean()]).optional() });
-exports.PostInclude = PostInclude;
-const PostArgs = z.object({ select: z.lazy(() => PostSelect).nullable().optional(), include: z.lazy(() => PostInclude).nullable().optional() });
-exports.PostArgs = PostArgs;
-const CommentSelect = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), userId: z.boolean().optional(), postId: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
-exports.CommentSelect = CommentSelect;
-const User$commentsArgs = z.object({ select: z.lazy(() => CommentSelect).nullable().optional(), include: z.lazy(() => CommentInclude).nullable().optional(), where: z.lazy(() => CommentWhereInput).optional(), orderBy: z.union([z.lazy(() => CommentOrderByWithRelationInput), z.array(z.lazy(() => CommentOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => CommentWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => CommentScalarFieldEnum), z.array(z.lazy(() => CommentScalarFieldEnum))]).optional() });
-exports.User$commentsArgs = User$commentsArgs;
-const NotificationSelect = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), userId: z.boolean().optional(), createdAt: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional() });
-exports.NotificationSelect = NotificationSelect;
-const NotificationInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional() });
-exports.NotificationInclude = NotificationInclude;
-const NotificationOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional() });
-exports.NotificationOrderByWithRelationInput = NotificationOrderByWithRelationInput;
-const NotificationWhereUniqueInput = z.object({ id: z.string().optional() });
-exports.NotificationWhereUniqueInput = NotificationWhereUniqueInput;
-const NotificationScalarFieldEnum = z.enum(["id", "createdAt", "body", "userId"]);
-exports.NotificationScalarFieldEnum = NotificationScalarFieldEnum;
-const User$notificationsArgs = z.object({ select: z.lazy(() => NotificationSelect).nullable().optional(), include: z.lazy(() => NotificationInclude).nullable().optional(), where: z.lazy(() => NotificationWhereInput).optional(), orderBy: z.union([z.lazy(() => NotificationOrderByWithRelationInput), z.array(z.lazy(() => NotificationOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => NotificationWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => NotificationScalarFieldEnum), z.array(z.lazy(() => NotificationScalarFieldEnum))]).optional() });
-exports.User$notificationsArgs = User$notificationsArgs;
-const UserCountOutputTypeSelect = z.object({ posts: z.boolean().optional(), comments: z.boolean().optional(), notifications: z.boolean().optional() });
-exports.UserCountOutputTypeSelect = UserCountOutputTypeSelect;
-const UserCountOutputTypeArgs = z.object({ select: z.lazy(() => UserCountOutputTypeSelect).nullable().optional() });
-exports.UserCountOutputTypeArgs = UserCountOutputTypeArgs;
-const UserInclude = z.object({ posts: z.union([z.lazy(() => User$postsArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => User$commentsArgs), z.boolean()]).optional(), notifications: z.union([z.lazy(() => User$notificationsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => UserCountOutputTypeArgs), z.boolean()]).optional() });
-exports.UserInclude = UserInclude;
-const UserArgs = z.object({ select: z.lazy(() => UserSelect).nullable().optional(), include: z.lazy(() => UserInclude).nullable().optional() });
-exports.UserArgs = UserArgs;
-const PostSelect = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), userId: z.boolean().optional(), likedIds: z.boolean().optional(), image: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => Post$commentsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => PostCountOutputTypeArgs), z.boolean()]).optional() });
-exports.PostSelect = PostSelect;
-const PostWhereUniqueInput = z.object({ id: z.string().optional() });
-exports.PostWhereUniqueInput = PostWhereUniqueInput;
-const PostScalarFieldEnum = z.enum(["id", "image", "createdAt", "updatedAt", "body", "userId", "likedIds"]);
-exports.PostScalarFieldEnum = PostScalarFieldEnum;
-const User$postsArgs = z.object({ select: z.lazy(() => PostSelect).nullable().optional(), include: z.lazy(() => PostInclude).nullable().optional(), where: z.lazy(() => PostWhereInput).optional(), orderBy: z.union([z.lazy(() => PostOrderByWithRelationInput), z.array(z.lazy(() => PostOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => PostWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => PostScalarFieldEnum), z.array(z.lazy(() => PostScalarFieldEnum))]).optional() });
-exports.User$postsArgs = User$postsArgs;
-const UserSelect = z.object({ id: z.boolean().optional(), name: z.boolean().optional(), username: z.boolean().optional(), bio: z.boolean().optional(), email: z.boolean().optional(), emailVerified: z.boolean().optional(), image: z.boolean().optional(), coverImage: z.boolean().optional(), profileImage: z.boolean().optional(), hashedPassword: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), followingIds: z.boolean().optional(), hasNotification: z.boolean().optional(), posts: z.union([z.lazy(() => User$postsArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => User$commentsArgs), z.boolean()]).optional(), notifications: z.union([z.lazy(() => User$notificationsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => UserCountOutputTypeArgs), z.boolean()]).optional() });
-exports.UserSelect = UserSelect;
-const UserCreatefollowingIdsInput = z.object({ set: z.union([z.string(), z.array(z.string())]) });
-exports.UserCreatefollowingIdsInput = UserCreatefollowingIdsInput;
-const PostCreatelikedIdsInput = z.object({ set: z.union([z.string(), z.array(z.string())]) });
-exports.PostCreatelikedIdsInput = PostCreatelikedIdsInput;
-const CommentUncheckedCreateWithoutPostInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string() });
-exports.CommentUncheckedCreateWithoutPostInput = CommentUncheckedCreateWithoutPostInput;
-const NotificationUncheckedCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
-exports.NotificationUncheckedCreateWithoutUserInput = NotificationUncheckedCreateWithoutUserInput;
-const NotificationCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
-exports.NotificationCreateWithoutUserInput = NotificationCreateWithoutUserInput;
-const NotificationCreateOrConnectWithoutUserInput = z.object({ where: z.lazy(() => NotificationWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput))]) });
-exports.NotificationCreateOrConnectWithoutUserInput = NotificationCreateOrConnectWithoutUserInput;
-const NotificationCreateManyUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
-exports.NotificationCreateManyUserInput = NotificationCreateManyUserInput;
-const NotificationCreateManyUserInputEnvelope = z.object({ data: z.union([z.lazy(() => NotificationCreateManyUserInput), z.array(z.lazy(() => NotificationCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
-exports.NotificationCreateManyUserInputEnvelope = NotificationCreateManyUserInputEnvelope;
-const NotificationUncheckedCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => NotificationCreateOrConnectWithoutUserInput), z.array(z.lazy(() => NotificationCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => NotificationCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => NotificationWhereUniqueInput), z.array(z.lazy(() => NotificationWhereUniqueInput))]).optional() });
-exports.NotificationUncheckedCreateNestedManyWithoutUserInput = NotificationUncheckedCreateNestedManyWithoutUserInput;
-const UserUncheckedCreateWithoutCommentsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
-exports.UserUncheckedCreateWithoutCommentsInput = UserUncheckedCreateWithoutCommentsInput;
-const CommentCreateOrConnectWithoutPostInput = z.object({ where: z.lazy(() => CommentWhereUniqueInput), create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput))]) });
-exports.CommentCreateOrConnectWithoutPostInput = CommentCreateOrConnectWithoutPostInput;
-const CommentCreateManyPostInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string() });
-exports.CommentCreateManyPostInput = CommentCreateManyPostInput;
-const CommentCreateManyPostInputEnvelope = z.object({ data: z.union([z.lazy(() => CommentCreateManyPostInput), z.array(z.lazy(() => CommentCreateManyPostInput))]), skipDuplicates: z.boolean().optional() });
-exports.CommentCreateManyPostInputEnvelope = CommentCreateManyPostInputEnvelope;
-const CommentCreateNestedManyWithoutPostInput = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), user: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutPostInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), userId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutPostInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutPostInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutPostInput))]).optional(), createMany: z.lazy(() => CommentCreateManyPostInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-exports.CommentCreateNestedManyWithoutPostInput = CommentCreateNestedManyWithoutPostInput;
-const PostCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutPostInput).optional() });
-exports.PostCreateWithoutUserInput = PostCreateWithoutUserInput;
-const PostCreateOrConnectWithoutUserInput = z.object({ where: z.lazy(() => PostWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput))]) });
-exports.PostCreateOrConnectWithoutUserInput = PostCreateOrConnectWithoutUserInput;
-const PostCreateManyUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional() });
-exports.PostCreateManyUserInput = PostCreateManyUserInput;
-const PostCreateManyUserInputEnvelope = z.object({ data: z.union([z.lazy(() => PostCreateManyUserInput), z.array(z.lazy(() => PostCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
-exports.PostCreateManyUserInputEnvelope = PostCreateManyUserInputEnvelope;
-const PostCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => PostCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => PostCreateOrConnectWithoutUserInput), z.array(z.lazy(() => PostCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => PostCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => PostWhereUniqueInput), z.array(z.lazy(() => PostWhereUniqueInput))]).optional() });
-exports.PostCreateNestedManyWithoutUserInput = PostCreateNestedManyWithoutUserInput;
-const NotificationCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => NotificationCreateOrConnectWithoutUserInput), z.array(z.lazy(() => NotificationCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => NotificationCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => NotificationWhereUniqueInput), z.array(z.lazy(() => NotificationWhereUniqueInput))]).optional() });
-exports.NotificationCreateNestedManyWithoutUserInput = NotificationCreateNestedManyWithoutUserInput;
-const UserCreateWithoutCommentsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
-exports.UserCreateWithoutCommentsInput = UserCreateWithoutCommentsInput;
-const UserWhereUniqueInput = z.object({ id: z.string().optional(), username: z.string().optional(), email: z.string().optional() });
-exports.UserWhereUniqueInput = UserWhereUniqueInput;
-const UserCreateOrConnectWithoutCommentsInput = z.object({ where: z.lazy(() => UserWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutCommentsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutCommentsInput))]) });
-exports.UserCreateOrConnectWithoutCommentsInput = UserCreateOrConnectWithoutCommentsInput;
-const UserCreateNestedOneWithoutCommentsInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutCommentsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutCommentsInput))]).optional(), connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutCommentsInput).optional(), connect: z.lazy(() => UserWhereUniqueInput).optional() });
-exports.UserCreateNestedOneWithoutCommentsInput = UserCreateNestedOneWithoutCommentsInput;
-const CommentCreateWithoutPostInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), user: z.lazy(() => UserCreateNestedOneWithoutCommentsInput) });
-exports.CommentCreateWithoutPostInput = CommentCreateWithoutPostInput;
-const CommentUncheckedCreateNestedManyWithoutPostInput = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), user: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutPostInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), userId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutPostInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutPostInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutPostInput))]).optional(), createMany: z.lazy(() => CommentCreateManyPostInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-exports.CommentUncheckedCreateNestedManyWithoutPostInput = CommentUncheckedCreateNestedManyWithoutPostInput;
-const PostUncheckedCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutPostInput).optional() });
-exports.PostUncheckedCreateWithoutUserInput = PostUncheckedCreateWithoutUserInput;
-const PostUncheckedCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => PostCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => PostCreateOrConnectWithoutUserInput), z.array(z.lazy(() => PostCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => PostCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => PostWhereUniqueInput), z.array(z.lazy(() => PostWhereUniqueInput))]).optional() });
-exports.PostUncheckedCreateNestedManyWithoutUserInput = PostUncheckedCreateNestedManyWithoutUserInput;
-const CommentUncheckedCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), postId: z.string() });
-exports.CommentUncheckedCreateWithoutUserInput = CommentUncheckedCreateWithoutUserInput;
-const PostUncheckedCreateWithoutCommentsInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional() });
-exports.PostUncheckedCreateWithoutCommentsInput = PostUncheckedCreateWithoutCommentsInput;
-const UserUncheckedCreateWithoutPostsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
-exports.UserUncheckedCreateWithoutPostsInput = UserUncheckedCreateWithoutPostsInput;
-const CommentCreateOrConnectWithoutUserInput = z.object({ where: z.lazy(() => CommentWhereUniqueInput), create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput))]) });
-exports.CommentCreateOrConnectWithoutUserInput = CommentCreateOrConnectWithoutUserInput;
-const CommentCreateManyUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), postId: z.string() });
-exports.CommentCreateManyUserInput = CommentCreateManyUserInput;
-const CommentCreateManyUserInputEnvelope = z.object({ data: z.union([z.lazy(() => CommentCreateManyUserInput), z.array(z.lazy(() => CommentCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
-exports.CommentCreateManyUserInputEnvelope = CommentCreateManyUserInputEnvelope;
-const CommentCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), post: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), postId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutUserInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => CommentCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-exports.CommentCreateNestedManyWithoutUserInput = CommentCreateNestedManyWithoutUserInput;
-const UserCreateWithoutPostsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
-exports.UserCreateWithoutPostsInput = UserCreateWithoutPostsInput;
-const UserCreateOrConnectWithoutPostsInput = z.object({ where: z.lazy(() => UserWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutPostsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutPostsInput))]) });
-exports.UserCreateOrConnectWithoutPostsInput = UserCreateOrConnectWithoutPostsInput;
-const UserCreateNestedOneWithoutPostsInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutPostsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutPostsInput))]).optional(), connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutPostsInput).optional(), connect: z.lazy(() => UserWhereUniqueInput).optional() });
-exports.UserCreateNestedOneWithoutPostsInput = UserCreateNestedOneWithoutPostsInput;
-const PostCreateWithoutCommentsInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), user: z.lazy(() => UserCreateNestedOneWithoutPostsInput) });
-exports.PostCreateWithoutCommentsInput = PostCreateWithoutCommentsInput;
-const PostCreateOrConnectWithoutCommentsInput = z.object({ where: z.lazy(() => PostWhereUniqueInput), create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => PostUncheckedCreateWithoutCommentsInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => PostCreateWithoutCommentsInput))]) });
-exports.PostCreateOrConnectWithoutCommentsInput = PostCreateOrConnectWithoutCommentsInput;
-const PostCreateNestedOneWithoutCommentsInput = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => PostUncheckedCreateWithoutCommentsInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => PostCreateWithoutCommentsInput))]).optional(), connectOrCreate: z.lazy(() => PostCreateOrConnectWithoutCommentsInput).optional(), connect: z.lazy(() => PostWhereUniqueInput).optional() });
-exports.PostCreateNestedOneWithoutCommentsInput = PostCreateNestedOneWithoutCommentsInput;
-const CommentCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), post: z.lazy(() => PostCreateNestedOneWithoutCommentsInput) });
-exports.CommentCreateWithoutUserInput = CommentCreateWithoutUserInput;
-const CommentUncheckedCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), post: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), postId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutUserInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => CommentCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-exports.CommentUncheckedCreateNestedManyWithoutUserInput = CommentUncheckedCreateNestedManyWithoutUserInput;
-const UserUncheckedCreateInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostUncheckedCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
-exports.UserUncheckedCreateInput = UserUncheckedCreateInput;
-const UserCreateInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
-exports.UserCreateInput = UserCreateInput;
-",
-  "prisma-client/index.d.codegen.mjs": "import { z } from "zod";
-export const CommentInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
-export const QueryMode = z.enum(["default", "insensitive"]);
-export const NestedUuidFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
-export const UuidFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedUuidFilter)]).optional() });
-export const NestedStringFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedStringFilter)]).optional() });
-export const StringFilter = z.object({ equals: z.string().optional(), in: z.union([z.string(), z.array(z.string())]).optional(), notIn: z.union([z.string(), z.array(z.string())]).optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedStringFilter)]).optional() });
-export const NestedDateTimeFilter = z.object({ equals: z.union([z.string(), z.date()]).optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeFilter)]).optional() });
-export const DateTimeFilter = z.object({ equals: z.union([z.string(), z.date()]).optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeFilter)]).optional() });
-export const NestedStringNullableFilter = z.object({ equals: z.string().nullable().optional(), in: z.union([z.string(), z.array(z.string())]).nullable().optional(), notIn: z.union([z.string(), z.array(z.string())]).nullable().optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), not: z.union([z.string(), z.lazy(() => NestedStringNullableFilter)]).nullable().optional() });
-export const StringNullableFilter = z.object({ equals: z.string().nullable().optional(), in: z.union([z.string(), z.array(z.string())]).nullable().optional(), notIn: z.union([z.string(), z.array(z.string())]).nullable().optional(), lt: z.string().optional(), lte: z.string().optional(), gt: z.string().optional(), gte: z.string().optional(), contains: z.string().optional(), startsWith: z.string().optional(), endsWith: z.string().optional(), mode: z.lazy(() => QueryMode).optional(), not: z.union([z.string(), z.lazy(() => NestedStringNullableFilter)]).nullable().optional() });
-export const NestedDateTimeNullableFilter = z.object({ equals: z.union([z.string(), z.date()]).nullable().optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeNullableFilter)]).nullable().optional() });
-export const DateTimeNullableFilter = z.object({ equals: z.union([z.string(), z.date()]).nullable().optional(), in: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), notIn: z.union([z.union([z.string(), z.array(z.string())]), z.union([z.date(), z.array(z.date())])]).nullable().optional(), lt: z.union([z.string(), z.date()]).optional(), lte: z.union([z.string(), z.date()]).optional(), gt: z.union([z.string(), z.date()]).optional(), gte: z.union([z.string(), z.date()]).optional(), not: z.union([z.string(), z.date(), z.lazy(() => NestedDateTimeNullableFilter)]).nullable().optional() });
-export const StringNullableListFilter = z.object({ equals: z.union([z.string(), z.array(z.string())]).nullable().optional(), has: z.string().nullable().optional(), hasEvery: z.union([z.string(), z.array(z.string())]).optional(), hasSome: z.union([z.string(), z.array(z.string())]).optional(), isEmpty: z.boolean().optional() });
-export const NestedBoolNullableFilter = z.object({ equals: z.boolean().nullable().optional(), not: z.union([z.lazy(() => NestedBoolNullableFilter), z.boolean()]).nullable().optional() });
-export const BoolNullableFilter = z.object({ equals: z.boolean().nullable().optional(), not: z.union([z.lazy(() => NestedBoolNullableFilter), z.boolean()]).nullable().optional() });
-export const UserRelationFilter = z.object({ is: z.lazy(() => UserWhereInput).optional(), isNot: z.lazy(() => UserWhereInput).optional() });
-export const CommentListRelationFilter = z.object({ every: z.lazy(() => CommentWhereInput).optional(), some: z.lazy(() => CommentWhereInput).optional(), none: z.lazy(() => CommentWhereInput).optional() });
-export const PostWhereInput = z.object({ AND: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), OR: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), NOT: z.union([z.lazy(() => PostWhereInput), z.array(z.lazy(() => PostWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), likedIds: z.lazy(() => StringNullableListFilter).optional(), image: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional(), comments: z.lazy(() => CommentListRelationFilter).optional() });
-export const PostListRelationFilter = z.object({ every: z.lazy(() => PostWhereInput).optional(), some: z.lazy(() => PostWhereInput).optional(), none: z.lazy(() => PostWhereInput).optional() });
-export const NotificationWhereInput = z.object({ AND: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), OR: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), NOT: z.union([z.lazy(() => NotificationWhereInput), z.array(z.lazy(() => NotificationWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional() });
-export const NotificationListRelationFilter = z.object({ every: z.lazy(() => NotificationWhereInput).optional(), some: z.lazy(() => NotificationWhereInput).optional(), none: z.lazy(() => NotificationWhereInput).optional() });
-export const UserWhereInput = z.object({ AND: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), OR: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), NOT: z.union([z.lazy(() => UserWhereInput), z.array(z.lazy(() => UserWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), name: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), username: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), bio: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), email: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), emailVerified: z.union([z.string(), z.date(), z.lazy(() => DateTimeNullableFilter)]).nullable().optional(), image: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), coverImage: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), profileImage: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), hashedPassword: z.union([z.string(), z.lazy(() => StringNullableFilter)]).nullable().optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), followingIds: z.lazy(() => StringNullableListFilter).optional(), hasNotification: z.union([z.lazy(() => BoolNullableFilter), z.boolean()]).nullable().optional(), posts: z.lazy(() => PostListRelationFilter).optional(), comments: z.lazy(() => CommentListRelationFilter).optional(), notifications: z.lazy(() => NotificationListRelationFilter).optional() });
-export const PostRelationFilter = z.object({ is: z.lazy(() => PostWhereInput).optional(), isNot: z.lazy(() => PostWhereInput).optional() });
-export const CommentWhereInput = z.object({ AND: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), OR: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), NOT: z.union([z.lazy(() => CommentWhereInput), z.array(z.lazy(() => CommentWhereInput))]).optional(), id: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), body: z.union([z.string(), z.lazy(() => StringFilter)]).optional(), createdAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), updatedAt: z.union([z.string(), z.lazy(() => DateTimeFilter), z.date()]).optional(), userId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), postId: z.union([z.string(), z.lazy(() => UuidFilter)]).optional(), user: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => UserWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), name: z.undefined(), username: z.undefined(), bio: z.undefined(), email: z.undefined(), emailVerified: z.undefined(), image: z.undefined(), coverImage: z.undefined(), profileImage: z.undefined(), hashedPassword: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), followingIds: z.undefined(), hasNotification: z.undefined(), posts: z.undefined(), comments: z.undefined(), notifications: z.undefined() }).and(z.lazy(() => UserRelationFilter))]).optional(), post: z.union([z.object({ is: z.undefined(), isNot: z.undefined() }).and(z.lazy(() => PostWhereInput)), z.object({ AND: z.undefined(), OR: z.undefined(), NOT: z.undefined(), id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), userId: z.undefined(), likedIds: z.undefined(), user: z.undefined() }).and(z.lazy(() => PostRelationFilter))]).optional() });
-export const SortOrder = z.enum(["asc", "desc"]);
-export const PostOrderByRelationAggregateInput = z.object({ _count: z.lazy(() => SortOrder).optional() });
-export const CommentOrderByRelationAggregateInput = z.object({ _count: z.lazy(() => SortOrder).optional() });
-export const NotificationOrderByRelationAggregateInput = z.object({ _count: z.lazy(() => SortOrder).optional() });
-export const UserOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), name: z.lazy(() => SortOrder).optional(), username: z.lazy(() => SortOrder).optional(), bio: z.lazy(() => SortOrder).optional(), email: z.lazy(() => SortOrder).optional(), emailVerified: z.lazy(() => SortOrder).optional(), image: z.lazy(() => SortOrder).optional(), coverImage: z.lazy(() => SortOrder).optional(), profileImage: z.lazy(() => SortOrder).optional(), hashedPassword: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), followingIds: z.lazy(() => SortOrder).optional(), hasNotification: z.lazy(() => SortOrder).optional(), posts: z.lazy(() => PostOrderByRelationAggregateInput).optional(), comments: z.lazy(() => CommentOrderByRelationAggregateInput).optional(), notifications: z.lazy(() => NotificationOrderByRelationAggregateInput).optional() });
-export const PostOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), likedIds: z.lazy(() => SortOrder).optional(), image: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional(), comments: z.lazy(() => CommentOrderByRelationAggregateInput).optional() });
-export const CommentOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), updatedAt: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), postId: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional(), post: z.lazy(() => PostOrderByWithRelationInput).optional() });
-export const CommentWhereUniqueInput = z.object({ id: z.string().optional() });
-export const CommentScalarFieldEnum = z.enum(["id", "createdAt", "updatedAt", "body", "userId", "postId"]);
-export const Post$commentsArgs = z.object({ select: z.lazy(() => CommentSelect).nullable().optional(), include: z.lazy(() => CommentInclude).nullable().optional(), where: z.lazy(() => CommentWhereInput).optional(), orderBy: z.union([z.lazy(() => CommentOrderByWithRelationInput), z.array(z.lazy(() => CommentOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => CommentWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => CommentScalarFieldEnum), z.array(z.lazy(() => CommentScalarFieldEnum))]).optional() });
-export const PostCountOutputTypeSelect = z.object({ comments: z.boolean().optional() });
-export const PostCountOutputTypeArgs = z.object({ select: z.lazy(() => PostCountOutputTypeSelect).nullable().optional() });
-export const PostInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => Post$commentsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => PostCountOutputTypeArgs), z.boolean()]).optional() });
-export const PostArgs = z.object({ select: z.lazy(() => PostSelect).nullable().optional(), include: z.lazy(() => PostInclude).nullable().optional() });
-export const CommentSelect = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), userId: z.boolean().optional(), postId: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), post: z.union([z.lazy(() => PostArgs), z.boolean()]).optional() });
-export const User$commentsArgs = z.object({ select: z.lazy(() => CommentSelect).nullable().optional(), include: z.lazy(() => CommentInclude).nullable().optional(), where: z.lazy(() => CommentWhereInput).optional(), orderBy: z.union([z.lazy(() => CommentOrderByWithRelationInput), z.array(z.lazy(() => CommentOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => CommentWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => CommentScalarFieldEnum), z.array(z.lazy(() => CommentScalarFieldEnum))]).optional() });
-export const NotificationSelect = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), userId: z.boolean().optional(), createdAt: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional() });
-export const NotificationInclude = z.object({ user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional() });
-export const NotificationOrderByWithRelationInput = z.object({ id: z.lazy(() => SortOrder).optional(), body: z.lazy(() => SortOrder).optional(), userId: z.lazy(() => SortOrder).optional(), createdAt: z.lazy(() => SortOrder).optional(), user: z.lazy(() => UserOrderByWithRelationInput).optional() });
-export const NotificationWhereUniqueInput = z.object({ id: z.string().optional() });
-export const NotificationScalarFieldEnum = z.enum(["id", "createdAt", "body", "userId"]);
-export const User$notificationsArgs = z.object({ select: z.lazy(() => NotificationSelect).nullable().optional(), include: z.lazy(() => NotificationInclude).nullable().optional(), where: z.lazy(() => NotificationWhereInput).optional(), orderBy: z.union([z.lazy(() => NotificationOrderByWithRelationInput), z.array(z.lazy(() => NotificationOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => NotificationWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => NotificationScalarFieldEnum), z.array(z.lazy(() => NotificationScalarFieldEnum))]).optional() });
-export const UserCountOutputTypeSelect = z.object({ posts: z.boolean().optional(), comments: z.boolean().optional(), notifications: z.boolean().optional() });
-export const UserCountOutputTypeArgs = z.object({ select: z.lazy(() => UserCountOutputTypeSelect).nullable().optional() });
-export const UserInclude = z.object({ posts: z.union([z.lazy(() => User$postsArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => User$commentsArgs), z.boolean()]).optional(), notifications: z.union([z.lazy(() => User$notificationsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => UserCountOutputTypeArgs), z.boolean()]).optional() });
-export const UserArgs = z.object({ select: z.lazy(() => UserSelect).nullable().optional(), include: z.lazy(() => UserInclude).nullable().optional() });
-export const PostSelect = z.object({ id: z.boolean().optional(), body: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), userId: z.boolean().optional(), likedIds: z.boolean().optional(), image: z.boolean().optional(), user: z.union([z.lazy(() => UserArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => Post$commentsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => PostCountOutputTypeArgs), z.boolean()]).optional() });
-export const PostWhereUniqueInput = z.object({ id: z.string().optional() });
-export const PostScalarFieldEnum = z.enum(["id", "image", "createdAt", "updatedAt", "body", "userId", "likedIds"]);
-export const User$postsArgs = z.object({ select: z.lazy(() => PostSelect).nullable().optional(), include: z.lazy(() => PostInclude).nullable().optional(), where: z.lazy(() => PostWhereInput).optional(), orderBy: z.union([z.lazy(() => PostOrderByWithRelationInput), z.array(z.lazy(() => PostOrderByWithRelationInput))]).optional(), cursor: z.lazy(() => PostWhereUniqueInput).optional(), take: z.number().optional(), skip: z.number().optional(), distinct: z.union([z.lazy(() => PostScalarFieldEnum), z.array(z.lazy(() => PostScalarFieldEnum))]).optional() });
-export const UserSelect = z.object({ id: z.boolean().optional(), name: z.boolean().optional(), username: z.boolean().optional(), bio: z.boolean().optional(), email: z.boolean().optional(), emailVerified: z.boolean().optional(), image: z.boolean().optional(), coverImage: z.boolean().optional(), profileImage: z.boolean().optional(), hashedPassword: z.boolean().optional(), createdAt: z.boolean().optional(), updatedAt: z.boolean().optional(), followingIds: z.boolean().optional(), hasNotification: z.boolean().optional(), posts: z.union([z.lazy(() => User$postsArgs), z.boolean()]).optional(), comments: z.union([z.lazy(() => User$commentsArgs), z.boolean()]).optional(), notifications: z.union([z.lazy(() => User$notificationsArgs), z.boolean()]).optional(), _count: z.union([z.lazy(() => UserCountOutputTypeArgs), z.boolean()]).optional() });
-export const UserCreatefollowingIdsInput = z.object({ set: z.union([z.string(), z.array(z.string())]) });
-export const PostCreatelikedIdsInput = z.object({ set: z.union([z.string(), z.array(z.string())]) });
-export const CommentUncheckedCreateWithoutPostInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string() });
-export const NotificationUncheckedCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
-export const NotificationCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
-export const NotificationCreateOrConnectWithoutUserInput = z.object({ where: z.lazy(() => NotificationWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput))]) });
-export const NotificationCreateManyUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional() });
-export const NotificationCreateManyUserInputEnvelope = z.object({ data: z.union([z.lazy(() => NotificationCreateManyUserInput), z.array(z.lazy(() => NotificationCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
-export const NotificationUncheckedCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => NotificationCreateOrConnectWithoutUserInput), z.array(z.lazy(() => NotificationCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => NotificationCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => NotificationWhereUniqueInput), z.array(z.lazy(() => NotificationWhereUniqueInput))]).optional() });
-export const UserUncheckedCreateWithoutCommentsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
-export const CommentCreateOrConnectWithoutPostInput = z.object({ where: z.lazy(() => CommentWhereUniqueInput), create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput))]) });
-export const CommentCreateManyPostInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string() });
-export const CommentCreateManyPostInputEnvelope = z.object({ data: z.union([z.lazy(() => CommentCreateManyPostInput), z.array(z.lazy(() => CommentCreateManyPostInput))]), skipDuplicates: z.boolean().optional() });
-export const CommentCreateNestedManyWithoutPostInput = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), user: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutPostInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), userId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutPostInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutPostInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutPostInput))]).optional(), createMany: z.lazy(() => CommentCreateManyPostInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-export const PostCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutPostInput).optional() });
-export const PostCreateOrConnectWithoutUserInput = z.object({ where: z.lazy(() => PostWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput))]) });
-export const PostCreateManyUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional() });
-export const PostCreateManyUserInputEnvelope = z.object({ data: z.union([z.lazy(() => PostCreateManyUserInput), z.array(z.lazy(() => PostCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
-export const PostCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => PostCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => PostCreateOrConnectWithoutUserInput), z.array(z.lazy(() => PostCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => PostCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => PostWhereUniqueInput), z.array(z.lazy(() => PostWhereUniqueInput))]).optional() });
-export const NotificationCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), body: z.undefined() }).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => NotificationCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => NotificationCreateOrConnectWithoutUserInput), z.array(z.lazy(() => NotificationCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => NotificationCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => NotificationWhereUniqueInput), z.array(z.lazy(() => NotificationWhereUniqueInput))]).optional() });
-export const UserCreateWithoutCommentsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
-export const UserWhereUniqueInput = z.object({ id: z.string().optional(), username: z.string().optional(), email: z.string().optional() });
-export const UserCreateOrConnectWithoutCommentsInput = z.object({ where: z.lazy(() => UserWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutCommentsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutCommentsInput))]) });
-export const UserCreateNestedOneWithoutCommentsInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutCommentsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutCommentsInput))]).optional(), connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutCommentsInput).optional(), connect: z.lazy(() => UserWhereUniqueInput).optional() });
-export const CommentCreateWithoutPostInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), user: z.lazy(() => UserCreateNestedOneWithoutCommentsInput) });
-export const CommentUncheckedCreateNestedManyWithoutPostInput = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), user: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutPostInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutPostInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), userId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutPostInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutPostInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutPostInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutPostInput))]).optional(), createMany: z.lazy(() => CommentCreateManyPostInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-export const PostUncheckedCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutPostInput).optional() });
-export const PostUncheckedCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({}).and(z.lazy(() => PostCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => PostCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => PostUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), image: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), comments: z.undefined(), body: z.undefined(), likedIds: z.undefined() }).and(z.array(z.lazy(() => PostCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => PostCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => PostCreateOrConnectWithoutUserInput), z.array(z.lazy(() => PostCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => PostCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => PostWhereUniqueInput), z.array(z.lazy(() => PostWhereUniqueInput))]).optional() });
-export const CommentUncheckedCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), postId: z.string() });
-export const PostUncheckedCreateWithoutCommentsInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), userId: z.string(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional() });
-export const UserUncheckedCreateWithoutPostsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
-export const CommentCreateOrConnectWithoutUserInput = z.object({ where: z.lazy(() => CommentWhereUniqueInput), create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput))]) });
-export const CommentCreateManyUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), postId: z.string() });
-export const CommentCreateManyUserInputEnvelope = z.object({ data: z.union([z.lazy(() => CommentCreateManyUserInput), z.array(z.lazy(() => CommentCreateManyUserInput))]), skipDuplicates: z.boolean().optional() });
-export const CommentCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), post: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), postId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutUserInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => CommentCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-export const UserCreateWithoutPostsInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
-export const UserCreateOrConnectWithoutPostsInput = z.object({ where: z.lazy(() => UserWhereUniqueInput), create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutPostsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutPostsInput))]) });
-export const UserCreateNestedOneWithoutPostsInput = z.object({ create: z.union([z.object({}).and(z.lazy(() => UserUncheckedCreateWithoutPostsInput)), z.object({}).and(z.lazy(() => UserCreateWithoutPostsInput))]).optional(), connectOrCreate: z.lazy(() => UserCreateOrConnectWithoutPostsInput).optional(), connect: z.lazy(() => UserWhereUniqueInput).optional() });
-export const PostCreateWithoutCommentsInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), likedIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => PostCreatelikedIdsInput)]).optional(), image: z.string().nullable().optional(), user: z.lazy(() => UserCreateNestedOneWithoutPostsInput) });
-export const PostCreateOrConnectWithoutCommentsInput = z.object({ where: z.lazy(() => PostWhereUniqueInput), create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => PostUncheckedCreateWithoutCommentsInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => PostCreateWithoutCommentsInput))]) });
-export const PostCreateNestedOneWithoutCommentsInput = z.object({ create: z.union([z.object({ user: z.undefined() }).and(z.lazy(() => PostUncheckedCreateWithoutCommentsInput)), z.object({ userId: z.undefined() }).and(z.lazy(() => PostCreateWithoutCommentsInput))]).optional(), connectOrCreate: z.lazy(() => PostCreateOrConnectWithoutCommentsInput).optional(), connect: z.lazy(() => PostWhereUniqueInput).optional() });
-export const CommentCreateWithoutUserInput = z.object({ id: z.string().optional(), body: z.string(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), post: z.lazy(() => PostCreateNestedOneWithoutCommentsInput) });
-export const CommentUncheckedCreateNestedManyWithoutUserInput = z.object({ create: z.union([z.object({ post: z.undefined() }).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ postId: z.undefined() }).and(z.lazy(() => CommentCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), post: z.undefined() }).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentCreateWithoutUserInput)), z.record(z.number(), z.undefined()).and(z.lazy(() => CommentUncheckedCreateWithoutUserInput)), z.object({ id: z.undefined(), createdAt: z.undefined(), updatedAt: z.undefined(), body: z.undefined(), postId: z.undefined() }).and(z.array(z.lazy(() => CommentCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentUncheckedCreateWithoutUserInput))), z.object({}).and(z.array(z.lazy(() => CommentCreateWithoutUserInput)))]).optional(), connectOrCreate: z.union([z.lazy(() => CommentCreateOrConnectWithoutUserInput), z.array(z.lazy(() => CommentCreateOrConnectWithoutUserInput))]).optional(), createMany: z.lazy(() => CommentCreateManyUserInputEnvelope).optional(), connect: z.union([z.lazy(() => CommentWhereUniqueInput), z.array(z.lazy(() => CommentWhereUniqueInput))]).optional() });
-export const UserUncheckedCreateInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostUncheckedCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentUncheckedCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationUncheckedCreateNestedManyWithoutUserInput).optional() });
-export const UserCreateInput = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
-",
-  "src/__tests__/crazy-prisma-types.test.codegen.d.ts": "import { z } from "zod";
+  "src/__tests__/crazy-prisma-types.test.codegen.ts": "import { z } from "zod";
 import { UserSelect as __symbol_UserSelect, UserInclude as __symbol_UserInclude, UserUncheckedCreateInput as __symbol_UserUncheckedCreateInput, UserCreateInput as __symbol_UserCreateInput } from "../../prisma-client/index.d";
-const T: z.ZodTypeAny;
-",
-  "src/__tests__/crazy-prisma-types.test.codegen.js": "const { z } = require("zod");
-const { UserSelect: __symbol_UserSelect, UserInclude: __symbol_UserInclude, UserUncheckedCreateInput: __symbol_UserUncheckedCreateInput, UserCreateInput: __symbol_UserCreateInput } = require("../../prisma-client/index.d");
-const T = z.object({ select: z.lazy(() => __symbol_UserSelect).nullable().optional(), include: z.lazy(() => __symbol_UserInclude).nullable().optional(), data: z.union([z.object({}).and(z.lazy(() => __symbol_UserUncheckedCreateInput)), z.object({}).and(z.lazy(() => __symbol_UserCreateInput))]) });
-",
-  "src/__tests__/crazy-prisma-types.test.codegen.mjs": "import { z } from "zod";
-import { UserSelect as __symbol_UserSelect, UserInclude as __symbol_UserInclude, UserUncheckedCreateInput as __symbol_UserUncheckedCreateInput, UserCreateInput as __symbol_UserCreateInput } from "../../prisma-client/index.d";
-const T = z.object({ select: z.lazy(() => __symbol_UserSelect).nullable().optional(), include: z.lazy(() => __symbol_UserInclude).nullable().optional(), data: z.union([z.object({}).and(z.lazy(() => __symbol_UserUncheckedCreateInput)), z.object({}).and(z.lazy(() => __symbol_UserCreateInput))]) });
+const T: z.ZodTypeAny = z.object({ select: z.lazy(() => __symbol_UserSelect).nullable().optional(), include: z.lazy(() => __symbol_UserInclude).nullable().optional(), data: z.union([z.object({}).and(z.lazy(() => __symbol_UserUncheckedCreateInput)), z.object({}).and(z.lazy(() => __symbol_UserCreateInput))]) });
 ",
 }
-`));
+`
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+));

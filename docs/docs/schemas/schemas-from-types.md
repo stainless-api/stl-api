@@ -196,9 +196,6 @@ class ToString<I extends TypeSchema<any>> extends Transform<I, string> {
 
 ### `PrismaModel<Model>`
 
-:::caution
-This is not yet implemented.
-:::
 :::info
 This is only available if using the [`@stl-api/prisma`](/stl/prisma/getting-started) plugin.
 :::
@@ -210,6 +207,23 @@ Make sure `@stl-api/prisma` gets imported before code that declares schemas is r
 
 Allows you to declare the Prisma model associated with a response schema. In an endpoint whose
 response schema has a Prisma model declared, [special conveniences](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
+
+```ts
+import prisma from "~/libs/prismadb";
+import { PrismaModel } from "@stl-api/PrismaModel";
+
+type User = PrismaModel<{
+  id: string;
+  name?: string;
+  // ...
+}, typeof prisma.user>;
+```
+
+The second parameter of `PrismaModel` must be `typeof` an identifier 
+or identifier property evaluating to a Prisma model value. `PrismaModel`
+can only be used as an input type to `stl.types` or `stl.magic`, or as
+the type of an object property. Defining a type alias to `PrismaModel`
+or using the type in other ways will result in a generation-time error.
 
 ### `Includable<T>`
 
@@ -254,7 +268,21 @@ interface IncludablePost extends PostBase {
   user?: Includable<User>;
 }
 
-// generate a schema value for `IncludableUser`
-const IncludableUserSchema = stl.magic<IncludableUser>();
-/* filled by `stl` CLI */
+// the `stl` CLI will generate a schema for `IncludablePost`,
+// and inject it into the endpoint handler
+stl.types<{response: IncludablePost}>().endpoint({
+  endpoint: "get /api/post/{id}",
+  // ...
+});
+
 ```
+
+## Mixing magic schemas with classic Zod schemas
+
+We recommend using magic schemas for combining the best of both 
+worlds: offering the ability to use rich Typescript types while
+automatically generating idiomatic Zod schema validators and transformers.
+
+However, you may want to use classic Zod schemas in some places, 
+whether due to migrating existing schemas or because classic Zod schemas
+offer more functionality for 

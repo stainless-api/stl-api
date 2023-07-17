@@ -1,4 +1,7 @@
 import type { api } from "./api";
-import { createReactQueryClient } from "@stl-api/react-query";
+import { api as routeMap } from "./api-route-map";
+import { createUseReactQueryClient } from "@stl-api/react-query";
 
-export const client = createReactQueryClient<typeof api>("/api");
+export const useClient = createUseReactQueryClient<typeof api>("/api", {
+  routeMap,
+});

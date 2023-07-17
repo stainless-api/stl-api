@@ -9,7 +9,10 @@ class ToString<I extends t.TypeSchema<any>> extends t.Transform<I, string> {
   }
 }
 
-class ParseFloat<I extends t.TypeSchema<string>> extends t.Transform<I, number> {
+class ParseFloat<I extends t.TypeSchema<string>> extends t.Transform<
+  I,
+  number
+> {
   transform(value: t.output<I>): number {
     return parseFloat(value);
   }
@@ -75,25 +78,15 @@ type Test = ParseFloat<string>;
 
 it(`transform`, async () =>
   expect(
-  await multiFileTestCase({
-    __filename
-  })
-).toMatchInlineSnapshot(`
+    await multiFileTestCase({
+      __filename,
+    })
+  ).toMatchInlineSnapshot(`
 {
-  "src/__tests__/transform-refine.test.codegen.d.ts": "import { z } from "zod";
+  "src/__tests__/transform-refine.test.codegen.ts": "import { z } from "zod";
 import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform-refine.test";
-const Aliased: z.ZodTypeAny;
-const T: z.ZodTypeAny;
-",
-  "src/__tests__/transform-refine.test.codegen.js": "const { z } = require("zod");
-const { ParseFloat, ToString, Coerce, ParsePet, Even } = require("./transform-refine.test");
-const Aliased = z.object({ x: z.string() });
-const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()), includes: z.includes(z.lazy(() => Aliased), 3), deepIncludes: z.includes(z.lazy(() => Aliased), 5), selectable: z.lazy(() => Aliased).selectable(), selection: z.lazy(() => Aliased).selection(), pageResponse: z.pageResponse(z.lazy(() => Aliased)) });
-",
-  "src/__tests__/transform-refine.test.codegen.mjs": "import { z } from "zod";
-import { ParseFloat, ToString, Coerce, ParsePet, Even } from "./transform-refine.test";
-const Aliased = z.object({ x: z.string() });
-const T = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()), includes: z.includes(z.lazy(() => Aliased), 3), deepIncludes: z.includes(z.lazy(() => Aliased), 5), selectable: z.lazy(() => Aliased).selectable(), selection: z.lazy(() => Aliased).selection(), pageResponse: z.pageResponse(z.lazy(() => Aliased)) });
+const Aliased: z.ZodTypeAny = z.object({ x: z.string() });
+const T: z.ZodTypeAny = z.object({ a: z.date().transform(new ToString().transform).transform(new ParseFloat().transform), b: z.string().transform(new Coerce().transform), c: z.string().refine(new ParsePet().refine, new ParsePet().message), d: z.number().superRefine(new Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()), includes: z.includes(z.lazy(() => Aliased), 3), deepIncludes: z.includes(z.lazy(() => Aliased), 5), selectable: z.lazy(() => Aliased).selectable(), selection: z.lazy(() => Aliased).selection(), pageResponse: z.pageResponse(z.lazy(() => Aliased)) });
 ",
 }
 `));

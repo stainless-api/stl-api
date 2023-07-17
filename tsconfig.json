@@ -1,11 +1,15 @@
 {
   "exclude": ["node_modules"],
   "references": [
+    { "path": "packages/cli" },
+    { "path": "packages/express" },
     { "path": "packages/next-auth" },
     { "path": "packages/next" },
     { "path": "packages/prisma" },
     { "path": "packages/react-query" },
-    { "path": "packages/stainless" }
+    { "path": "packages/react-query/tsconfig.esm.json" },
+    { "path": "packages/stainless" },
+    { "path": "packages/ts-to-zod" }
   ],
   "compilerOptions": {
     "esModuleInterop": true

@@ -24,6 +24,7 @@ export interface GenerationConfig {
   baseDependenciesPath: string;
   rootPath: string;
   suffix?: string;
+  zPackage?: string;
 }
 
 export function createGenerationConfig(options: GenOptions): GenerationConfig {
@@ -58,6 +59,7 @@ export function createGenerationConfig(options: GenOptions): GenerationConfig {
     basePath,
     baseDependenciesPath,
     suffix,
-    rootPath: options.rootPath
+    rootPath: options.rootPath,
+    zPackage: options.zPackage
   }
 }

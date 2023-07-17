@@ -1,12 +1,13 @@
 import * as React from "react";
 import PostItem from "./PostItem";
-import { client } from "../../api/client";
+import { useClient } from "../../api/client";
 
 interface PostFeedProps {
   userId?: string;
 }
 
 const PostFeed: React.FC<PostFeedProps> = ({ userId }) => {
+  const client = useClient();
   const { hasNextPage, isFetchingNextPage, fetchNextPage, items } =
     client.posts.useInfiniteList({
       userId,
