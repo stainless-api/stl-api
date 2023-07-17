@@ -5,7 +5,7 @@ import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
 type Uuid = t.StringSchema<{ uuid: true }>;
 import { PrismaModel } from "@stl-api/prisma";
-import { PostType as __symbol_PostType } from "../../stl-api-gen/api/posts/models";
+import { PostType as __symbol_PostType } from "../../.stl-codegen/api/posts/models";
 export const IncludableUserSchema = z.lazy(() => User).includable();
 export const SelectableUserSchema = z.lazy(() => UserSelection).selectable();
 export const IncludableCommentsSchema = z

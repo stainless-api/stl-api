@@ -61,7 +61,7 @@ argParser
   )
   .allowExcessArguments(false);
 
-const FOLDER_GEN_PATH = "stl-api-gen";
+const FOLDER_GEN_PATH = ".stl-codegen";
 
 interface CallDiagnostics {
   line: number;
@@ -525,7 +525,7 @@ async function evaluate(
                 convertPathToImport(
                   generatePath(file.getFilePath(), generationConfig)
                 )
-              )}`
+              )}.js`
             ),
           ]
         );

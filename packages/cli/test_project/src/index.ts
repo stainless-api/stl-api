@@ -1,17 +1,9 @@
 import { z, Stl } from "stainless";
 import { ExternalInterface, TestEnumAdditional } from "./additional";
-import {
-  ExternalInterface as __symbol_ExternalInterface,
-  InThisFile as __symbol_InThisFile,
-} from "../stl-api-gen/src/index";
-import {
-  Test as __class_Test,
-  EnumTest as __enum_EnumTest,
-} from "../stl-api-gen/src/index";
-import { TestEnumAdditional as __enum_TestEnumAdditional } from "../stl-api-gen/src/additional";
 const stl = new Stl({
   plugins: {},
 });
+import { TestEnumAdditional as __enum_TestEnumAdditional } from "../.stl-codegen/src/additional";
 
 export enum EnumTest {
   A,
