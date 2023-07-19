@@ -40,8 +40,6 @@ export type input<T> = 0 extends 1 & T
   ? input<T["input"]>
   : T extends Date
   ? Date
-  : T extends object
-  ? { [k in keyof T]: input<T[k]> }
   : T extends Array<infer E>
   ? Array<input<E>>
   : T extends Set<infer E>
@@ -50,6 +48,8 @@ export type input<T> = 0 extends 1 & T
   ? Map<input<K>, input<V>>
   : T extends PromiseLike<infer E>
   ? PromiseLike<input<E>>
+  : T extends object
+  ? { [k in keyof T]: input<T[k]> }
   : T;
 
 export type output<T> = 0 extends 1 & T
@@ -58,8 +58,6 @@ export type output<T> = 0 extends 1 & T
   ? T["output"]
   : T extends Date
   ? Date
-  : T extends object
-  ? { [k in keyof T]: output<T[k]> }
   : T extends Array<infer E>
   ? Array<output<E>>
   : T extends Set<infer E>
@@ -68,6 +66,8 @@ export type output<T> = 0 extends 1 & T
   ? Map<output<K>, output<V>>
   : T extends PromiseLike<infer E>
   ? PromiseLike<output<E>>
+  : T extends object
+  ? { [k in keyof T]: output<T[k]> }
   : T;
 
 type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
