@@ -6,11 +6,20 @@ export const SchemaSymbol = Symbol("SchemaType");
 export abstract class Schema {
   declare [SchemaSymbol]: true;
   declare abstract input: any;
-  declare output?: any;
+  declare abstract output: any;
   declare metadata?: object;
 }
 
-export class Metadata<Input, Metadata extends object> extends Schema {
+export type SchemaInput<I> = I | { [SchemaSymbol]: true; output: I };
+
+export abstract class NonTransformSchema extends Schema {
+  declare output: output<this["input"]>;
+}
+
+export class Metadata<
+  Input,
+  Metadata extends object
+> extends NonTransformSchema {
   declare input: Input;
   declare metadata: Metadata;
 }
@@ -27,7 +36,7 @@ export abstract class Transform extends Schema {
 export type input<T> = 0 extends 1 & T
   ? any
   : T extends Schema
-  ? schemaTypeInput<T>
+  ? input<T["input"]>
   : T extends Date
   ? Date
   : T extends object
@@ -42,14 +51,10 @@ export type input<T> = 0 extends 1 & T
   ? PromiseLike<input<E>>
   : T;
 
-const ERROR = Symbol("ERROR");
-
-type schemaTypeInput<T extends Schema> = input<T["input"]>;
-
 export type output<T> = 0 extends 1 & T
   ? any
   : T extends Schema
-  ? schemaTypeOutput<T>
+  ? T["output"]
   : T extends Date
   ? Date
   : T extends object
@@ -65,20 +70,6 @@ export type output<T> = 0 extends 1 & T
   : T;
 
 type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
-
-type schemaTypeOutput<T extends Schema> = T extends { output: infer O }
-  ? output<O>
-  : T extends {
-      transform: (value: any) => infer O;
-    }
-  ? UnwrapPromise<O>
-  : T extends {
-      refine(value: any): value is infer O;
-    }
-  ? O
-  : T extends { input: infer I }
-  ? output<I>
-  : { [ERROR]: "unable to determine schema output type"; schema: T };
 
 export type toZod<T> = [T] extends [z.ZodTypeAny]
   ? T
@@ -157,6 +148,10 @@ export abstract class SuperRefine extends Schema {
     value: output<this["input"]>,
     ctx: z.RefinementCtx
   ): value is any;
+  declare message?:
+    | string
+    | z.CustomErrorParams
+    | ((arg: output<this["input"]>) => z.CustomErrorParams);
 }
 
 type OptionalMessage<T> = T extends true ? true | string : T | [T, string];
@@ -206,7 +201,9 @@ interface StringSchemaProps {
 
 export const StringSchemaSymbol = Symbol("StringSchema");
 
-export class StringSchema<Props extends StringSchemaProps> extends Schema {
+export class StringSchema<
+  Props extends StringSchemaProps
+> extends NonTransformSchema {
   declare [StringSchemaSymbol]: true;
   declare input: string;
   declare props: Props;
@@ -234,7 +231,9 @@ interface NumberSchemaProps {
 
 export const NumberSchemaSymbol = Symbol("NumberSchema");
 
-export class NumberSchema<Props extends NumberSchemaProps> extends Schema {
+export class NumberSchema<
+  Props extends NumberSchemaProps
+> extends NonTransformSchema {
   declare [NumberSchemaSymbol]: true;
   declare input: number;
   declare props: Props;
@@ -258,7 +257,9 @@ interface BigIntSchemaProps {
 
 export const BigIntSchemaSymbol = Symbol("BigIntSchema");
 
-export class BigIntSchema<Props extends BigIntSchemaProps> extends Schema {
+export class BigIntSchema<
+  Props extends BigIntSchemaProps
+> extends NonTransformSchema {
   declare [BigIntSchemaSymbol]: true;
   declare input: bigint;
   declare props: Props;
@@ -271,7 +272,9 @@ interface DateSchemaProps {
 
 export const DateSchemaSymbol = Symbol("DateSchema");
 
-export class DateSchema<Props extends DateSchemaProps> extends Schema {
+export class DateSchema<
+  Props extends DateSchemaProps
+> extends NonTransformSchema {
   declare [DateSchemaSymbol]: true;
   declare input: Date;
   declare props: Props;
@@ -288,7 +291,7 @@ export const ObjectSchemaSymbol = Symbol("ObjectSchema");
 export class ObjectSchema<
   T extends object,
   Props extends ObjectSchemaProps
-> extends Schema {
+> extends NonTransformSchema {
   declare [ObjectSchemaSymbol]: true;
   declare input: T;
   declare props: Props;
@@ -360,7 +363,7 @@ interface PageResponseType<I> {
 
 const PageResponseSymbol = Symbol("PageResponse");
 
-export class PageResponse<I> extends Schema {
+export class PageResponse<I> extends NonTransformSchema {
   declare [PageResponseSymbol]: true;
   declare item: I;
   declare input: PageResponseType<I>;
