@@ -539,7 +539,7 @@ export const PrismaModelSymbol = Symbol("PrismaModel");
 
 type MakePrismaModelMetadata<M> = { stainless: { prismaModel: M } };
 
-export abstract class PrismaModel extends t.Schema {
+export abstract class PrismaModel extends t.EffectlessSchema {
   declare [PrismaModelSymbol]: true;
   declare abstract model: PrismaHelpers;
   declare metadata: MakePrismaModelMetadata<this["model"]>;
@@ -547,7 +547,7 @@ export abstract class PrismaModel extends t.Schema {
 
 export const PrismaModelLoaderSymbol = Symbol("PrismaModelLoader");
 
-export abstract class PrismaModelLoader extends t.Schema {
+export abstract class PrismaModelLoader extends t.Effects {
   declare [PrismaModelLoaderSymbol]: true;
   declare output: FindUniqueOrThrowResult<this["model"]>;
   declare abstract model: PrismaHelpers;
