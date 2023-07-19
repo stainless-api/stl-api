@@ -6,15 +6,15 @@ export const SchemaSymbol = Symbol("SchemaType");
 
 export abstract class SchemaType<I, O = I> {
   [SchemaSymbol] = true;
-  declare _input: I;
-  declare _output: O;
+  declare input: I;
+  declare output: O;
 }
 
 export const MetadataSymbol = Symbol("Metadata");
 
 export abstract class Metadata<T, M extends object> extends SchemaType<T> {
   [MetadataSymbol] = true;
-  declare _metadata: M;
+  declare metadata: M;
 }
 
 export const TransformSymbol = Symbol("Transform");
