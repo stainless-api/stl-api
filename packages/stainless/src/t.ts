@@ -12,22 +12,23 @@ export abstract class Schema {
 
 export type SchemaInput<I> = I | { [SchemaSymbol]: true; output: I };
 
-export abstract class NonTransformSchema extends Schema {
+export abstract class EffectlessSchema extends Schema {
   declare output: output<this["input"]>;
 }
 
-export class Metadata<
-  Input,
-  Metadata extends object
-> extends NonTransformSchema {
+export class Metadata<Input, Metadata extends object> extends EffectlessSchema {
   declare input: Input;
   declare metadata: Metadata;
 }
 export const EffectsSymbol = Symbol("Effects");
+
+export abstract class Effects extends Schema {
+  declare [EffectsSymbol]: true;
+}
+
 export const TransformSymbol = Symbol("Transform");
 
-export abstract class Transform extends Schema {
-  declare [EffectsSymbol]: true;
+export abstract class Transform extends Effects {
   declare [TransformSymbol]: true;
   declare output: output<UnwrapPromise<ReturnType<this["transform"]>>>;
   abstract transform(value: output<this["input"]>): any;
@@ -123,8 +124,7 @@ type schemaTypeToZod<T extends Schema> = T extends {
 
 export const RefineSymbol = Symbol("Refine");
 
-export abstract class Refine extends Schema {
-  declare [EffectsSymbol]: true;
+export abstract class Refine extends Effects {
   declare [RefineSymbol]: true;
   declare output: this["refine"] extends (value: any) => value is infer O
     ? output<O>
@@ -138,8 +138,7 @@ export abstract class Refine extends Schema {
 
 export const SuperRefineSymbol = Symbol("SuperRefine");
 
-export abstract class SuperRefine extends Schema {
-  declare [EffectsSymbol]: true;
+export abstract class SuperRefine extends Effects {
   declare [SuperRefineSymbol]: true;
   declare output: this["superRefine"] extends (value: any) => value is infer O
     ? output<O>
@@ -203,7 +202,7 @@ export const StringSchemaSymbol = Symbol("StringSchema");
 
 export class StringSchema<
   Props extends StringSchemaProps
-> extends NonTransformSchema {
+> extends EffectlessSchema {
   declare [StringSchemaSymbol]: true;
   declare input: string;
   declare props: Props;
@@ -233,7 +232,7 @@ export const NumberSchemaSymbol = Symbol("NumberSchema");
 
 export class NumberSchema<
   Props extends NumberSchemaProps
-> extends NonTransformSchema {
+> extends EffectlessSchema {
   declare [NumberSchemaSymbol]: true;
   declare input: number;
   declare props: Props;
@@ -259,7 +258,7 @@ export const BigIntSchemaSymbol = Symbol("BigIntSchema");
 
 export class BigIntSchema<
   Props extends BigIntSchemaProps
-> extends NonTransformSchema {
+> extends EffectlessSchema {
   declare [BigIntSchemaSymbol]: true;
   declare input: bigint;
   declare props: Props;
@@ -274,7 +273,7 @@ export const DateSchemaSymbol = Symbol("DateSchema");
 
 export class DateSchema<
   Props extends DateSchemaProps
-> extends NonTransformSchema {
+> extends EffectlessSchema {
   declare [DateSchemaSymbol]: true;
   declare input: Date;
   declare props: Props;
@@ -291,7 +290,7 @@ export const ObjectSchemaSymbol = Symbol("ObjectSchema");
 export class ObjectSchema<
   T extends object,
   Props extends ObjectSchemaProps
-> extends NonTransformSchema {
+> extends EffectlessSchema {
   declare [ObjectSchemaSymbol]: true;
   declare input: T;
   declare props: Props;
@@ -363,7 +362,7 @@ interface PageResponseType<I> {
 
 const PageResponseSymbol = Symbol("PageResponse");
 
-export class PageResponse<I> extends NonTransformSchema {
+export class PageResponse<I> extends EffectlessSchema {
   declare [PageResponseSymbol]: true;
   declare item: I;
   declare input: PageResponseType<I>;
