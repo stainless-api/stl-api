@@ -535,12 +535,20 @@ function convertSelect(
   return result;
 }
 
-export class PrismaModel<T, P> extends t.Metadata<
-  T,
-  { stainless: { prismaModel: P } }
-> {}
+export const PrismaModelSymbol = Symbol("PrismaModel");
 
-export class PrismaModelLoader<T, M extends PrismaHelpers> extends t.SchemaType<
-  T,
-  FindUniqueOrThrowResult<M>
-> {}
+type MakePrismaModelMetadata<M> = { stainless: { prismaModel: M } };
+
+export abstract class PrismaModel extends t.Schema {
+  declare [PrismaModelSymbol]: true;
+  declare abstract model: PrismaHelpers;
+  declare metadata: MakePrismaModelMetadata<this["model"]>;
+}
+
+export const PrismaModelLoaderSymbol = Symbol("PrismaModelLoader");
+
+export abstract class PrismaModelLoader extends t.Schema {
+  declare [PrismaModelLoaderSymbol]: true;
+  declare output: FindUniqueOrThrowResult<this["model"]>;
+  declare abstract model: PrismaHelpers;
+}
