@@ -134,7 +134,6 @@ export abstract class Refine extends Effects {
   declare output: this["refine"] extends (value: any) => value is infer O
     ? O
     : output<this["input"]>;
-  abstract refine(value: output<this["input"]>): value is any;
   abstract refine(value: output<this["input"]>): boolean;
   declare message?:
     | string
@@ -149,10 +148,6 @@ export abstract class SuperRefine extends Effects {
   declare output: this["superRefine"] extends (value: any) => value is infer O
     ? O
     : output<this["input"]>;
-  abstract superRefine(
-    value: output<this["input"]>,
-    ctx: z.RefinementCtx
-  ): value is any;
   abstract superRefine(
     value: output<this["input"]>,
     ctx: z.RefinementCtx

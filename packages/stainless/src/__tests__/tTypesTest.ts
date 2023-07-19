@@ -42,12 +42,12 @@ type P = {
   s: PathStringSchema;
 };
 
+type Pinput = t.input<P>;
+type Poutput = t.output<P>;
+
 type A = { a: 1 } | null | undefined;
 type B<T> = T extends object ? { [k in keyof T]: T[k] } : T;
 type C = B<A>;
-
-type Pinput = t.input<P>;
-type Poutput = t.output<P>;
 
 type Post = {
   id: string;
