@@ -76,7 +76,9 @@ export type output<T> = 0 extends 1 & T
 
 type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
 
-export type toZod<T> = [null | undefined] extends [T]
+export type toZod<T> = 0 extends 1 & T
+  ? any
+  : [null | undefined] extends [T]
   ? z.ZodOptional<z.ZodNullable<toZod<NonNullable<T>>>>
   : [null] extends [T]
   ? z.ZodNullable<toZod<NonNullable<T>>>
