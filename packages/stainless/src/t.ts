@@ -149,10 +149,6 @@ export abstract class SuperRefine extends Effects {
     value: output<this["input"]>,
     ctx: z.RefinementCtx
   ): value is any;
-  declare message?:
-    | string
-    | z.CustomErrorParams
-    | ((arg: output<this["input"]>) => z.CustomErrorParams);
 }
 
 type OptionalMessage<T> = T extends true ? true | string : T | [T, string];
