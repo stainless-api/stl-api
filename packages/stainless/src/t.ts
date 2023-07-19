@@ -1,5 +1,6 @@
 import { IncludablePaths } from "./includes";
 import { SelectTree, z } from "./stl";
+import { Effect, includableSymbol } from "./z";
 
 export const SchemaSymbol = Symbol("SchemaType");
 
@@ -12,7 +13,10 @@ export abstract class Schema {
 
 export type SchemaInput<I> = I | { [SchemaSymbol]: true; output: I };
 
+export const EffectlessSchemaSymbol = Symbol("EffectlessSchema");
+
 export abstract class EffectlessSchema extends Schema {
+  declare [EffectlessSchemaSymbol]: true;
   declare output: output<this["input"]>;
 }
 
@@ -72,16 +76,14 @@ export type output<T> = 0 extends 1 & T
 
 type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
 
-export type toZod<T> = [0] extends [1 & T]
-  ? any
-  : [T] extends [z.ZodTypeAny]
-  ? T
-  : [null | undefined] extends [T]
+export type toZod<T> = [null | undefined] extends [T]
   ? z.ZodOptional<z.ZodNullable<toZod<NonNullable<T>>>>
   : [null] extends [T]
   ? z.ZodNullable<toZod<NonNullable<T>>>
   : [undefined] extends [T]
   ? z.ZodOptional<toZod<NonNullable<T>>>
+  : [T] extends [z.ZodTypeAny]
+  ? T
   : [T] extends [Schema]
   ? schemaTypeToZod<T>
   : [T] extends [Date]
@@ -95,7 +97,7 @@ export type toZod<T> = [0] extends [1 & T]
   : [T] extends [PromiseLike<infer E>]
   ? z.ZodPromise<toZod<E>>
   : [T] extends [object]
-  ? z.ZodObject<{ [k in keyof T]-?: NonNullable<toZod<T[k]>> }>
+  ? z.ZodObject<{ [k in keyof T]-?: toZod<T[k]> }>
   : [number] extends [T]
   ? z.ZodNumber
   : [string] extends [T]
@@ -110,19 +112,20 @@ type schemaTypeToZod<T extends Schema> = T extends {
   metadata: infer M extends object;
 }
   ? z.ZodMetadata<toZod<Omit<T, "metadata">>, M>
+  : T extends EffectlessSchema
+  ? toZod<T["input"]>
+  : T extends {
+      [IncludableSymbol]: true;
+      includable: infer I;
+    }
+  ? z.ZodEffects<
+      toZod<I>,
+      z.IncludableOutput<output<I>>,
+      z.IncludableInput<input<I>>
+    >
   : T extends { [EffectsSymbol]: true; input: infer I; output: infer O }
   ? z.ZodEffects<toZod<I>, O, input<I>>
-  : { input: string } extends T
-  ? z.ZodString
-  : { input: number } extends T
-  ? z.ZodNumber
-  : { input: boolean } extends T
-  ? z.ZodBoolean
-  : { input: bigint } extends T
-  ? z.ZodBigInt
-  : T extends { input: infer I }
-  ? toZod<I>
-  : z.ZodType<output<T>, any, input<T>>;
+  : toZod<T["input"]>;
 
 export const RefineSymbol = Symbol("Refine");
 
@@ -130,8 +133,9 @@ export abstract class Refine extends Effects {
   declare [RefineSymbol]: true;
   declare output: this["refine"] extends (value: any) => value is infer O
     ? O
-    : never;
+    : output<this["input"]>;
   abstract refine(value: output<this["input"]>): value is any;
+  abstract refine(value: output<this["input"]>): boolean;
   declare message?:
     | string
     | z.CustomErrorParams
@@ -144,16 +148,22 @@ export abstract class SuperRefine extends Effects {
   declare [SuperRefineSymbol]: true;
   declare output: this["superRefine"] extends (value: any) => value is infer O
     ? O
-    : never;
+    : output<this["input"]>;
   abstract superRefine(
     value: output<this["input"]>,
     ctx: z.RefinementCtx
   ): value is any;
+  abstract superRefine(
+    value: output<this["input"]>,
+    ctx: z.RefinementCtx
+  ): boolean;
 }
 
-type OptionalMessage<T> = T extends true ? true | string : T | [T, string];
+export type OptionalMessage<T> = T extends true
+  ? true | string
+  : T | [T, string];
 
-type IPOptions =
+export type IPOptions =
   | true
   | string
   | {
@@ -161,7 +171,7 @@ type IPOptions =
       message?: string;
     };
 
-type DateTimeOptions =
+export type DateTimeOptions =
   | true
   | string
   | {
@@ -170,7 +180,7 @@ type DateTimeOptions =
       message?: string;
     };
 
-interface StringSchemaProps {
+export interface StringSchemaProps {
   max?: OptionalMessage<number>;
   min?: OptionalMessage<number>;
   length?: OptionalMessage<number>;
@@ -206,7 +216,7 @@ export class StringSchema<
   declare props: Props;
 }
 
-interface NumberSchemaProps {
+export interface NumberSchemaProps {
   gt?: OptionalMessage<number>;
   gte?: OptionalMessage<number>;
   min?: OptionalMessage<number>;
@@ -236,7 +246,7 @@ export class NumberSchema<
   declare props: Props;
 }
 
-interface BigIntSchemaProps {
+export interface BigIntSchemaProps {
   gt?: OptionalMessage<bigint>;
   gte?: OptionalMessage<bigint>;
   min?: OptionalMessage<bigint>;
@@ -262,7 +272,7 @@ export class BigIntSchema<
   declare props: Props;
 }
 
-interface DateSchemaProps {
+export interface DateSchemaProps {
   min?: OptionalMessage<string>;
   max?: OptionalMessage<string>;
 }
@@ -277,7 +287,7 @@ export class DateSchema<
   declare props: Props;
 }
 
-interface ObjectSchemaProps {
+export interface ObjectSchemaProps {
   passthrough?: OptionalMessage<true>;
   strict?: OptionalMessage<true>;
   catchall?: any;
@@ -294,7 +304,7 @@ export class ObjectSchema<
   declare props: Props;
 }
 
-interface ArraySchemaProps {
+export interface ArraySchemaProps {
   nonempty?: OptionalMessage<true>;
 
   min?: OptionalMessage<number>;
@@ -322,35 +332,45 @@ export class SetSchema<T, Props extends SetSchemaProps> extends Schema {
   declare props: Props;
 }
 
-export class Includable<T> extends Transform {
+export const IncludableSymbol = Symbol("Includable");
+
+export class Includable<T> extends Effects {
+  declare [IncludableSymbol]: true;
+  declare includable: T;
   declare input: z.IncludableInput<input<T>>;
-  declare transform: (
-    value: output<z.IncludableInput<input<T>>>
-  ) => z.IncludableOutput<output<T>>;
+  declare output: z.IncludableOutput<output<T>>;
   declare metadata: { stainless: { includable: true } };
 }
 
-export class Includes<T, Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3> {
+export class Includes<
+  T,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends EffectlessSchema {
   declare input: IncludablePaths<output<T>, Depth>[];
   declare metadata: { stainless: { includes: true } };
 }
 
-export class Selectable<T> extends Transform {
+export const SelectableSymbol = Symbol("Selectable");
+
+export class Selectable<T> extends Effects {
+  declare [SelectableSymbol]: true;
+  declare selectable: T;
   declare input: z.SelectableInput<input<T>>;
-  declare transform: (
-    value: output<z.SelectableInput<input<T>>>
-  ) => z.SelectableOutput<output<T>>;
+  declare output: z.SelectableOutput<output<T>>;
   declare metadata: { stainless: { selectable: true } };
 }
 
-export class Selects<T, Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3> {
-  declare [TransformSymbol]: true;
+export class Selects<
+  T,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends Effects {
+  declare [EffectsSymbol]: true;
   declare input: string;
   declare output: SelectTree | null | undefined;
   declare metadata: { stainless: { selects: true } };
 }
 
-interface PageResponseType<I> {
+export interface PageResponseType<I> {
   startCursor: string | null;
   endCursor: string | null;
   hasNextPage?: boolean;
