@@ -30,7 +30,7 @@ export const TransformSymbol = Symbol("Transform");
 
 export abstract class Transform extends Effects {
   declare [TransformSymbol]: true;
-  declare output: output<UnwrapPromise<ReturnType<this["transform"]>>>;
+  declare output: UnwrapPromise<ReturnType<this["transform"]>>;
   abstract transform(value: output<this["input"]>): any;
 }
 
@@ -72,7 +72,9 @@ export type output<T> = 0 extends 1 & T
 
 type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
 
-export type toZod<T> = [T] extends [z.ZodTypeAny]
+export type toZod<T> = [0] extends [1 & T]
+  ? any
+  : [T] extends [z.ZodTypeAny]
   ? T
   : [null | undefined] extends [T]
   ? z.ZodOptional<z.ZodNullable<toZod<NonNullable<T>>>>
@@ -127,7 +129,7 @@ export const RefineSymbol = Symbol("Refine");
 export abstract class Refine extends Effects {
   declare [RefineSymbol]: true;
   declare output: this["refine"] extends (value: any) => value is infer O
-    ? output<O>
+    ? O
     : never;
   abstract refine(value: output<this["input"]>): value is any;
   declare message?:
@@ -141,7 +143,7 @@ export const SuperRefineSymbol = Symbol("SuperRefine");
 export abstract class SuperRefine extends Effects {
   declare [SuperRefineSymbol]: true;
   declare output: this["superRefine"] extends (value: any) => value is infer O
-    ? output<O>
+    ? O
     : never;
   abstract superRefine(
     value: output<this["input"]>,
