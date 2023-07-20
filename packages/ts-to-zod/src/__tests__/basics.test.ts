@@ -388,8 +388,8 @@ it(`zod schema property`, async () =>
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
-import * as __ from "./basics.test";
-const zodSchemaProperty: z.ZodTypeAny = z.object({ zod: z.lazy(() => __.objectSchema) });
+import { objectSchema } from "./basics.test";
+const zodSchemaProperty: z.ZodTypeAny = z.object({ zod: z.lazy(() => objectSchema) });
 ",
 }
 `));
