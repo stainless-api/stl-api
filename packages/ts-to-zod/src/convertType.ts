@@ -515,6 +515,24 @@ export function convertType(
         "superRefine",
         diagnosticItem
       );
+    case "PrismaModel":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModel",
+        baseTypeName,
+        diagnosticItem
+      );
+    case "PrismaModelLoader":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModelLoader",
+        baseTypeName,
+        diagnosticItem
+      );
   }
   if (isStainlessSymbol(typeSymbol)) {
     switch (typeSymbol?.getName()) {
@@ -1280,6 +1298,47 @@ function convertRefineType(
     refineType,
     callArgs
   );
+}
+
+function convertPrismaModelType(
+  ctx: ConvertTypeContext,
+  type: tm.Type,
+  symbol: tm.Symbol,
+  method: "prismaModel" | "prismaModelLoader",
+  baseTypeName: string,
+  diagnosticItem: DiagnosticItem
+): ts.Expression {
+  const inputProperty = type.getProperty("input");
+  const inputType = inputProperty?.getTypeAtLocation(ctx.node);
+
+  if (!inputType) {
+    ctx.addError(
+      diagnosticItem,
+      {
+        message: `A class extending \`${baseTypeName}\` must have a property called \`input\` specifying the schema with which the prisma model will be associated.`,
+      },
+      true
+    );
+  }
+
+  const inputSchema = convertType(ctx, inputType, diagnosticItem);
+
+  // import the class
+  ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+    importFromUserFile: true,
+    sourceFile: getTypeFilePath(type)!,
+  });
+
+  return methodCall(inputSchema, method, [
+    factory.createPropertyAccessExpression(
+      factory.createNewExpression(
+        factory.createIdentifier(symbol.getName()),
+        undefined,
+        undefined
+      ),
+      "model"
+    ),
+  ]);
 }
 
 const SCHEMA_TUPLE_TYPE_ERROR = `schema property of type tuple must be of form [<literal value>, "string literal message"]`;
