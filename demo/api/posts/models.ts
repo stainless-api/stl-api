@@ -3,9 +3,10 @@ import { Comment, CommentSelection } from "../comments/models";
 import prisma from "../../libs/prismadb";
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
-type Uuid = t.StringSchema<{ uuid: true }>;
 import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
-import { PostType as __symbol_PostType } from "../../.stl-codegen/api/posts/models";
+type Uuid = t.StringSchema<{ uuid: true }>;
+import { PostType as __class_PostType } from "../../.stl-codegen/api/posts/models";
+
 export const IncludableUserSchema = z.lazy(() => User).includable();
 export const SelectableUserSchema = z.lazy(() => UserSelection).selectable();
 export const IncludableCommentsSchema = z
@@ -24,10 +25,12 @@ export class PostType extends PrismaModel {
     userId: Uuid;
     likedIds: Uuid[];
     image?: string | null;
-    user?: typeof IncludableUserSchema;
-    user_fields?: typeof SelectableUserSchema;
-    comments?: typeof IncludableCommentsSchema;
-    comments_fields?: typeof IncludableCommentsFieldSchema;
+    user?: t.ZodSchema<{ schema: typeof IncludableUserSchema }>;
+    user_fields?: t.ZodSchema<{ schema: typeof SelectableUserSchema }>;
+    comments?: t.ZodSchema<{ schema: typeof IncludableCommentsSchema }>;
+    comments_fields?: t.ZodSchema<{
+      schema: typeof IncludableCommentsFieldSchema;
+    }>;
   };
   model = prisma.post;
 }
@@ -37,7 +40,7 @@ export class PostLoader extends PrismaModelLoader {
   model = prisma.post;
 }
 
-export const Post = stl.magic<PostType>(__symbol_PostType);
+export const Post = stl.magic<PostType>(__class_PostType);
 
 export const PostSelection = Post.selection();
 

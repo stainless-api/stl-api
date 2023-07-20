@@ -19,7 +19,6 @@ import {
   ErrorAbort,
   Incident,
   Diagnostics,
-  convertTypeof,
 } from "ts-to-zod/dist/convertType";
 
 import {
@@ -278,21 +277,7 @@ async function evaluate(
         node: typeArgument,
       } as const;
 
-      let typeofSchema;
-
-      try {
-        typeofSchema = convertTypeof(ctx, typeArgument, type, diagnosticItem);
-      } catch (e) {
-        if (e instanceof ErrorAbort) {
-          break;
-        } else throw e;
-      } finally {
-        addDiagnostics(ctx, file, callExpression, callDiagnostics);
-      }
-
-      if (typeofSchema) {
-        schemaExpression = typeofSchema;
-      } else if (
+      if (
         typeArgument instanceof tm.TypeReferenceNode &&
         typeArgument.getTypeArguments().length === 0
       ) {
@@ -361,16 +346,11 @@ async function evaluate(
         // currently processing. This is relevant when handling enums and
         // classes.
         // TODO: is handling multiple declarations relevant here?
-        if (!importInfo.importFromUserFile) {
-          if (importInfo.sourceFile === file.getFilePath()) {
-            imports.set(name, {
-              ...importInfo,
-              sourceFile: Path.join(
-                generationConfig.basePath,
-                Path.relative(rootPath, importInfo.sourceFile)
-              ),
-            });
-          } else imports.set(name, importInfo);
+        if (!importInfo.excludeFromUserFile) {
+          imports.set(name, {
+            ...importInfo,
+            importFromUserFile: false,
+          });
         }
       }
     }
@@ -418,7 +398,10 @@ async function evaluate(
     // Insert imports after the last import already in the file.
     const insertPosition = fileImportDeclarations.length;
     fileOperations.push(() =>
-      file.insertStatements(insertPosition, importsString)
+      file.insertStatements(
+        insertPosition,
+        importsString ? importsString + "\n" : ""
+      )
     );
   }
 
@@ -658,15 +641,12 @@ function convertEndpointType(
     variant: "node",
     node: typeArgument,
   } as const;
-  const typeofSchema = convertTypeof(ctx, typeArgument, type, diagnosticItem);
-  if (typeofSchema) return typeofSchema;
-
   if (
     typeArgument instanceof tm.TypeReferenceNode &&
     typeArgument.getTypeArguments().length === 0
   ) {
     const symbol = typeArgument.getTypeName().getSymbolOrThrow();
-    const schema = convertSymbol(ctx, symbol, diagnosticItem);
+    const schema = convertSymbol(ctx, symbol, diagnosticItem, type);
     addDiagnostics(ctx, diagnosticsFile, callExpression, callDiagnostics);
     return schema;
   } else {

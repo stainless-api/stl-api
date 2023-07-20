@@ -3,13 +3,14 @@ import { ExternalInterface, TestEnumAdditional } from "./additional";
 const stl = new Stl({
   plugins: {},
 });
-import { TestEnumAdditional as __enum_TestEnumAdditional } from "../.stl-codegen/src/additional";
 
 export enum EnumTest {
   A,
   B,
   C,
 }
+import { EnumTest as __enum_EnumTest } from "../.stl-codegen/src/index";
+import { TestEnumAdditional as __enum_TestEnumAdditional } from "../.stl-codegen/src/additional";
 
 export class X {}
 

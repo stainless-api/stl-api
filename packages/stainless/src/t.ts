@@ -386,3 +386,8 @@ export class PageResponse<I> extends EffectlessSchema {
   declare item: I;
   declare input: PageResponseType<I>;
 }
+
+export class ZodSchema<S extends { schema: z.ZodTypeAny }> extends Effects {
+  declare input: z.input<S["schema"]>;
+  declare output: z.output<S["schema"]>;
+}

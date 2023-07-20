@@ -183,6 +183,7 @@ function isDeclarationImported(declaration: tm.Node): boolean {
 }
 
 export interface ImportInfo {
+  sourceFile: string;
   as?: string;
   /**
    * If true, the output code will import from
@@ -191,7 +192,8 @@ export interface ImportInfo {
    * `symbol`.
    */
   importFromUserFile?: boolean;
-  sourceFile: string;
+  /** Whether this import shouldn't be imported into a user file when using `stl.magic`. */
+  excludeFromUserFile?: boolean;
 }
 
 export interface NamespaceImportInfo {
@@ -238,7 +240,9 @@ interface GeneratedSchema {
 export function convertSymbol(
   ctx: SchemaGenContext,
   symbol: tm.Symbol,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
+  /** use the type for schema generation instead of attempting to resolve it */
+  ty?: tm.Type
 ) {
   let escapedImport;
   let isRoot = false;
@@ -252,7 +256,10 @@ export function convertSymbol(
     );
   }
   const internalCtx = new ConvertTypeContext(ctx, declaration);
-  const type = declaration.getType();
+  const type = ty || declaration.getType();
+
+  const fileName = getDeclarationDefinitionPath(declaration);
+  internalCtx.currentFilePath = fileName;
 
   if (ctx instanceof ConvertTypeContext) {
     isRoot = ctx.isRoot;
@@ -273,46 +280,23 @@ export function convertSymbol(
       }
       fileInfo.imports.set(symbol.getName(), {
         as: escapedImport,
-        sourceFile: declaration.getSourceFile().getFilePath(),
+        sourceFile: fileName,
       });
     }
   }
   if (!ctx.symbols.has(symbol)) {
     ctx.symbols.add(symbol);
 
-    let generated;
-    if (declaration instanceof tm.TypeAliasDeclaration) {
-      const typeNode = declaration.getTypeNode();
-      if (typeNode) {
-        try {
-          generated = convertTypeof(
-            internalCtx,
-            typeNode,
-            type,
-            diagnosticItem
-          );
-        } catch (e) {
-          if (e instanceof ErrorAbort) {
-          } else throw e;
-        }
-      }
-    }
-
-    generated ||= convertType(internalCtx, type, diagnosticItem);
+    const generated = convertType(internalCtx, type, diagnosticItem);
     const generatedSchema = {
       name: symbol.getName(),
       expression: generated,
       isExported: isRoot || isDeclarationExported(declaration),
     };
 
-    const fileName = declaration.getSourceFile().getFilePath();
-    const generatedSchemas = mapGetOrCreate(ctx.files, fileName, () => ({
-      imports: new Map(),
-      namespaceImports: new Map(),
-      generatedSchemas: new Map(),
-    })).generatedSchemas;
-
-    generatedSchemas.set(symbol.getName(), generatedSchema);
+    ctx
+      .getFileInfo(fileName)
+      .generatedSchemas.set(symbol.getName(), generatedSchema);
   }
 
   return zodConstructor("lazy", [
@@ -325,106 +309,6 @@ export function convertSymbol(
       factory.createIdentifier(escapedImport || symbol.getName())
     ),
   ]);
-}
-
-/**
- * Handles special typeof cases, namely `typeof schemaValue` or
- * `PrismaModel<typeof model>`
- */
-export function convertTypeof(
-  ctx: ConvertTypeContext,
-  node: tm.Node,
-  type: tm.Type,
-  diagnosticItem: DiagnosticItem
-): ts.Expression | undefined {
-  const symbol = type.getSymbol();
-  if (isStainlessPrismaSymbol(symbol)) {
-    const name = symbol!.getName();
-    if (name === "PrismaModel" || name == "PrismaModelLoader") {
-      if (node instanceof tm.TypeReferenceNode) {
-        const typeArguments = node.getTypeArguments();
-        const types = type.getTypeArguments();
-        if (typeArguments.length !== 2) {
-          return undefined;
-        }
-
-        const baseSchema = convertType(ctx, types[0], diagnosticItem);
-        const methodName = name[0].toLowerCase() + name.slice(1);
-
-        const typeofNode = typeArguments[1];
-        if (typeofNode instanceof tm.TypeQueryNode) {
-          const exprName = typeofNode.getExprName();
-          const prismaValue = convertTypeofNode(ctx, exprName, "model", false);
-          return methodCall(baseSchema, methodName, [prismaValue]);
-        } else {
-          ctx.addError(diagnosticItem, {
-            message: `${name} requires its second type argument to be the \`typeof\` a Prisma model.`,
-          });
-        }
-      }
-    }
-  }
-  if (node instanceof tm.TypeQueryNode) {
-    if (isZodSymbol(symbol) || !symbol) {
-      const exprName = node.getExprName();
-      return convertTypeofNode(ctx, exprName, "schema", true);
-    } else {
-      ctx.addError(
-        diagnosticItem,
-        { message: "`typeof` can only be used with Zod schema expressions" },
-        true
-      );
-    }
-  }
-}
-
-function convertTypeofNode(
-  ctx: ConvertTypeContext,
-  exprName: tm.EntityName,
-  prefix: string,
-  lazy: boolean
-) {
-  const base = baseIdentifier(exprName);
-  const baseSymbol = base.getSymbolOrThrow();
-  // TODO: get the correct declaration
-  const declaration = baseSymbol.getDeclarations()[0];
-
-  if (
-    !declaration ||
-    !(isDeclarationExported(declaration) || isDeclarationImported(declaration))
-  ) {
-    console.dir(declaration);
-    ctx.addError(
-      { variant: "node", node: base },
-      {
-        message: `identifier \`${base.getText()}\` must be exported to be used within a schema`,
-      },
-      true
-    );
-  }
-
-  const currentFile = ctx.getFileInfo(ctx.currentFilePath);
-  const importPath = getDeclarationDefinitionPath(declaration);
-
-  currentFile.imports.set(base.getText(), {
-    sourceFile: importPath,
-    importFromUserFile: true,
-  });
-
-  const baseSchema = convertEntityNameToExpression(exprName);
-
-  return lazy
-    ? zodConstructor("lazy", [
-        factory.createArrowFunction(
-          undefined,
-          undefined,
-          [],
-          undefined,
-          undefined,
-          baseSchema
-        ),
-      ])
-    : baseSchema;
 }
 
 function getDeclarationDefinitionPath(declaration: tm.Node): string {
@@ -513,24 +397,6 @@ export function convertType(
         ty,
         typeSymbol,
         "superRefine",
-        diagnosticItem
-      );
-    case "PrismaModel":
-      return convertPrismaModelType(
-        ctx,
-        ty,
-        typeSymbol!,
-        "prismaModel",
-        baseTypeName,
-        diagnosticItem
-      );
-    case "PrismaModelLoader":
-      return convertPrismaModelType(
-        ctx,
-        ty,
-        typeSymbol!,
-        "prismaModelLoader",
-        baseTypeName,
         diagnosticItem
       );
   }
@@ -665,12 +531,79 @@ export function convertType(
         diagnosticItem
       );
     }
+    case "ZodSchema": {
+      const typeArguments = ty.getTypeArguments();
+      if (typeArguments.length != 1) {
+        ctx.addError(
+          diagnosticItem,
+          { message: "ZodSchema takes one type argument." },
+          true
+        );
+      }
+      const schemaContainer = typeArguments[0];
+      const schemaProperty = schemaContainer.getProperty("schema");
+      if (!schemaProperty) {
+        ctx.addError(
+          diagnosticItem,
+          {
+            message:
+              "ZodSchema takes in {schema: typeof schemaValue} as a type argument",
+          },
+          true
+        );
+      }
+
+      const property = getPropertyDeclaration(schemaProperty);
+      if (!property)
+        throw new Error(
+          "internal error: could not get declaration for `schema` property"
+        );
+      const typeNode = property.getTypeNode();
+
+      if (!(typeNode instanceof tm.TypeQueryNode)) {
+        ctx.addError(
+          typeNode ? { variant: "node", node: typeNode } : diagnosticItem,
+          {
+            message:
+              "the `schema` property must have type `typeof schemaValue`.",
+          },
+          true
+        );
+      }
+
+      const schemaEntityName = typeNode.getExprName();
+      const base = baseIdentifier(schemaEntityName);
+
+      const importPath = getDeclarationDefinitionPath(property);
+
+      const currentFile = ctx.getFileInfo(ctx.currentFilePath);
+
+      currentFile.imports.set(base.getText(), {
+        sourceFile: importPath,
+        importFromUserFile: true,
+        excludeFromUserFile: true,
+      });
+
+      const baseSchema = convertEntityNameToExpression(schemaEntityName);
+      return zodConstructor("lazy", [
+        factory.createArrowFunction(
+          undefined,
+          undefined,
+          [],
+          undefined,
+          undefined,
+          baseSchema
+        ),
+      ]);
+    }
   }
 
   if (!ctx.isRoot && !generateInline && !isNativeSymbol(typeSymbol)) {
     const symbol =
       ty.getAliasSymbol() ||
-      (ty.isInterface() && !isNativeSymbol(typeSymbol) ? typeSymbol : null);
+      ((ty.isClass() || ty.isInterface()) && !isNativeSymbol(typeSymbol)
+        ? typeSymbol
+        : null);
     if (symbol) {
       const declaration = getDeclaration(symbol);
       if (
@@ -692,14 +625,25 @@ export function convertType(
     return zodConstructor("boolean");
   }
 
-  if (isStainlessPrismaSymbol(typeSymbol)) {
-    ctx.addError(
-      diagnosticItem,
-      {
-        message: `${baseTypeName} must be instantiated with two type arguments inline`,
-      },
-      true
-    );
+  switch (baseTypeName) {
+    case "PrismaModel":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModel",
+        baseTypeName,
+        diagnosticItem
+      );
+    case "PrismaModelLoader":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModelLoader",
+        baseTypeName,
+        diagnosticItem
+      );
   }
 
   if (ty.isClass()) {
@@ -1064,8 +1008,6 @@ function createZodShape(
         ctx.node
       );
 
-      let propertySchema;
-
       // If the current property has a parent type associated with it, use that
       // parent type for diagnostics information ini order to correctly attribute
       // the source of problematic types.
@@ -1077,20 +1019,9 @@ function createZodShape(
           const parentType = ctx.typeChecker.getTypeAtLocation(parentNode);
           if (parentType) enclosingType = parentType;
         }
-
-        const propertyTypeNode = propertyDeclaration.getTypeNode();
-        if (propertyTypeNode) {
-          // Handle the case where the property type is `typeof ...` or `PrismaModel<...>`
-          propertySchema = convertTypeof(ctx, propertyTypeNode, propertyType, {
-            variant: "property",
-            name: property.getName(),
-            symbol: property,
-            enclosingType,
-          });
-        }
       }
 
-      propertySchema ||= convertType(ctx, propertyType, {
+      const propertySchema = convertType(ctx, propertyType, {
         variant: "property",
         name: property.getName(),
         symbol: property,
@@ -1323,16 +1254,20 @@ function convertPrismaModelType(
 
   const inputSchema = convertType(ctx, inputType, diagnosticItem);
 
+  const mangledName = `__class_${symbol.getName()}`;
+
   // import the class
   ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
     importFromUserFile: true,
     sourceFile: getTypeFilePath(type)!,
+    as: mangledName,
+    excludeFromUserFile: true,
   });
 
   return methodCall(inputSchema, method, [
     factory.createPropertyAccessExpression(
       factory.createNewExpression(
-        factory.createIdentifier(symbol.getName()),
+        factory.createIdentifier(mangledName),
         undefined,
         undefined
       ),
@@ -1664,26 +1599,6 @@ function getBaseTypeName(type: tm.Type): string | undefined {
   return baseSymbol?.getName();
 }
 
-/** Assuming there is one base class of the given type argument, gets its nth type argument */
-function getNthBaseClassTypeArgument(ty: tm.Type, n: number): tm.Type {
-  const targetType = ty.getTargetType();
-  if (!targetType)
-    throw new Error(
-      `internal error: can't convert transform ${ty.getText()} due to lack of target type`
-    );
-  const rawInputType = targetType.getBaseTypes()[0].getTypeArguments()[n];
-  const typeArgumentNames = targetType
-    .getTypeArguments()
-    .map((arg) => arg.getText());
-  const rawInputName = rawInputType.getSymbol()?.getEscapedName();
-  if (!rawInputName) return rawInputType;
-  const inputTypePos = typeArgumentNames.findIndex(
-    (name) => name === rawInputName
-  );
-  if (inputTypePos >= 0) return ty.getTypeArguments()[inputTypePos];
-  else return rawInputType;
-}
-
 /** Is a type either a literal or union of literalish types */
 function isLiteralish(ty: tm.Type): boolean {
   if (ty.isLiteral()) return true;
@@ -1715,8 +1630,12 @@ function getTypeDeclaration(type: tm.Type): tm.Node | undefined {
 }
 
 function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
+  let importDeclaration: tm.ImportSpecifier | undefined;
   const declarations = symbol.getDeclarations();
   for (const declaration of declarations) {
+    if (declaration instanceof tm.ImportSpecifier && !importDeclaration) {
+      importDeclaration = declaration;
+    }
     if (
       declaration instanceof tm.TypeAliasDeclaration ||
       declaration instanceof tm.InterfaceDeclaration ||
@@ -1727,15 +1646,13 @@ function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
     ) {
       return declaration;
     }
-
-    if (declaration instanceof tm.ImportSpecifier) {
-      const symbol = declaration.getSymbol();
-      if (symbol && !symbol.getValueDeclaration()) {
-        return declaration;
-      }
+  }
+  if (importDeclaration) {
+    const symbol = importDeclaration.getSymbol();
+    if (symbol && !symbol.getValueDeclaration()) {
+      return importDeclaration;
     }
   }
-
   return undefined;
 }
 
