@@ -3,22 +3,22 @@ import { z, t } from "stainless";
 
 z.pageResponse(z.any())["_input"];
 
-class ToString<I extends t.TypeSchema<any>> extends t.Transform<I, string> {
-  transform(value: t.output<I>): string {
+class ToString<I extends t.SchemaInput<any>> extends t.Transform {
+  declare input: I;
+  transform(value: any): string {
     return String(value);
   }
 }
 
-class ParseFloat<I extends t.TypeSchema<string>> extends t.Transform<
-  I,
-  number
-> {
-  transform(value: t.output<I>): number {
+class ParseFloat<I extends t.SchemaInput<string>> extends t.Transform {
+  declare input: I;
+  transform(value: string): number {
     return parseFloat(value);
   }
 }
 
-class Coerce<I, O> extends t.Transform<I, O> {
+class Coerce<I, O> extends t.Transform {
+  declare input: I;
   transform(value: t.output<I>): O {
     return value as O;
   }
@@ -26,20 +26,23 @@ class Coerce<I, O> extends t.Transform<I, O> {
 
 type Pet = "cat" | "dog";
 
-class ParsePet extends t.Refine<string, Pet> {
+class ParsePet extends t.Refine {
+  declare input: string;
   refine(value: string): value is Pet {
     return value === "cat" || value === "dog";
   }
 }
 
-class Even<I extends t.TypeSchema<number>> extends t.SuperRefine<I> {
-  superRefine(value: t.output<I>, ctx: z.RefinementCtx) {
+class Even<I extends t.SchemaInput<number>> extends t.SuperRefine {
+  declare input: I;
+  superRefine(value: t.output<I>, ctx: z.RefinementCtx): boolean {
     if (value % 2 !== 0) {
       ctx.addIssue({
         code: z.ZodIssueCode.custom,
         message: "Evens only",
       });
-    }
+      return false;
+    } else return true;
   }
 }
 

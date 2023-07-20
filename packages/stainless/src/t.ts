@@ -11,7 +11,7 @@ export abstract class Schema {
   declare metadata?: object;
 }
 
-export type SchemaInput<I> = I | { [SchemaSymbol]: true; output: I };
+export type SchemaInput<I> = I | (Schema & { output: I });
 
 export const EffectlessSchemaSymbol = Symbol("EffectlessSchema");
 
@@ -365,6 +365,10 @@ export class Selects<
   declare input: string;
   declare output: SelectTree | null | undefined;
   declare metadata: { stainless: { selects: true } };
+}
+
+export class Selection<T extends SchemaInput<any>> extends EffectlessSchema {
+  declare input: T;
 }
 
 export interface PageResponseType<I> {

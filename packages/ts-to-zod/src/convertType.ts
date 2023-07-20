@@ -402,7 +402,7 @@ function convertTypeofNode(
       true
     );
   }
-  
+
   const currentFile = ctx.getFileInfo(ctx.currentFilePath);
   const importPath = getDeclarationDefinitionPath(declaration);
 
@@ -411,9 +411,7 @@ function convertTypeofNode(
     importFromUserFile: true,
   });
 
-  const baseSchema = convertEntityNameToExpression(
-    exprName
-  );
+  const baseSchema = convertEntityNameToExpression(exprName);
 
   return lazy
     ? zodConstructor("lazy", [
@@ -479,7 +477,12 @@ export function convertType(
       const symbol = ty.getSymbolOrThrow(
         `failed to get symbol for transform: ${ty.getText()}`
       );
-      const inputType = getNthBaseClassTypeArgument(ty, 0);
+      const inputType = ty.getProperty("input")?.getTypeAtLocation(ctx.node);
+
+      if (!inputType)
+        throw new Error(
+          "Encountered Transform class without required input property"
+        );
 
       // import the transform class
       ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
@@ -1239,7 +1242,8 @@ function convertRefineType(
       true
     );
   }
-  const inputType = getNthBaseClassTypeArgument(ty, 0);
+  const inputType = ty.getProperty("input")?.getTypeAtLocation(ctx.node);
+  if (!inputType) throw new Error("Expected refine to have input property");
 
   // import the refine class
   ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
