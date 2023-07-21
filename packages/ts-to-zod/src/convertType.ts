@@ -334,6 +334,8 @@ export function convertSymbol(
   const fileName = getDeclarationDefinitionPath(declaration);
   internalCtx.currentFilePath = fileName;
 
+  let as;
+
   if (ctx instanceof ConvertTypeContext) {
     isRoot = ctx.isRoot;
     currentFilePath = ctx.currentFilePath;
@@ -345,9 +347,11 @@ export function convertSymbol(
         getTypeId(symbol.getTypeAtLocation(ctx.node))
       );
 
+      as = `${importAs || symbol.getName()}Schema`;
+
       fileInfo.imports.set(symbol.getName(), {
         // TODO: fix name collisions
-        as: `${importAs || symbol.getName()}Schema`,
+        as,
         sourceFile: fileName,
       });
     }
@@ -379,7 +383,8 @@ export function convertSymbol(
         symbol.getName(),
         currentFilePath,
         fileName,
-        false
+        false,
+        as
       )
     ),
   ]);
@@ -802,7 +807,7 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__enum_${typeSymbol.getEscapedName()}`;
+    const escapedName = `${typeSymbol.getEscapedName()}Schema`;
     const sourceFile = declaration.getSourceFile().getFilePath();
     ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
