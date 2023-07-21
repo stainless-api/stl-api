@@ -19,6 +19,7 @@ import {
   ErrorAbort,
   Incident,
   Diagnostics,
+  processModuleIdentifiers,
 } from "ts-to-zod/dist/convertType";
 
 import {
@@ -207,6 +208,8 @@ async function evaluate(
     for (const callExpression of file.getDescendantsOfKind(
       ts.SyntaxKind.CallExpression
     )) {
+      ctx.generateInUserFile = false;
+
       const receiverExpression = callExpression.getExpression();
       const symbol = receiverExpression.getSymbol();
       if (!symbol || !isSymbolStlMethod(symbol)) continue;
@@ -235,9 +238,6 @@ async function evaluate(
         } finally {
           addDiagnostics(ctx, file, callExpression, callDiagnostics);
         }
-        if (!endpointSchema) {
-          break;
-        }
         fileCalls.push({
           endpointPath: call.endpointPath,
           schemaExpression: endpointSchema,
@@ -259,7 +259,6 @@ async function evaluate(
       }
 
       // Handle stl.magic call
-
       const typeRefArguments = callExpression.getTypeArguments();
       if (typeRefArguments.length != 1) continue;
       hasMagicCall = true;
@@ -292,19 +291,19 @@ async function evaluate(
         }
         const name = symbol.getName();
         const declaration = symbol.getDeclarations()[0];
-        const as = mangleTypeName(type, name);
         const declarationFilePath = declaration.getSourceFile().getFilePath();
 
         if (declarationFilePath === file.getFilePath()) {
           imports.set(symbol.getName(), {
-            as,
+            as: `${name}Schema`,
             sourceFile: declarationFilePath,
           });
         }
-        const schemaName = as || name;
+        const schemaName = `${name}Schema`;
         schemaExpression = factory.createIdentifier(schemaName);
       } else {
         try {
+          ctx.generateInUserFile = true;
           schemaExpression = convertType(ctx, type, diagnosticItem);
         } catch (e) {
           if (e instanceof ErrorAbort) break;
@@ -336,10 +335,15 @@ async function evaluate(
         )
       );
     }
+
+    const fileInfo = ctx.files.get(file.getFilePath());
+    if (fileInfo) {
+      processModuleIdentifiers(fileInfo);
+    }
+
     if (!hasMagicCall) continue;
 
     // Get the imports needed for the current file, any
-    const fileInfo = ctx.files.get(file.getFilePath());
     if (fileInfo) {
       for (const [name, importInfo] of fileInfo.imports) {
         // Don't include imports that would import from the file we're
@@ -707,17 +711,6 @@ function convertEndpointCall(
     factory.createPropertyAssignment("response", schemaExpression)
   );
   return factory.createObjectLiteralExpression(objectProperties);
-}
-
-// TODO: factor out to ts-to-zod?
-function mangleTypeName(type: tm.Type, name: string): string {
-  if (type.isEnum()) {
-    return `__enum_${name}`;
-  } else if (type.isClass()) {
-    return `__class_${name}`;
-  } else {
-    return `__symbol_${name}`;
-  }
 }
 
 function getOrInsert<K, V>(map: Map<K, V>, key: K, create: () => V): V {

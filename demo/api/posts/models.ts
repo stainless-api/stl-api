@@ -5,7 +5,7 @@ import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
 import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
 type Uuid = t.StringSchema<{ uuid: true }>;
-import { PostType as __class_PostType } from "../../.stl-codegen/api/posts/models";
+import { PostType as PostTypeSchema } from "../../.stl-codegen/api/posts/models";
 
 export const IncludableUserSchema = z.lazy(() => User).includable();
 export const SelectableUserSchema = z.lazy(() => UserSelection).selectable();
@@ -40,7 +40,7 @@ export class PostLoader extends PrismaModelLoader {
   model = prisma.post;
 }
 
-export const Post = stl.magic<PostType>(__class_PostType);
+export const Post = stl.magic<PostType>(PostTypeSchema);
 
 export const PostSelection = Post.selection();
 

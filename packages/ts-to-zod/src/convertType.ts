@@ -54,7 +54,8 @@ export class SchemaGenContext {
     public files: Map<string, FileInfo> = new Map(),
     public symbols: Set<tm.Symbol> = new Set(),
     /* map from file names to any diagnostics associated with them */
-    public diagnostics: Map<string, Diagnostics> = new Map()
+    public diagnostics: Map<string, Diagnostics> = new Map(),
+    public generateInUserFile?: boolean
   ) {}
 
   getFileInfo(filePath: string): FileInfo {
@@ -62,6 +63,17 @@ export class SchemaGenContext {
       imports: new Map(),
       namespaceImports: new Map(),
       generatedSchemas: new Map(),
+      /**
+       * Maps a module path to an identifier, valid within the file, to
+       * refer to it. These identifiers are created as placeholders, and
+       * are later updated with disambiguated module names. As such, using
+       * the exact identifier values within the AST, rather than copies of
+       * them, is crucial.
+       */
+      moduleIdentifiers: {
+        userModules: new Map(),
+        generatedModules: new Map(),
+      },
     }));
   }
 
@@ -206,6 +218,10 @@ export interface FileInfo {
   /** imports all the contents from the module with the given file path */
   namespaceImports: Map<string, NamespaceImportInfo>;
   generatedSchemas: Map<string, GeneratedSchema>;
+  moduleIdentifiers: {
+    userModules: Map<string, ts.Identifier>;
+    generatedModules: Map<string, ts.Identifier>;
+  };
   /** maps imported type id to local identifier it's imported as */
   importTypeNameMap?: Map<number, string>;
 }
@@ -222,6 +238,63 @@ function buildImportTypeMap(sourceFile: tm.SourceFile): Map<number, string> {
     }
   }
   return outputMap;
+}
+
+function getModuleIdentifier(
+  fileInfo: FileInfo,
+  modulePath: string,
+  importFromUserFile: boolean | undefined
+): ts.Identifier {
+  const moduleIdentifiers = fileInfo.moduleIdentifiers;
+  return mapGetOrCreate(
+    importFromUserFile
+      ? moduleIdentifiers.userModules
+      : moduleIdentifiers.generatedModules,
+    modulePath,
+    () => factory.createIdentifier("modulePlaceholder")
+  );
+}
+
+export function processModuleIdentifiers(fileInfo: FileInfo) {
+  impl(fileInfo.moduleIdentifiers.generatedModules);
+  impl(fileInfo.moduleIdentifiers.userModules);
+  function impl(map: Map<string, ts.Identifier>) {
+    const disambiguateGroups = groupBy([...map.entries()], ([path, _]) => {
+      const fileName = Path.parse(path).name;
+      // todo: mangle as appropriate
+      return fileInfo.generatedSchemas.has(fileName)
+        ? `__module_${fileName}`
+        : fileName;
+    });
+
+    for (const [key, group] of Object.entries(disambiguateGroups)) {
+      if (group.length === 1) {
+        Object.assign(group[0][1], factory.createIdentifier(key));
+      } else {
+        for (let i = 0; i < group.length; i++) {
+          Object.assign(group[i][1], factory.createIdentifier(`${key}__${i}`));
+        }
+      }
+    }
+  }
+}
+
+function prefixValueWithModule(
+  ctx: SchemaGenContext,
+  name: string,
+  currentFilePath: string,
+  valueFilePath: string,
+  importFromUserFile: boolean,
+  escapedName?: string
+): ts.Expression {
+  const currentFileInfo = ctx.getFileInfo(currentFilePath);
+  return ctx.generateInUserFile ||
+    (!importFromUserFile && currentFilePath === valueFilePath)
+    ? factory.createIdentifier(escapedName || name)
+    : factory.createPropertyAccessExpression(
+        getModuleIdentifier(currentFileInfo, valueFilePath, importFromUserFile),
+        name
+      );
 }
 
 interface GeneratedSchema {
@@ -244,7 +317,6 @@ export function convertSymbol(
   /** use the type for schema generation instead of attempting to resolve it */
   ty?: tm.Type
 ) {
-  let escapedImport;
   let isRoot = false;
 
   const declaration = getDeclaration(symbol);
@@ -255,6 +327,7 @@ export function convertSymbol(
       true
     );
   }
+  let currentFilePath: string = declaration.getSourceFile().getFilePath();
   const internalCtx = new ConvertTypeContext(ctx, declaration);
   const type = ty || declaration.getType();
 
@@ -263,6 +336,7 @@ export function convertSymbol(
 
   if (ctx instanceof ConvertTypeContext) {
     isRoot = ctx.isRoot;
+    currentFilePath = ctx.currentFilePath;
     if (ctx.isSymbolImported(symbol) || type.isEnum() || type.isClass()) {
       const fileInfo = ctx.getFileInfo(ctx.currentFilePath);
       const importTypeNameMap = (fileInfo.importTypeNameMap ||=
@@ -271,15 +345,9 @@ export function convertSymbol(
         getTypeId(symbol.getTypeAtLocation(ctx.node))
       );
 
-      if (type.isEnum()) {
-        escapedImport = `__enum_${importAs || symbol.getName()}`;
-      } else if (type.isClass()) {
-        escapedImport = `__class_${importAs || symbol.getName()}`;
-      } else {
-        escapedImport = `__symbol_${importAs || symbol.getName()}`;
-      }
       fileInfo.imports.set(symbol.getName(), {
-        as: escapedImport,
+        // TODO: fix name collisions
+        as: `${importAs || symbol.getName()}Schema`,
         sourceFile: fileName,
       });
     }
@@ -306,7 +374,13 @@ export function convertSymbol(
       [],
       undefined,
       undefined,
-      factory.createIdentifier(escapedImport || symbol.getName())
+      prefixValueWithModule(
+        ctx,
+        symbol.getName(),
+        currentFilePath,
+        fileName,
+        false
+      )
     ),
   ]);
 }
@@ -327,14 +401,27 @@ function baseIdentifier(entityName: tm.EntityName): tm.Identifier {
   else return baseIdentifier(entityName.getLeft());
 }
 
+/**
+ * Converts an EntityName to an expression. Optionally accepts an identifier:
+ * if provided, `entityName` is converted such that its base identifier is
+ * converted to a property access on the given `baseIdentifier`. This is
+ * useful for implementing whole module imports.
+ */
 function convertEntityNameToExpression(
-  entityName: tm.EntityName
+  entityName: tm.EntityName,
+  baseIdentifier?: ts.Identifier
 ): ts.Expression {
   if (entityName instanceof tm.Identifier) {
+    if (baseIdentifier) {
+      return factory.createPropertyAccessExpression(
+        baseIdentifier,
+        entityName.getText()
+      );
+    }
     return entityName.compilerNode;
   } else
     return factory.createPropertyAccessExpression(
-      convertEntityNameToExpression(entityName.getLeft()),
+      convertEntityNameToExpression(entityName.getLeft(), baseIdentifier),
       entityName.getRight().compilerNode
     );
 }
@@ -368,10 +455,14 @@ export function convertType(
           "Encountered Transform class without required input property"
         );
 
+      const currentFileInfo = ctx.getFileInfo(ctx.currentFilePath);
+
+      const typeFilePath = getTypeFilePath(ty)!;
+
       // import the transform class
-      ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+      currentFileInfo.imports.set(symbol.getName(), {
         importFromUserFile: true,
-        sourceFile: getTypeFilePath(ty)!,
+        sourceFile: typeFilePath,
       });
 
       return methodCall(
@@ -380,7 +471,13 @@ export function convertType(
         [
           factory.createPropertyAccessExpression(
             factory.createNewExpression(
-              factory.createIdentifier(symbol.getName()),
+              prefixValueWithModule(
+                ctx,
+                symbol.getName(),
+                ctx.currentFilePath,
+                typeFilePath,
+                true
+              ),
               undefined,
               []
             ),
@@ -584,7 +681,12 @@ export function convertType(
         excludeFromUserFile: true,
       });
 
-      const baseSchema = convertEntityNameToExpression(schemaEntityName);
+      const baseSchema = convertEntityNameToExpression(
+        schemaEntityName,
+        ctx.generateInUserFile
+          ? undefined
+          : getModuleIdentifier(currentFile, importPath, true)
+      );
       return zodConstructor("lazy", [
         factory.createArrowFunction(
           undefined,
@@ -664,14 +766,22 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__class_${typeSymbol.getEscapedName()}`;
+    const escapedName = `${typeSymbol.getName()}Schema`;
+    const sourceFile = declaration.getSourceFile().getFilePath();
     ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
-      sourceFile: declaration.getSourceFile().getFilePath(),
+      sourceFile,
     });
     return zodConstructor("instanceof", [
-      factory.createIdentifier(escapedName),
+      prefixValueWithModule(
+        ctx,
+        typeSymbol.getName(),
+        ctx.currentFilePath,
+        sourceFile,
+        true,
+        escapedName
+      ),
     ]);
   }
   if (ty.isEnum()) {
@@ -693,14 +803,21 @@ export function convertType(
       );
     }
     const escapedName = `__enum_${typeSymbol.getEscapedName()}`;
+    const sourceFile = declaration.getSourceFile().getFilePath();
     ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
-      sourceFile: declaration.getSourceFile().getFilePath(),
+      sourceFile,
     });
-
     return zodConstructor("nativeEnum", [
-      factory.createIdentifier(escapedName),
+      prefixValueWithModule(
+        ctx,
+        typeSymbol.getName(),
+        ctx.currentFilePath,
+        sourceFile,
+        true,
+        escapedName
+      ),
     ]);
   }
   if (ty.isUnion()) {
@@ -1194,10 +1311,14 @@ function convertRefineType(
   const inputType = ty.getProperty("input")?.getTypeAtLocation(ctx.node);
   if (!inputType) throw new Error("Expected refine to have input property");
 
+  const typeFilePath = getTypeFilePath(ty)!;
+
+  const currentFileInfo = ctx.getFileInfo(ctx.currentFilePath);
+
   // import the refine class
-  ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+  currentFileInfo.imports.set(symbol.getName(), {
     importFromUserFile: true,
-    sourceFile: getTypeFilePath(ty)!,
+    sourceFile: typeFilePath,
   });
 
   const callArgs = [
@@ -1215,7 +1336,13 @@ function convertRefineType(
     callArgs.push(
       factory.createPropertyAccessExpression(
         factory.createNewExpression(
-          factory.createIdentifier(symbol.getName()),
+          prefixValueWithModule(
+            ctx,
+            symbol.getName(),
+            ctx.currentFilePath,
+            typeFilePath,
+            true
+          ),
           undefined,
           []
         ),
@@ -1254,20 +1381,25 @@ function convertPrismaModelType(
 
   const inputSchema = convertType(ctx, inputType, diagnosticItem);
 
-  const mangledName = `__class_${symbol.getName()}`;
+  const typeFilePath = getTypeFilePath(type)!;
 
   // import the class
   ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
     importFromUserFile: true,
-    sourceFile: getTypeFilePath(type)!,
-    as: mangledName,
+    sourceFile: typeFilePath,
     excludeFromUserFile: true,
   });
 
   return methodCall(inputSchema, method, [
     factory.createPropertyAccessExpression(
       factory.createNewExpression(
-        factory.createIdentifier(mangledName),
+        prefixValueWithModule(
+          ctx,
+          symbol.getName(),
+          ctx.currentFilePath,
+          typeFilePath,
+          true
+        ),
         undefined,
         undefined
       ),

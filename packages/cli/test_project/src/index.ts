@@ -10,7 +10,7 @@ export enum EnumTest {
   C,
 }
 import { EnumTest as __enum_EnumTest } from "../.stl-codegen/src/index";
-import { TestEnumAdditional as __enum_TestEnumAdditional } from "../.stl-codegen/src/additional";
+import { TestEnumAdditional as TestEnumAdditionalSchema } from "../.stl-codegen/src/additional";
 
 export class X {}
 
@@ -37,8 +37,8 @@ type InThisFile = {
 
 stl.magic<{ nested: EnumTest; nested2: TestEnumAdditional }>(
   z.object({
-    nested: z.lazy(() => __enum_EnumTest),
-    nested2: z.lazy(() => __enum_TestEnumAdditional),
+    nested: z.lazy(() => EnumTest),
+    nested2: z.lazy(() => TestEnumAdditional),
   })
 );
 

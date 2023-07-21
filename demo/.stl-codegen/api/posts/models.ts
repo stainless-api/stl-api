@@ -1,12 +1,5 @@
 import { z } from "stainless";
-import {
-  IncludableUserSchema,
-  SelectableUserSchema,
-  IncludableCommentsSchema,
-  IncludableCommentsFieldSchema,
-  PostType as __class_PostType,
-  PostLoader as __class_PostLoader,
-} from "../../../api/posts/models";
+import * as models from "../../../api/posts/models";
 export const PostType: z.ZodTypeAny = z
   .object({
     id: z.string().uuid(),
@@ -16,12 +9,14 @@ export const PostType: z.ZodTypeAny = z
     userId: z.string().uuid(),
     likedIds: z.array(z.string().uuid()),
     image: z.string().nullable().optional(),
-    user: z.lazy(() => IncludableUserSchema).optional(),
-    user_fields: z.lazy(() => SelectableUserSchema).optional(),
-    comments: z.lazy(() => IncludableCommentsSchema).optional(),
-    comments_fields: z.lazy(() => IncludableCommentsFieldSchema).optional(),
+    user: z.lazy(() => models.IncludableUserSchema).optional(),
+    user_fields: z.lazy(() => models.SelectableUserSchema).optional(),
+    comments: z.lazy(() => models.IncludableCommentsSchema).optional(),
+    comments_fields: z
+      .lazy(() => models.IncludableCommentsFieldSchema)
+      .optional(),
   })
-  .prismaModel(new __class_PostType().model);
+  .prismaModel(new models.PostType().model);
 export const PostLoader: z.ZodTypeAny = z
   .string()
-  .prismaModelLoader(new __class_PostLoader().model);
+  .prismaModelLoader(new models.PostLoader().model);
