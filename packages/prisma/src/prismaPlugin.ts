@@ -22,19 +22,19 @@ declare module "zod" {
      * `z.pageResponse`.
      */
     prismaModelLoader<M extends PrismaHelpers>(
-      prismaModel: M
+      prismaModel: M | (() => M)
     ): z.ZodEffects<this, FindUniqueOrThrowResult<M>, z.input<this>>;
 
     prismaModel<M extends PrismaHelpers>(
-      prismaModel: M
-    ): z.ZodMetadata<this, { stainless: { prismaModel: M } }>;
+      prismaModel: M | (() => M)
+    ): z.ZodMetadata<this, { stainless: { prismaModel: () => M } }>;
   }
 }
 
 export type extractPrismaModel<T extends z.ZodTypeAny> = z.extractDeepMetadata<
   T,
-  { stainless: { prismaModel: PrismaHelpers } }
-> extends { stainless: { prismaModel: infer P extends PrismaHelpers } }
+  { stainless: { prismaModel: () => PrismaHelpers } }
+> extends { stainless: { prismaModel: () => infer P extends PrismaHelpers } }
   ? P
   : never;
 
@@ -42,10 +42,10 @@ export function extractPrismaModel<T extends z.ZodTypeAny>(
   schema: T
 ): extractPrismaModel<T> {
   const metadata = z.extractDeepMetadata(schema, {
-    stainless: { prismaModel: {} },
+    stainless: { prismaModel: () => {} },
   });
   if (metadata) {
-    return (metadata as any)?.stainless?.prismaModel;
+    return (metadata as any)?.stainless?.prismaModel();
   }
   return undefined as never;
 }
@@ -65,7 +65,7 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
   M extends PrismaHelpers
 >(
   this: T,
-  prismaModel: M
+  prismaModel: M | (() => M)
 ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
   const result = this.stlTransform(
     async (input: z.StlTransformInput<z.output<T>>, ctx: StlContext<any>) => {
@@ -75,7 +75,9 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
       if (prisma && prismaModel === prisma.prismaModel) {
         return await prisma.findUniqueOrThrow(query);
       }
-      return await prismaModel.findUniqueOrThrow(query);
+      const model =
+        prismaModel instanceof Function ? prismaModel() : prismaModel;
+      return await model.findUniqueOrThrow(query);
     }
   );
   // tsc -b is generating spurious errors here...
@@ -87,9 +89,14 @@ z.ZodType.prototype.prismaModel = function prismaModel<
   M extends PrismaHelpers
 >(
   this: T,
-  prismaModel: M
-): z.ZodMetadata<T, { stainless: { prismaModel: M } }> {
-  return this.withMetadata({ stainless: { prismaModel } });
+  prismaModel: M | (() => M)
+): z.ZodMetadata<T, { stainless: { prismaModel: () => M } }> {
+  return this.withMetadata({
+    stainless: {
+      prismaModel:
+        prismaModel instanceof Function ? prismaModel : () => prismaModel,
+    },
+  });
 };
 
 export type PrismaContext<M extends PrismaHelpers> = {
@@ -537,7 +544,7 @@ function convertSelect(
 
 export const PrismaModelSymbol = Symbol("PrismaModel");
 
-type MakePrismaModelMetadata<M> = { stainless: { prismaModel: M } };
+type MakePrismaModelMetadata<M> = { stainless: { prismaModel: () => M } };
 
 export abstract class PrismaModel extends t.EffectlessSchema {
   declare [PrismaModelSymbol]: true;

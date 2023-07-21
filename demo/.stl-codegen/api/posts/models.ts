@@ -16,7 +16,7 @@ export const PostType: z.ZodTypeAny = z
       .lazy(() => models.IncludableCommentsFieldSchema)
       .optional(),
   })
-  .prismaModel(new models.PostType().model);
+  .prismaModel(() => new models.PostType().model);
 export const PostLoader: z.ZodTypeAny = z
   .string()
-  .prismaModelLoader(new models.PostLoader().model);
+  .prismaModelLoader(() => new models.PostLoader().model);

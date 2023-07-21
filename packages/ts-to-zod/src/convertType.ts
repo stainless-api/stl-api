@@ -371,23 +371,16 @@ export function convertSymbol(
       .generatedSchemas.set(symbol.getName(), generatedSchema);
   }
 
-  return zodConstructor("lazy", [
-    factory.createArrowFunction(
-      [],
-      [],
-      [],
-      undefined,
-      undefined,
-      prefixValueWithModule(
-        ctx,
-        symbol.getName(),
-        currentFilePath,
-        fileName,
-        false,
-        as
-      )
-    ),
-  ]);
+  return lazy(
+    prefixValueWithModule(
+      ctx,
+      symbol.getName(),
+      currentFilePath,
+      fileName,
+      false,
+      as
+    )
+  );
 }
 
 function getDeclarationDefinitionPath(declaration: tm.Node): string {
@@ -692,16 +685,7 @@ export function convertType(
           ? undefined
           : getModuleIdentifier(currentFile, importPath, true)
       );
-      return zodConstructor("lazy", [
-        factory.createArrowFunction(
-          undefined,
-          undefined,
-          [],
-          undefined,
-          undefined,
-          baseSchema
-        ),
-      ]);
+      return lazy(baseSchema);
     }
   }
 
@@ -1070,6 +1054,21 @@ function methodCall(
   );
 }
 
+function thunk(expression: ts.Expression): ts.Expression {
+  return factory.createArrowFunction(
+    undefined,
+    undefined,
+    [],
+    undefined,
+    undefined,
+    expression
+  );
+}
+
+function lazy(expression: ts.Expression): ts.Expression {
+  return zodConstructor("lazy", [thunk(expression)]);
+}
+
 function getTypeOrigin(type: ts.Type): ts.Type | undefined;
 function getTypeOrigin(type: tm.Type): tm.Type | undefined;
 function getTypeOrigin(type: ts.Type | tm.Type): ts.Type | tm.Type | undefined {
@@ -1396,19 +1395,21 @@ function convertPrismaModelType(
   });
 
   return methodCall(inputSchema, method, [
-    factory.createPropertyAccessExpression(
-      factory.createNewExpression(
-        prefixValueWithModule(
-          ctx,
-          symbol.getName(),
-          ctx.currentFilePath,
-          typeFilePath,
-          true
+    thunk(
+      factory.createPropertyAccessExpression(
+        factory.createNewExpression(
+          prefixValueWithModule(
+            ctx,
+            symbol.getName(),
+            ctx.currentFilePath,
+            typeFilePath,
+            true
+          ),
+          undefined,
+          undefined
         ),
-        undefined,
-        undefined
-      ),
-      "model"
+        "model"
+      )
     ),
   ]);
 }
