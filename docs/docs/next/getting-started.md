@@ -20,7 +20,7 @@ npm i --save stainless-api/stl-api#next-0.0.2
 ```
 
 ```
-npm i --save stainless-api/stl-api#next-0.0.1
+npm i --save stainless-api/stl-api#next-0.0.2
 ```
 
 ## Next configuration
