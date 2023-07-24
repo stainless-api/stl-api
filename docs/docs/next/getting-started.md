@@ -23,6 +23,31 @@ npm i --save stainless-api/stl-api#next-0.0.2
 npm i --save stainless-api/stl-api#next-0.0.1
 ```
 
+## Next configuration
+
+If you're using the Stainless CLI to generate schemas from TS types,
+you'll need to configure Next to resolve `.js` imports to `.ts` files:
+
+```js
+/** @type {import('next').NextConfig} */
+const nextConfig = {
+  reactStrictMode: true,
+  // ...
+  webpack: (config) => ({
+    ...config,
+    resolve: {
+      ...config.resolve,
+      extensionAlias: {
+        ...config.resolve?.extensionAlias,
+        ".js": [".ts", ".js"],
+      },
+    },
+  }),
+};
+
+module.exports = nextConfig;
+```
+
 ## Add plugin to stainless instance
 
 ```diff
