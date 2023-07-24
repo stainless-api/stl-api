@@ -1,135 +1,72 @@
-import { groupBy } from "lodash";
-import { SchemaGenContext } from "./convertType";
-import { ts } from "ts-morph";
+import { Dictionary, groupBy } from "lodash";
+import {
+  NamespaceImportInfo as NamespaceImportInfo,
+  FileInfo,
+  ImportInfo,
+  SchemaGenContext,
+  processModuleIdentifiers,
+} from "./convertType";
+import { ImportClause, ts } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
-
-const DEFAULT_ALONGSIDE_SUFFIX = "codegen";
-
-export type GenLocationOptions =
-  | { type: "alongside"; dependencyGenPath: string; suffix?: string }
-  | { type: "folder"; genPath: string }
-  | { type: "node_modules"; genPath: string };
-
-export interface GenOptions {
-  genLocation: GenLocationOptions;
-  /**
-   * the project root (where package.json resides) from which generation
-   * paths are resolved
-   */
-  rootPath: string;
-}
+import {
+  GenOptions,
+  GenerationConfig,
+  createGenerationConfig,
+} from "./filePathConfig";
 
 export function generateFiles(
   ctx: SchemaGenContext,
-  options: GenOptions
-): Map<string, ts.SourceFile> {
-  let basePath: string;
-  let baseDependenciesPath: string;
-  let suffix: string | undefined;
-
-  switch (options.genLocation.type) {
-    case "alongside":
-      basePath = options.rootPath;
-      baseDependenciesPath = Path.join(
-        basePath,
-        options.genLocation.dependencyGenPath
-      );
-      suffix = options.genLocation.suffix || DEFAULT_ALONGSIDE_SUFFIX;
-      break;
-    case "folder":
-      basePath = Path.join(options.rootPath, options.genLocation.genPath);
-      baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
-      break;
-    case "node_modules":
-      basePath = Path.join(
-        options.rootPath,
-        "node_modules",
-        options.genLocation.genPath
-      );
-      baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
-      break;
-  }
-
+  generationConfig: GenerationConfig
+): Map<string, ts.Statement[]> {
   const outputMap = new Map();
   for (const [path, info] of ctx.files.entries()) {
-    const generatedPath = generatePath({
-      path,
-      rootPath: options.rootPath,
-      basePath,
-      baseDependenciesPath,
-      suffix,
-    });
+    processModuleIdentifiers(info);
+    const generatedPath = generatePath(path, generationConfig);
 
-    const statements = [];
+    const tsPath = `${generatedPath}.ts`;
 
-    const importGroups = groupBy(
-      [...info.imports.entries()],
-      ([symbol, { importFromUserFile }]) =>
-        relativeImportPath(
-          generatedPath,
-          importFromUserFile
-            ? symbol.getDeclarations()[0].getSourceFile().getFilePath()
-            : generatePath({
-                path: symbol.getDeclarations()[0].getSourceFile().getFilePath(),
-                rootPath: options.rootPath,
-                basePath,
-                baseDependenciesPath,
-                suffix,
-              })
-        )
+    // TODO: clean up by removing duplicate functions, rename function
+    outputMap.set(
+      tsPath,
+      generateStatements(info, generationConfig, generatedPath)
     );
-
-    for (const [relativePath, entries] of Object.entries(importGroups)) {
-      const importSpecifiers = entries.map(([symbol, { as }]) => {
-        if (as === symbol.getName()) as = undefined;
-
-        return factory.createImportSpecifier(
-          false,
-          as ? factory.createIdentifier(symbol.getName()) : undefined,
-          factory.createIdentifier(as || symbol.getName())
-        );
-      });
-      const importClause = factory.createImportClause(
-        false,
-        undefined,
-        factory.createNamedImports(importSpecifiers)
-      );
-      const importDeclaration = factory.createImportDeclaration(
-        undefined,
-        importClause,
-        factory.createStringLiteral(relativePath),
-        undefined
-      );
-      statements.push(importDeclaration);
-    }
-
-    for (const schema of info.generatedSchemas) {
-      const declaration = factory.createVariableDeclaration(
-        schema.symbol.getName(),
-        undefined,
-        undefined,
-        schema.expression
-      );
-      const variableStatement = factory.createVariableStatement(
-        schema.isExported
-          ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
-          : [],
-        factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
-      );
-      statements.push(variableStatement);
-    }
-    const sourceFile = factory.createSourceFile(
-      statements,
-      factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
-    );
-    outputMap.set(generatedPath, sourceFile);
   }
   return outputMap;
 }
 
-function relativeImportPath(
+function generateStatements(
+  info: FileInfo,
+  generationConfig: GenerationConfig,
+  generatedPath: string
+): ts.Statement[] {
+  const statements: ts.Statement[] = generateImportStatements(
+    generationConfig,
+    generatedPath,
+    info.imports,
+    info.namespaceImports,
+    info.moduleIdentifiers
+  );
+
+  for (const schema of info.generatedSchemas.values()) {
+    const declaration = factory.createVariableDeclaration(
+      schema.name,
+      undefined,
+      schema.type || factory.createTypeReferenceNode("z.ZodTypeAny"),
+      schema.expression
+    );
+    const variableStatement = factory.createVariableStatement(
+      schema.isExported
+        ? [factory.createToken(ts.SyntaxKind.ExportKeyword)]
+        : [],
+      factory.createVariableDeclarationList([declaration], ts.NodeFlags.Const)
+    );
+    statements.push(variableStatement);
+  }
+  return statements;
+}
+
+export function relativeImportPath(
   importingFile: string,
   importedFile: string
 ): string {
@@ -138,24 +75,11 @@ function relativeImportPath(
   return relativePath;
 }
 
-function generatePath({
-  /** Path of the file for which the schema is being generated */
-  path,
-  /** The root path of the project. Usually the root of an npm package. */
-  rootPath,
-  /** Base path where user file schemas should be generated in */
-  basePath,
-  /** Base path where dependency file schemas should be generated in */
-  baseDependenciesPath,
-  /** The suffix to append to file names, if specified */
-  suffix,
-}: {
-  path: string;
-  rootPath: string;
-  basePath: string;
-  baseDependenciesPath: string;
-  suffix?: string;
-}): string {
+/** Returns the path in which to generate schemas for an input path. Generates without a file extension. */
+export function generatePath(
+  path: string,
+  { basePath, baseDependenciesPath, rootPath, suffix }: GenerationConfig
+): string {
   // set cwd to the root path for proper processing of relative paths
   // save old cwd to restore later
   // either basePath or baseDependenciesPath
@@ -171,5 +95,169 @@ function generatePath({
     );
   }
 
-  return Path.join(chosenBasePath, Path.relative(rootPath, path));
+  const pathWithExtension = Path.join(
+    chosenBasePath,
+    Path.relative(rootPath, path)
+  );
+  const parsed = Path.parse(pathWithExtension);
+  return Path.join(parsed.dir, parsed.name);
+}
+
+function generateImportGroups(
+  imports: Map<string, ImportInfo>,
+  filePath: string,
+  config: GenerationConfig
+): Dictionary<[string, ImportInfo][]> {
+  return groupBy(
+    [...imports.entries()],
+    ([_, { importFromUserFile, sourceFile }]) =>
+      relativeImportPath(
+        filePath,
+        importFromUserFile ? sourceFile : generatePath(sourceFile, config)
+      )
+  );
+}
+
+function normalizeImport(relativePath: string): string {
+  // use absolute, not relative, imports for things in node_modules
+  const nodeModulesPos = relativePath.lastIndexOf("node_modules");
+  if (nodeModulesPos >= 0) {
+    relativePath = relativePath.substring(nodeModulesPos + 13);
+  }
+
+  // strip extension like '.ts' off file
+  const parsedRelativePath = Path.parse(relativePath);
+  let extensionlessRelativePath = Path.join(
+    parsedRelativePath.dir,
+    parsedRelativePath.name
+  );
+  if (extensionlessRelativePath[0] !== "." && nodeModulesPos < 0) {
+    extensionlessRelativePath = `./${extensionlessRelativePath}`;
+  }
+  return extensionlessRelativePath;
+}
+
+export function generateImportStatements(
+  config: GenerationConfig,
+  filePath: string,
+  imports: Map<string, ImportInfo>,
+  namespaceImports: Map<string, NamespaceImportInfo>,
+  moduleIdentifiers?: {
+    userModules: Map<string, ts.Identifier>;
+    generatedModules: Map<string, ts.Identifier>;
+  }
+): ts.ImportDeclaration[] {
+  const zImportClause = factory.createImportClause(
+    false,
+    undefined,
+    factory.createNamedImports([
+      factory.createImportSpecifier(
+        false,
+        undefined,
+        factory.createIdentifier("z")
+      ),
+    ])
+  );
+  const zImportDeclaration = factory.createImportDeclaration(
+    [],
+    zImportClause,
+    factory.createStringLiteral(config.zPackage || "zod")
+  );
+
+  const importDeclarations = [zImportDeclaration];
+
+  if (moduleIdentifiers) {
+    const { userModules, generatedModules } = moduleIdentifiers;
+    for (const [importPath, identifier] of userModules) {
+      importDeclarations.push(
+        generateModuleImportDeclaration(
+          config,
+          identifier.escapedText as string,
+          filePath,
+          importPath,
+          true
+        )
+      );
+    }
+    for (const [importPath, identifier] of generatedModules) {
+      importDeclarations.push(
+        generateModuleImportDeclaration(
+          config,
+          identifier.escapedText as string,
+          filePath,
+          importPath,
+          false
+        )
+      );
+    }
+    return importDeclarations;
+  }
+
+  const importGroups = generateImportGroups(imports, filePath, config);
+
+  for (let [relativePath, entries] of Object.entries(importGroups)) {
+    const importSpecifiers = entries.map(([name, { as }]) => {
+      if (as === name) as = undefined;
+
+      return factory.createImportSpecifier(
+        false,
+        as ? factory.createIdentifier(name) : undefined,
+        factory.createIdentifier(as || name)
+      );
+    });
+    const importClause = factory.createImportClause(
+      false,
+      undefined,
+      factory.createNamedImports(importSpecifiers)
+    );
+
+    const normalizedImport = normalizeImport(relativePath);
+
+    const importDeclaration = factory.createImportDeclaration(
+      undefined,
+      importClause,
+      factory.createStringLiteral(normalizedImport),
+      undefined
+    );
+    importDeclarations.push(importDeclaration);
+  }
+
+  for (const [name, info] of namespaceImports.entries()) {
+    importDeclarations.push(
+      generateModuleImportDeclaration(
+        config,
+        name,
+        filePath,
+        info.sourceFile,
+        info.importFromUserFile
+      )
+    );
+  }
+
+  return importDeclarations;
+}
+
+function generateModuleImportDeclaration(
+  config: GenerationConfig,
+  name: string,
+  filePath: string,
+  importPath: string,
+  importFromUserFile: boolean | undefined
+): ts.ImportDeclaration {
+  const relativeImport = relativeImportPath(
+    filePath,
+    importFromUserFile ? importPath : generatePath(importPath, config)
+  );
+  const normalizedImport = normalizeImport(relativeImport);
+
+  const importClause = factory.createImportClause(
+    false,
+    undefined,
+    factory.createNamespaceImport(factory.createIdentifier(name))
+  );
+  return factory.createImportDeclaration(
+    undefined,
+    importClause,
+    factory.createStringLiteral(normalizedImport)
+  );
 }

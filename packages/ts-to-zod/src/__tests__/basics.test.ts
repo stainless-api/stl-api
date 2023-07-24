@@ -1,4 +1,7 @@
 import { testCase } from "./testCase";
+import { multiFileTestCase } from "./multiFileTestCase";
+
+import { t } from "stainless";
 
 type anyType = any;
 it(`any`, () =>
@@ -368,3 +371,25 @@ it(`mapped type`, () =>
   ).toMatchInlineSnapshot(
     `"z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })"`
   ));
+
+import { z } from "zod";
+export const objectSchema = z.object({ a: z.string() });
+
+type zodSchemaProperty = {
+  zod: t.ZodSchema<{ schema: typeof objectSchema }>;
+};
+
+it(`zod schema property`, async () =>
+  expect(
+    await multiFileTestCase({
+      __filename,
+      getNode: (sourceFile) => sourceFile.getTypeAlias("zodSchemaProperty"),
+    })
+  ).toMatchInlineSnapshot(`
+{
+  "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
+import { objectSchema } from "./basics.test";
+const zodSchemaProperty: z.ZodTypeAny = z.object({ zod: z.lazy(() => objectSchema) });
+",
+}
+`));

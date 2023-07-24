@@ -24,13 +24,12 @@ type EndpointPathParam<E extends AnyEndpoint> =
     ? ValueOf<EndpointPathInput<E>>
     : undefined;
 
-type ExtractClientResponse<E extends AnyEndpoint> = z.infer<
-  E["response"]
-> extends z.PageData<any>
-  ? PaginatorPromise<z.infer<E["response"]>>
-  : E["response"] extends z.ZodTypeAny
-  ? ClientPromise<z.infer<E["response"]>>
-  : ClientPromise<undefined>;
+type ExtractClientResponse<E extends AnyEndpoint> =
+  E["response"] extends z.ZodTypeAny
+    ? z.infer<E["response"]> extends z.PageData<any>
+      ? PaginatorPromise<z.infer<E["response"]>>
+      : ClientPromise<z.infer<E["response"]>>
+    : ClientPromise<undefined>;
 
 /**
  * A client for making requests to the REST API described by the `Api` type.

@@ -7,6 +7,7 @@ import {
   SelectTree,
   NotFoundError,
   z,
+  t,
 } from "stainless";
 import { includeSubPaths } from "./includeUtils";
 import { isPlainObject } from "lodash";
@@ -20,20 +21,20 @@ declare module "zod" {
      * is determined by the `prismaModel` passed to `stl.response` or
      * `z.pageResponse`.
      */
-    prismaModelLoader<M extends PrismaModel>(
-      prismaModel: M
+    prismaModelLoader<M extends PrismaHelpers>(
+      prismaModel: M | (() => M)
     ): z.ZodEffects<this, FindUniqueOrThrowResult<M>, z.input<this>>;
 
-    prismaModel<M extends PrismaModel>(
-      prismaModel: M
-    ): z.ZodMetadata<this, { stainless: { prismaModel: M } }>;
+    prismaModel<M extends PrismaHelpers>(
+      prismaModel: M | (() => M)
+    ): z.ZodMetadata<this, { stainless: { prismaModel: () => M } }>;
   }
 }
 
 export type extractPrismaModel<T extends z.ZodTypeAny> = z.extractDeepMetadata<
   T,
-  { stainless: { prismaModel: PrismaModel } }
-> extends { stainless: { prismaModel: infer P extends PrismaModel } }
+  { stainless: { prismaModel: () => PrismaHelpers } }
+> extends { stainless: { prismaModel: () => infer P extends PrismaHelpers } }
   ? P
   : never;
 
@@ -41,10 +42,10 @@ export function extractPrismaModel<T extends z.ZodTypeAny>(
   schema: T
 ): extractPrismaModel<T> {
   const metadata = z.extractDeepMetadata(schema, {
-    stainless: { prismaModel: {} },
+    stainless: { prismaModel: () => {} },
   });
   if (metadata) {
-    return (metadata as any)?.stainless?.prismaModel;
+    return (metadata as any)?.stainless?.prismaModel();
   }
   return undefined as never;
 }
@@ -53,7 +54,7 @@ declare module "stainless" {
   interface StlContext<EC extends AnyBaseEndpoint> {
     prisma: extractPrismaModel<
       EC["response"]
-    > extends infer M extends PrismaModel
+    > extends infer M extends PrismaHelpers
       ? PrismaContext<M>
       : unknown;
   }
@@ -61,10 +62,10 @@ declare module "stainless" {
 
 z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
   T extends z.ZodTypeAny,
-  M extends PrismaModel
+  M extends PrismaHelpers
 >(
   this: T,
-  prismaModel: M
+  prismaModel: M | (() => M)
 ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
   const result = this.stlTransform(
     async (input: z.StlTransformInput<z.output<T>>, ctx: StlContext<any>) => {
@@ -74,7 +75,9 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
       if (prisma && prismaModel === prisma.prismaModel) {
         return await prisma.findUniqueOrThrow(query);
       }
-      return await prismaModel.findUniqueOrThrow(query);
+      const model =
+        prismaModel instanceof Function ? prismaModel() : prismaModel;
+      return await model.findUniqueOrThrow(query);
     }
   );
   // tsc -b is generating spurious errors here...
@@ -83,15 +86,20 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
 
 z.ZodType.prototype.prismaModel = function prismaModel<
   T extends z.ZodTypeAny,
-  M extends PrismaModel
+  M extends PrismaHelpers
 >(
   this: T,
-  prismaModel: M
-): z.ZodMetadata<T, { stainless: { prismaModel: M } }> {
-  return this.withMetadata({ stainless: { prismaModel } });
+  prismaModel: M | (() => M)
+): z.ZodMetadata<T, { stainless: { prismaModel: () => M } }> {
+  return this.withMetadata({
+    stainless: {
+      prismaModel:
+        prismaModel instanceof Function ? prismaModel : () => prismaModel,
+    },
+  });
 };
 
-export type PrismaContext<M extends PrismaModel> = {
+export type PrismaContext<M extends PrismaHelpers> = {
   /**
    * The `prismaModel` passed to `stl.response` or
    * `z.pageResponse`.
@@ -209,7 +217,7 @@ function makeResponse<I>(
   };
 }
 
-interface PrismaModel {
+interface PrismaHelpers {
   findUnique(args: any): Promise<any>;
   findUniqueOrThrow(args: any): Promise<any>;
   findMany(args: any): Promise<any>;
@@ -218,61 +226,61 @@ interface PrismaModel {
   delete(args: any): Promise<any>;
 }
 
-type FindUnique<D extends PrismaModel> = D extends {
+type FindUnique<D extends PrismaHelpers> = D extends {
   findUnique: infer Fn extends (args: any) => any;
 }
   ? Fn
   : never;
 
-type FindUniqueOrThrow<D extends PrismaModel> = D extends {
+type FindUniqueOrThrow<D extends PrismaHelpers> = D extends {
   findUniqueOrThrow: infer Fn extends (args: any) => any;
 }
   ? Fn
   : never;
 
-type FindUniqueOrThrowResult<D extends PrismaModel> = D extends {
+type FindUniqueOrThrowResult<D extends PrismaHelpers> = D extends {
   findUniqueOrThrow: (args: any) => Promise<infer Result>;
 }
   ? Result
   : never;
 
-type FindMany<D extends PrismaModel> = D extends {
+type FindMany<D extends PrismaHelpers> = D extends {
   findMany: infer Fn extends (args: any) => any;
 }
   ? Fn
   : never;
 
-type Create<D extends PrismaModel> = D extends {
+type Create<D extends PrismaHelpers> = D extends {
   create: infer Fn extends (args: any) => any;
 }
   ? Fn
   : never;
 
-type Update<D extends PrismaModel> = D extends {
+type Update<D extends PrismaHelpers> = D extends {
   update: infer Fn extends (args: any) => any;
 }
   ? Fn
   : never;
 
-type Delete<D extends PrismaModel> = D extends {
+type Delete<D extends PrismaHelpers> = D extends {
   delete: infer Fn extends (args: any) => any;
 }
   ? Fn
   : never;
 
-type FindManyArgs<D extends PrismaModel> = D extends {
+type FindManyArgs<D extends PrismaHelpers> = D extends {
   findMany(args: infer Args): any;
 }
   ? Args
   : never;
 
-type FindManyItem<D extends PrismaModel> = D extends {
+type FindManyItem<D extends PrismaHelpers> = D extends {
   findMany(args: any): Promise<Array<infer Item>>;
 }
   ? Item
   : never;
 
-async function paginate<D extends PrismaModel>(
+async function paginate<D extends PrismaHelpers>(
   delegate: D,
   {
     pageAfter,
@@ -441,7 +449,7 @@ export const makePrismaPlugin =
         const model = context.endpoint.response
           ? (extractPrismaModel(context.endpoint.response) as any)
           : null;
-        function getModel(): PrismaModel {
+        function getModel(): PrismaHelpers {
           if (!model)
             throw new Error(`response doesn't have a prisma model configured`);
           return model;
@@ -450,7 +458,7 @@ export const makePrismaPlugin =
           return endpointWrapQuery(context.endpoint, context, prismaQuery);
         }
 
-        const prismaContext: PrismaContext<PrismaModel> = {
+        const prismaContext: PrismaContext<PrismaHelpers> = {
           prismaModel: model,
           wrapQuery,
           findUnique: (args) => getModel().findUnique(wrapQuery(args)),
@@ -532,4 +540,22 @@ function convertSelect(
     else if (converted === true) result[key] = converted;
   }
   return result;
+}
+
+export const PrismaModelSymbol = Symbol("PrismaModel");
+
+type MakePrismaModelMetadata<M> = { stainless: { prismaModel: () => M } };
+
+export abstract class PrismaModel extends t.EffectlessSchema {
+  declare [PrismaModelSymbol]: true;
+  declare abstract model: PrismaHelpers;
+  declare metadata: MakePrismaModelMetadata<this["model"]>;
+}
+
+export const PrismaModelLoaderSymbol = Symbol("PrismaModelLoader");
+
+export abstract class PrismaModelLoader extends t.Effects {
+  declare [PrismaModelLoaderSymbol]: true;
+  declare output: FindUniqueOrThrowResult<this["model"]>;
+  declare abstract model: PrismaHelpers;
 }

@@ -1,4 +1,5 @@
 packages:
   - "packages/*"
+  - "packages/cli/test_project"
   - "demo"
   - "docs"

@@ -22,11 +22,13 @@ it(`imported interface`, async () =>
       __filename,
     })
   ).toMatchInlineSnapshot(`
-    {
-      "src/__tests__/common.codegen.ts": "export const AddressIface = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
-    ",
-      "src/__tests__/imported-aliased-interface.test.codegen.ts": "import { AddressIface as Addr } from "./common.codegen.ts";
-    const T = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => Addr).optional() });
-    ",
-    }
-  `));
+{
+  "src/__tests__/common.codegen.ts": "import { z } from "zod";
+export const AddressIface: z.ZodTypeAny = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+",
+  "src/__tests__/imported-aliased-interface.test.codegen.ts": "import { z } from "zod";
+import { AddressIface as __symbol_Addr } from "./common";
+const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => __symbol_Addr).optional() });
+",
+}
+`));

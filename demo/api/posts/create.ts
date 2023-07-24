@@ -1,26 +1,32 @@
 import { stl } from "../../libs/stl";
-import { z } from "stainless";
-import { Post } from "./models";
+import { z, t } from "stainless";
+import { PostType } from "./models";
 
-export const create = stl.endpoint({
-  endpoint: "post /api/posts",
-  response: Post,
-  config: {
-    authenticated: true,
-  },
-  query: z.query({
-    include: z.includes(Post, 3).optional(),
-  }),
-  body: z.body({
-    body: z.string(),
-  }),
+type Query = {
+  include?: t.Includes<PostType, 3>;
+};
 
-  async handler({ body }, ctx) {
-    return await ctx.prisma.create({
-      data: {
-        userId: ctx.requireCurrentUser().id,
-        body,
-      },
-    });
-  },
-});
+type Body = {
+  body: string;
+};
+
+export const create = stl
+  .types<{
+    query: Query;
+    body: Body;
+    response: PostType;
+  }>()
+  .endpoint({
+    endpoint: "post /api/posts",
+    config: {
+      authenticated: true,
+    },
+    async handler({ body }, ctx) {
+      return await ctx.prisma.create({
+        data: {
+          userId: ctx.requireCurrentUser().id,
+          body,
+        },
+      });
+    },
+  });

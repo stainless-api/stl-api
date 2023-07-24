@@ -1,8 +1,8 @@
 ---
-sidebar_position: 3
+sidebar_position: 2
 ---
 
-# Schemas
+# Runtime Zod schema definition
 
 We provide a customized version of [Zod](https://zod.dev/) for declaring request and response schemas,
 available via the following import:
@@ -109,7 +109,7 @@ A Zod schema for `sortDirection` (`"asc" | "desc"`).
 
 A helper for declaring response schemas with circular references.
 
-#### Example
+## Example
 
 [See here](/stl/inclusion#implementing-inclusion-with-circular-associations) for a
 more complete example.
