@@ -19,11 +19,15 @@ export async function format(
   try {
     return prettier.format(source, config || { filepath });
   } catch (error) {
-    console.error(
-      `failed to format code for ${path.relative(process.cwd(), filepath)} ${
-        error instanceof Error ? error.message : String(error)
-      }`
-    );
-    return source;
+    try {
+      return defaultPrettier.format(source, config || { filepath });
+    } catch (error2) {
+      console.error(
+        `failed to format code for ${path.relative(process.cwd(), filepath)} ${
+          error instanceof Error ? error.message : String(error)
+        }`
+      );
+      return source;
+    }
   }
 }
