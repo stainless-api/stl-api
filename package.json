@@ -1,0 +1,38 @@
+{
+  "name": "@stl-api/next-auth",
+  "version": "0.0.2",
+  "description": "next-auth plugin for stainless api",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/next-auth"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/next-auth",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api",
+    "next",
+    "next-auth"
+  ],
+  "license": "ISC",
+  "source": "src/nextAuthPlugin.ts",
+  "main": "dist/nextAuthPlugin.js",
+  "types": "dist/nextAuthPlugin.d.ts",
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/node": "^20.2.3",
+    "typescript": "^5.1.3"
+  },
+  "dependencies": {
+    "stainless": "github:stainless-api/stl-api#stainless-0.0.2",
+    "@stl-api/next": "github:stainless-api/stl-api#next-0.0.2",
+    "next": "^13.2.4",
+    "next-auth": "^4.21.1"
+  }
+}
