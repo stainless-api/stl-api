@@ -35,7 +35,7 @@ import {
   createGenerationConfig,
 } from "ts-to-zod/dist/filePathConfig";
 
-import { Watcher } from "./watch";
+import { Watcher, type Event } from "./watch";
 import {
   EndpointTypeInstance,
   NodeType,
@@ -50,6 +50,7 @@ import {
   statOrExit,
 } from "./utils";
 import { format } from "./format";
+import { debug } from "./debug";
 
 // TODO: add dry run functionality?
 argParser.option("-w, --watch", "enables watch mode");
@@ -136,34 +137,78 @@ async function main() {
 
   const printer = tm.ts.createPrinter();
 
-  const succeeded = await evaluate(
-    project,
-    baseCtx,
-    generationConfig,
-    printer,
-    options.outdir
-  );
-
   if (watcher) {
-    for await (const { path } of watcher.getEvents()) {
-      console.clear();
-      const relativePath = Path.relative(".", path);
-      console.log(`Found change in ${relativePath}.`);
-      const succeeded = await evaluate(
-        watcher.project,
-        watcher.baseCtx,
-        generationConfig,
-        printer,
-        options.outdir
-      );
-      if (succeeded) {
-        console.clear();
-        console.log(`Successfully processed ${relativePath}.`);
+    const events: Event[] = [];
+
+    let evaluateRequested = false;
+    let evaluating = false;
+
+    const evaluateSoon = async () => {
+      evaluateRequested = true;
+      if (evaluating) return;
+      try {
+        evaluating = true;
+        while (evaluateRequested) {
+          // debounce half a second
+          await new Promise((resolve) => setTimeout(resolve, 500));
+          evaluateRequested = false;
+
+          const elapsedEvents = [...events];
+          events.length = 0;
+
+          if (!elapsedEvents.length) break;
+
+          const { path } = elapsedEvents[0];
+
+          if (!debug.enabled) console.clear();
+          const relativePath = Path.relative(".", path);
+          const changeDescription = `${relativePath}${
+            elapsedEvents.length > 1
+              ? ` and ${elapsedEvents.length - 1} other path${
+                  elapsedEvents.length === 2 ? "" : "s"
+                }`
+              : ""
+          }`;
+          console.log(`${changeDescription} changed, processing...`);
+          try {
+            const succeeded = await evaluate(
+              project,
+              baseCtx,
+              generationConfig,
+              printer,
+              options.outdir
+            );
+            if (succeeded) {
+              if (!debug.enabled) console.clear();
+              console.log(`Successfully processed ${changeDescription}.`);
+            }
+          } catch (error) {
+            // ignore
+          }
+        }
+        console.log("Watching for file changes...");
+      } finally {
+        evaluating = false;
       }
-      console.log("Watching for file changes...");
+    };
+
+    await evaluateSoon();
+
+    for await (const event of watcher.getEvents()) {
+      events.push(event);
+      await evaluateSoon();
     }
-  } else if (!succeeded) {
-    process.exit(1);
+  } else {
+    const succeeded = await evaluate(
+      project,
+      baseCtx,
+      generationConfig,
+      printer,
+      options.outdir
+    );
+    if (!succeeded) {
+      process.exit(1);
+    }
   }
 }
 
