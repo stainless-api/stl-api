@@ -512,7 +512,7 @@ async function evaluate(
                 convertPathToImport(
                   generatePath(file.getFilePath(), generationConfig)
                 )
-              )}`
+              )}.js`
             ),
           ]
         );
