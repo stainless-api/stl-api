@@ -6,12 +6,14 @@
   "draft": false,
   "prerelease": false,
   "packages": {
+    "packages/cli": {},
     "packages/express": {},
     "packages/next": {},
     "packages/next-auth": {},
     "packages/prisma": {},
     "packages/react-query": {},
-    "packages/stainless": {}
+    "packages/stainless": {},
+    "packages/ts-to-zod": {}
   },
   "plugins": ["node-workspace"],
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json"
