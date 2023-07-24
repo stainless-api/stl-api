@@ -200,6 +200,8 @@ async function evaluate(
   // performs modifications that invalidate ast information after
   // all tree visiting is complete
   const fileOperations: (() => void)[] = [];
+  // file import operations can be file position sensitive, so they're performed first
+  const fileImportOperations: (() => void)[] = [];
 
   for (const file of project.getSourceFiles()) {
     const ctx = new ConvertTypeContext(baseCtx, file);
@@ -371,22 +373,31 @@ async function evaluate(
 
     let hasZImport = false;
 
-    // remove all existing codegen imports
-    const fileImportDeclarations = file.getImportDeclarations();
-    for (const importDecl of fileImportDeclarations) {
-      const sourcePath = importDecl.getModuleSpecifier().getLiteralValue();
-      const sourceFilePath = importDecl
-        .getModuleSpecifierSourceFile()
-        ?.getFilePath();
-      if (
-        sourceFilePath?.startsWith(generationConfig.basePath) ||
-        sourcePath?.startsWith(generationConfig.baseDependenciesPath)
-      ) {
-        fileOperations.push(() => importDecl.remove());
-      } else if (sourcePath === "stainless") {
-        for (const specifier of importDecl.getNamedImports()) {
-          if (specifier.getName() === "z") {
-            hasZImport = true;
+    // maps module specifier to statement position
+    const currentImports = new Map<string, tm.ImportDeclaration>();
+
+    let lastImportPosition = -1;
+
+    // catalog all existing codegen imports
+    for (const [idx, statement] of file.getStatements().entries()) {
+      if (statement instanceof tm.ImportDeclaration) {
+        lastImportPosition = idx;
+        const moduleSpecifier = statement
+          .getModuleSpecifier()
+          .getLiteralValue();
+        const sourcePath = statement
+          .getModuleSpecifierSourceFile()
+          ?.getFilePath();
+        if (
+          sourcePath?.startsWith(generationConfig.basePath) ||
+          sourcePath?.startsWith(generationConfig.baseDependenciesPath)
+        ) {
+          currentImports.set(moduleSpecifier, statement);
+        } else if (moduleSpecifier === "stainless") {
+          for (const specifier of statement.getNamedImports()) {
+            if (specifier.getName() === "z") {
+              hasZImport = true;
+            }
           }
         }
       }
@@ -397,24 +408,40 @@ async function evaluate(
       importDeclarations = importDeclarations.slice(1);
     }
 
-    const importsString = importDeclarations
-      .map((declaration) =>
-        printer.printNode(
-          ts.EmitHint.Unspecified,
-          declaration,
-          file.compilerNode
-        )
-      )
-      .join("\n");
+    for (const declaration of importDeclarations) {
+      const moduleSpecifier = (declaration.moduleSpecifier as ts.StringLiteral)
+        .text;
+      const importDeclarationReference = currentImports.get(moduleSpecifier);
+      const importString = printer.printNode(
+        ts.EmitHint.Unspecified,
+        declaration,
+        file.compilerNode
+      );
+      // if the file already contains an import declaration with the given module specifier,
+      // replace it with the new declaration
+      if (importDeclarationReference !== undefined) {
+        fileImportOperations.push(() => {
+          importDeclarationReference.replaceWithText(importString);
+          // file.removeStatement(pos);
+          // file.insertStatements(pos, importString);
+        });
+        currentImports.delete(moduleSpecifier);
+      } else {
+        // if the file doesn't currently have such a declaration, add one
+        fileImportOperations.push(() => {
+          file.insertStatements(++lastImportPosition, importString);
+        });
+      }
+    }
 
-    // Insert imports after the last import already in the file.
-    const insertPosition = fileImportDeclarations.length;
-    fileOperations.push(() =>
-      file.insertStatements(Math.max(insertPosition - 1, 0), importsString)
-    );
+    // remove all of the now-unneeded codegen import declarations
+    for (const importDeclaration of currentImports.values()) {
+      fileImportOperations.push(() => importDeclaration.remove());
+    }
   }
 
   // Commit all operations potentially destructive to AST visiting.
+  fileImportOperations.forEach((op) => op());
   fileOperations.forEach((op) => op());
 
   const generatedFileContents = generateFiles(baseCtx, generationConfig);
