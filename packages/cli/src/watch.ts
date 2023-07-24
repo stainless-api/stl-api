@@ -1,16 +1,21 @@
 import chokidar, { FSWatcher } from "chokidar";
 import * as tm from "ts-morph";
+import fs from "fs";
+import Gitignore from "gitignore-fs";
 import path from "path";
 import { SchemaGenContext } from "ts-to-zod/dist/convertType";
+import { debug } from "./debug";
 
-type Event = {
+export type Event = {
   path: string;
   type: string;
 };
 
 export class Watcher {
   private watcher: FSWatcher;
+  private gitignore = new Gitignore();
   private ready = false;
+  private fileCount = 0;
   private tsConfigFilePath: string;
 
   /**
@@ -54,27 +59,51 @@ export class Watcher {
 
     this.baseCtx = new SchemaGenContext(this.project);
 
-    this.watcher = chokidar.watch(path.join(rootPath, "**"), {
-      ignored: path.join(genFolderPath, "**") 
-    });
+    this.watcher = chokidar.watch(
+      path.join(
+        rootPath,
+        "**",
+        "*.{json,js,jsx,cjs,cjsx,mjs,mjsx,ts,tsx,cts,ctsx,mts,mtsx}"
+      ),
+      {
+        ignored: [
+          path.join(genFolderPath, "**"),
+          (path: string, stats?: fs.Stats) => {
+            if (!stats) return false;
+            if (stats.isDirectory()) path += "/";
+            const gitignored = this.gitignore.ignoresSync(path);
+            if (gitignored) debug("gitignored", path);
+            return gitignored;
+          },
+        ],
+      }
+    );
     this.watcher.on("ready", () => {
-      console.log("Watching for file changes...");
+      debug("ready");
+      console.log(
+        `Found ${this.fileCount} source ${
+          this.fileCount === 1 ? "file" : "files"
+        }`
+      );
       this.ready = true;
     });
 
     // handle a new file added
     this.watcher.on("add", (path) => {
+      debug("add", path);
+      this.fileCount++;
       if (!this.ready) return;
       if (path === this.tsConfigFilePath) {
         this.createProject();
       } else {
-        const sourceFile = this.project.addSourceFileAtPath(path);
+        this.project.addSourceFileAtPath(path);
       }
       this.pushEvent({ path: path, type: "add" });
     });
 
     // handle a file changing
     this.watcher.on("change", async (path) => {
+      debug("change", path);
       if (!this.ready) return;
       if (path === this.tsConfigFilePath) {
         this.createProject();
@@ -84,7 +113,10 @@ export class Watcher {
         const sourceFile = this.project.getSourceFile(path);
         if (sourceFile) {
           const result = await sourceFile.refreshFromFileSystem();
-          if (result == tm.FileSystemRefreshResult.NoChange) return;
+          if (result == tm.FileSystemRefreshResult.NoChange) {
+            debug("no TS change", path);
+            return;
+          }
         } else {
           this.project.addSourceFileAtPath(path);
         }
@@ -94,6 +126,8 @@ export class Watcher {
 
     // handle a file being removed
     this.watcher.on("unlink", (path) => {
+      debug("unlink", path);
+      this.fileCount--;
       const sourceFile = this.project.getSourceFile(path);
       if (sourceFile) {
         this.project.removeSourceFile(sourceFile);
@@ -108,15 +142,20 @@ export class Watcher {
     });
   }
   async *getEvents(): AsyncGenerator<Event, never, unknown> {
-    while (true) {
-      const event = this.eventQueue.shift();
-      if (event) {
-        yield event;
-      } else {
-        yield new Promise<Event>((resolve) => {
-          this.resolvers.push(resolve);
-        });
+    const keepalive = setInterval(() => {}, 86400000);
+    try {
+      while (true) {
+        const event = this.eventQueue.shift();
+        if (event) {
+          yield event;
+        } else {
+          yield new Promise<Event>((resolve) => {
+            this.resolvers.push(resolve);
+          });
+        }
       }
+    } finally {
+      clearInterval(keepalive);
     }
   }
 }
