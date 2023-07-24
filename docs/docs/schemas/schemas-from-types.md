@@ -18,7 +18,7 @@ error-checking and reporting.
 :::note
 Whenever input types to `stl.types` or `stl.magic` change, the CLI needs
 to be rerun. The CLI provides a watch mode to automate this process.
-Schema definitions are generated in the `@stl-api/gen` folder in
+Schema definitions are generated in the `@stl-api/cli` folder in
 `node_modules`.
 :::
 

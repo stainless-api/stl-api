@@ -23,7 +23,7 @@ For now, you can install packages from versioned GitHub branches, like so:
 npm i --save  'stainless-api/stl-api#stainless-0.0.2' \
               'stainless-api/stl-api#next-0.0.2' \
               'stainless-api/stl-api#react-query-0.0.2' \
-              'stainless-api/stl-api#gen-0.0.2'
+              'stainless-api/stl-api#cli-0.0.2'
 
 # Optional plugins:
 npm i --save 'stainless-api/stl-api#next-auth-0.0.2'  # If you are using next-auth

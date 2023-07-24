@@ -1,5 +1,5 @@
 {
-  "name": "@stl-api/gen",
+  "name": "@stl-api/cli",
   "version": "0.0.2",
   "description": "Bundle-time utilities implementing ergonomic stl-api helpers.\"",
   "author": "dev@stainlessapi.com",

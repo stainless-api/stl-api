@@ -10,7 +10,7 @@ sidebar_position: 9
 implement `stl.types` and the Typescript client. To get started, install the CLI:
 
 ```bash
-npm i --save 'stainless-api/stl-api#gen-0.0.2'
+npm i --save 'stainless-api/stl-api#cli-0.0.2'
 ```
 
 ## Usage
@@ -34,7 +34,7 @@ in other functions or renamed.
 
 ## Generation
 
-The CLI generates files in the `@stl-api/gen` folder within `node_modules`.
+The CLI generates files in the `@stl-api/cli` folder within `node_modules`.
 Generation should be rerun every time an input type to `stl.types`,
 `stl.magic`, or any type those types depend on, change. The watch flag
 automates this process.
