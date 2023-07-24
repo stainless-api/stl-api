@@ -34,6 +34,15 @@ export const multiFileTestCase = async (options: {
   }
   const ctx = new SchemaGenContext(testProject);
   convertSymbol(ctx, symbol, { variant: "node", node });
+
+  for (const diagnostics of ctx.diagnostics.values()) {
+    if (diagnostics.errors.length > 0) {
+      for (const diagnostic of diagnostics.errors) {
+        console.error(diagnostic.message);
+      }
+    }
+  }
+
   const rootPackageJson = await pkgUp({
     cwd: __dirname,
   });

@@ -446,6 +446,7 @@ export function convertType(
   generateInline?: boolean
 ): ts.Expression {
   const typeSymbol = ty.getSymbol();
+  const declaration = typeSymbol ? getDeclaration(typeSymbol) : undefined;
 
   const baseTypeName = getBaseTypeName(ty);
   let packageTypeName = undefined;
@@ -454,52 +455,24 @@ export function convertType(
   }
 
   switch (baseTypeName) {
-    case "Transform": {
-      const symbol = ty.getSymbolOrThrow(
-        `failed to get symbol for transform: ${ty.getText()}`
-      );
-      const inputType = ty.getProperty("input")?.getTypeAtLocation(ctx.node);
-
-      if (!inputType)
-        throw new Error(
-          "Encountered Transform class without required input property"
-        );
-
-      const currentFileInfo = ctx.getFileInfo(ctx.currentFilePath);
-
-      const typeFilePath = getTypeFilePath(ty)!;
-
-      // import the transform class
-      currentFileInfo.imports.set(symbol.getName(), {
-        importFromUserFile: true,
-        sourceFile: typeFilePath,
-      });
-
-      return methodCall(
-        convertType(ctx, inputType, diagnosticItem),
+    case "Transform":
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
         "transform",
-        [
-          factory.createPropertyAccessExpression(
-            factory.createNewExpression(
-              prefixValueWithModule(
-                ctx,
-                symbol.getName(),
-                ctx.currentFilePath,
-                typeFilePath,
-                true
-              ),
-              undefined,
-              []
-            ),
-            factory.createIdentifier("transform")
-          ),
-        ]
+        diagnosticItem
       );
-    }
     case "Refine":
-      return convertRefineType(ctx, ty, typeSymbol, "refine", diagnosticItem);
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "refine",
+        diagnosticItem
+      );
     case "SuperRefine":
-      return convertRefineType(
+      return convertTransformRefineType(
         ctx,
         ty,
         typeSymbol,
@@ -1310,20 +1283,31 @@ function convertUnionTypes(
   return schema;
 }
 
-function convertRefineType(
+function convertTransformRefineType(
   ctx: ConvertTypeContext,
   ty: tm.Type,
   symbol: tm.Symbol | undefined,
-  refineType: "refine" | "superRefine",
+  variant: "transform" | "refine" | "superRefine",
   diagnosticItem: DiagnosticItem
 ): ts.Expression {
   if (!symbol) {
     ctx.addError(
       diagnosticItem,
-      { message: `failed to get symbol for ${refineType}: ${ty.getText()}` },
+      { message: `failed to get symbol for ${variant}: ${ty.getText()}` },
       true
     );
   }
+
+  const declaration = getDeclaration(symbol);
+  if (
+    !declaration ||
+    !(isDeclarationImported(declaration) || isDeclarationExported(declaration))
+  ) {
+    ctx.addError(diagnosticItem, {
+      message: `Subclass ${symbol.getName()} must be exported from its declaring module.`,
+    });
+  }
+
   const inputType = ty.getProperty("input")?.getTypeAtLocation(ctx.node);
   if (!inputType) throw new Error("Expected refine to have input property");
 
@@ -1331,37 +1315,31 @@ function convertRefineType(
 
   const currentFileInfo = ctx.getFileInfo(ctx.currentFilePath);
 
-  // import the refine class
+  // import the class
   currentFileInfo.imports.set(symbol.getName(), {
     importFromUserFile: true,
     sourceFile: typeFilePath,
   });
 
+  const classExpression = prefixValueWithModule(
+    ctx,
+    symbol.getName(),
+    ctx.currentFilePath,
+    typeFilePath,
+    true
+  );
+
   const callArgs = [
     factory.createPropertyAccessExpression(
-      factory.createNewExpression(
-        factory.createIdentifier(symbol.getName()),
-        undefined,
-        []
-      ),
-      factory.createIdentifier(refineType)
+      factory.createNewExpression(classExpression, undefined, []),
+      factory.createIdentifier(variant)
     ),
   ];
 
-  if (refineType === "refine") {
+  if (variant === "refine" && ty.getProperty("message")) {
     callArgs.push(
       factory.createPropertyAccessExpression(
-        factory.createNewExpression(
-          prefixValueWithModule(
-            ctx,
-            symbol.getName(),
-            ctx.currentFilePath,
-            typeFilePath,
-            true
-          ),
-          undefined,
-          []
-        ),
+        factory.createNewExpression(classExpression, undefined, []),
         factory.createIdentifier("message")
       )
     );
@@ -1369,7 +1347,7 @@ function convertRefineType(
 
   return methodCall(
     convertType(ctx, inputType, diagnosticItem),
-    refineType,
+    variant,
     callArgs
   );
 }
@@ -1382,6 +1360,15 @@ function convertPrismaModelType(
   baseTypeName: string,
   diagnosticItem: DiagnosticItem
 ): ts.Expression {
+  const declaration = getDeclaration(symbol);
+  if (
+    !declaration ||
+    !(isDeclarationImported(declaration) || isDeclarationExported(declaration))
+  ) {
+    ctx.addError(diagnosticItem, {
+      message: `Subclass ${symbol.getName()} must be exported from its declaring module.`,
+    });
+  }
   const inputProperty = type.getProperty("input");
   const inputType = inputProperty?.getTypeAtLocation(ctx.node);
 

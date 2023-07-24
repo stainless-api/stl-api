@@ -4,8 +4,7 @@ const DEFAULT_ALONGSIDE_SUFFIX = "codegen";
 
 export type GenLocationOptions =
   | { type: "alongside"; dependencyGenPath: string; suffix?: string }
-  | { type: "folder"; genPath: string }
-  | { type: "node_modules"; genPath: string };
+  | { type: "folder"; genPath: string };
 
 export interface GenOptions {
   genLocation: GenLocationOptions;
@@ -45,14 +44,6 @@ export function createGenerationConfig(options: GenOptions): GenerationConfig {
       basePath = Path.join(options.rootPath, options.genLocation.genPath);
       baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
       break;
-    case "node_modules":
-      basePath = Path.join(
-        options.rootPath,
-        "node_modules",
-        options.genLocation.genPath
-      );
-      baseDependenciesPath = Path.join(basePath, "zod_schema_node_modules");
-      break;
   }
 
   return {
@@ -60,6 +51,6 @@ export function createGenerationConfig(options: GenOptions): GenerationConfig {
     baseDependenciesPath,
     suffix,
     rootPath: options.rootPath,
-    zPackage: options.zPackage
-  }
+    zPackage: options.zPackage,
+  };
 }

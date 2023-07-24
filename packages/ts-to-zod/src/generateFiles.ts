@@ -6,14 +6,10 @@ import {
   SchemaGenContext,
   processModuleIdentifiers,
 } from "./convertType";
-import { ImportClause, ts } from "ts-morph";
+import { ts } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
-import {
-  GenOptions,
-  GenerationConfig,
-  createGenerationConfig,
-} from "./filePathConfig";
+import { GenerationConfig } from "./filePathConfig";
 
 export function generateFiles(
   ctx: SchemaGenContext,
