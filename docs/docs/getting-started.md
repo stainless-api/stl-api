@@ -20,9 +20,9 @@ We will soon provide a `create-stl-app` API. Until then:
 For now, you can install packages from versioned GitHub branches, like so:
 
 ```bash
-npm i --save  stainless-api/stl-api#stainless-0.0.2 \
-              stainless-api/stl-api#next-0.0.2 \
-              stainless-api/react-query#stainless-0.0.2
+npm i --save  'stainless-api/stl-api#stainless-0.0.2' \
+              'stainless-api/stl-api#next-0.0.2' \
+              'stainless-api/stl-api#react-query-0.0.2'
 
 # Optional plugins:
 npm i --save 'stainless-api/stl-api#next-auth-0.0.2'  # If you are using next-auth
