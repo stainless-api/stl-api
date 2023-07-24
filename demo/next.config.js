@@ -9,6 +9,16 @@ const nextConfig = {
     // and rely on calling tsc ourselves
     ignoreBuildErrors: true,
   },
+  webpack: (config) => ({
+    ...config,
+    resolve: {
+      ...config.resolve,
+      extensionAlias: {
+        ...config.resolve?.extensionAlias,
+        ".js": [".ts", ".js"],
+      },
+    },
+  }),
 };
 
 module.exports = nextConfig;
