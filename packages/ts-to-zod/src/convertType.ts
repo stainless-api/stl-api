@@ -261,10 +261,22 @@ export function processModuleIdentifiers(fileInfo: FileInfo) {
   function impl(map: Map<string, ts.Identifier>) {
     const disambiguateGroups = groupBy([...map.entries()], ([path, _]) => {
       const fileName = Path.parse(path).name;
-      // todo: mangle as appropriate
-      return fileInfo.generatedSchemas.has(fileName)
-        ? `__module_${fileName}`
-        : fileName;
+      const matches = fileName.match(/[\p{L}0-9-.]/gu);
+      if (!matches || !matches.length) return "__module";
+      const identifierBuilder = [];
+
+      for (const match of matches) {
+        if (match === "-" || match === ".") identifierBuilder.push("_");
+        else if (match >= "0" && match <= "9")
+          identifierBuilder.push("_", match);
+        else identifierBuilder.push(match);
+      }
+
+      const identifier = identifierBuilder.join("");
+
+      return fileInfo.generatedSchemas.has(identifier)
+        ? `__module_${identifier}`
+        : identifier;
     });
 
     for (const [key, group] of Object.entries(disambiguateGroups)) {

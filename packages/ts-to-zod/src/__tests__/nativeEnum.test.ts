@@ -10,4 +10,4 @@ it(`enum T { a = 'a', b = 'b' }`, () =>
     testCase({
       __filename,
     })
-  ).toMatchInlineSnapshot(`"z.nativeEnum(__enum_T)"`));
+  ).toMatchInlineSnapshot(`"z.nativeEnum(modulePlaceholder.T)"`));

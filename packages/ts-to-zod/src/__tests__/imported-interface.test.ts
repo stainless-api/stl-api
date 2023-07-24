@@ -29,10 +29,10 @@ it(`imported interface`, async () =>
 export const AddressIface: z.ZodTypeAny = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 ",
   "src/__tests__/imported-interface.test.codegen.ts": "import { z } from "zod";
-import { AddressIface as __symbol_AddressIface } from "./common";
-import { TestClass as __class_TestClass } from "./imported-interface.test";
-export const TestClass: z.ZodTypeAny = z.instanceof(__class_TestClass);
-const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => __symbol_AddressIface).optional(), testMyClass: z.lazy(() => __class_TestClass) });
+import * as imported_interface_test from "./imported-interface.test";
+import * as common from "./common";
+export const TestClass: z.ZodTypeAny = z.instanceof(imported_interface_test.TestClass);
+const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => common.AddressIface).optional(), testMyClass: z.lazy(() => TestClassSchema) });
 ",
 }
 `));
