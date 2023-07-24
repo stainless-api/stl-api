@@ -54,7 +54,8 @@ export class SchemaGenContext {
     public files: Map<string, FileInfo> = new Map(),
     public symbols: Set<tm.Symbol> = new Set(),
     /* map from file names to any diagnostics associated with them */
-    public diagnostics: Map<string, Diagnostics> = new Map()
+    public diagnostics: Map<string, Diagnostics> = new Map(),
+    public generateInUserFile?: boolean
   ) {}
 
   getFileInfo(filePath: string): FileInfo {
@@ -62,6 +63,17 @@ export class SchemaGenContext {
       imports: new Map(),
       namespaceImports: new Map(),
       generatedSchemas: new Map(),
+      /**
+       * Maps a module path to an identifier, valid within the file, to
+       * refer to it. These identifiers are created as placeholders, and
+       * are later updated with disambiguated module names. As such, using
+       * the exact identifier values within the AST, rather than copies of
+       * them, is crucial.
+       */
+      moduleIdentifiers: {
+        userModules: new Map(),
+        generatedModules: new Map(),
+      },
     }));
   }
 
@@ -183,6 +195,7 @@ function isDeclarationImported(declaration: tm.Node): boolean {
 }
 
 export interface ImportInfo {
+  sourceFile: string;
   as?: string;
   /**
    * If true, the output code will import from
@@ -191,7 +204,8 @@ export interface ImportInfo {
    * `symbol`.
    */
   importFromUserFile?: boolean;
-  sourceFile: string;
+  /** Whether this import shouldn't be imported into a user file when using `stl.magic`. */
+  excludeFromUserFile?: boolean;
 }
 
 export interface NamespaceImportInfo {
@@ -204,6 +218,10 @@ export interface FileInfo {
   /** imports all the contents from the module with the given file path */
   namespaceImports: Map<string, NamespaceImportInfo>;
   generatedSchemas: Map<string, GeneratedSchema>;
+  moduleIdentifiers: {
+    userModules: Map<string, ts.Identifier>;
+    generatedModules: Map<string, ts.Identifier>;
+  };
   /** maps imported type id to local identifier it's imported as */
   importTypeNameMap?: Map<number, string>;
 }
@@ -222,6 +240,63 @@ function buildImportTypeMap(sourceFile: tm.SourceFile): Map<number, string> {
   return outputMap;
 }
 
+function getModuleIdentifier(
+  fileInfo: FileInfo,
+  modulePath: string,
+  importFromUserFile: boolean | undefined
+): ts.Identifier {
+  const moduleIdentifiers = fileInfo.moduleIdentifiers;
+  return mapGetOrCreate(
+    importFromUserFile
+      ? moduleIdentifiers.userModules
+      : moduleIdentifiers.generatedModules,
+    modulePath,
+    () => factory.createIdentifier("modulePlaceholder")
+  );
+}
+
+export function processModuleIdentifiers(fileInfo: FileInfo) {
+  impl(fileInfo.moduleIdentifiers.generatedModules);
+  impl(fileInfo.moduleIdentifiers.userModules);
+  function impl(map: Map<string, ts.Identifier>) {
+    const disambiguateGroups = groupBy([...map.entries()], ([path, _]) => {
+      const fileName = Path.parse(path).name;
+      // todo: mangle as appropriate
+      return fileInfo.generatedSchemas.has(fileName)
+        ? `__module_${fileName}`
+        : fileName;
+    });
+
+    for (const [key, group] of Object.entries(disambiguateGroups)) {
+      if (group.length === 1) {
+        Object.assign(group[0][1], factory.createIdentifier(key));
+      } else {
+        for (let i = 0; i < group.length; i++) {
+          Object.assign(group[i][1], factory.createIdentifier(`${key}__${i}`));
+        }
+      }
+    }
+  }
+}
+
+function prefixValueWithModule(
+  ctx: SchemaGenContext,
+  name: string,
+  currentFilePath: string,
+  valueFilePath: string,
+  importFromUserFile: boolean,
+  escapedName?: string
+): ts.Expression {
+  const currentFileInfo = ctx.getFileInfo(currentFilePath);
+  return ctx.generateInUserFile ||
+    (!importFromUserFile && currentFilePath === valueFilePath)
+    ? factory.createIdentifier(escapedName || name)
+    : factory.createPropertyAccessExpression(
+        getModuleIdentifier(currentFileInfo, valueFilePath, importFromUserFile),
+        name
+      );
+}
+
 interface GeneratedSchema {
   name: string;
   expression: ts.Expression;
@@ -238,9 +313,10 @@ interface GeneratedSchema {
 export function convertSymbol(
   ctx: SchemaGenContext,
   symbol: tm.Symbol,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
+  /** use the type for schema generation instead of attempting to resolve it */
+  ty?: tm.Type
 ) {
-  let escapedImport;
   let isRoot = false;
 
   const declaration = getDeclaration(symbol);
@@ -251,11 +327,18 @@ export function convertSymbol(
       true
     );
   }
+  let currentFilePath: string = declaration.getSourceFile().getFilePath();
   const internalCtx = new ConvertTypeContext(ctx, declaration);
-  const type = declaration.getType();
+  const type = ty || declaration.getType();
+
+  const fileName = getDeclarationDefinitionPath(declaration);
+  internalCtx.currentFilePath = fileName;
+
+  let as;
 
   if (ctx instanceof ConvertTypeContext) {
     isRoot = ctx.isRoot;
+    currentFilePath = ctx.currentFilePath;
     if (ctx.isSymbolImported(symbol) || type.isEnum() || type.isClass()) {
       const fileInfo = ctx.getFileInfo(ctx.currentFilePath);
       const importTypeNameMap = (fileInfo.importTypeNameMap ||=
@@ -264,169 +347,40 @@ export function convertSymbol(
         getTypeId(symbol.getTypeAtLocation(ctx.node))
       );
 
-      if (type.isEnum()) {
-        escapedImport = `__enum_${importAs || symbol.getName()}`;
-      } else if (type.isClass()) {
-        escapedImport = `__class_${importAs || symbol.getName()}`;
-      } else {
-        escapedImport = `__symbol_${importAs || symbol.getName()}`;
-      }
+      as = `${importAs || symbol.getName()}Schema`;
+
       fileInfo.imports.set(symbol.getName(), {
-        as: escapedImport,
-        sourceFile: declaration.getSourceFile().getFilePath(),
+        // TODO: fix name collisions
+        as,
+        sourceFile: fileName,
       });
     }
   }
   if (!ctx.symbols.has(symbol)) {
     ctx.symbols.add(symbol);
 
-    let generated;
-    if (declaration instanceof tm.TypeAliasDeclaration) {
-      const typeNode = declaration.getTypeNode();
-      if (typeNode) {
-        try {
-          generated = convertTypeof(
-            internalCtx,
-            typeNode,
-            type,
-            diagnosticItem
-          );
-        } catch (e) {
-          if (e instanceof ErrorAbort) {
-          } else throw e;
-        }
-      }
-    }
-
-    generated ||= convertType(internalCtx, type, diagnosticItem);
+    const generated = convertType(internalCtx, type, diagnosticItem);
     const generatedSchema = {
       name: symbol.getName(),
       expression: generated,
       isExported: isRoot || isDeclarationExported(declaration),
     };
 
-    const fileName = declaration.getSourceFile().getFilePath();
-    const generatedSchemas = mapGetOrCreate(ctx.files, fileName, () => ({
-      imports: new Map(),
-      namespaceImports: new Map(),
-      generatedSchemas: new Map(),
-    })).generatedSchemas;
-
-    generatedSchemas.set(symbol.getName(), generatedSchema);
+    ctx
+      .getFileInfo(fileName)
+      .generatedSchemas.set(symbol.getName(), generatedSchema);
   }
 
-  return zodConstructor("lazy", [
-    factory.createArrowFunction(
-      [],
-      [],
-      [],
-      undefined,
-      undefined,
-      factory.createIdentifier(escapedImport || symbol.getName())
-    ),
-  ]);
-}
-
-/**
- * Handles special typeof cases, namely `typeof schemaValue` or
- * `PrismaModel<typeof model>`
- */
-export function convertTypeof(
-  ctx: ConvertTypeContext,
-  node: tm.Node,
-  type: tm.Type,
-  diagnosticItem: DiagnosticItem
-): ts.Expression | undefined {
-  const symbol = type.getSymbol();
-  if (isStainlessPrismaSymbol(symbol)) {
-    const name = symbol!.getName();
-    if (name === "PrismaModel" || name == "PrismaModelLoader") {
-      if (node instanceof tm.TypeReferenceNode) {
-        const typeArguments = node.getTypeArguments();
-        const types = type.getTypeArguments();
-        if (typeArguments.length !== 2) {
-          return undefined;
-        }
-
-        const baseSchema = convertType(ctx, types[0], diagnosticItem);
-        const methodName = name[0].toLowerCase() + name.slice(1);
-
-        const typeofNode = typeArguments[1];
-        if (typeofNode instanceof tm.TypeQueryNode) {
-          const exprName = typeofNode.getExprName();
-          const prismaValue = convertTypeofNode(ctx, exprName, "model", false);
-          return methodCall(baseSchema, methodName, [prismaValue]);
-        } else {
-          ctx.addError(diagnosticItem, {
-            message: `${name} requires its second type argument to be the \`typeof\` a Prisma model.`,
-          });
-        }
-      }
-    }
-  }
-  if (node instanceof tm.TypeQueryNode) {
-    if (isZodSymbol(symbol) || !symbol) {
-      const exprName = node.getExprName();
-      return convertTypeofNode(ctx, exprName, "schema", true);
-    } else {
-      ctx.addError(
-        diagnosticItem,
-        { message: "`typeof` can only be used with Zod schema expressions" },
-        true
-      );
-    }
-  }
-}
-
-function convertTypeofNode(
-  ctx: ConvertTypeContext,
-  exprName: tm.EntityName,
-  prefix: string,
-  lazy: boolean
-) {
-  const base = baseIdentifier(exprName);
-  const baseSymbol = base.getSymbolOrThrow();
-  // TODO: get the correct declaration
-  const declaration = baseSymbol.getDeclarations()[0];
-
-  if (
-    !declaration ||
-    !(isDeclarationExported(declaration) || isDeclarationImported(declaration))
-  ) {
-    console.dir(declaration);
-    ctx.addError(
-      { variant: "node", node: base },
-      {
-        message: `identifier \`${base.getText()}\` must be exported to be used within a schema`,
-      },
-      true
-    );
-  }
-  
-  const currentFile = ctx.getFileInfo(ctx.currentFilePath);
-  const importPath = getDeclarationDefinitionPath(declaration);
-
-  currentFile.imports.set(base.getText(), {
-    sourceFile: importPath,
-    importFromUserFile: true,
-  });
-
-  const baseSchema = convertEntityNameToExpression(
-    exprName
+  return lazy(
+    prefixValueWithModule(
+      ctx,
+      symbol.getName(),
+      currentFilePath,
+      fileName,
+      false,
+      as
+    )
   );
-
-  return lazy
-    ? zodConstructor("lazy", [
-        factory.createArrowFunction(
-          undefined,
-          undefined,
-          [],
-          undefined,
-          undefined,
-          baseSchema
-        ),
-      ])
-    : baseSchema;
 }
 
 function getDeclarationDefinitionPath(declaration: tm.Node): string {
@@ -445,14 +399,27 @@ function baseIdentifier(entityName: tm.EntityName): tm.Identifier {
   else return baseIdentifier(entityName.getLeft());
 }
 
+/**
+ * Converts an EntityName to an expression. Optionally accepts an identifier:
+ * if provided, `entityName` is converted such that its base identifier is
+ * converted to a property access on the given `baseIdentifier`. This is
+ * useful for implementing whole module imports.
+ */
 function convertEntityNameToExpression(
-  entityName: tm.EntityName
+  entityName: tm.EntityName,
+  baseIdentifier?: ts.Identifier
 ): ts.Expression {
   if (entityName instanceof tm.Identifier) {
+    if (baseIdentifier) {
+      return factory.createPropertyAccessExpression(
+        baseIdentifier,
+        entityName.getText()
+      );
+    }
     return entityName.compilerNode;
   } else
     return factory.createPropertyAccessExpression(
-      convertEntityNameToExpression(entityName.getLeft()),
+      convertEntityNameToExpression(entityName.getLeft(), baseIdentifier),
       entityName.getRight().compilerNode
     );
 }
@@ -479,12 +446,21 @@ export function convertType(
       const symbol = ty.getSymbolOrThrow(
         `failed to get symbol for transform: ${ty.getText()}`
       );
-      const inputType = getNthBaseClassTypeArgument(ty, 0);
+      const inputType = ty.getProperty("input")?.getTypeAtLocation(ctx.node);
+
+      if (!inputType)
+        throw new Error(
+          "Encountered Transform class without required input property"
+        );
+
+      const currentFileInfo = ctx.getFileInfo(ctx.currentFilePath);
+
+      const typeFilePath = getTypeFilePath(ty)!;
 
       // import the transform class
-      ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+      currentFileInfo.imports.set(symbol.getName(), {
         importFromUserFile: true,
-        sourceFile: getTypeFilePath(ty)!,
+        sourceFile: typeFilePath,
       });
 
       return methodCall(
@@ -493,7 +469,13 @@ export function convertType(
         [
           factory.createPropertyAccessExpression(
             factory.createNewExpression(
-              factory.createIdentifier(symbol.getName()),
+              prefixValueWithModule(
+                ctx,
+                symbol.getName(),
+                ctx.currentFilePath,
+                typeFilePath,
+                true
+              ),
               undefined,
               []
             ),
@@ -644,12 +626,75 @@ export function convertType(
         diagnosticItem
       );
     }
+    case "ZodSchema": {
+      const typeArguments = ty.getTypeArguments();
+      if (typeArguments.length != 1) {
+        ctx.addError(
+          diagnosticItem,
+          { message: "ZodSchema takes one type argument." },
+          true
+        );
+      }
+      const schemaContainer = typeArguments[0];
+      const schemaProperty = schemaContainer.getProperty("schema");
+      if (!schemaProperty) {
+        ctx.addError(
+          diagnosticItem,
+          {
+            message:
+              "ZodSchema takes in {schema: typeof schemaValue} as a type argument",
+          },
+          true
+        );
+      }
+
+      const property = getPropertyDeclaration(schemaProperty);
+      if (!property)
+        throw new Error(
+          "internal error: could not get declaration for `schema` property"
+        );
+      const typeNode = property.getTypeNode();
+
+      if (!(typeNode instanceof tm.TypeQueryNode)) {
+        ctx.addError(
+          typeNode ? { variant: "node", node: typeNode } : diagnosticItem,
+          {
+            message:
+              "the `schema` property must have type `typeof schemaValue`.",
+          },
+          true
+        );
+      }
+
+      const schemaEntityName = typeNode.getExprName();
+      const base = baseIdentifier(schemaEntityName);
+
+      const importPath = getDeclarationDefinitionPath(property);
+
+      const currentFile = ctx.getFileInfo(ctx.currentFilePath);
+
+      currentFile.imports.set(base.getText(), {
+        sourceFile: importPath,
+        importFromUserFile: true,
+        excludeFromUserFile: true,
+      });
+
+      const baseSchema = convertEntityNameToExpression(
+        schemaEntityName,
+        ctx.generateInUserFile
+          ? undefined
+          : getModuleIdentifier(currentFile, importPath, true)
+      );
+      return lazy(baseSchema);
+    }
   }
 
   if (!ctx.isRoot && !generateInline && !isNativeSymbol(typeSymbol)) {
     const symbol =
       ty.getAliasSymbol() ||
-      (ty.isInterface() && !isNativeSymbol(typeSymbol) ? typeSymbol : null);
+      ((ty.isClass() || ty.isInterface()) && !isNativeSymbol(typeSymbol)
+        ? typeSymbol
+        : null);
     if (symbol) {
       const declaration = getDeclaration(symbol);
       if (
@@ -671,14 +716,25 @@ export function convertType(
     return zodConstructor("boolean");
   }
 
-  if (isStainlessPrismaSymbol(typeSymbol)) {
-    ctx.addError(
-      diagnosticItem,
-      {
-        message: `${baseTypeName} must be instantiated with two type arguments inline`,
-      },
-      true
-    );
+  switch (baseTypeName) {
+    case "PrismaModel":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModel",
+        baseTypeName,
+        diagnosticItem
+      );
+    case "PrismaModelLoader":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModelLoader",
+        baseTypeName,
+        diagnosticItem
+      );
   }
 
   if (ty.isClass()) {
@@ -699,14 +755,22 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__class_${typeSymbol.getEscapedName()}`;
+    const escapedName = `${typeSymbol.getName()}Schema`;
+    const sourceFile = declaration.getSourceFile().getFilePath();
     ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
-      sourceFile: declaration.getSourceFile().getFilePath(),
+      sourceFile,
     });
     return zodConstructor("instanceof", [
-      factory.createIdentifier(escapedName),
+      prefixValueWithModule(
+        ctx,
+        typeSymbol.getName(),
+        ctx.currentFilePath,
+        sourceFile,
+        true,
+        escapedName
+      ),
     ]);
   }
   if (ty.isEnum()) {
@@ -727,15 +791,22 @@ export function convertType(
         }
       );
     }
-    const escapedName = `__enum_${typeSymbol.getEscapedName()}`;
+    const escapedName = `${typeSymbol.getEscapedName()}Schema`;
+    const sourceFile = declaration.getSourceFile().getFilePath();
     ctx.getFileInfo(ctx.currentFilePath).imports.set(typeSymbol.getName(), {
       importFromUserFile: true,
       as: escapedName,
-      sourceFile: declaration.getSourceFile().getFilePath(),
+      sourceFile,
     });
-
     return zodConstructor("nativeEnum", [
-      factory.createIdentifier(escapedName),
+      prefixValueWithModule(
+        ctx,
+        typeSymbol.getName(),
+        ctx.currentFilePath,
+        sourceFile,
+        true,
+        escapedName
+      ),
     ]);
   }
   if (ty.isUnion()) {
@@ -983,6 +1054,21 @@ function methodCall(
   );
 }
 
+function thunk(expression: ts.Expression): ts.Expression {
+  return factory.createArrowFunction(
+    undefined,
+    undefined,
+    [],
+    undefined,
+    undefined,
+    expression
+  );
+}
+
+function lazy(expression: ts.Expression): ts.Expression {
+  return zodConstructor("lazy", [thunk(expression)]);
+}
+
 function getTypeOrigin(type: ts.Type): ts.Type | undefined;
 function getTypeOrigin(type: tm.Type): tm.Type | undefined;
 function getTypeOrigin(type: ts.Type | tm.Type): ts.Type | tm.Type | undefined {
@@ -1043,8 +1129,6 @@ function createZodShape(
         ctx.node
       );
 
-      let propertySchema;
-
       // If the current property has a parent type associated with it, use that
       // parent type for diagnostics information ini order to correctly attribute
       // the source of problematic types.
@@ -1056,20 +1140,9 @@ function createZodShape(
           const parentType = ctx.typeChecker.getTypeAtLocation(parentNode);
           if (parentType) enclosingType = parentType;
         }
-
-        const propertyTypeNode = propertyDeclaration.getTypeNode();
-        if (propertyTypeNode) {
-          // Handle the case where the property type is `typeof ...` or `PrismaModel<...>`
-          propertySchema = convertTypeof(ctx, propertyTypeNode, propertyType, {
-            variant: "property",
-            name: property.getName(),
-            symbol: property,
-            enclosingType,
-          });
-        }
       }
 
-      propertySchema ||= convertType(ctx, propertyType, {
+      const propertySchema = convertType(ctx, propertyType, {
         variant: "property",
         name: property.getName(),
         symbol: property,
@@ -1239,12 +1312,17 @@ function convertRefineType(
       true
     );
   }
-  const inputType = getNthBaseClassTypeArgument(ty, 0);
+  const inputType = ty.getProperty("input")?.getTypeAtLocation(ctx.node);
+  if (!inputType) throw new Error("Expected refine to have input property");
+
+  const typeFilePath = getTypeFilePath(ty)!;
+
+  const currentFileInfo = ctx.getFileInfo(ctx.currentFilePath);
 
   // import the refine class
-  ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+  currentFileInfo.imports.set(symbol.getName(), {
     importFromUserFile: true,
-    sourceFile: getTypeFilePath(ty)!,
+    sourceFile: typeFilePath,
   });
 
   const callArgs = [
@@ -1262,7 +1340,13 @@ function convertRefineType(
     callArgs.push(
       factory.createPropertyAccessExpression(
         factory.createNewExpression(
-          factory.createIdentifier(symbol.getName()),
+          prefixValueWithModule(
+            ctx,
+            symbol.getName(),
+            ctx.currentFilePath,
+            typeFilePath,
+            true
+          ),
           undefined,
           []
         ),
@@ -1276,6 +1360,58 @@ function convertRefineType(
     refineType,
     callArgs
   );
+}
+
+function convertPrismaModelType(
+  ctx: ConvertTypeContext,
+  type: tm.Type,
+  symbol: tm.Symbol,
+  method: "prismaModel" | "prismaModelLoader",
+  baseTypeName: string,
+  diagnosticItem: DiagnosticItem
+): ts.Expression {
+  const inputProperty = type.getProperty("input");
+  const inputType = inputProperty?.getTypeAtLocation(ctx.node);
+
+  if (!inputType) {
+    ctx.addError(
+      diagnosticItem,
+      {
+        message: `A class extending \`${baseTypeName}\` must have a property called \`input\` specifying the schema with which the prisma model will be associated.`,
+      },
+      true
+    );
+  }
+
+  const inputSchema = convertType(ctx, inputType, diagnosticItem);
+
+  const typeFilePath = getTypeFilePath(type)!;
+
+  // import the class
+  ctx.getFileInfo(ctx.currentFilePath).imports.set(symbol.getName(), {
+    importFromUserFile: true,
+    sourceFile: typeFilePath,
+    excludeFromUserFile: true,
+  });
+
+  return methodCall(inputSchema, method, [
+    thunk(
+      factory.createPropertyAccessExpression(
+        factory.createNewExpression(
+          prefixValueWithModule(
+            ctx,
+            symbol.getName(),
+            ctx.currentFilePath,
+            typeFilePath,
+            true
+          ),
+          undefined,
+          undefined
+        ),
+        "model"
+      )
+    ),
+  ]);
 }
 
 const SCHEMA_TUPLE_TYPE_ERROR = `schema property of type tuple must be of form [<literal value>, "string literal message"]`;
@@ -1601,26 +1737,6 @@ function getBaseTypeName(type: tm.Type): string | undefined {
   return baseSymbol?.getName();
 }
 
-/** Assuming there is one base class of the given type argument, gets its nth type argument */
-function getNthBaseClassTypeArgument(ty: tm.Type, n: number): tm.Type {
-  const targetType = ty.getTargetType();
-  if (!targetType)
-    throw new Error(
-      `internal error: can't convert transform ${ty.getText()} due to lack of target type`
-    );
-  const rawInputType = targetType.getBaseTypes()[0].getTypeArguments()[n];
-  const typeArgumentNames = targetType
-    .getTypeArguments()
-    .map((arg) => arg.getText());
-  const rawInputName = rawInputType.getSymbol()?.getEscapedName();
-  if (!rawInputName) return rawInputType;
-  const inputTypePos = typeArgumentNames.findIndex(
-    (name) => name === rawInputName
-  );
-  if (inputTypePos >= 0) return ty.getTypeArguments()[inputTypePos];
-  else return rawInputType;
-}
-
 /** Is a type either a literal or union of literalish types */
 function isLiteralish(ty: tm.Type): boolean {
   if (ty.isLiteral()) return true;
@@ -1652,8 +1768,12 @@ function getTypeDeclaration(type: tm.Type): tm.Node | undefined {
 }
 
 function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
+  let importDeclaration: tm.ImportSpecifier | undefined;
   const declarations = symbol.getDeclarations();
   for (const declaration of declarations) {
+    if (declaration instanceof tm.ImportSpecifier && !importDeclaration) {
+      importDeclaration = declaration;
+    }
     if (
       declaration instanceof tm.TypeAliasDeclaration ||
       declaration instanceof tm.InterfaceDeclaration ||
@@ -1664,15 +1784,13 @@ function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
     ) {
       return declaration;
     }
-
-    if (declaration instanceof tm.ImportSpecifier) {
-      const symbol = declaration.getSymbol();
-      if (symbol && !symbol.getValueDeclaration()) {
-        return declaration;
-      }
+  }
+  if (importDeclaration) {
+    const symbol = importDeclaration.getSymbol();
+    if (symbol && !symbol.getValueDeclaration()) {
+      return importDeclaration;
     }
   }
-
   return undefined;
 }
 

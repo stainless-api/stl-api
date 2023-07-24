@@ -1,11 +1,9 @@
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
-import { PrismaModelLoader } from "@stl-api/prisma";
-import { prisma } from "../../libs/prismadb";
-import { PostType } from "./models";
+import { PostType, PostLoader } from "./models";
 
 type Path = {
-  post: PrismaModelLoader<string, typeof prisma.post>;
+  post: PostLoader;
 };
 
 type Query = {

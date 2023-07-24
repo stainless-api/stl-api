@@ -1,6 +1,8 @@
 import { testCase } from "./testCase";
 import { multiFileTestCase } from "./multiFileTestCase";
 
+import { t } from "stainless";
+
 type anyType = any;
 it(`any`, () =>
   expect(testCase({ __filename, nodeName: "anyType" })).toMatchInlineSnapshot(
@@ -374,31 +376,20 @@ import { z } from "zod";
 export const objectSchema = z.object({ a: z.string() });
 
 type zodSchemaProperty = {
-  zod: typeof objectSchema;
+  zod: t.ZodSchema<{ schema: typeof objectSchema }>;
 };
 
 it(`zod schema property`, async () =>
   expect(
-  await multiFileTestCase({
-    __filename,
-    getNode: (sourceFile) => sourceFile.getTypeAlias("zodSchemaProperty")
-  })
-).toMatchInlineSnapshot(`
+    await multiFileTestCase({
+      __filename,
+      getNode: (sourceFile) => sourceFile.getTypeAlias("zodSchemaProperty"),
+    })
+  ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
-import * as __ from "./basics.test";
-const zodSchemaProperty: z.ZodTypeAny = z.object({ zod: z.lazy(() => __.objectSchema) });
+import { objectSchema } from "./basics.test";
+const zodSchemaProperty: z.ZodTypeAny = z.object({ zod: z.lazy(() => objectSchema) });
 ",
 }
-`
-
-
-
-
-
-
-
-
-
-
-));
+`));

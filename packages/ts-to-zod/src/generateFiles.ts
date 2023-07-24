@@ -4,8 +4,9 @@ import {
   FileInfo,
   ImportInfo,
   SchemaGenContext,
+  processModuleIdentifiers,
 } from "./convertType";
-import { ts } from "ts-morph";
+import { ImportClause, ts } from "ts-morph";
 const { factory } = ts;
 import * as Path from "path";
 import {
@@ -20,6 +21,7 @@ export function generateFiles(
 ): Map<string, ts.Statement[]> {
   const outputMap = new Map();
   for (const [path, info] of ctx.files.entries()) {
+    processModuleIdentifiers(info);
     const generatedPath = generatePath(path, generationConfig);
 
     const tsPath = `${generatedPath}.ts`;
@@ -36,13 +38,14 @@ export function generateFiles(
 function generateStatements(
   info: FileInfo,
   generationConfig: GenerationConfig,
-  generatedPath: string,
+  generatedPath: string
 ): ts.Statement[] {
   const statements: ts.Statement[] = generateImportStatements(
     generationConfig,
     generatedPath,
     info.imports,
-    info.namespaceImports
+    info.namespaceImports,
+    info.moduleIdentifiers
   );
 
   for (const schema of info.generatedSchemas.values()) {
@@ -138,7 +141,11 @@ export function generateImportStatements(
   config: GenerationConfig,
   filePath: string,
   imports: Map<string, ImportInfo>,
-  namespaceImports: Map<string, NamespaceImportInfo>
+  namespaceImports: Map<string, NamespaceImportInfo>,
+  moduleIdentifiers?: {
+    userModules: Map<string, ts.Identifier>;
+    generatedModules: Map<string, ts.Identifier>;
+  }
 ): ts.ImportDeclaration[] {
   const zImportClause = factory.createImportClause(
     false,
@@ -158,6 +165,33 @@ export function generateImportStatements(
   );
 
   const importDeclarations = [zImportDeclaration];
+
+  if (moduleIdentifiers) {
+    const { userModules, generatedModules } = moduleIdentifiers;
+    for (const [importPath, identifier] of userModules) {
+      importDeclarations.push(
+        generateModuleImportDeclaration(
+          config,
+          identifier.escapedText as string,
+          filePath,
+          importPath,
+          true
+        )
+      );
+    }
+    for (const [importPath, identifier] of generatedModules) {
+      importDeclarations.push(
+        generateModuleImportDeclaration(
+          config,
+          identifier.escapedText as string,
+          filePath,
+          importPath,
+          false
+        )
+      );
+    }
+    return importDeclarations;
+  }
 
   const importGroups = generateImportGroups(imports, filePath, config);
 
@@ -189,26 +223,41 @@ export function generateImportStatements(
   }
 
   for (const [name, info] of namespaceImports.entries()) {
-    const relativeImport = relativeImportPath(
-      filePath,
-      info.importFromUserFile
-        ? info.sourceFile
-        : generatePath(info.sourceFile, config)
+    importDeclarations.push(
+      generateModuleImportDeclaration(
+        config,
+        name,
+        filePath,
+        info.sourceFile,
+        info.importFromUserFile
+      )
     );
-    const normalizedImport = normalizeImport(relativeImport);
-
-    const importClause = factory.createImportClause(
-      false,
-      undefined,
-      factory.createNamespaceImport(factory.createIdentifier(name))
-    );
-    const importDeclaration = factory.createImportDeclaration(
-      undefined,
-      importClause,
-      factory.createStringLiteral(normalizedImport)
-    );
-    importDeclarations.push(importDeclaration);
   }
 
   return importDeclarations;
+}
+
+function generateModuleImportDeclaration(
+  config: GenerationConfig,
+  name: string,
+  filePath: string,
+  importPath: string,
+  importFromUserFile: boolean | undefined
+): ts.ImportDeclaration {
+  const relativeImport = relativeImportPath(
+    filePath,
+    importFromUserFile ? importPath : generatePath(importPath, config)
+  );
+  const normalizedImport = normalizeImport(relativeImport);
+
+  const importClause = factory.createImportClause(
+    false,
+    undefined,
+    factory.createNamespaceImport(factory.createIdentifier(name))
+  );
+  return factory.createImportDeclaration(
+    undefined,
+    importClause,
+    factory.createStringLiteral(normalizedImport)
+  );
 }

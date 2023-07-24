@@ -1,26 +1,24 @@
 import { z } from "stainless";
-import { PostType as __symbol_PostType } from "./retrieve";
-import { prisma } from "../../../libs/prismadb";
+import * as models from "./models";
 export const Query: z.ZodTypeAny = z.object({
   include: z
     .includes(
-      z.lazy(() => __symbol_PostType),
+      z.lazy(() => models.PostType),
       3
     )
     .optional(),
   select: z
     .selects(
-      z.lazy(() => __symbol_PostType),
+      z.lazy(() => models.PostType),
       3
     )
     .optional(),
 });
 export const Path: z.ZodTypeAny = z.object({
-  post: z.string().prismaModelLoader(prisma.post),
+  post: z.lazy(() => models.PostLoader),
 });
-export const PostType: z.ZodTypeAny = z.any();
 export const get__api_posts_$post$: any = {
   query: z.lazy(() => Query),
   path: z.lazy(() => Path),
-  response: z.lazy(() => __symbol_PostType),
+  response: z.lazy(() => models.PostType),
 };

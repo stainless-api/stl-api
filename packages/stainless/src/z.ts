@@ -128,6 +128,9 @@ function satisfies(a: unknown, b: unknown): boolean {
       )
     );
   }
+  if (typeof b === "function") {
+    return typeof a === "function";
+  }
   return Object.is(a, b);
 }
 

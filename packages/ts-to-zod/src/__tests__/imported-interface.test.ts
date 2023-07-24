@@ -31,7 +31,8 @@ export const AddressIface: z.ZodTypeAny = z.object({ street: z.string(), city: z
   "src/__tests__/imported-interface.test.codegen.ts": "import { z } from "zod";
 import { AddressIface as __symbol_AddressIface } from "./common";
 import { TestClass as __class_TestClass } from "./imported-interface.test";
-const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => __symbol_AddressIface).optional(), testMyClass: z.instanceof(__class_TestClass) });
+export const TestClass: z.ZodTypeAny = z.instanceof(__class_TestClass);
+const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => __symbol_AddressIface).optional(), testMyClass: z.lazy(() => __class_TestClass) });
 ",
 }
 `));

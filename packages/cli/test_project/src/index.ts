@@ -1,15 +1,16 @@
 import { z, Stl } from "stainless";
-import { ExternalInterface, TestEnumAdditional } from "./additional";
+import { TestEnumAdditional } from "./additional";
 const stl = new Stl({
   plugins: {},
 });
-import { TestEnumAdditional as __enum_TestEnumAdditional } from "../.stl-codegen/src/additional";
 
 export enum EnumTest {
   A,
   B,
   C,
 }
+import { EnumTest as EnumTestSchema } from "../.stl-codegen/src/index";
+import { TestEnumAdditional as TestEnumAdditionalSchema } from "../.stl-codegen/src/additional";
 
 export class X {}
 
@@ -36,8 +37,8 @@ type InThisFile = {
 
 stl.magic<{ nested: EnumTest; nested2: TestEnumAdditional }>(
   z.object({
-    nested: z.lazy(() => __enum_EnumTest),
-    nested2: z.lazy(() => __enum_TestEnumAdditional),
+    nested: z.lazy(() => EnumTestSchema),
+    nested2: z.lazy(() => TestEnumAdditionalSchema),
   })
 );
 
