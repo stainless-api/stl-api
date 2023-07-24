@@ -375,7 +375,13 @@ async function evaluate(
     const fileImportDeclarations = file.getImportDeclarations();
     for (const importDecl of fileImportDeclarations) {
       const sourcePath = importDecl.getModuleSpecifier().getLiteralValue();
-      if (sourcePath.indexOf(outdir) >= 0) {
+      const sourceFilePath = importDecl
+        .getModuleSpecifierSourceFile()
+        ?.getFilePath();
+      if (
+        sourceFilePath?.startsWith(generationConfig.basePath) ||
+        sourcePath?.startsWith(generationConfig.baseDependenciesPath)
+      ) {
         fileOperations.push(() => importDecl.remove());
       } else if (sourcePath === "stainless") {
         for (const specifier of importDecl.getNamedImports()) {
@@ -404,10 +410,7 @@ async function evaluate(
     // Insert imports after the last import already in the file.
     const insertPosition = fileImportDeclarations.length;
     fileOperations.push(() =>
-      file.insertStatements(
-        insertPosition,
-        importsString ? importsString + "\n" : ""
-      )
+      file.insertStatements(Math.max(insertPosition - 1, 0), importsString)
     );
   }
 

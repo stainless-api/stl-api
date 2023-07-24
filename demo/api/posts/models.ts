@@ -4,9 +4,9 @@ import prisma from "../../libs/prismadb";
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
 import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
-type Uuid = t.StringSchema<{ uuid: true }>;
 import { PostType as PostTypeSchema } from "../../.stl-codegen/api/posts/models";
 
+type Uuid = t.StringSchema<{ uuid: true }>;
 export const IncludableUserSchema = z.lazy(() => User).includable();
 export const SelectableUserSchema = z.lazy(() => UserSelection).selectable();
 export const IncludableCommentsSchema = z

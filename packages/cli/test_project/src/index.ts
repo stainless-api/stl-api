@@ -3,14 +3,14 @@ import { TestEnumAdditional } from "./additional";
 const stl = new Stl({
   plugins: {},
 });
+import { EnumTest as EnumTestSchema } from "../.stl-codegen/src/index";
+import { TestEnumAdditional as TestEnumAdditionalSchema } from "../.stl-codegen/src/additional";
 
 export enum EnumTest {
   A,
   B,
   C,
 }
-import { EnumTest as EnumTestSchema } from "../.stl-codegen/src/index";
-import { TestEnumAdditional as TestEnumAdditionalSchema } from "../.stl-codegen/src/additional";
 
 export class X {}
 
