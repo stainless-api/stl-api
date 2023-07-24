@@ -16,5 +16,14 @@ export async function format(
   }
 
   const config = await prettier.resolveConfig(filepath);
-  return prettier.format(source, config || { filepath });
+  try {
+    return prettier.format(source, config || { filepath });
+  } catch (error) {
+    console.error(
+      `failed to format code for ${path.relative(process.cwd(), filepath)} ${
+        error instanceof Error ? error.message : String(error)
+      }`
+    );
+    return source;
+  }
 }
