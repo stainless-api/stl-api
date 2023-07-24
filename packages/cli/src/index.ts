@@ -53,15 +53,17 @@ import { format } from "./format";
 
 // TODO: add dry run functionality?
 argParser.option("-w, --watch", "enables watch mode");
-argParser
-  .option(
-    "-d, --directory <path>",
-    "the directory to generate schemas for",
-    "."
-  )
-  .allowExcessArguments(false);
-
-const FOLDER_GEN_PATH = ".stl-codegen";
+argParser.option(
+  "-d, --directory <path>",
+  "the directory to generate schemas for",
+  "."
+);
+argParser.option(
+  "-o, --outdir <path>",
+  "the directory in which to generate schemas",
+  ".stl-codegen"
+);
+argParser.allowExcessArguments(false);
 
 interface CallDiagnostics {
   line: number;
@@ -111,7 +113,7 @@ async function main() {
   const generationOptions = {
     genLocation: {
       type: "folder",
-      genPath: FOLDER_GEN_PATH,
+      genPath: options.outdir,
     },
     rootPath,
     zPackage: "stainless",
@@ -138,8 +140,8 @@ async function main() {
     project,
     baseCtx,
     generationConfig,
-    rootPath,
-    printer
+    printer,
+    options.outdir
   );
 
   if (watcher) {
@@ -151,8 +153,8 @@ async function main() {
         watcher.project,
         watcher.baseCtx,
         generationConfig,
-        rootPath,
-        printer
+        printer,
+        options.outdir
       );
       if (succeeded) {
         console.clear();
@@ -186,8 +188,8 @@ async function evaluate(
   project: tm.Project,
   baseCtx: SchemaGenContext,
   generationConfig: GenerationConfig,
-  rootPath: string,
-  printer: ts.Printer
+  printer: ts.Printer,
+  outdir: string
 ): Promise<boolean> {
   // accumulated diagnostics to emit
   const callDiagnostics: CallDiagnostics[] = [];
@@ -373,7 +375,7 @@ async function evaluate(
     const fileImportDeclarations = file.getImportDeclarations();
     for (const importDecl of fileImportDeclarations) {
       const sourcePath = importDecl.getModuleSpecifier().getLiteralValue();
-      if (sourcePath.indexOf(FOLDER_GEN_PATH) >= 0) {
+      if (sourcePath.indexOf(outdir) >= 0) {
         fileOperations.push(() => importDecl.remove());
       } else if (sourcePath === "stainless") {
         for (const specifier of importDecl.getNamedImports()) {
