@@ -261,15 +261,24 @@ export function processModuleIdentifiers(fileInfo: FileInfo) {
   function impl(map: Map<string, ts.Identifier>) {
     const disambiguateGroups = groupBy([...map.entries()], ([path, _]) => {
       const fileName = Path.parse(path).name;
-      const matches = fileName.match(/[\p{L}0-9-.]/gu);
+      const matches = fileName.match(/[\p{L}0-9-.\s]/gu);
       if (!matches || !matches.length) return "__module";
       const identifierBuilder = [];
 
+      let capitalizeNextLetter = true;
+
       for (const match of matches) {
-        if (match === "-" || match === ".") identifierBuilder.push("_");
-        else if (match >= "0" && match <= "9")
+        if (match === "-" || match === "." || match === " ")
+          capitalizeNextLetter = true;
+        else if (identifierBuilder.length === 0 && match >= "0" && match <= "9")
           identifierBuilder.push("_", match);
-        else identifierBuilder.push(match);
+        else if (
+          capitalizeNextLetter &&
+          match.toLowerCase() != match.toUpperCase()
+        ) {
+          capitalizeNextLetter = false;
+          identifierBuilder.push(match.toUpperCase());
+        } else identifierBuilder.push(match);
       }
 
       const identifier = identifierBuilder.join("");

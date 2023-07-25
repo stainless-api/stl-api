@@ -18,8 +18,8 @@ it(`imported type`, async () =>
 export const Address: z.ZodTypeAny = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 ",
   "src/__tests__/imported-type.test.codegen.ts": "import { z } from "zod";
-import * as common from "./common";
-const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => common.Address).optional() });
+import * as Common from "./common";
+const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => Common.Address).optional() });
 ",
 }
 `));

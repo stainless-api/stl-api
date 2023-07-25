@@ -27,8 +27,8 @@ it(`imported interface`, async () =>
 export const AddressIface: z.ZodTypeAny = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
 ",
   "src/__tests__/imported-aliased-interface.test.codegen.ts": "import { z } from "zod";
-import * as common from "./common";
-const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => common.AddressIface).optional() });
+import * as Common from "./common";
+const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => Common.AddressIface).optional() });
 ",
 }
 `));

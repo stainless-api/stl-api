@@ -38,13 +38,13 @@ it(`generating in folder`, async () =>
   ).toMatchInlineSnapshot(`
 {
   "stl-api-gen/src/__tests__/common.ts": "import { z } from "zod";
-import * as common from "../../../src/__tests__/common";
+import * as Common from "../../../src/__tests__/common";
 export const AddressIface: z.ZodTypeAny = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
-export const Enum: z.ZodTypeAny = z.nativeEnum(common.Enum);
+export const Enum: z.ZodTypeAny = z.nativeEnum(Common.Enum);
 ",
   "stl-api-gen/src/__tests__/generate-in-folder.test.ts": "import { z } from "zod";
-import * as common from "./common";
-const T: z.ZodTypeAny = z.object({ datetime: z.string().max(20).datetime().regex(new RegExp("[A-Z]"), "oops"), addresses: z.array(z.lazy(() => common.AddressIface)), enum: z.lazy(() => common.Enum) });
+import * as Common from "./common";
+const T: z.ZodTypeAny = z.object({ datetime: z.string().max(20).datetime().regex(new RegExp("[A-Z]"), "oops"), addresses: z.array(z.lazy(() => Common.AddressIface)), enum: z.lazy(() => Common.Enum) });
 ",
 }
 `));

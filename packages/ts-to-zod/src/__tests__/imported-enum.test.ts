@@ -11,12 +11,12 @@ it(`imported enum`, async () =>
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/common.codegen.ts": "import { z } from "zod";
-import * as common from "./common";
-export const Enum: z.ZodTypeAny = z.nativeEnum(common.Enum);
+import * as Common from "./common";
+export const Enum: z.ZodTypeAny = z.nativeEnum(Common.Enum);
 ",
   "src/__tests__/imported-enum.test.codegen.ts": "import { z } from "zod";
-import * as common from "./common";
-const T: z.ZodTypeAny = z.array(z.lazy(() => common.Enum));
+import * as Common from "./common";
+const T: z.ZodTypeAny = z.array(z.lazy(() => Common.Enum));
 ",
 }
 `));

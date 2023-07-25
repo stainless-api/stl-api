@@ -113,8 +113,8 @@ export const UserUncheckedCreateInput: z.ZodTypeAny = z.object({ id: z.string().
 export const UserCreateInput: z.ZodTypeAny = z.object({ id: z.string().optional(), name: z.string().nullable().optional(), username: z.string().nullable().optional(), bio: z.string().nullable().optional(), email: z.string().nullable().optional(), emailVerified: z.union([z.string(), z.date()]).nullable().optional(), image: z.string().nullable().optional(), coverImage: z.string().nullable().optional(), profileImage: z.string().nullable().optional(), hashedPassword: z.string().nullable().optional(), createdAt: z.union([z.string(), z.date()]).optional(), updatedAt: z.union([z.string(), z.date()]).optional(), followingIds: z.union([z.union([z.string(), z.array(z.string())]), z.lazy(() => UserCreatefollowingIdsInput)]).optional(), hasNotification: z.boolean().nullable().optional(), posts: z.lazy(() => PostCreateNestedManyWithoutUserInput).optional(), comments: z.lazy(() => CommentCreateNestedManyWithoutUserInput).optional(), notifications: z.lazy(() => NotificationCreateNestedManyWithoutUserInput).optional() });
 ",
   "src/__tests__/crazy-prisma-types.test.codegen.ts": "import { z } from "zod";
-import * as index_d from "../../prisma-client/index.d";
-const T: z.ZodTypeAny = z.object({ select: z.lazy(() => index_d.UserSelect).nullable().optional(), include: z.lazy(() => index_d.UserInclude).nullable().optional(), data: z.union([z.object({}).and(z.lazy(() => index_d.UserUncheckedCreateInput)), z.object({}).and(z.lazy(() => index_d.UserCreateInput))]) });
+import * as IndexD from "../../prisma-client/index.d";
+const T: z.ZodTypeAny = z.object({ select: z.lazy(() => IndexD.UserSelect).nullable().optional(), include: z.lazy(() => IndexD.UserInclude).nullable().optional(), data: z.union([z.object({}).and(z.lazy(() => IndexD.UserUncheckedCreateInput)), z.object({}).and(z.lazy(() => IndexD.UserCreateInput))]) });
 ",
 }
 `));

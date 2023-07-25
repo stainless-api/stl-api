@@ -1,5 +1,5 @@
 import { z } from "stainless";
-import * as models from "../../../api/posts/models";
+import * as Models from "../../../api/posts/models";
 export const PostType: z.ZodTypeAny = z
   .object({
     id: z.string().uuid(),
@@ -9,14 +9,14 @@ export const PostType: z.ZodTypeAny = z
     userId: z.string().uuid(),
     likedIds: z.array(z.string().uuid()),
     image: z.string().nullable().optional(),
-    user: z.lazy(() => models.IncludableUserSchema).optional(),
-    user_fields: z.lazy(() => models.SelectableUserSchema).optional(),
-    comments: z.lazy(() => models.IncludableCommentsSchema).optional(),
+    user: z.lazy(() => Models.IncludableUserSchema).optional(),
+    user_fields: z.lazy(() => Models.SelectableUserSchema).optional(),
+    comments: z.lazy(() => Models.IncludableCommentsSchema).optional(),
     comments_fields: z
-      .lazy(() => models.IncludableCommentsFieldSchema)
+      .lazy(() => Models.IncludableCommentsFieldSchema)
       .optional(),
   })
-  .prismaModel(() => new models.PostType().model);
+  .prismaModel(() => new Models.PostType().model);
 export const PostLoader: z.ZodTypeAny = z
   .string()
-  .prismaModelLoader(() => new models.PostLoader().model);
+  .prismaModelLoader(() => new Models.PostLoader().model);
