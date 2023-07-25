@@ -69,7 +69,7 @@ export const app = stlExpressAPI(api);
 
 ### Options
 
-See [`AddEndpointsToExpressOptions](#addendpointstoexpressoptions).
+See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
 
 ### Notes
 
@@ -103,7 +103,7 @@ export const router = stlExpressAPIRouter(api);
 
 ### Options
 
-See [`AddEndpointsToExpressOptions](#addendpointstoexpressoptions).
+See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
 
 ### Notes
 
@@ -137,7 +137,7 @@ export const router = stlExpressResourceRouter(posts);
 
 ### Options
 
-See [`AddEndpointsToExpressOptions](#addendpointstoexpressoptions).
+See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
 
 ### Notes
 
@@ -179,7 +179,7 @@ addStlAPIToExpress(app, api);
 
 ### Options
 
-See [`AddEndpointsToExpressOptions](#addendpointstoexpressoptions).
+See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
 
 ### Notes
 
@@ -214,7 +214,7 @@ addStlResourceToExpress(app, posts);
 
 ### Options
 
-See [`AddEndpointsToExpressOptions](#addendpointstoexpressoptions).
+See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
 
 ### Notes
 
@@ -249,7 +249,7 @@ addStlEndpointToExpress(app, retrievePosts);
 
 ### Options
 
-See [`AddToExpressOptions](#addtoexpressoptions).
+See [`AddToExpressOptions`](#addtoexpressoptions).
 
 ### Notes
 
@@ -282,7 +282,7 @@ app.get(
 
 ### Options
 
-See [`AddToExpressOptions](#addtoexpressoptions).
+See [`AddToExpressOptions`](#addtoexpressoptions).
 
 ### Notes
 
