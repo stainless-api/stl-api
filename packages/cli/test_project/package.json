@@ -6,7 +6,6 @@
   "scripts": {
     "start": "ts-node scripts/start.ts",
     "watch": "nodemon -e js,ts --exec ts-node scripts/watch.ts",
-    "test": "jest",
     "clean": "rimraf dist",
     "format": "prettier -w .",
     "build": "tsc -p tsconfig.json",
