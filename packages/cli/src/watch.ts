@@ -11,6 +11,13 @@ export type Event = {
   type: string;
 };
 
+function debugEvent(event: string): string {
+  return event.padEnd("change (ignored)".length);
+}
+function debugIgnoredEvent(event: string): string {
+  return `${event.padEnd("change".length)} (ignored)`;
+}
+
 export class Watcher {
   private watcher: FSWatcher;
   private gitignore = new Gitignore();
@@ -70,16 +77,16 @@ export class Watcher {
           path.join(genFolderPath, "**"),
           (path: string, stats?: fs.Stats) => {
             if (!stats) return false;
-            if (stats.isDirectory()) path += "/";
+            if (stats?.isDirectory()) path += "/";
             const gitignored = this.gitignore.ignoresSync(path);
-            if (gitignored) debug("gitignored", path);
+            if (gitignored) debug(debugIgnoredEvent(""), path);
             return gitignored;
           },
         ],
       }
     );
     this.watcher.on("ready", () => {
-      debug("ready");
+      debug(debugEvent("ready"));
       console.log(
         `Found ${this.fileCount} source ${
           this.fileCount === 1 ? "file" : "files"
@@ -89,8 +96,12 @@ export class Watcher {
     });
 
     // handle a new file added
-    this.watcher.on("add", (path) => {
-      debug("add", path);
+    this.watcher.on("add", async (path) => {
+      if (await this.gitignore.ignores(path)) {
+        debug(debugIgnoredEvent("add"), path);
+        return;
+      }
+      debug(debugEvent("add"), path);
       this.fileCount++;
       if (!this.ready) return;
       if (path === this.tsConfigFilePath) {
@@ -103,7 +114,11 @@ export class Watcher {
 
     // handle a file changing
     this.watcher.on("change", async (path) => {
-      debug("change", path);
+      if (await this.gitignore.ignores(path)) {
+        debug(debugIgnoredEvent("change"), path);
+        return;
+      }
+      debug(debugEvent("change"), path);
       if (!this.ready) return;
       if (path === this.tsConfigFilePath) {
         this.createProject();
@@ -125,8 +140,12 @@ export class Watcher {
     });
 
     // handle a file being removed
-    this.watcher.on("unlink", (path) => {
-      debug("unlink", path);
+    this.watcher.on("unlink", async (path) => {
+      if (await this.gitignore.ignores(path)) {
+        debug(debugIgnoredEvent("unlink"), path);
+        return;
+      }
+      debug(debugEvent("unlink"), path);
       this.fileCount--;
       const sourceFile = this.project.getSourceFile(path);
       if (sourceFile) {
@@ -138,7 +157,7 @@ export class Watcher {
     // handle an error occuring during the file watching process
     this.watcher.on("error", (err) => {
       // TODO: do something else here?
-      console.error(err);
+      console.error(debugEvent("error"), err);
     });
   }
   async *getEvents(): AsyncGenerator<Event, never, unknown> {
