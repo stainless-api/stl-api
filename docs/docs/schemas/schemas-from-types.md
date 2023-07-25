@@ -5,12 +5,12 @@ sidebar_position: 1
 # Generating Zod schemas from types
 
 We provide two ways of converting schemas to types. The first is `stl.types<>().endpoint()`,
-which converts its type parameters to Zod schemas. The second is `stl.magic<>()`, which the
+which converts its type parameters to Zod schemas. The second is `stl.magic<>()`, which our
 CLI modifies to inject the Zod schema corresponding to the given type argument. The function
 evaluates to this schema value.
 
 [`stl`](/stl/cli) utilizes the Typescript compiler's type-checking API to enable powerful type analysis.
-As a result, complex types are usually supported, including index, mapped, conditional, intersection, union, and aliased types.
+As a result, complex types like discriminated unions are supported.
 This is utilized to generate idiomatic Zod schemas, using features
 such as `z.enum()` or `z.discriminatedUnion()` for optimal
 error-checking and reporting.
@@ -18,9 +18,26 @@ error-checking and reporting.
 :::note
 Whenever input types to `stl.types` or `stl.magic` change, the CLI needs
 to be rerun. The CLI provides a watch mode to automate this process.
-Schema definitions are generated in the `@stl-api/cli` folder in
-`node_modules`.
+Schema definitions are generated in a user-configurable folder. By
+default, this is in `.stl-codegen`.
 :::
+
+## Setup
+
+In order to use `stl.types.endpoint`, you need to add generated
+schema generation to your instance of the `Stl` class:
+
+```ts
+import { Stl } from "stainless";
+import { typeSchemas } from "../.stl-codegen";
+
+export const stl = new Stl({
+  plugins: {...},
+  typeSchemas,
+});
+```
+
+## Stainless extensions
 
 Ordinary Typescript types can be extended with types provided by the `stainless` package to add
 additional validation and transformation rules. These come in two forms: types that offer access to
@@ -47,7 +64,7 @@ and `z.number().max(5, "max value is 5")`, respectively.
 
 In total, `stainless` offers the `StringSchema`, `NumberSchema`, `BigIntSchema`, `DateSchema`,
 `ObjectSchema`, `ArraySchema`, and `SetSchema` types. Each one of
-these takes properties corresponding [Zod primitive validation rules](https://zod.dev/). However, some
+these takes properties corresponding to [Zod primitive validation rules](https://zod.dev/). However, some
 of these types and properties deviate from the patterns shown above.
 These are documented below.
 
@@ -69,7 +86,7 @@ properties. `message` is the error message used on validation failure.
 
 #### `regex`
 
-The `regex` property allows a string to be tested against a regular expression. Unlike the Zod `.regex()` property, this accepts a string
+The `regex` property allows a string to be validated against a regular expression. Unlike the Zod `.regex()` property, this accepts a string
 that is passed to the `RegExp` constructor at runtime.
 
 ### `t.DateSchema<Props>`
@@ -90,16 +107,16 @@ that is used as the base type for schema generation. For example,
 #### `catchall`
 
 The `catchall` property takes an arbitrary type as a parameter. This
-type is used to generate a schema to validate any properties not
+type is used to generate a schema to validate the values of properties not
 explicitly a part of `T`.
 
-Note that index types are also supported
+Note that Typescript index types are also supported
 natively, but they serve a slightly different role.
 
 #### `passthrough`, `strict`
 
-These properties are offered with usual Zod semantics. Other object properties are not provided,
-but properties like `merge`, `partial`, and `required` have Typescript
+These properties are offered with usual Zod semantics. Other object schema modifiers are not provided,
+but modifiers like `merge`, `partial`, and `required` have Typescript
 analogs like `Partial` and `Required` that should be used instead.
 
 ### `t.ArraySchema<T, Props>, SetSchema<T, Props>`
@@ -110,14 +127,17 @@ yields the schema `z.array(z.number()).nonempty()`.
 
 ## Custom validation and transform rules
 
-When using Typescript types to generate Zod schemas, it's possible to use the `Refine`, `SuperRefine`, and `Transform` classes to add custom
+When using Typescript types to generate Zod schemas, it's possible to subclass the `Refine`, `SuperRefine`, and `Transform` classes to add custom
 validation and parsing rules.
 
-These types always require declaring an input type via `declare input: I`, which is the type of
+Subclassing these types always requires declaring an input type via `declare input: I`, which is the type of
 the input schema at the start of parsing. `I` is not necessarily the
 type of the input received by the class: for example, it might be that
-of a `Transform` subclass. In order to support this more flexible usage, have `I` extend `t.SchemaInput<T>`, where `T` is the type you
-want to accept as input.
+of a `Transform` subclass. In order to support this more flexible usage, have `I` extend `t.SchemaInput<T>`, where `T` is the schema type you
+want your refine or transform utility to accept as input.
+
+Note that when using subclasses of these types within schema types,
+the subclasses need to be exported from their modules.
 
 ### `t.Refine`
 
@@ -131,14 +151,14 @@ Let's say we want to validate that an array matches the Typescript type
 of the box, so we can use the `Refine` class to implement this:
 
 ```ts
-class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
+export class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
   declare input: I;
 
   refine(value: any[]): boolean {
     for (let i = 0; i < value.length - 1; i++) {
       if (typeof value[i] !== "string") return false;
     }
-    return typeof value[value.length - 1] === "number";
+    return typeof value.at(-1) === "number";
   }
 }
 ```
@@ -159,12 +179,12 @@ See the next section for an example.
 
 We can expand the example above to reflect the gained type information
 at the type level using the `is RO` syntax, which allows
-an implementing class of `Refine` to declare that if validation succeeds, the type of the value being refined is of type `RO`.
+an implementing class of `Refine` to declare that if validation succeeds, the value being refined is of type `RO`.
 We'll also supply a custom error message.
 We can use it as such:
 
 ```ts
-class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
+export class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
   declare input: I;
 
   message = "expected a tuple of type [...string[], number]";
@@ -174,13 +194,13 @@ class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
 }
 ```
 
-### SuperRefine
+### `t.SuperRefine`
 
 Allows generating custom error messages on validation failure.
 Functions similarly to the Zod [`.superRefine`](https://zod.dev/?id=superrefine) method, where the `superRefine` method accepts a value for refinement and a context as input. Adding an issue on the context
 causes validation to fail; otherwise it succeeds.
 
-### Transform
+### `t.Transform`
 
 Allows transforming an input value to an output value of
 potentially different type, while optionally validating it with the context parameter
@@ -206,11 +226,6 @@ class ToString<I extends t.SchemaInput<any>> extends t.Transform {
 :::info
 This is only available if using the [`@stl-api/prisma`](/stl/prisma/getting-started) plugin.
 :::
-:::caution
-
-Make sure `@stl-api/prisma` gets imported before code that declares schemas is run.
-
-:::
 
 Allows you to declare the Prisma model associated with a response schema. In an endpoint whose
 response schema has a Prisma model declared, [special conveniences](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) will be available.
@@ -219,7 +234,7 @@ response schema has a Prisma model declared, [special conveniences](/stl/prisma/
 import prisma from "~/libs/prismadb";
 import { PrismaModel } from "@stl-api/PrismaModel";
 
-class User extends PrismaModel {
+export class User extends PrismaModel {
   declare input: {
     id: string;
     name?: string;
@@ -231,6 +246,8 @@ class User extends PrismaModel {
 ```
 
 `input` specifies the response schema. `model` is the Prisma model to associate with the schema.
+
+Note that subclasses of `PrismaModel` must be exported from their modules in order to be used within schemas.
 
 ### `Includable<T>`
 
@@ -275,8 +292,9 @@ interface IncludablePost extends PostBase {
   user?: Includable<User>;
 }
 
-// the `stl` CLI will generate a schema for `IncludablePost`,
-// and inject it into the endpoint handler
+// the `stl` CLI will generate a schema for `IncludablePost`
+// into the `typeSchemas` object passed to `stl`'s constructor
+// call
 stl.types<{ response: IncludablePost }>().endpoint({
   endpoint: "get /api/post/{id}",
   // ...
@@ -293,7 +311,7 @@ However, you may want to use classic Zod schemas in some places,
 whether due to migrating existing schemas or due to advanced Zod usage we
 do not currently support. For this, we offer the `ZodSchema` class to inject
 classic Zod schemas into generated schemas. `ZodSchema` takes a Zod schema
-by passing its type via `typeof schema`. This typeof clause must be inline.
+by passing its type via `typeof schema`. This `typeof` clause must be inline.
 
 ```ts
 const schema = z.object({a: z.string(), b: z.string()});
@@ -314,9 +332,11 @@ type User = {
   ...
 };
 
-const ZodSchema = stl.magic<User>(/* schema value generated here */);
+const ZodSchema = stl.magic<User>(/* schema value injected by CLI */);
 ```
 
 `stl.magic` will, as necessary, generate imports in the file it's called
 in order to import generated schema constants from the configured codegen folder.
-These constants always end in `Schema`.
+These constants always end in `Schema`. You should not modify the
+contents of these imports: they will be generated on CLI run. However,
+you can freely move their position within the same file.

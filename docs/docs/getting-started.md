@@ -11,8 +11,8 @@ We're eager for you to try it out and let us know what you think!
 
 :::
 
-At the moment, Stainless can be used with Next.js. Support for
-standalone and Express apps is coming soon.
+At the moment, Stainless can be used with Next.js and Express.
+Support for standalone apps is coming soon.
 We will soon provide a `create-stl-app` API. Until then:
 
 ## Installation
