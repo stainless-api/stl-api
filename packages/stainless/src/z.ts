@@ -363,9 +363,6 @@ export type Selection<T> = T extends Array<infer E extends object>
 class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
   _parse(input: z.ParseInput): z.ParseReturnType<this["_output"]> {
     const { path, parent } = input;
-    if (path[0] === "user_fields") {
-      debugger;
-    }
     const ctx = getStlParseContext(parent);
     const select = ctx ? getSelects(ctx) : undefined;
     if (!select) return z.OK(undefined);

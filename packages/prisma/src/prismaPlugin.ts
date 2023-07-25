@@ -75,9 +75,7 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
       const model =
         prismaModel instanceof Function ? prismaModel() : prismaModel;
       if (prisma && model === prisma.prismaModel) {
-        const result = await prisma.findUniqueOrThrow(query);
-        console.log(result);
-        return result;
+        return await prisma.findUniqueOrThrow(query);
       }
       return await model.findUniqueOrThrow(query);
     }
