@@ -9,12 +9,10 @@ export const PostType: z.ZodTypeAny = z
     userId: z.string().uuid(),
     likedIds: z.array(z.string().uuid()),
     image: z.string().nullable().optional(),
-    user: z.lazy(() => models.IncludableUserSchema).optional(),
-    user_fields: z.lazy(() => models.SelectableUserSchema).optional(),
-    comments: z.lazy(() => models.IncludableCommentsSchema).optional(),
-    comments_fields: z
-      .lazy(() => models.IncludableCommentsFieldSchema)
-      .optional(),
+    user: z.lazy(() => models.IncludableUserSchema),
+    user_fields: z.lazy(() => models.SelectableUserSchema),
+    comments: z.lazy(() => models.IncludableCommentsSchema),
+    comments_fields: z.lazy(() => models.IncludableCommentsFieldSchema),
   })
   .prismaModel(() => new models.PostType().model);
 export const PostLoader: z.ZodTypeAny = z

@@ -25,10 +25,10 @@ export class PostType extends PrismaModel {
     userId: Uuid;
     likedIds: Uuid[];
     image?: string | null;
-    user?: t.ZodSchema<{ schema: typeof IncludableUserSchema }>;
-    user_fields?: t.ZodSchema<{ schema: typeof SelectableUserSchema }>;
-    comments?: t.ZodSchema<{ schema: typeof IncludableCommentsSchema }>;
-    comments_fields?: t.ZodSchema<{
+    user: t.ZodSchema<{ schema: typeof IncludableUserSchema }>;
+    user_fields: t.ZodSchema<{ schema: typeof SelectableUserSchema }>;
+    comments: t.ZodSchema<{ schema: typeof IncludableCommentsSchema }>;
+    comments_fields: t.ZodSchema<{
       schema: typeof IncludableCommentsFieldSchema;
     }>;
   };

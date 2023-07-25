@@ -1,5 +1,7 @@
 import { z, StlContext } from "./stl";
 
+export const includesSymbol = Symbol("includes");
+
 /**
  * Creates an include param from all includable paths in the given zod schema
  */
@@ -41,7 +43,15 @@ export function includes<
     z.array(z.enum([first, ...rest])) as any as z.ZodType<
       IncludablePaths<z.output<T>, Depth>[]
     >
-  ).withMetadata({ stainless: { includes: true } });
+  )
+    .transform((value) => {
+      Object.defineProperty(value, includesSymbol, {
+        enumerable: false,
+        value: true,
+      });
+      return value;
+    })
+    .withMetadata({ stainless: { includes: true } });
 }
 
 function unwrapIncludable(e: z.ZodTypeAny): z.AnyZodObject | undefined {
@@ -109,12 +119,19 @@ export type IncludablePaths<
   : never;
 
 export function getIncludes(ctx: StlContext<any>): string[] | null | undefined {
-  const include = ctx.parsedParams?.query?.include;
-  if (
-    include != null &&
-    (!Array.isArray(include) || include.some((e) => typeof e !== "string"))
-  ) {
-    throw new Error(`invalid include param; use z.includes()`);
+  const query = ctx.parsedParams?.query;
+  if (!query) return undefined;
+  for (const param of Object.values(query)) {
+    if (param != null && (param as any)[includesSymbol]) {
+      const include = param;
+      if (
+        !Array.isArray(include) ||
+        include.some((e) => typeof e !== "string")
+      ) {
+        throw new Error(`invalid include param; use z.includes()`);
+      }
+      return include;
+    }
   }
-  return include;
+  return undefined;
 }
