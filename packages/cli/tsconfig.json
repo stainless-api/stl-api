@@ -1,6 +1,7 @@
 {
   "extends": "../../tsconfig-common.json",
-  "include": ["src", "test_project"],
+  "include": ["src"],
+  "exclude": ["test_project"],
   "compilerOptions": {
     "noEmit": true
   },

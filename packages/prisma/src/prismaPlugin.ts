@@ -72,11 +72,11 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
       const id = input.data;
       const query = { where: { id } };
       const prisma: PrismaContext<any> = (ctx as any).prisma;
-      if (prisma && prismaModel === prisma.prismaModel) {
-        return await prisma.findUniqueOrThrow(query);
-      }
       const model =
         prismaModel instanceof Function ? prismaModel() : prismaModel;
+      if (prisma && model === prisma.prismaModel) {
+        return await prisma.findUniqueOrThrow(query);
+      }
       return await model.findUniqueOrThrow(query);
     }
   );
@@ -342,15 +342,12 @@ function createIncludeSelect<
   context: StlContext<EC>,
   prismaQuery: Q
 ): IncludeSelect | null | undefined {
-  const queryShape = endpoint.query?.shape;
   const callerInclude = prismaQuery?.include;
-  let select: SelectTree | null | undefined = queryShape?.select
-    ? context.parsedParams?.query?.select
-    : undefined;
+  let select: SelectTree | null | undefined = z.getSelects(context);
   if (select != null && !isPlainObject(select)) {
     throw new Error(`invalid select query param`);
   }
-  let include = context.parsedParams?.query?.include;
+  let include = z.getIncludes(context);
   if (
     include != null &&
     (!Array.isArray(include) || include.some((e) => typeof e !== "string"))

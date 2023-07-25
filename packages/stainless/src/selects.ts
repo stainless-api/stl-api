@@ -2,6 +2,8 @@ import { SelectTree, parseSelect } from "./parseSelect";
 import { z, StlContext } from "./stl";
 import { isEmpty, isPlainObject } from "lodash";
 
+export const selectsSymbol = Symbol("selects");
+
 /**
  * Creates an select param from all selectable paths in the given zod schema
  */
@@ -17,7 +19,14 @@ export function selects<
 > {
   return z
     .string()
-    .transform((select) => parseSelect(select))
+    .transform((select) => {
+      const result = parseSelect(select);
+      Object.defineProperty(result, selectsSymbol, {
+        enumerable: false,
+        value: true,
+      });
+      return result;
+    })
     .superRefine((val, ctx) => {
       try {
         validateSelectTree(val, schema, depth + 1);
@@ -98,9 +107,16 @@ function validateSelectTree(
 export function getSelects(
   ctx: StlContext<any>
 ): SelectTree | null | undefined {
-  const select = ctx.parsedParams?.query?.select;
-  if (select != null && !isPlainObject(select)) {
-    throw new Error(`invalid select param; use z.selects()`);
+  const query = ctx.parsedParams?.query;
+  if (!query) return undefined;
+  for (const param of Object.values(query)) {
+    if (param != null && (param as any)[selectsSymbol]) {
+      const select = ctx.parsedParams?.query?.select;
+      if (select != null && !isPlainObject(select)) {
+        throw new Error(`invalid select param; use z.selects()`);
+      }
+      return select;
+    }
   }
-  return select;
+  return undefined;
 }

@@ -11,12 +11,12 @@ import { StlContext } from "./stl";
 import { SelectTree } from "./parseSelect";
 import { getSelects } from "./selects";
 import { getIncludes } from "./includes";
-import { omitBy, pickBy } from "lodash/fp";
+import { pickBy } from "lodash/fp";
 import { mapValues } from "lodash";
 
 export * from "zod";
-export { selects } from "./selects";
-export { includes } from "./includes";
+export { selects, selectsSymbol, getSelects } from "./selects";
+export { includes, includesSymbol, getIncludes } from "./includes";
 
 /**
  * TODO: try to come up with a better error message
@@ -372,7 +372,7 @@ class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
         `.selectable() property must be a string ending with _fields`
       );
     }
-    const parentData = parent.data;
+    const parentData = parent.data || parent.parent?.data;
     if (!(parentData instanceof Object) || typeof property !== "string") {
       return z.OK(undefined);
     }
