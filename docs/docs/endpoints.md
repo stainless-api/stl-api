@@ -16,19 +16,22 @@ import { NotFoundError, z } from "stainless";
 import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
-export const retrieve = stl.types<{path: {userId: string}, response: typeof User}>().endpoint({
-  endpoint: "get /api/users/{userId}",
-  async handler({ userId }, ctx) {
-    const user = await prisma.user.findUnique({
-      where: {
-        id: userId,
-      },
-    });
-    if (!user) throw new NotFoundError();
-    return user;
-  },
-});
+export const retrieve = stl
+  .types<{ path: { userId: string }; response: typeof User }>()
+  .endpoint({
+    endpoint: "get /api/users/{userId}",
+    async handler({ userId }, ctx) {
+      const user = await prisma.user.findUnique({
+        where: {
+          id: userId,
+        },
+      });
+      if (!user) throw new NotFoundError();
+      return user;
+    },
+  });
 ```
+
 ## Properties
 
 The `endpoint` method takes properties to customize the behavior of the endpoint.
@@ -38,7 +41,6 @@ The `endpoint` method takes properties to customize the behavior of the endpoint
 A string declaring the HTTP method (`get`, `post`, `put`, `patch`, `delete`, `options`, `head`) and
 URL for this endpoint.
 
-
 ### `handler(params, context)`
 
 The function that handles requests to this `endpoint`. It will be called with a `params` object consisting
@@ -47,15 +49,20 @@ or resolve to a raw response to be parsed by the `response` schema.
 
 The `params`, `context` and return types will be automatically mapped from the request and response types.
 
+Note that the handler field is optional: this is useful for declaring
+the shape of an API through endpoints, but not serving requests using
+`stainless`.
+
 ## Types
-`stl.types` is a helper that enables generating rich, validating schemas for the parameter and 
-response types of the endpoint. After running the `@stl-api` CLI, these type definitions are 
-converted into Zod schemas, which are used to validate endpoint parameters. If parameters 
+
+`stl.types` is a helper that enables generating rich, validating schemas for the parameter and
+response types of the endpoint. After running the `@stl-api` CLI, these type definitions are
+converted into Zod schemas, which are used to validate endpoint parameters. If parameters
 fail to validate against the generated schema, the endpoint responds with a detailed error message.
 For more information about the CLI, visit its [dedicated page](/stl/cli).
 
 `stl.types` accepts one type parameter, which is used to specify the types of the parameters accepted by the endpoint,
-as well as the type of its response. In order to provide these parameters, these fields can be passed as 
+as well as the type of its response. In order to provide these parameters, these fields can be passed as
 properties of the type parameter:
 
 ### `response`
@@ -105,7 +112,7 @@ Responds with HTTP status code 404.
 
 ## Manually providing Zod schemas
 
-Typed endpoints can also be created through manually specifying 
+Typed endpoints can also be created through manually specifying
 zod schemas, and passing them to the standalone `endpoint` method.
 This method takes the same properties as the `endpoint` method available when using `stl.types`,
 as well as these additional properties for providing schema values:

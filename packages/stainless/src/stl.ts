@@ -175,7 +175,7 @@ export interface Endpoint<
   Body extends ZodObjectSchema | undefined,
   Response extends z.ZodTypeAny | undefined
 > extends BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
-  handler: Handler<
+  handler?: Handler<
     StlContext<BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>>,
     Path,
     Query,
@@ -547,7 +547,7 @@ interface CreateEndpointOptions<
    * path, query, and body params, and an {@link StlContext} holding
    * additional global and plugin- and endpoint-specific context.
    */
-  handler: Handler<
+  handler?: Handler<
     StlContext<BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>>,
     Path,
     Query,
@@ -717,6 +717,10 @@ export class Stl<Plugins extends AnyPlugins> {
     params: Params,
     context: StlContext<EC>
   ): Promise<ExtractExecuteResponse<EC>> {
+    if (!context.endpoint.handler) {
+      throw new Error(`no endpoint handler defined`);
+    }
+
     await this.loadEndpointTypeSchemas(context.endpoint);
 
     for (const plugin of Object.values(this.stainlessPlugins)) {
