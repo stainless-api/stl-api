@@ -14,7 +14,6 @@
     "psql": "docker compose exec db psql -U postgres",
     "prisma": "prisma",
     "stl": "ts-node --transpileOnly --swc ../packages/cli/src/index.ts",
-    "stl:watch": "ts-node --transpileOnly --swc ../packages/cli/src/index.ts --watch",
     "test": "jest"
   },
   "prisma": {
