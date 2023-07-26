@@ -119,16 +119,16 @@ as well as these additional properties for providing schema values:
 
 ### `response`
 
-The [schema](/stl/schemas) for the HTTP response.
+The [schema](/stl/schemas/runtime-zod-schemas) for the HTTP response.
 
 ### `path`
 
-The [schema](/stl/schemas) for the path parameters.
+The [schema](/stl/schemas/runtime-zod-schemas) for the path parameters.
 
 ### `query`
 
-The [schema](/stl/schemas) for the query (search) parameters.
+The [schema](/stl/schemas/runtime-zod-schemas) for the query (search) parameters.
 
 ### `body`
 
-The [schema](/stl/schemas) for the request body parameters.
+The [schema](/stl/schemas/runtime-zod-schemas) for the request body parameters.
