@@ -4,10 +4,10 @@ import { Order } from "./api/orders/models";
 import { Contact } from "./api/contacts/models";
 
 export const endpoints = {
-  "get /orders": {
+  "GET /orders": {
     response: z.array(z.lazy(() => Order)),
   },
-  "get /contacts/{contactId}": {
+  "GET /contacts/{contactId}": {
     response: z.array(Contact),
   },
 };

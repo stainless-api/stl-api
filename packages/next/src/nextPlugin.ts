@@ -37,7 +37,7 @@ type RouterOptions = {
   basePathMap?: Record<string, string>;
 };
 
-const methods = ["get", "head", "post", "put", "delete", "patch", "options"];
+const methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
 
 type PagesHandler = (
   req: NextApiRequest,
@@ -106,7 +106,7 @@ function makeRouter(
       const { method, url } = req;
 
       const { pathname, search } = new URL(url);
-      const match = routeMatcher.match(method.toLowerCase(), pathname);
+      const match = routeMatcher.match(method, pathname);
 
       if (!match) {
         const enabledMethods = methods.filter(
@@ -189,7 +189,7 @@ function makeRouter(
         throw new Error(`expected url to start with /, but got ${url}`);
 
       const { pathname } = new URL(`http://localhost${url}`);
-      const match = routeMatcher.match(method.toLowerCase(), pathname);
+      const match = routeMatcher.match(method, pathname);
 
       if (!match) {
         const enabledMethods = methods.filter(
@@ -198,7 +198,7 @@ function makeRouter(
         if (enabledMethods.length) {
           res.status(405).json({
             message: `No handler for ${req.method}; only ${enabledMethods
-              .map((x) => x.toUpperCase())
+              .map((x) => x)
               .join(", ")}.`,
           });
           return;

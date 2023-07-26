@@ -45,7 +45,7 @@ const User = z.object({
 });
 
 const update = stl.endpoint({
-  endpoint: "post /users/:id",
+  endpoint: "POST /users/:id",
   description: "Update a user. Currently only updating the name is supported.",
   authenticated: true,
   response: User,
@@ -64,7 +64,7 @@ const update = stl.endpoint({
 
 export const api = stl.api({
   openapi: {
-    endpoint: "get /api/openapi",
+    endpoint: "GET /api/openapi",
   },
   resources: {
     users: stl.resource({
@@ -88,7 +88,7 @@ const client = createClient<typeof api>("http://localhost:3000/api");
 const user = await client.users.update("id", { name: "my new name" });
 // user object is fully typed.
 
-// A full OpenAPI spec is available by default at "get /openapi":
+// A full OpenAPI spec is available by default at "GET /openapi":
 const openapi = await client.getOpenapi();
 console.log(openapi.paths["/users/:id"].post);
 console.log(openapi.components.schemas.User);
@@ -150,7 +150,7 @@ const User = z.object({
 });
 
 const create = stl.endpoint({
-  endpoint: "post /users",
+  endpoint: "POST /users",
   response: User,
   body: z.object({ name: z.string() }),
 });

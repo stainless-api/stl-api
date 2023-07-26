@@ -3,7 +3,7 @@ import { z } from "stainless";
 import { User } from "./models";
 
 export const list = stl.endpoint({
-  endpoint: "get /api/users",
+  endpoint: "GET /api/users",
   response: z.pageResponse(User),
 
   query: z.PaginationParams.extend({

@@ -86,7 +86,7 @@ import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/users/{userId}",
+  endpoint: "GET /api/users/{userId}",
   response: User,
   path: z.object({
     userId: z.string(),
@@ -133,7 +133,7 @@ import { users } from "./users";
 
 export const api = stl.api({
   openapi: {
-    endpoint: "get /api/openapi",
+    endpoint: "GET /api/openapi",
   },
   resources: {
     users,
@@ -145,7 +145,7 @@ export const api = stl.api({
 
 Currently the names of `resources` have to match the URL paths for
 the [client](#use-client) to work. For example if the base URL is
-`/api` and there is a `get /api/users` endpoint, the resource must
+`/api` and there is a `GET /api/users` endpoint, the resource must
 be named `users` here. If it were named `user`, then `client.user.list(...)`
 would `GET /api/user`, the wrong URL. We plan to make a build watch
 process to compile a list of endpoint URLs for the client to remove

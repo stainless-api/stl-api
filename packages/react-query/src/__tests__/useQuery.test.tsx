@@ -17,7 +17,7 @@ const api = stl.api({
       summary: "query",
       actions: {
         retrieve: stl.endpoint({
-          endpoint: "get /query/{foo}",
+          endpoint: "GET /query/{foo}",
           query: z.object({ bar: z.string() }),
           response: z.any(),
           async handler() {},
@@ -28,7 +28,7 @@ const api = stl.api({
       summary: "optionalQuery",
       actions: {
         retrieve: stl.endpoint({
-          endpoint: "get /optionalQuery/{foo}",
+          endpoint: "GET /optionalQuery/{foo}",
           query: z.object({ bar: z.string().optional() }),
           response: z.any(),
           async handler() {},
@@ -39,7 +39,7 @@ const api = stl.api({
       summary: "pathQuery",
       actions: {
         retrieve: stl.endpoint({
-          endpoint: "get /pathQuery/{foo}",
+          endpoint: "GET /pathQuery/{foo}",
           path: z.object({ foo: z.string() }),
           query: z.object({ bar: z.string() }),
           response: z.any(),
@@ -51,7 +51,7 @@ const api = stl.api({
       summary: "pathOptionalQuery",
       actions: {
         retrieve: stl.endpoint({
-          endpoint: "get /pathOptionalQuery/{foo}",
+          endpoint: "GET /pathOptionalQuery/{foo}",
           path: z.object({ foo: z.string() }),
           query: z.object({ bar: z.string().optional() }),
           response: z.any(),

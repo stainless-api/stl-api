@@ -123,7 +123,7 @@ If you have endpoints under `/api` like:
 
 ```ts
 export const list = stl.endpoint({
-  endpoint: "get /api/posts",
+  endpoint: "GET /api/posts",
 ```
 
 And you want to serve them under `/api/v2` instead, you can

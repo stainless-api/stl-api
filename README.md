@@ -46,7 +46,7 @@ const User = z.object({
 });
 
 const update = stl.endpoint({
-  endpoint: "post /users/:id",
+  endpoint: "POST /users/:id",
   description: "Update a user. Currently only updating the name is supported.",
   authenticated: true,
   response: User,
@@ -65,7 +65,7 @@ const update = stl.endpoint({
 
 export const api = stl.api({
   openapi: {
-    endpoint: "get /api/openapi",
+    endpoint: "GET /api/openapi",
   },
   resources: {
     users: stl.resource({
@@ -152,7 +152,7 @@ const User = z.object({
 });
 
 const create = stl.endpoint({
-  endpoint: "post /users",
+  endpoint: "POST /users",
   response: User,
   body: z.object({ name: z.string() }),
 });

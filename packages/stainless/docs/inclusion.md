@@ -2,7 +2,7 @@
 
 Inclusion allows you to optionally include associated objects in an API response if the
 user requests them in an `include` query parameter. Here's an example of a
-`get /api/posts/{postId}` endpoint with an includable `user` property:
+`GET /api/posts/{postId}` endpoint with an includable `user` property:
 
 ```
 $ curl localhost:3000/api/posts/5
@@ -50,7 +50,7 @@ const Post = z
   .prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
+  endpoint: "GET /api/posts/{post}",
   response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),
@@ -130,7 +130,7 @@ const ExpandablePost: z.CircularModel<
 const Post = ExpandablePost.prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
+  endpoint: "GET /api/posts/{post}",
   response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),

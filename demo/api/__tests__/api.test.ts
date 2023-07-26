@@ -6,14 +6,14 @@ it("getApiRouteMap(api)", () => {
     {
       "actions": {
         "getOpenapi": {
-          "endpoint": "get /api/openapi",
+          "endpoint": "GET /api/openapi",
         },
       },
       "namespacedResources": {
         "test": {
           "actions": {
             "foo": {
-              "endpoint": "put /api/foo/{value}",
+              "endpoint": "PUT /api/foo/{value}",
             },
           },
         },

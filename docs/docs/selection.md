@@ -6,7 +6,7 @@ sidebar_position: 8
 
 Selection allows you to pick what subset of fields on an associated object are returned
 in an API response, if the user requests them in a `select` query parameter. Here's an example of a
-`get /api/posts/{postId}` endpoint with an selectable `user_fields` property:
+`GET /api/posts/{postId}` endpoint with an selectable `user_fields` property:
 
 ```
 $ curl localhost:3000/api/posts/5
@@ -86,7 +86,7 @@ const Post = z
   .prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
+  endpoint: "GET /api/posts/{post}",
   response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),
@@ -166,7 +166,7 @@ const SelectablePost: z.CircularModel<
 const Post = SelectablePost.prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
+  endpoint: "GET /api/posts/{post}",
   response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),

@@ -34,7 +34,7 @@ import { Post } from "./models";
 const response = z.pageResponse(Post);
 
 export const list = stl.endpoint({
-  endpoint: "get /api/posts",
+  endpoint: "GET /api/posts",
   response,
   query: z.PaginationParams.extend({
     sortBy: z.enum(["id"]).default("id"),

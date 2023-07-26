@@ -7,7 +7,7 @@ sidebar_position: 3
 For every paginated endpoint in your API, there will be a `useInfinite<Action>()` method on the Stainless
 React Query client that wraps [`useInfiniteQuery`](https://tanstack.com/query/v4/docs/react/reference/useInfiniteQuery)
 
-For example, if `posts.list` is a `get /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
+For example, if `posts.list` is a `GET /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
 `client.posts.useInfiniteList([query], [reactQueryOptions])` will be available:
 
 ```ts

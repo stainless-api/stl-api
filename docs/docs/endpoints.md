@@ -19,7 +19,7 @@ import { User } from "./models";
 export const retrieve = stl
   .types<{ path: { userId: string }; response: typeof User }>()
   .endpoint({
-    endpoint: "get /api/users/{userId}",
+    endpoint: "GET /api/users/{userId}",
     async handler({ userId }, ctx) {
       const user = await prisma.user.findUnique({
         where: {
@@ -38,7 +38,7 @@ The `endpoint` method takes properties to customize the behavior of the endpoint
 
 ### `endpoint`
 
-A string declaring the HTTP method (`get`, `post`, `put`, `patch`, `delete`, `options`, `head`) and
+A string declaring the HTTP method (`GET`, `POST`, `PUT`, `PATCH`, `DELETE`, `OPTIONS`, `HEAD`) and
 URL for this endpoint.
 
 ### `handler(params, context)`

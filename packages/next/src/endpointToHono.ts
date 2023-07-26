@@ -1,7 +1,7 @@
 import { HttpEndpoint, HttpMethod, parseEndpoint } from "stainless";
 
 /**
- * Converts an endpoint from a format like 'get /users/{id}'
+ * Converts an endpoint from a format like 'GET /users/{id}'
  * to ['get', '/users/:id']
  */
 export function endpointToHono(endpoint: HttpEndpoint): [HttpMethod, string] {

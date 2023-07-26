@@ -7,7 +7,7 @@ import { comments } from "./comments";
 export const api = stl.api({
   basePath: "/api",
   openapi: {
-    endpoint: "get /api/openapi",
+    endpoint: "GET /api/openapi",
   },
   resources: {
     users,
@@ -18,7 +18,7 @@ export const api = stl.api({
       internal: false,
       actions: {
         foo: stl.endpoint({
-          endpoint: "put /api/foo/{value}",
+          endpoint: "PUT /api/foo/{value}",
           path: z.path({
             value: z.coerce.number(z.string()),
           }),

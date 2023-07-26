@@ -7,7 +7,7 @@ sidebar_position: 2
 For every `get` endpoint in your API, there will be a `use<Action>()` method on the Stainless
 React Query client that wraps [`useQuery`](https://tanstack.com/query/v4/docs/react/reference/useQuery).
 
-For example, if `posts.retrieve` is a `get /api/posts/{postId}` endpoint, then
+For example, if `posts.retrieve` is a `GET /api/posts/{postId}` endpoint, then
 `client.posts.useRetrieve(postId, [query], [reactQueryOptions])` will be available:
 
 ```ts

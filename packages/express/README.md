@@ -319,7 +319,7 @@ app.get("/api/posts/:postId", express.json(), (req: Request, res: Response) => {
 
 Mappings to apply to Stainless API Endpoint paths. For example
 with `basePathMap: { '/api/', '/api/v2/' }, the endpoint
-`get /api/posts`would get transformed to `get /api/v2/posts`
+`GET /api/posts`would GET transformed to `GET /api/v2/posts`
 
 ## `handleErrors?: boolean` (default: `true`)
 
@@ -338,7 +338,7 @@ Whether to add 405 method not allowed handlers to the Express
 
 Mappings to apply to Stainless API Endpoint paths. For example
 with `basePathMap: { '/api/', '/api/v2/' }, the endpoint
-`get /api/posts`would get transformed to `get /api/v2/posts`
+`GET /api/posts`would get transformed to `GET /api/v2/posts`
 
 ## `handleErrors?: boolean` (default: `true`)
 

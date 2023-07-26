@@ -14,7 +14,7 @@ type Query = {
 export const retrieve = stl
   .types<{ response: PostType; path: Path; query: Query }>()
   .endpoint({
-    endpoint: "get /api/posts/{post}",
+    endpoint: "GET /api/posts/{post}",
 
     async handler({ post }, ctx) {
       return post;

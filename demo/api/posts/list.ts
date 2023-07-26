@@ -3,7 +3,7 @@ import { stl } from "../../libs/stl";
 import { PostPage } from "./models";
 
 export const list = stl.endpoint({
-  endpoint: "get /api/posts",
+  endpoint: "GET /api/posts",
   response: PostPage,
 
   query: z.PaginationParams.extend({

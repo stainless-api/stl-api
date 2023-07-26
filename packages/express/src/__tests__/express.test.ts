@@ -36,7 +36,7 @@ const stl = new Stl({ plugins: {} });
 it("context.server", async function () {
   await serveEndpoint(
     stl.endpoint({
-      endpoint: "get /foo",
+      endpoint: "GET /foo",
       response: z.object({
         server: z.object({
           type: z.string(),
@@ -70,13 +70,13 @@ it("routing and basePathMap", async function () {
             summary: "posts",
             actions: {
               retrieve: stl.endpoint({
-                endpoint: "get /api/posts/:postId",
+                endpoint: "GET /api/posts/:postId",
                 path: z.object({ postId: z.coerce.number() }),
                 response: z.object({ postId: z.coerce.number() }),
                 handler: (params) => params,
               }),
               update: stl.endpoint({
-                endpoint: "post /api/posts/:postId",
+                endpoint: "POST /api/posts/:postId",
                 path: z.object({ postId: z.coerce.number() }),
                 body: z.object({ content: z.string() }),
                 response: z.object({
@@ -86,7 +86,7 @@ it("routing and basePathMap", async function () {
                 handler: (params) => params,
               }),
               list: stl.endpoint({
-                endpoint: "get /api/posts",
+                endpoint: "GET /api/posts",
                 response: z.any().array(),
                 handler: () => [],
               }),
@@ -96,7 +96,7 @@ it("routing and basePathMap", async function () {
             summary: "comments",
             actions: {
               retrieve: stl.endpoint({
-                endpoint: "get /api/comments/:commentId",
+                endpoint: "GET /api/comments/:commentId",
                 path: z.object({ commentId: z.coerce.number() }),
                 response: z.object({ commentId: z.coerce.number() }),
                 handler: (params) => params,
@@ -177,7 +177,7 @@ it("routing and basePathMap", async function () {
 it("path and query params", async function () {
   await serveEndpoint(
     stl.endpoint({
-      endpoint: "get /posts/:postId/comments/:commentId",
+      endpoint: "GET /posts/:postId/comments/:commentId",
       path: z.object({
         postId: z.coerce.number(),
         commentId: z.coerce.number(),
@@ -228,7 +228,7 @@ it("path and query params", async function () {
 it(`error handling`, async function () {
   await serveEndpoint(
     stl.endpoint({
-      endpoint: "get /foo",
+      endpoint: "GET /foo",
       handler: () => {
         throw new StlError(427, { a: 1, b: 2 });
       },
@@ -256,7 +256,7 @@ it(`handleErrors: false`, async function () {
           summary: "comments",
           actions: {
             retrieve: stl.endpoint({
-              endpoint: "get /comments/:commentId",
+              endpoint: "GET /comments/:commentId",
               path: z.object({ commentId: z.coerce.number() }),
               handler: () => {
                 throw new Error("this is a test!");

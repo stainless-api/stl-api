@@ -296,7 +296,7 @@ interface IncludablePost extends PostBase {
 // into the `typeSchemas` object passed to `stl`'s constructor
 // call
 stl.types<{ response: IncludablePost }>().endpoint({
-  endpoint: "get /api/post/{id}",
+  endpoint: "GET /api/post/{id}",
   // ...
 });
 ```

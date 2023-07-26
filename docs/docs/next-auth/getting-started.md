@@ -117,7 +117,7 @@ import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/users/{userId}",
+  endpoint: "GET /api/users/{userId}",
 
 +  config: {
 +    authenticated: true,

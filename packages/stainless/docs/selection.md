@@ -76,7 +76,7 @@ const Post = z
   .prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
+  endpoint: "GET /api/posts/{post}",
   response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),
@@ -156,7 +156,7 @@ const SelectablePost: z.CircularModel<
 const Post = SelectablePost.prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
+  endpoint: "GET /api/posts/{post}",
   response: Post,
   path: z.path({
     post: z.string().prismaModelLoader(prisma.post),

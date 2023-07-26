@@ -19,13 +19,13 @@ export { getApiRouteMap } from "./gen/getApiRouteMap";
 
 /** The standard HTTP methods, in lowercase. */
 export type HttpMethod =
-  | "get"
-  | "post"
-  | "put"
-  | "patch"
-  | "delete"
-  | "options"
-  | "head";
+  | "GET"
+  | "POST"
+  | "PUT"
+  | "PATCH"
+  | "DELETE"
+  | "OPTIONS"
+  | "HEAD";
 
 /**
  * A type for a string representing an HTTP path.
@@ -58,13 +58,13 @@ export function parseEndpoint<E extends HttpEndpoint>(
 ): [GetHttpEndpointMethod<E>, GetHttpEndpointUrl<E>] {
   const [method, path] = endpoint.split(/\s+/, 2);
   switch (method) {
-    case "get":
-    case "post":
-    case "put":
-    case "patch":
-    case "delete":
-    case "options":
-    case "head":
+    case "GET":
+    case "POST":
+    case "PUT":
+    case "PATCH":
+    case "DELETE":
+    case "OPTIONS":
+    case "HEAD":
       break;
     default:
       throw new Error(`invalid or unsupported http method: ${method}`);
@@ -130,7 +130,7 @@ type RequestData<
  * // api/users/retrieve.ts
  *
  * stl.endpoint(
- *   endpoint: "get /api/users/{userId}",
+ *   endpoint: "GET /api/users/{userId}",
  *   response: User,
  *   config: {
  *     rateLimit: 10,
@@ -528,7 +528,7 @@ interface CreateEndpointOptions<
 > {
   /**
    * a string declaring the HTTP method
-   * and URL for this endpoint, e.g. `"get /items/{id}"`
+   * and URL for this endpoint, e.g. `"GET /items/{id}"`
    */
   endpoint: MethodAndUrl;
   /** Optional plugin configuration specific to the endpoint. */
@@ -784,7 +784,7 @@ export class Stl<Plugins extends AnyPlugins> {
    * // ~/api/users/retrieve.ts
    *
    * export const retrieve = stl.endpoint({
-   *   endpoint: "get /api/users/{userId}",
+   *   endpoint: "GET /api/users/{userId}",
    *   response: User,
    *   path: z.object({
    *     userId: z.string(),
@@ -901,7 +901,7 @@ export class Stl<Plugins extends AnyPlugins> {
    *
    * export const api = stl.api({
    *   openapi: {
-   *     endpoint: "get /api/openapi",
+   *     endpoint: "GET /api/openapi",
    *   },
    *   resources: {
    *     users,
@@ -923,7 +923,7 @@ export class Stl<Plugins extends AnyPlugins> {
     TopLevel & OpenAPITopLevel<typeof openapi>,
     Resources
   > {
-    const openapiEndpoint = openapi?.endpoint ?? `get ${basePath}/openapi`;
+    const openapiEndpoint = openapi?.endpoint ?? `GET ${basePath}/openapi`;
     const topLevelActions = topLevel?.actions || {};
     const apiDescription = {
       [apiSymbol]: true,
@@ -1023,7 +1023,7 @@ export class Stl<Plugins extends AnyPlugins> {
    *
    * export const retrieve = stl.types<{path: Path, response: typeof User}>()
    *   .endpoint({
-   *     endpoint: "get /api/users/{userId}",
+   *     endpoint: "GET /api/users/{userId}",
    *     async handler({ userId }, ctx) {
    *       const user = await prisma.user.findUnique({
    *         where: {

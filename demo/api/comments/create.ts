@@ -4,7 +4,7 @@ import { Comment } from "./models";
 import { NotFoundError, UnauthorizedError, z } from "stainless";
 
 export const create = stl.endpoint({
-  endpoint: "post /api/comments",
+  endpoint: "POST /api/comments",
   response: Comment,
 
   query: z.query({

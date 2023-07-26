@@ -88,7 +88,7 @@ type ClientUseQueryAndMutationHooks<Resource extends AnyResourceConfig> = {
   [Action in keyof Resource["actions"] &
     string as UseAction<Action>]: GetEndpointMethod<
     Resource["actions"][Action]
-  > extends "get"
+  > extends "GET"
     ? ClientUseQuery<Resource["actions"][Action]>
     : ClientUseMutation<Resource["actions"][Action]>;
 };
@@ -129,10 +129,10 @@ function actionMethod(action: string): HttpMethod {
       action
     )
   )
-    return "get";
-  if (/^delete([_A-Z]|$)/.test(action)) return "delete";
+    return "GET";
+  if (/^delete([_A-Z]|$)/.test(action)) return "DELETE";
   // TODO: is it possible to deal with patch/put?
-  return "post";
+  return "POST";
 }
 
 const queryKeyMethods = new Set([
@@ -174,15 +174,15 @@ export function createUseReactQueryClient<Api extends AnyAPIDescription>(
       const isInfinite = /^useInfinite([_A-Z]|$)/.test(action);
 
       const baseAction = isQueryKeyMethod
-        ? callPath.at(-1) || "get"
+        ? callPath.at(-1) || "GET"
         : lowerFirst(action.replace(/^use(Infinite)?/, ""));
-      const method = isQueryKeyMethod ? "get" : actionMethod(action);
+      const method = isQueryKeyMethod ? "GET" : actionMethod(action);
 
       if (
-        method === "post" ||
-        method === "patch" ||
-        method === "put" ||
-        method === "delete"
+        method === "POST" ||
+        method === "PATCH" ||
+        method === "PUT" ||
+        method === "DELETE"
       ) {
         const { mutate, mutateAsync, ...rest } = useMutation({
           ...(typeof args[0] === "object" ? args[0] : null),
@@ -265,7 +265,7 @@ export function createUseReactQueryClient<Api extends AnyAPIDescription>(
         if (query || moreQuery) {
           const lastArg = finalArgs.at(-1);
           if (
-            method === "get" &&
+            method === "GET" &&
             typeof lastArg === "object" &&
             lastArg != null
           ) {

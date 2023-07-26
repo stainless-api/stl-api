@@ -145,10 +145,10 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
   : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
-  if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "get";
-  if (/^delete([_A-Z]|$)/.test(action)) return "delete";
+  if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "GET";
+  if (/^delete([_A-Z]|$)/.test(action)) return "DELETE";
   // TODO: is it possible to deal with patch/put?
-  return "post";
+  return "POST";
 }
 
 /**
@@ -290,10 +290,10 @@ export function createClient<Api extends AnyAPIDescription>(
       requestOptions = args.pop() as any;
     }
 
-    const body = method === "get" ? undefined : args[0];
+    const body = method === "GET" ? undefined : args[0];
 
     const query: Record<string, any> = {
-      ...(method === "get" && typeof args[0] === "object" ? args[0] : null),
+      ...(method === "GET" && typeof args[0] === "object" ? args[0] : null),
       ...requestOptions?.query,
     };
     let search = "";

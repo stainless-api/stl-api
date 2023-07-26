@@ -37,7 +37,7 @@ export type AddToExpressOptions = CreateExpressHandlerOptions & {
   /**
    * Mappings to apply to Stainless API Endpoint paths.  For example
    * with `basePathMap: { '/api/', '/api/v2/' }, the endpoint
-   * `get /api/posts` would get transformed to `get /api/v2/posts`
+   * `GET /api/posts` would get transformed to `GET /api/v2/posts`
    */
   basePathMap?: BasePathMap;
 };
@@ -172,7 +172,16 @@ export function addStlEndpointToExpress(
   const [method, path] = parseEndpoint(endpoint.endpoint);
   const expressPath = convertExpressPath(path, options?.basePathMap);
 
-  router[method](
+  const loweredMethod = method.toLowerCase() as
+    | "get"
+    | "post"
+    | "put"
+    | "patch"
+    | "delete"
+    | "options"
+    | "head";
+
+  router[loweredMethod](
     expressPath,
     // @ts-expect-error this is valid
     stlExpressRouteHandler(endpoint, options)

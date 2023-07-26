@@ -43,7 +43,7 @@ stl.magic<{ nested: EnumTest; nested2: TestEnumAdditional }>(
 );
 
 // stl.endpoint({
-//   endpoint: "get /users",
+//   endpoint: "GET /users",
 //   response: stl.magic<InThisFile>(__symbol_InThisFile),
 //   handler: (request, ctx) => {
 //     throw new Error("dummy");

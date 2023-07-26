@@ -17,7 +17,7 @@ const api = stl.api({
       summary: "query",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /query/{foo}",
+          endpoint: "POST /query/{foo}",
           query: z.object({ bar: z.string() }),
           response: z.any(),
           async handler() {},
@@ -28,7 +28,7 @@ const api = stl.api({
       summary: "optionalQuery",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /optionalQuery/{foo}",
+          endpoint: "POST /optionalQuery/{foo}",
           query: z.object({ bar: z.string().optional() }),
           response: z.any(),
           async handler() {},
@@ -39,7 +39,7 @@ const api = stl.api({
       summary: "pathQuery",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /pathQuery/{foo}",
+          endpoint: "POST /pathQuery/{foo}",
           path: z.object({ foo: z.string() }),
           query: z.object({ bar: z.string() }),
           response: z.any(),
@@ -51,7 +51,7 @@ const api = stl.api({
       summary: "pathOptionalQuery",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /pathOptionalQuery/{foo}",
+          endpoint: "POST /pathOptionalQuery/{foo}",
           path: z.object({ foo: z.string() }),
           query: z.object({ bar: z.string().optional() }),
           response: z.any(),
@@ -63,7 +63,7 @@ const api = stl.api({
       summary: "body",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /body",
+          endpoint: "POST /body",
           body: z.object({ bar: z.string() }),
           response: z.any(),
           async handler() {},
@@ -74,7 +74,7 @@ const api = stl.api({
       summary: "pathBody",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /pathBody/{foo}",
+          endpoint: "POST /pathBody/{foo}",
           path: z.object({ foo: z.string() }),
           body: z.object({ bar: z.string() }),
           response: z.any(),
@@ -86,7 +86,7 @@ const api = stl.api({
       summary: "queryBody",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /queryBody",
+          endpoint: "POST /queryBody",
           query: z.object({ foo: z.string() }),
           body: z.object({ bar: z.string() }),
           response: z.any(),
@@ -98,7 +98,7 @@ const api = stl.api({
       summary: "pathQueryBody",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /pathQueryBody/{foo}",
+          endpoint: "POST /pathQueryBody/{foo}",
           path: z.object({ foo: z.string() }),
           query: z.object({ baz: z.string() }),
           body: z.object({ bar: z.string() }),
@@ -111,7 +111,7 @@ const api = stl.api({
       summary: "optionalQueryBody",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /optionalQueryBody",
+          endpoint: "POST /optionalQueryBody",
           query: z.object({ foo: z.string().optional() }),
           body: z.object({ bar: z.string() }),
           response: z.any(),
@@ -123,7 +123,7 @@ const api = stl.api({
       summary: "pathOptionalQueryBody",
       actions: {
         update: stl.endpoint({
-          endpoint: "post /pathOptionalQueryBody/{foo}",
+          endpoint: "POST /pathOptionalQueryBody/{foo}",
           path: z.object({ foo: z.string() }),
           query: z.object({ baz: z.string().optional() }),
           body: z.object({ bar: z.string() }),

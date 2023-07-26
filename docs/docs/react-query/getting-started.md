@@ -35,7 +35,7 @@ export const useClient = createUseReactQueryClient<typeof api>("/api");
 
 ## Use queries
 
-If `posts.retrieve` is a `get /api/posts/{postId}` endpoint, then
+If `posts.retrieve` is a `GET /api/posts/{postId}` endpoint, then
 `client.posts.useRetrieve(postId, [query], [reactQueryOptions])` will be available
 as a wrapper for [`useQuery`](https://tanstack.com/query/v4/docs/react/reference/useQuery):
 
@@ -62,7 +62,7 @@ const PostView = () => {
 
 ## Use infinite queries for paginated methods
 
-If `posts.list` is a `get /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
+If `posts.list` is a `GET /api/posts` endpoint that returns [`z.PageData`](/stl/pagination#zpagedatai), then
 `client.posts.useInfiniteList([query], [reactQueryOptions])` will be available
 as a wrapper for [`useInfiniteQuery`](https://tanstack.com/query/v4/docs/react/reference/useInfiniteQuery):
 

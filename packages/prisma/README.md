@@ -75,7 +75,7 @@ import prisma from "~/libs/prismadb";
 import { Post } from "./models";
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{postId}",
+  endpoint: "GET /api/posts/{postId}",
   response: Post,
   path: z.object({
     postId: z.string(),
@@ -99,7 +99,7 @@ import { z } from "stainless";
 import { Post } from "./models";
 
 export const create = stl.endpoint({
-  endpoint: "post /api/posts",
+  endpoint: "POST /api/posts",
   response: Post,
   body: z.object({
     body: z.string(),
@@ -136,7 +136,7 @@ import prisma from "@/libs/prismadb";
 import { Post } from "./models";
 
 export const retrieve = stl.endpoint({
-  endpoint: "get /api/posts/{post}",
+  endpoint: "GET /api/posts/{post}",
   response: Post,
   path: z.object({
     post: z.string().prismaModelLoader(prisma.post),

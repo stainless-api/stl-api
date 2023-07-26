@@ -17,7 +17,7 @@ export const create = stl
     response: PostType;
   }>()
   .endpoint({
-    endpoint: "post /api/posts",
+    endpoint: "POST /api/posts",
     config: {
       authenticated: true,
     },
