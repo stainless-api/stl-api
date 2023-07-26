@@ -176,11 +176,16 @@ async function main() {
               baseCtx,
               generationConfig,
               printer,
-              options.outdir
+              options.outdir,
+              {
+                isDirty: () => evaluateRequested,
+              }
             );
             if (succeeded) {
               if (!debug.enabled) console.clear();
               console.log(`Successfully processed ${changeDescription}.`);
+            } else {
+              events.unshift(...elapsedEvents);
             }
           } catch (error) {
             // ignore
@@ -196,7 +201,7 @@ async function main() {
 
     for await (const event of watcher.getEvents()) {
       events.push(event);
-      await evaluateSoon();
+      evaluateSoon();
     }
   } else {
     const succeeded = await evaluate(
@@ -234,7 +239,8 @@ async function evaluate(
   baseCtx: SchemaGenContext,
   generationConfig: GenerationConfig,
   printer: ts.Printer,
-  outdir: string
+  outdir: string,
+  { isDirty = () => false }: { isDirty?: () => boolean } = {}
 ): Promise<boolean> {
   // accumulated diagnostics to emit
   const callDiagnostics: CallDiagnostics[] = [];
@@ -569,6 +575,13 @@ async function evaluate(
       return false;
     }
   }
+
+  // since everything above is sync but potentially slow,
+  // yield for a moment to find out if the user has changed anything
+  // else before writing files
+  await new Promise((resolve) => setTimeout(resolve, 200));
+
+  if (isDirty()) return false;
 
   // Generate index.ts
   if (endpointCalls.size) {
