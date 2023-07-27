@@ -68,8 +68,7 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
   prismaModel: M | (() => M)
 ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
   const result = this.stlTransform(
-    async (input: z.StlTransformInput<z.output<T>>, ctx: StlContext<any>) => {
-      const id = input.data;
+    async (id: z.output<T>, ctx: StlContext<any>, zodInput: z.ParseInput) => {
       const query = { where: { id } };
       const prisma: PrismaContext<any> = (ctx as any).prisma;
       const model =
@@ -555,10 +554,10 @@ export abstract class PrismaModelLoader<O, I> extends t.Schema<O, I> {
   declare [PrismaModelLoaderSymbol]: true;
   declare [t.EffectsSymbol]: true;
   declare abstract model:
-    | (PrismaHelpers & {
+    | {
         findUniqueOrThrow(args: any): Promise<O>;
-      })
-    | (() => PrismaHelpers & {
+      }
+    | (() => {
         findUniqueOrThrow(args: any): Promise<O>;
       });
   async transform(id: I, ctx: StlContext<any>): Promise<O> {
