@@ -402,8 +402,13 @@ z.ZodType.prototype.selection = function selection(
   if (this instanceof ZodMetadata) {
     return this.unwrap().selection();
   }
+  if (this instanceof z.ZodLazy) {
+    return this.schema.selection();
+  }
   if (!(this instanceof z.ZodObject)) {
-    throw new Error(`.selection() must be called on a ZodObject`);
+    throw new Error(
+      `.selection() must be called on a ZodObject, got ${this.constructor.name}`
+    );
   }
   const { shape } = this;
   // don't wrap StlSelectable fields with ZodOptional,

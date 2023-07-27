@@ -17,7 +17,7 @@ export const IncludableCommentsFieldSchema = z
   .array(z.lazy(() => CommentSelection))
   .selectable();
 
-export class PostResponse extends PrismaModel<{
+type PostProps = {
   id: Uuid;
   body: string;
   createdAt: Date;
@@ -31,7 +31,9 @@ export class PostResponse extends PrismaModel<{
   comments_fields: t.ZodSchema<{
     schema: typeof IncludableCommentsFieldSchema;
   }>;
-}> {
+};
+
+export class PostResponse extends PrismaModel<PostProps> {
   model = prisma.post;
 }
 
@@ -40,6 +42,7 @@ export class PostIdLoader extends PrismaModelLoader<RawPrismaPost, string> {
 }
 
 export const Post = stl.codegenSchema<PostResponse>(PostResponseSchema);
+type PostOut = z.output<typeof Post>;
 
 export const PostSelection = Post.selection();
 

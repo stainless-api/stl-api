@@ -464,6 +464,53 @@ export function convertType(
     packageTypeName = typeSymbol.getName();
   }
 
+  if (
+    !ctx.isRoot &&
+    !generateInline &&
+    !isNativeSymbol(typeSymbol) &&
+    !isStainlessSymbol(typeSymbol)
+  ) {
+    const symbol =
+      ty.getAliasSymbol() ||
+      ((ty.isClass() || ty.isInterface()) && !isNativeSymbol(typeSymbol)
+        ? typeSymbol
+        : null);
+    if (symbol) {
+      const declaration = getDeclaration(symbol);
+      if (
+        !(
+          declaration instanceof tm.TypeAliasDeclaration ||
+          declaration instanceof tm.InterfaceDeclaration
+        ) ||
+        !declaration.getTypeParameters().length
+      ) {
+        return convertSymbol(ctx, symbol, diagnosticItem);
+      }
+    }
+  }
+  ctx.isRoot = false;
+
+  switch (superclassTypeName) {
+    case "PrismaModel":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModel",
+        superclassTypeName,
+        diagnosticItem
+      );
+    case "PrismaModelLoader":
+      return convertPrismaModelType(
+        ctx,
+        ty,
+        typeSymbol!,
+        "prismaModelLoader",
+        superclassTypeName,
+        diagnosticItem
+      );
+  }
+
   switch (packageTypeName) {
     case "NumberSchema":
       return convertPrimitiveSchemaType(
@@ -608,35 +655,6 @@ export function convertType(
       return lazy(baseSchema);
     }
   }
-
-  switch (superclassTypeName) {
-    case "Schema":
-      return convertSchema(ctx, ty, typeSymbol!, diagnosticItem);
-    case "Transform":
-      return convertTransformRefineType(
-        ctx,
-        ty,
-        typeSymbol,
-        "transform",
-        diagnosticItem
-      );
-    case "Refine":
-      return convertTransformRefineType(
-        ctx,
-        ty,
-        typeSymbol,
-        "refine",
-        diagnosticItem
-      );
-    case "SuperRefine":
-      return convertTransformRefineType(
-        ctx,
-        ty,
-        typeSymbol,
-        "superRefine",
-        diagnosticItem
-      );
-  }
   if (isStainlessSymbol(typeSymbol)) {
     switch (typeSymbol?.getName()) {
       case "Includable":
@@ -674,6 +692,35 @@ export function convertType(
     }
   }
 
+  switch (superclassTypeName) {
+    case "Schema":
+      return convertSchema(ctx, ty, typeSymbol!, diagnosticItem);
+    case "Transform":
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "transform",
+        diagnosticItem
+      );
+    case "Refine":
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "refine",
+        diagnosticItem
+      );
+    case "SuperRefine":
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "superRefine",
+        diagnosticItem
+      );
+  }
+
   if (superclassTypeName === "ZodType" && isZodSymbol(typeSymbol)) {
     ctx.addError(
       diagnosticItem,
@@ -686,52 +733,10 @@ export function convertType(
     );
   }
 
-  if (!ctx.isRoot && !generateInline && !isNativeSymbol(typeSymbol)) {
-    const symbol =
-      ty.getAliasSymbol() ||
-      ((ty.isClass() || ty.isInterface()) && !isNativeSymbol(typeSymbol)
-        ? typeSymbol
-        : null);
-    if (symbol) {
-      const declaration = getDeclaration(symbol);
-      if (
-        !(
-          declaration instanceof tm.TypeAliasDeclaration ||
-          declaration instanceof tm.InterfaceDeclaration
-        ) ||
-        !declaration.getTypeParameters().length
-      ) {
-        return convertSymbol(ctx, symbol, diagnosticItem);
-      }
-    }
-  }
-  ctx.isRoot = false;
-
   const origin = getTypeOrigin(ty);
   if (origin) return convertType(ctx, origin, diagnosticItem);
   if (ty.isBoolean()) {
     return zodConstructor("boolean");
-  }
-
-  switch (superclassTypeName) {
-    case "PrismaModel":
-      return convertPrismaModelType(
-        ctx,
-        ty,
-        typeSymbol!,
-        "prismaModel",
-        superclassTypeName,
-        diagnosticItem
-      );
-    case "PrismaModelLoader":
-      return convertPrismaModelType(
-        ctx,
-        ty,
-        typeSymbol!,
-        "prismaModelLoader",
-        superclassTypeName,
-        diagnosticItem
-      );
   }
 
   if (ty.isClass()) {

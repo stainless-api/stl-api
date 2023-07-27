@@ -70,8 +70,6 @@ export type output<T> = 0 extends 1 & T
   ? { [k in keyof T]: output<T[k]> }
   : T;
 
-type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
-
 export type toZod<T> = 0 extends 1 & T
   ? any
   : [null | undefined] extends [T]
@@ -110,6 +108,11 @@ type schemaTypeToZod<T extends BaseSchema> = T extends {
   metadata: infer M extends object;
 }
   ? z.ZodMetadata<toZod<Omit<T, "metadata">>, M>
+  : T extends {
+      [ZodSchemaSymbol]: true;
+      zodSchema: infer S extends z.ZodTypeAny;
+    }
+  ? S
   : T extends {
       [IncludableSymbol]: true;
       includable: infer I;
@@ -305,9 +308,11 @@ export class Includable<T> extends Schema<
 export class Includes<
   T,
   Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
-> extends Schema<IncludablePaths<output<T>, Depth>[], string> {
+> extends Schema<IncludablePaths<output<T>, Depth>[]> {
   declare metadata: { stainless: { includes: true } };
 }
+
+export { IncludablePaths };
 
 export const SelectableSymbol = Symbol("Selectable");
 
@@ -345,7 +350,12 @@ export class PageResponse<I> extends Schema<PageResponseType<I>> {
   declare item: I;
 }
 
+const ZodSchemaSymbol = Symbol("ZodSchema");
+
 export class ZodSchema<S extends { schema: z.ZodTypeAny }> extends Schema<
   z.output<S["schema"]>,
   z.input<S["schema"]>
-> {}
+> {
+  declare [ZodSchemaSymbol]: true;
+  declare zodSchema: S["schema"];
+}
