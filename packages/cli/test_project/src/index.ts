@@ -14,13 +14,13 @@ export enum EnumTest {
 
 export class X {}
 
-// stl.magic<X>(__class_X);
+// stl.codegenSchema<X>(__class_X);
 
-// stl.magic<ExternalInterface>(__symbol_ExternalInterface);
+// stl.codegenSchema<ExternalInterface>(__symbol_ExternalInterface);
 
 export class Test {}
 
-// stl.magic<Test>(__class_Test);
+// stl.codegenSchema<Test>(__class_Test);
 
 type BadType = {
   a: string;
@@ -29,13 +29,13 @@ type BadType = {
 
 type Mapped = Partial<{ a: string }>;
 
-// stl.magic<Partial<{a: string}>>(z.object({ a: z.string().optional() }));
+// stl.codegenSchema<Partial<{a: string}>>(z.object({ a: z.string().optional() }));
 
 type InThisFile = {
   id: string;
 };
 
-stl.magic<{ nested: EnumTest; nested2: TestEnumAdditional }>(
+stl.codegenSchema<{ nested: EnumTest; nested2: TestEnumAdditional }>(
   z.object({
     nested: z.lazy(() => EnumTestSchema),
     nested2: z.lazy(() => TestEnumAdditionalSchema),
@@ -44,7 +44,7 @@ stl.magic<{ nested: EnumTest; nested2: TestEnumAdditional }>(
 
 // stl.endpoint({
 //   endpoint: "GET /users",
-//   response: stl.magic<InThisFile>(__symbol_InThisFile),
+//   response: stl.codegenSchema<InThisFile>(__symbol_InThisFile),
 //   handler: (request, ctx) => {
 //     throw new Error("dummy");
 //   },

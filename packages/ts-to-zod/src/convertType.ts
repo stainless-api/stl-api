@@ -204,7 +204,7 @@ export interface ImportInfo {
    * `symbol`.
    */
   importFromUserFile?: boolean;
-  /** Whether this import shouldn't be imported into a user file when using `stl.magic`. */
+  /** Whether this import shouldn't be imported into a user file when using `stl.codegenSchema`. */
   excludeFromUserFile?: boolean;
 }
 

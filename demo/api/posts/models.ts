@@ -40,7 +40,7 @@ export class PostLoader extends PrismaModelLoader {
   model = prisma.post;
 }
 
-export const Post = stl.magic<PostType>(PostTypeSchema);
+export const Post = stl.codegenSchema<PostType>(PostTypeSchema);
 
 export const PostSelection = Post.selection();
 

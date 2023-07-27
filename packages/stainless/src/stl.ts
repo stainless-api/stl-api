@@ -397,9 +397,9 @@ export type CreateStlOptions<Plugins extends AnyPlugins> = {
    */
   plugins: Plugins;
   /**
-   * Injects generated magic schemas into the `stl` instance.
+   * Injects generated schemas into the `stl` instance.
    * `typeSchemas` is exported from the module where you're configured
-   * magic schemas to generate in. By default, this is `stl-api-gen`.
+   * codegen schemas to generate in. By default, this is `stl-api-gen`.
    */
   typeSchemas?: TypeSchemas;
 };
@@ -678,7 +678,7 @@ export class Stl<Plugins extends AnyPlugins> {
     ) {
       if (!this.typeSchemas) {
         throw new Error(
-          "Failed to provide `typeSchemas` to stl instance while using magic schemas"
+          "Failed to provide `typeSchemas` to stl instance while using codegen schemas"
         );
       }
       try {
@@ -974,17 +974,17 @@ export class Stl<Plugins extends AnyPlugins> {
    * For more details on advanced conversion functionality,
    * including adding custom validation and transformation logic
    * to generated schemas, see the
-   * [magic type schema docs](https://stainlessapi.com/stl/schemas/schemas-from-types.md).
+   * [codegen schema docs](https://stainlessapi.com/stl/schemas/schemas-from-types.md).
    *
    * ## Example
    * ```ts
    * // invoke like this
-   * const partialSchema = stl.magic<Partial<{a: string}>>();
+   * const partialSchema = stl.codegenSchema<Partial<{a: string}>>();
    * // `stl` converts this to
-   * const partialSchema = stl.magic<Partial<{a: string}>>(z.object({a: z.string().optional()}));
+   * const partialSchema = stl.codegenSchema<Partial<{a: string}>>(z.object({a: z.string().optional()}));
    * ```
    */
-  magic<T>(schema: z.ZodTypeAny): t.toZod<T> {
+  codegenSchema<T>(schema: z.ZodTypeAny): t.toZod<T> {
     return schema as any;
   }
 
@@ -1012,7 +1012,7 @@ export class Stl<Plugins extends AnyPlugins> {
    * For more details on advanced conversion functionality,
    * including adding custom validation and transformation logic
    * to generated schemas, see the
-   * [magic type schema docs](https://stainlessapi.com/stl/schemas/schemas-from-types.md).
+   * [codegen schema docs](https://stainlessapi.com/stl/schemas/schemas-from-types.md).
    *
    * ## Example
    * ```ts

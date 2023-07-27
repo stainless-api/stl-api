@@ -17,7 +17,7 @@ export const Query: z.ZodTypeAny = z.object({
 export const Path: z.ZodTypeAny = z.object({
   post: z.lazy(() => Models.PostLoader),
 });
-export const get__api_posts_$post$: any = {
+export const GET__api_posts_$post$: any = {
   query: z.lazy(() => Query),
   path: z.lazy(() => Path),
   response: z.lazy(() => Models.PostType),

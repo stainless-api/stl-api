@@ -258,7 +258,7 @@ async function evaluate(
     const ctx = new ConvertTypeContext(baseCtx, file);
     const imports = new Map<string, ImportInfo>();
     const namespacedImports = new Map<string, NamespaceImportInfo>();
-    let hasMagicCall = false;
+    let hasCodegenSchemaCall = false;
 
     for (const callExpression of file.getDescendantsOfKind(
       ts.SyntaxKind.CallExpression
@@ -271,7 +271,8 @@ async function evaluate(
 
       const methodName = symbol.getEscapedName();
 
-      if (!(methodName === "magic" || methodName === "endpoint")) continue;
+      if (!(methodName === "codegenSchema" || methodName === "endpoint"))
+        continue;
 
       if (methodName == "endpoint") {
         const call = preprocessEndpoint(callExpression);
@@ -313,10 +314,10 @@ async function evaluate(
         continue;
       }
 
-      // Handle stl.magic call
+      // Handle stl.codegenSchema call
       const typeRefArguments = callExpression.getTypeArguments();
       if (typeRefArguments.length != 1) continue;
-      hasMagicCall = true;
+      hasCodegenSchemaCall = true;
 
       const [typeArgument] = typeRefArguments;
 
@@ -368,7 +369,7 @@ async function evaluate(
         }
       }
 
-      // remove all arguments to magic function
+      // remove all arguments to codegenSchema function
       for (
         let argumentLength = callExpression.getArguments().length;
         argumentLength > 0;
@@ -396,7 +397,7 @@ async function evaluate(
       processModuleIdentifiers(fileInfo);
     }
 
-    if (!hasMagicCall) continue;
+    if (!hasCodegenSchemaCall) continue;
 
     // Get the imports needed for the current file, any
     if (fileInfo) {
@@ -505,7 +506,7 @@ async function evaluate(
     for (const { filePath, line, column, diagnostics } of callDiagnostics) {
       output.push(
         chalk.magenta(
-          `While processing magic call at ${Path.relative(
+          `While processing codegenSchema call at ${Path.relative(
             ".",
             filePath
           )}:${line}:${column}:`

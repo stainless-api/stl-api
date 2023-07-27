@@ -9,7 +9,7 @@ export const Query: z.ZodTypeAny = z.object({
     .optional(),
 });
 export const Body: z.ZodTypeAny = z.object({ body: z.string() });
-export const post__api_posts: any = {
+export const POST__api_posts: any = {
   query: z.lazy(() => Query),
   body: z.lazy(() => Body),
   response: z.lazy(() => Models.PostType),
