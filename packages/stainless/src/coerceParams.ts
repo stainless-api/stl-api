@@ -1,32 +1,30 @@
 import * as z from "./z";
 
-export default function deepCoerce<T extends z.ZodTypeAny>(schema: T): T {
+export default function coerceParams<T extends z.ZodTypeAny>(schema: T): T {
   if (schema instanceof z.ZodNumber) {
-    return z.number({ ...schema._def, coerce: true }) as any;
+    return new z.ZodNumber({ ...schema._def, coerce: true }) as any;
   }
   if (schema instanceof z.ZodString) {
-    return z.string({ ...schema._def, coerce: true }) as any;
+    return new z.ZodString({ ...schema._def, coerce: true }) as any;
   }
   if (schema instanceof z.ZodBoolean) {
-    return z.boolean({ ...schema._def, coerce: true }) as any;
+    return new z.ZodBoolean({ ...schema._def, coerce: true }) as any;
   }
   if (schema instanceof z.ZodDate) {
-    return z.date({ ...schema._def, coerce: true }) as any;
+    return new z.ZodDate({ ...schema._def, coerce: true }) as any;
   }
   if (schema instanceof z.ZodMetadata) {
-    return deepCoerce(
+    return coerceParams(
       (schema as z.ZodMetadata<z.ZodTypeAny, any>).innerType()
     ).withMetadata(schema.metadata) as any;
   }
   if (schema instanceof z.ZodArray) {
-    return deepCoerce(
+    return coerceParams(
       (schema as z.ZodArray<z.ZodTypeAny>).element
     ).array() as any;
   }
   if (schema instanceof z.ZodLazy) {
-    return deepCoerce(
-      (schema as z.ZodLazy<z.ZodTypeAny>).schema
-    ).array() as any;
+    return coerceParams((schema as z.ZodLazy<z.ZodTypeAny>).schema) as any;
   }
   if (schema instanceof z.ZodObject) {
     return new z.ZodObject({
@@ -35,53 +33,57 @@ export default function deepCoerce<T extends z.ZodTypeAny>(schema: T): T {
         Object.fromEntries(
           Object.entries(schema.shape).map(([key, child]) => [
             key,
-            deepCoerce(child as z.ZodTypeAny),
+            coerceParams(child as z.ZodTypeAny),
           ])
         ),
-      catchall: deepCoerce(schema._def.catchall),
+      catchall: coerceParams(schema._def.catchall),
     }) as any;
   }
   if (schema instanceof z.ZodPromise) {
-    return deepCoerce((schema as z.ZodPromise<z.ZodTypeAny>).unwrap()) as any;
+    return coerceParams((schema as z.ZodPromise<z.ZodTypeAny>).unwrap()) as any;
   }
   if (schema instanceof z.ZodCatch) {
     return new z.ZodCatch({
       ...schema._def,
-      innerType: deepCoerce((schema as z.ZodCatch<z.ZodTypeAny>).removeCatch()),
+      innerType: coerceParams(schema._def.innerType),
     }) as any;
   }
   if (schema instanceof z.ZodBranded) {
-    return deepCoerce(
+    return coerceParams(
       (schema as z.ZodBranded<z.ZodTypeAny, any>).unwrap()
     ) as any;
   }
   if (schema instanceof z.ZodSet) {
     return z.set(
-      deepCoerce((schema as z.ZodSet<z.ZodTypeAny>)._def.valueType)
+      coerceParams((schema as z.ZodSet<z.ZodTypeAny>)._def.valueType)
     ) as any;
   }
   if (schema instanceof z.ZodDefault) {
-    return deepCoerce(
+    return coerceParams(
       (schema as z.ZodDefault<z.ZodTypeAny>).removeDefault()
     ).default(schema._def.defaultValue()) as any;
   }
   if (schema instanceof z.ZodEffects) {
     return z.effect(
-      deepCoerce((schema as z.ZodEffects<z.ZodTypeAny>).innerType()),
+      coerceParams((schema as z.ZodEffects<z.ZodTypeAny>).innerType()),
       schema._def.effect
     ) as any;
   }
   if (schema instanceof z.ZodPipeline) {
-    return deepCoerce(
+    return coerceParams(
       (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.in
     ).pipe(
-      deepCoerce((schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.out)
+      coerceParams(
+        (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.out
+      )
     ) as any;
   }
   if (schema instanceof z.ZodMap) {
-    return z.record(
-      deepCoerce((schema as z.ZodMap<z.ZodTypeAny, z.ZodTypeAny>)._def.keyType),
-      deepCoerce(
+    return z.map(
+      coerceParams(
+        (schema as z.ZodMap<z.ZodTypeAny, z.ZodTypeAny>)._def.keyType
+      ),
+      coerceParams(
         (schema as z.ZodMap<z.ZodTypeAny, z.ZodTypeAny>)._def.valueType
       )
     ) as any;
@@ -89,43 +91,47 @@ export default function deepCoerce<T extends z.ZodTypeAny>(schema: T): T {
   if (schema instanceof z.ZodDiscriminatedUnion) {
     return z.discriminatedUnion(
       schema.discriminator,
-      schema.options.map(deepCoerce)
+      schema.options.map(coerceParams)
     ) as any;
   }
   if (schema instanceof z.ZodUnion) {
-    return z.union(schema.options.map(deepCoerce)) as any;
+    return z.union(schema.options.map(coerceParams)) as any;
   }
   if (schema instanceof z.ZodIntersection) {
     return z.intersection(
-      deepCoerce(
+      coerceParams(
         (schema as z.ZodIntersection<z.ZodTypeAny, z.ZodTypeAny>)._def.left
       ),
-      deepCoerce(
+      coerceParams(
         (schema as z.ZodIntersection<z.ZodTypeAny, z.ZodTypeAny>)._def.right
       )
     ) as any;
   }
   if (schema instanceof z.ZodRecord) {
     return z.record(
-      deepCoerce((schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).keySchema),
-      deepCoerce((schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).valueSchema)
+      coerceParams(
+        (schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).keySchema
+      ),
+      coerceParams(
+        (schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).valueSchema
+      )
     ) as any;
   }
   if (schema instanceof z.ZodOptional) {
-    return deepCoerce(
+    return coerceParams(
       (schema as z.ZodOptional<z.ZodTypeAny>).unwrap()
     ).optional() as any;
   }
   if (schema instanceof z.ZodNullable) {
-    return deepCoerce(
+    return coerceParams(
       (schema as z.ZodNullable<z.ZodTypeAny>).unwrap()
     ).nullable() as any;
   }
   if (schema instanceof z.ZodTuple) {
     return z
-      .tuple(schema.items.map(deepCoerce))
+      .tuple(schema.items.map(coerceParams))
       .rest(
-        deepCoerce(
+        coerceParams(
           (
             schema as z.ZodTuple<
               [z.ZodTypeAny, ...z.ZodTypeAny[]],
