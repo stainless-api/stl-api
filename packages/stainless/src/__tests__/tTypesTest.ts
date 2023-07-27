@@ -9,7 +9,7 @@ interface PrismaHelpers {
   findUniqueOrThrow(args: any): Promise<any>;
 }
 
-export abstract class PrismaModel extends t.EffectlessSchema {
+export abstract class PrismaModel<O> extends t.Schema<O> {
   declare [PrismaModelSymbol]: true;
   declare abstract model: PrismaHelpers;
   declare metadata: MakePrismaModelMetadata<this["model"]>;
@@ -23,27 +23,12 @@ type FindUniqueOrThrowResult<D extends PrismaHelpers> = D extends {
   ? Result
   : never;
 
-export abstract class PrismaModelLoader extends t.Effects {
+export abstract class PrismaModelLoader<O, I> extends t.Schema<O, I> {
   declare [PrismaModelLoaderSymbol]: true;
-  declare output: FindUniqueOrThrowResult<this["model"]>;
-  declare abstract model: PrismaHelpers;
+  declare abstract model: PrismaHelpers & {
+    findUniqueOrThrow(args: any): Promise<O>;
+  };
 }
-
-type PathString = `/${string}`;
-
-export class PathStringSchema<I extends string = string> extends t.Refine {
-  declare input: I;
-  refine(value: string): value is PathString {
-    return value.startsWith("/");
-  }
-}
-
-type P = {
-  s: PathStringSchema;
-};
-
-type Pinput = t.input<P>;
-type Poutput = t.output<P>;
 
 type A = { a: 1 } | null | undefined;
 type B<T> = T extends object ? { [k in keyof T]: T[k] } : T;
@@ -67,25 +52,27 @@ export function prismaModel<M>(model: M) {
   return { stainless: { prismaModel: model } };
 }
 
-const prismaUser = {
-  findUniqueOrThrow(args: any): Promise<{ id: string; email: string }> {
-    return null as any;
+type PrismaUser = { id: string; email: string };
+
+const prisma = {
+  user: {
+    findUniqueOrThrow(args: any): Promise<PrismaUser> {
+      return null as any;
+    },
   },
 };
 
-class UserId extends PrismaModelLoader {
-  declare input: string;
-  model = prismaUser;
+class UserId extends PrismaModelLoader<PrismaUser, string> {
+  model = prisma.user;
 }
 
-class User extends PrismaModel {
-  declare input: {
-    id: string;
-    email: string;
-    posts: t.Includable<Post[]>;
-    comments?: t.Includable<Comment[]>;
-  };
-  model = prismaUser;
+class User extends PrismaModel<{
+  id: string;
+  email: string;
+  posts: t.Includable<Post[]>;
+  comments?: t.Includable<Comment[]>;
+}> {
+  model = prisma.user;
 }
 
 type Q = t.toZod<t.Includable<Post[]> | undefined>;
@@ -100,39 +87,3 @@ type UserZodPrisma = z.extractDeepMetadata<
   UserZod,
   { stainless: { prismaModel: {} } }
 >;
-
-class ToString<Input = any> extends t.Transform {
-  declare input: Input;
-  transform(value: t.output<Input>): string {
-    return String(value);
-  }
-}
-
-class ParseNumber<Input = string> extends t.Transform {
-  declare input: Input;
-  transform(value: t.output<Input>): number {
-    return Number(value);
-  }
-}
-
-class ShortString extends t.EffectlessSchema implements t.StringSchemaProps {
-  declare input: string;
-  max = 5;
-}
-
-type X = {
-  a: ParseNumber<ToString<Date>>;
-  b: number;
-  c: t.Metadata<1 | 2, { stainless: { test: true } }>;
-  d: ShortString;
-  include: t.Includes<Post, 4>;
-  userId: UserId;
-  user: User;
-};
-
-type Xinput = t.input<X>;
-type Xoutput = t.output<X>;
-
-type Xzod = t.toZod<X>;
-type XzodInput = z.input<Xzod>;
-type XzodOutput = z.output<Xzod>;

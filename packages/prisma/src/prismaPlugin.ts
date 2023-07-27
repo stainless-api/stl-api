@@ -543,7 +543,7 @@ export const PrismaModelSymbol = Symbol("PrismaModel");
 
 type MakePrismaModelMetadata<M> = { stainless: { prismaModel: () => M } };
 
-export abstract class PrismaModel extends t.EffectlessSchema {
+export abstract class PrismaModel<O> extends t.Schema<O> {
   declare [PrismaModelSymbol]: true;
   declare abstract model: PrismaHelpers;
   declare metadata: MakePrismaModelMetadata<this["model"]>;
@@ -551,8 +551,27 @@ export abstract class PrismaModel extends t.EffectlessSchema {
 
 export const PrismaModelLoaderSymbol = Symbol("PrismaModelLoader");
 
-export abstract class PrismaModelLoader extends t.Effects {
+export abstract class PrismaModelLoader<O, I> extends t.Schema<O, I> {
   declare [PrismaModelLoaderSymbol]: true;
-  declare output: FindUniqueOrThrowResult<this["model"]>;
-  declare abstract model: PrismaHelpers;
+  declare [t.EffectsSymbol]: true;
+  declare abstract model:
+    | (PrismaHelpers & {
+        findUniqueOrThrow(args: any): Promise<O>;
+      })
+    | (() => PrismaHelpers & {
+        findUniqueOrThrow(args: any): Promise<O>;
+      });
+  async transform(
+    input: z.StlTransformInput<I>,
+    ctx: StlContext<any>
+  ): Promise<O> {
+    const id = input.data;
+    const query = { where: { id } };
+    const prisma: PrismaContext<any> = (ctx as any).prisma;
+    const model = typeof this.model === "function" ? this.model() : this.model;
+    if (prisma && model === prisma.prismaModel) {
+      return await prisma.findUniqueOrThrow(query);
+    }
+    return await model.findUniqueOrThrow(query);
+  }
 }

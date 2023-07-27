@@ -1,46 +1,42 @@
 import { IncludablePaths } from "./includes";
-import { SelectTree, z } from "./stl";
-import { Effect, includableSymbol } from "./z";
+import { SelectTree, z, StlContext } from "./stl";
 
 export const SchemaSymbol = Symbol("SchemaType");
 
-export abstract class Schema {
+export abstract class BaseSchema {
   declare [SchemaSymbol]: true;
   declare abstract input: any;
   declare abstract output: any;
   declare metadata?: object;
 }
 
-export type SchemaInput<I> = I | (Schema & { output: I });
+export class Schema<O, I = O> extends BaseSchema {
+  declare input: I;
+  declare output: O;
+  validate(value: I, ctx: StlContext<any>): void {}
+  transform(
+    // todo: improve parameter types?
+    value: z.StlTransformInput<I>,
+    ctx: StlContext<any>
+  ): O | PromiseLike<O> {
+    return value as any;
+  }
+}
+
+export type SchemaInput<I> = I | Schema<I, any>;
 
 export const EffectlessSchemaSymbol = Symbol("EffectlessSchema");
 
-export abstract class EffectlessSchema extends Schema {
-  declare [EffectlessSchemaSymbol]: true;
-  declare output: output<this["input"]>;
-}
-
-export class Metadata<Input, Metadata extends object> extends EffectlessSchema {
-  declare input: Input;
+export class Metadata<O, Metadata extends object> extends Schema<O> {
   declare metadata: Metadata;
 }
 export const EffectsSymbol = Symbol("Effects");
 
-export abstract class Effects extends Schema {
-  declare [EffectsSymbol]: true;
-}
-
 export const TransformSymbol = Symbol("Transform");
-
-export abstract class Transform extends Effects {
-  declare [TransformSymbol]: true;
-  declare output: UnwrapPromise<ReturnType<this["transform"]>>;
-  abstract transform(value: output<this["input"]>): any;
-}
 
 export type input<T> = 0 extends 1 & T
   ? any
-  : T extends Schema
+  : T extends BaseSchema
   ? input<T["input"]>
   : T extends Date
   ? Date
@@ -58,7 +54,7 @@ export type input<T> = 0 extends 1 & T
 
 export type output<T> = 0 extends 1 & T
   ? any
-  : T extends Schema
+  : T extends BaseSchema
   ? T["output"]
   : T extends Date
   ? Date
@@ -86,7 +82,7 @@ export type toZod<T> = 0 extends 1 & T
   ? z.ZodOptional<toZod<NonNullable<T>>>
   : [T] extends [z.ZodTypeAny]
   ? T
-  : [T] extends [Schema]
+  : [T] extends [BaseSchema]
   ? schemaTypeToZod<T>
   : [T] extends [Date]
   ? z.ZodDate
@@ -110,12 +106,10 @@ export type toZod<T> = 0 extends 1 & T
   ? z.ZodBigInt
   : z.ZodType<output<T>, any, input<T>>;
 
-type schemaTypeToZod<T extends Schema> = T extends {
+type schemaTypeToZod<T extends BaseSchema> = T extends {
   metadata: infer M extends object;
 }
   ? z.ZodMetadata<toZod<Omit<T, "metadata">>, M>
-  : T extends EffectlessSchema
-  ? toZod<T["input"]>
   : T extends {
       [IncludableSymbol]: true;
       includable: infer I;
@@ -128,33 +122,6 @@ type schemaTypeToZod<T extends Schema> = T extends {
   : T extends { [EffectsSymbol]: true; input: infer I; output: infer O }
   ? z.ZodEffects<toZod<I>, O, input<I>>
   : toZod<T["input"]>;
-
-export const RefineSymbol = Symbol("Refine");
-
-export abstract class Refine extends Effects {
-  declare [RefineSymbol]: true;
-  declare output: this["refine"] extends (value: any) => value is infer O
-    ? O
-    : output<this["input"]>;
-  abstract refine(value: output<this["input"]>): boolean;
-  declare message?:
-    | string
-    | z.CustomErrorParams
-    | ((arg: output<this["input"]>) => z.CustomErrorParams);
-}
-
-export const SuperRefineSymbol = Symbol("SuperRefine");
-
-export abstract class SuperRefine extends Effects {
-  declare [SuperRefineSymbol]: true;
-  declare output: this["superRefine"] extends (value: any) => value is infer O
-    ? O
-    : output<this["input"]>;
-  abstract superRefine(
-    value: output<this["input"]>,
-    ctx: z.RefinementCtx
-  ): boolean;
-}
 
 export type OptionalMessage<T> = T extends true
   ? true | string
@@ -207,7 +174,7 @@ export const StringSchemaSymbol = Symbol("StringSchema");
 
 export class StringSchema<
   Props extends StringSchemaProps
-> extends EffectlessSchema {
+> extends Schema<string> {
   declare [StringSchemaSymbol]: true;
   declare input: string;
   declare props: Props;
@@ -237,7 +204,7 @@ export const NumberSchemaSymbol = Symbol("NumberSchema");
 
 export class NumberSchema<
   Props extends NumberSchemaProps
-> extends EffectlessSchema {
+> extends Schema<number> {
   declare [NumberSchemaSymbol]: true;
   declare input: number;
   declare props: Props;
@@ -263,7 +230,7 @@ export const BigIntSchemaSymbol = Symbol("BigIntSchema");
 
 export class BigIntSchema<
   Props extends BigIntSchemaProps
-> extends EffectlessSchema {
+> extends Schema<bigint> {
   declare [BigIntSchemaSymbol]: true;
   declare input: bigint;
   declare props: Props;
@@ -276,9 +243,7 @@ export interface DateSchemaProps {
 
 export const DateSchemaSymbol = Symbol("DateSchema");
 
-export class DateSchema<
-  Props extends DateSchemaProps
-> extends EffectlessSchema {
+export class DateSchema<Props extends DateSchemaProps> extends Schema<Date> {
   declare [DateSchemaSymbol]: true;
   declare input: Date;
   declare props: Props;
@@ -295,9 +260,8 @@ export const ObjectSchemaSymbol = Symbol("ObjectSchema");
 export class ObjectSchema<
   T extends object,
   Props extends ObjectSchemaProps
-> extends EffectlessSchema {
+> extends Schema<T> {
   declare [ObjectSchemaSymbol]: true;
-  declare input: T;
   declare props: Props;
 }
 
@@ -311,10 +275,11 @@ export interface ArraySchemaProps {
 
 export const ArraySchemaSymbol = Symbol("ArraySchema");
 
-export class ArraySchema<T, Props extends ArraySchemaProps> extends Schema {
+export class ArraySchema<T, Props extends ArraySchemaProps> extends Schema<
+  output<T>[],
+  input<T>[]
+> {
   declare [ArraySchemaSymbol]: true;
-  declare input: input<T>[];
-  declare output: output<T>[];
   declare props: Props;
 }
 
@@ -322,54 +287,52 @@ export const SetSchemaSymbol = Symbol("SetSchema");
 
 type SetSchemaProps = ArraySchemaProps;
 
-export class SetSchema<T, Props extends SetSchemaProps> extends Schema {
+export class SetSchema<T, Props extends SetSchemaProps> extends Schema<
+  Set<output<T>>,
+  Set<input<T>>
+> {
   declare [SetSchemaSymbol]: true;
-  declare input: input<T>[];
-  declare output: output<T>[];
   declare props: Props;
 }
 
 export const IncludableSymbol = Symbol("Includable");
 
-export class Includable<T> extends Effects {
+export class Includable<T> extends Schema<
+  z.IncludableOutput<output<T>>,
+  z.IncludableInput<input<T>>
+> {
   declare [IncludableSymbol]: true;
   declare includable: T;
-  declare input: z.IncludableInput<input<T>>;
-  declare output: z.IncludableOutput<output<T>>;
   declare metadata: { stainless: { includable: true } };
 }
 
 export class Includes<
   T,
   Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
-> extends EffectlessSchema {
-  declare input: IncludablePaths<output<T>, Depth>[];
+> extends Schema<IncludablePaths<output<T>, Depth>[], string> {
   declare metadata: { stainless: { includes: true } };
 }
 
 export const SelectableSymbol = Symbol("Selectable");
 
-export class Selectable<T> extends Effects {
+export class Selectable<T> extends Schema<
+  z.SelectableOutput<output<T>>,
+  z.SelectableInput<input<T>>
+> {
   declare [SelectableSymbol]: true;
   declare selectable: T;
-  declare input: z.SelectableInput<input<T>>;
-  declare output: z.SelectableOutput<output<T>>;
   declare metadata: { stainless: { selectable: true } };
 }
 
-export class Selects<
-  T,
-  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
-> extends Effects {
+export class Selects<T, Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3> extends Schema<
+  SelectTree | null | undefined,
+  string
+> {
   declare [EffectsSymbol]: true;
-  declare input: string;
-  declare output: SelectTree | null | undefined;
   declare metadata: { stainless: { selects: true } };
 }
 
-export class Selection<T extends SchemaInput<any>> extends EffectlessSchema {
-  declare input: T;
-}
+export class Selection<T extends SchemaInput<any>> extends Schema<T> {}
 
 export interface PageResponseType<I> {
   startCursor: string | null;
@@ -381,13 +344,10 @@ export interface PageResponseType<I> {
 
 const PageResponseSymbol = Symbol("PageResponse");
 
-export class PageResponse<I> extends EffectlessSchema {
+export class PageResponse<I> extends Schema<
+  PageResponseType<output<I>>,
+  PageResponseType<input<I>>
+> {
   declare [PageResponseSymbol]: true;
   declare item: I;
-  declare input: PageResponseType<I>;
-}
-
-export class ZodSchema<S extends { schema: z.ZodTypeAny }> extends Effects {
-  declare input: z.input<S["schema"]>;
-  declare output: z.output<S["schema"]>;
 }
