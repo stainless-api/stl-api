@@ -2,6 +2,9 @@
 sidebar_position: 8
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # Selection
 
 Selection allows you to pick what subset of fields on an associated object are returned
@@ -44,25 +47,79 @@ the same format as `include`).
 
 :::
 
-## Implementing select without circular associations
+## Implementing select
 
 You can add support for a selectable field by marking it
-`.selectable()` in the response schema and adding
-`select: z.selects(...)` to your query schema:
+`t.Selectable<>` in the response schema and adding
+`select: t.Selects<>` to your query schema:
 
 :::caution
 
-Currently, the `z.selects(...)` parameter must be named
+Currently, the `t.Selects<>` parameter must be named
 `select` and declared in the `query`.
 
 :::
 
 :::info
 
-Although `.selectable()` can be called on any schema, it only works
-with schemas of type object or array of objects.
+Although `t.Selectable<>` can be can be instantiated with any type,
+it only works with schemas of type object or array of objects.
 
 :::
+
+<Tabs groupId="schema-variants">
+<TabItem value="codegen" label="Codegen types">
+
+```ts
+// api/posts/index.ts
+import { t } from "stainless";
+import { stl } from "~/libs/stl";
+import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
+import prisma from "~/libs/prismadb";
+
+export class UserResponse extends PrismaModel {
+  declare input: {
+    id: t.StringSchema<{ uuid: true }>;
+    name?: string;
+  };
+  model = primsa.user;
+}
+
+export class PostResponse extends PrismaModel {
+  declare input: {
+    id: t.StringSchema<{ uuid: true }>;
+    body: string;
+    user_fields: t.Selectable<UserResponse>;
+  };
+  model = prisma.post;
+}
+
+class PostIdLoader extends PrismaModelLoader {
+  declare input: string;
+  model = prisma.post;
+}
+
+type PathParams = {
+  post: PostIdLoader;
+};
+
+type QueryParams = {
+  select?: t.Selects<PostResponse>;
+};
+
+export const retrieve = stl
+  .types<{ path: PathParams; query: QueryParams; response: PostResponse }>()
+  .endpoint({
+    endpoint: "GET /api/posts/{post}",
+    async handler({ post }, ctx) {
+      return post;
+    },
+  });
+```
+
+</TabItem>
+
+<TabItem value="runtime" label="Zod schemas">
 
 ```ts
 // api/posts/index.ts
@@ -100,23 +157,26 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-`z.selects(Post)` creates a schema that automatically validates
+</TabItem>
+</Tabs>
+
+`t.Selects<Post>` creates a schema that automatically validates
 the `select` query parameter from the response properties
-that are marked `.selectable()` (including any nested selectable
+that are marked `t.Selectable<>` (including any nested selectable
 properties).
 
 ## Automatic Prisma integration
 
 The `@stl-api/prisma` plugin will automatically generate the necessary
-`include` for prisma queries via [`ctx.prisma`](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/stl/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
-you have [declared a `.prismaModel(...)`](/stl/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
+`include` for prisma queries via [`ctx.prisma`](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`PrismaModelLoader`](/stl/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
+you have [declared a `PrismaModel`](/stl/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
 
 For other use cases, you will need to write code in your handler to
 add fields to the response that requested to be selected.
 
-## Implementing selection with circular associations
+## Zod schemas: Implementing selection with circular associations
 
-When the associations are circular, it becomes necessary to declare
+When using Zod schemas with circular associations, it becomes necessary to declare
 types for the schemas due to TypeScript limitations. Stainless provides
 a `z.CircularModel` helper type to make this more manageable.
 

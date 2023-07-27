@@ -2,6 +2,9 @@
 sidebar_position: 1
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # Getting started
 
 :::caution
@@ -51,6 +54,41 @@ export const stl = new Stl({
 
 ## Create a model
 
+<Tabs groupId="schema-variants">
+
+<TabItem value="codegen" label="Codegen types">
+
+```ts
+// ~/api/users/models.ts
+
+import { t } from "stainless";
+import { PrismaModel } from "@stl-api/prisma";
+import prisma from "~/libs/prisma";
+
+export class User extends PrismaModel {
+  declare input: {
+    id: t.StringSchema<{ uuid: true }>;
+
+    username: string | null;
+    email: string | null;
+    name: string | null;
+
+    createdAt: Date;
+    updatedAt: Date;
+
+    followingIds: t.StringSchema<{ uuid: true }>[];
+    hasNotification: boolean | null;
+    followersCount: number;
+  };
+
+  model = prisma.user;
+}
+```
+
+</TabItem>
+
+<TabItem value="runtime" label="Zod schemas">
+
 ```ts
 // ~/api/users/models.ts
 
@@ -75,7 +113,44 @@ export const User = z
   .prismaModel(prisma.user);
 ```
 
+</TabItem>
+</Tabs>
+
 ## Create an endpoint
+
+<Tabs groupId="schema-variants">
+<TabItem value="codegen" label="Codegen types">
+
+```ts
+// ~/api/users/retrieve.ts
+
+import { stl } from "~/libs/stl";
+import { NotFoundError, z } from "stainless";
+import prisma from "~/libs/prismadb";
+import { User } from "./models";
+
+type Path = {
+  userId: string;
+};
+
+export const retrieve = stl.types<{ path: Path; response: User }>().endpoint({
+  endpoint: "GET /api/users/{userId}",
+
+  async handler({ userId }, ctx) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) throw new NotFoundError();
+    return user;
+  },
+});
+```
+
+</TabItem>
+
+<TabItem value="runtime" label="Zod schemas">
 
 ```ts
 // ~/api/users/retrieve.ts
@@ -102,6 +177,9 @@ export const retrieve = stl.endpoint({
   },
 });
 ```
+
+</TabItem>
+</Tabs>
 
 ## Create a resource
 

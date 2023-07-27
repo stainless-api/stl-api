@@ -2,6 +2,9 @@
 sidebar_position: 7
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # Inclusion
 
 Inclusion allows you to optionally include associated objects in an API response if the
@@ -17,25 +20,80 @@ $ curl localhost:3000/api/posts/5 -G -d 'include[]=user' -d 'include[]=comments'
 "comments":[{"id":11},{"id":19}]}
 ```
 
-## Implementing inclusion without circular associations
+## Implementing inclusion
 
 You can add support for an includable field by marking it
-`.includable()` in the response schema and adding
-`include: z.includes(...)` to your query schema.
+`t.Includable<>` in the response schema and adding
+`include: t.Includes<...>` to your query schema.
 
 :::caution
 
-Currently, the `z.includes(...)` parameter must be named
+Currently, the `t.Includes<...>` parameter must be named
 `include` and declared in the `query`.
 
 :::
 
 :::info
 
-Although `.includable()` can be called on any schema, it only works
+Although `Includable<>` can be called on any schema, it only works
 with schemas of type object or array of objects.
 
 :::
+
+<Tabs groupId="schema-variants">
+
+<TabItem value="codegen" label="Codegen types">
+
+```ts
+// api/posts/index.ts
+import { z } from "stainless";
+import { stl } from "~/libs/stl";
+import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
+import prisma from "~/libs/prismadb";
+
+class UserResponse extends PrismaModel {
+  declare input: {
+    id: t.StringSchema<{ uuid: true }>;
+    name?: string;
+  };
+  model = prisma.user;
+}
+
+class PostResponse extends PrismaModel {
+  declare input: {
+    id: t.StringSchema<{ uuid: true }>;
+    body: string;
+    user: t.Includable<UserResponse>;
+  };
+  model = prisma.post;
+}
+
+class PostIdLoader extends PrismaModelLoader {
+  declare input: string;
+  model = primsa.post;
+}
+
+type PathParams = {
+  post: PostIdLoader;
+};
+
+type QueryParams = {
+  include: t.Includes<PostResponse>;
+};
+
+export const retrieve = stl
+  .types<{ path: PathParams; query: QueryParams; response: PostResponse }>()
+  .endpoint({
+    endpoint: "GET /api/posts/{post}",
+    async handler({ post }, ctx) {
+      return post;
+    },
+  });
+```
+
+</TabItem>
+
+<TabItem value="runtime" label="Zod schemas">
 
 ```ts
 // api/posts/index.ts
@@ -73,23 +131,27 @@ export const retrieve = stl.endpoint({
 });
 ```
 
-`z.includes(Post)` automatically generates possible values
+</TabItem>
+
+</Tabs>
+
+`t.Includes<PostResponse>` automatically generates possible values
 for the `include` query parameter from the response properties
-that are marked `.includable()` (including any nested includable
+that are marked `Includable` (including any nested includable
 properties).
 
 ## Automatic Prisma integration
 
 The `@stl-api/prisma` plugin will automatically generate the necessary
-`include` for prisma queries via [`ctx.prisma`](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`prismaModelLoader()`](/stl/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
-you have [declared a `.prismaModel(...)`](/stl/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
+`include` for prisma queries via [`ctx.prisma`](/stl/prisma/getting-started#perform-crud-operations-on-response-prismamodel) or [`PrismaModelLoader`](/stl/prisma/getting-started#use-prismamodelloader-on-a-parameter) when
+you have [declared a `PrismaModel<>`](/stl/prisma/getting-started#declare-prismamodel-on-a-response-type) on the response schema.
 
 For other use cases, you will need to write code in your handler to
 add fields to the response that were requested to be included.
 
-## Implementing inclusion with circular associations
+## Zod schemas: Implementing inclusion with circular associations
 
-When the associations are circular, it becomes necessary to declare
+When using Zod schemas with circular associations, it becomes necessary to declare
 types for the schemas due to TypeScript limitations. Stainless provides
 a `z.CircularModel` helper type to make this more manageable.
 

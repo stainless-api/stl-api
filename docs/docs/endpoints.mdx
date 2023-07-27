@@ -2,22 +2,28 @@
 sidebar_position: 4
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # Endpoints
 
 A Stainless API endpoint declares a method and URL, request and response parameter schemas, and
 a handler function that handles the request. Endpoints are grouped into [resources](/stl/resources),
 which are in turn grouped into an entire API definition. Here's a basic example:
 
+<Tabs groupId="schema-variants">
+<TabItem value="codegen" label="Codegen types">
+
 ```ts
 // ~/api/users/retrieve.ts
 
 import { stl } from "~/libs/stl";
-import { NotFoundError, z } from "stainless";
+import { NotFoundError } from "stainless";
 import prisma from "~/libs/prismadb";
 import { User } from "./models";
 
 export const retrieve = stl
-  .types<{ path: { userId: string }; response: typeof User }>()
+  .types<{ path: { userId: string }; response: User }>()
   .endpoint({
     endpoint: "GET /api/users/{userId}",
     async handler({ userId }, ctx) {
@@ -31,6 +37,37 @@ export const retrieve = stl
     },
   });
 ```
+
+</TabItem>
+<TabItem value="runtime" label="Zod schemas">
+
+```ts
+// ~/api/users/retrieve.ts
+
+import { stl } from "~/libs/stl";
+import { NotFoundError, z } from "stainless";
+import prisma from "~/libs/prismadb";
+import { User } from "./models";
+
+export const retrieve = stl.endpoint({
+  endpoint: "GET /api/users/{userId}",
+  path: z.object({ userId: z.string() }),
+  response: User,
+
+  async handler({ userId }, ctx) {
+    const user = await prisma.user.findUnique({
+      where: {
+        id: userId,
+      },
+    });
+    if (!user) throw new NotFoundError();
+    return user;
+  },
+});
+```
+
+</TabItem>
+</Tabs>
 
 ## Properties
 

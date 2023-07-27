@@ -27,7 +27,7 @@ import { makeNextPlugin } from "@stl-api/next";
 import { makeNextAuthPlugin } from "@stl-api/next-auth";
 import { authOptions } from "~/pages/api/auth/[...nextauth]";
 import prisma from "~/libs/prisma";
-import { z } from "stainless";
+import { t } from "stainless";
 
 const plugins = {
   next: makeNextPlugin(),
@@ -39,27 +39,31 @@ export const stl = new Stl({
   plugins,
 });
 
-const User = z.object({
-  id: z.string(),
-  name: z.string(),
-});
+type UserResponse = {
+  id: string;
+  name: string;
+}
 
-const update = stl.endpoint({
-  endpoint: "POST /users/:id",
-  description: "Update a user. Currently only updating the name is supported.",
-  authenticated: true,
-  response: User,
+type PathParams = {
+  id: string
+}
 
-  path: z.object({
-    id: z.string(),
-  }),
-  body: z.object({
-    name: z.string(),
-  }),
+type Body = {
+  name: string
+}
 
-  async handler({ id, name }) {
-    return await prisma.users.updateOne(id, { name });
-  },
+const update = stl
+  .types<{path: PathParams, body: Body, response: UserResponse}>
+  .endpoint({
+    endpoint: "POST /users/:id",
+    description: "Update a user. Currently only updating the name is supported.",
+    config: {
+      authenticated: true,
+    },
+
+    async handler({ id, name }) {
+      return await prisma.users.updateOne(id, { name });
+    },
 });
 
 export const api = stl.api({

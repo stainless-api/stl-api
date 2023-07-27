@@ -2,6 +2,9 @@
 sidebar_position: 1
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # Pagination
 
 :::caution
@@ -18,10 +21,49 @@ We plan to remove these limitations in the future.
 
 ## Easiest method: `ctx.prisma.paginate(options)`
 
-If your endpoint `response` declares a `.prismaModel()`, you will
+If your endpoint `response` declares a `t.PrismaModel<>`, you will
 be able to call `ctx.prisma.paginate()`, and it will make the
 necessary `findMany` for the pagination params from the query and
 and additional options you provide:
+
+<Tabs groupId="schema-variants">
+<TabItem value="codegen" label="Codegen schemas">
+
+```ts
+// ~/api/posts/list.ts
+
+import { t } from "stainless";
+import prisma from "~/libs/prismadb";
+import { stl } from "~/libs/stl";
+import { PostResponse } from "./models";
+
+// This assumes Post has a PrismaModel
+// declaration attached to it; t.PageResponse inherits
+// the prisma model.
+type PagePostResponse = t.PageResponse<PostResponse>;
+
+type QueryParams = {
+  // TODO: add support for default values
+  sortBy: "id";
+  userId?: string;
+  // TODO: add default value of 20
+  pageSize: number;
+};
+
+export const list = stl
+  .types<{ response: PagePostResponse; query: QueryParams }>()
+  .endpoint({
+    endpoint: "GET /api/posts",
+    async handler({ userId }, ctx) {
+      return await ctx.prisma.paginate({
+        where: userId ? { userId } : {},
+      });
+    },
+  });
+```
+
+</TabItem>
+<TabItem value="runtime" label="Zod schemas">
 
 ```ts
 // ~/api/posts/list.ts
@@ -52,6 +94,9 @@ export const list = stl.endpoint({
 });
 ```
 
+</TabItem>
+</Tabs>
+
 :::caution
 
 Currently `ctx.prisma.paginate` doesn't custom names for `PaginationParams`
@@ -65,7 +110,7 @@ or `response` fields.
 params, but unlike [`paginate()`](#easiest-method-ctxprismapaginateoptions), it resolves to the array of items
 directly from Prisma.
 
-We plan to make [`z.pageResponse()`](/stl/pagination#zpageresponseitem)
+We plan to make [`t.PageResponse<>`](/stl/pagination#tpageresponseitem)
 schemas accept an array of items
 as input soon, but currently you must pass the items to
 [`stl.plugins.prisma.pagination.makeResponse()`](#stlpluginsprismapaginationmakeresponsepaginationparams-items)

@@ -5,7 +5,7 @@ sidebar_position: 1
 # Generating Zod schemas from types
 
 We provide two ways of converting schemas to types. The first is `stl.types<>().endpoint()`,
-which converts its type parameters to Zod schemas. The second is `stl.magic<>()`, which our
+which converts its type parameters to Zod schemas. The second is `stl.codegenSchema<>()`, which our
 CLI modifies to inject the Zod schema corresponding to the given type argument. The function
 evaluates to this schema value.
 
@@ -16,7 +16,7 @@ such as `z.enum()` or `z.discriminatedUnion()` for optimal
 error-checking and reporting.
 
 :::note
-Whenever input types to `stl.types` or `stl.magic` change, the CLI needs
+Whenever input types to `stl.types` or `stl.codegenSchema` change, the CLI needs
 to be rerun. The CLI provides a watch mode to automate this process.
 Schema definitions are generated in a user-configurable folder. By
 default, this is in `.stl-codegen`.
@@ -301,9 +301,9 @@ stl.types<{ response: IncludablePost }>().endpoint({
 });
 ```
 
-## Mixing magic schemas with classic Zod schemas
+## Mixing codegen schemas with classic Zod schemas
 
-We recommend using magic schemas for combining the best of both
+We recommend using codegen schemas for combining the best of both
 worlds: offering the ability to use rich Typescript types while
 automatically generating idiomatic Zod schema validators and transformers.
 
@@ -323,7 +323,7 @@ type TypedSchema = {
 ```
 
 If you want to use generated schemas within existing Zod schemas, the
-`stl.magic` function yields a Zod schema value for an input type.
+`stl.codegenSchema` function yields a Zod schema value for an input type.
 
 ```ts
 type User = {
@@ -332,10 +332,10 @@ type User = {
   ...
 };
 
-const ZodSchema = stl.magic<User>(/* schema value injected by CLI */);
+const ZodSchema = stl.codegenSchema<User>(/* schema value injected by CLI */);
 ```
 
-`stl.magic` will, as necessary, generate imports in the file it's called
+`stl.codegenSchema` will, as necessary, generate imports in the file it's called
 in order to import generated schema constants from the configured codegen folder.
 These constants always end in `Schema`. You should not modify the
 contents of these imports: they will be generated on CLI run. However,

@@ -2,6 +2,9 @@
 sidebar_position: 0
 ---
 
+import Tabs from "@theme/Tabs";
+import TabItem from "@theme/TabItem";
+
 # Getting started
 
 :::caution
@@ -34,7 +37,32 @@ export const stl = new Stl({
 });
 ```
 
-## Declare `prismaModel` on a response type
+## Associate a Prisma model with a response type
+
+<Tabs groupId="schema-variants">
+
+<TabItem value="codegen" label="Codegen schemas">
+
+```diff
+// ~/api/posts/models.ts
+
+import { t } from "stainless";
++import { PrismaModel } from "@stl-api/prisma";
++import prisma from "~/libs/prisma";
+
+export class PostResponse extends PrismaModel {
+  declare input: {
+    id: t.StringSchema<{uuid: true}>;
+    body?: string | null;
+    userId: t.StringSchema<{uuid: true}>;
+  };
+  model = primsa.post;
+}
+```
+
+</TabItem>
+
+<TabItem value="runtime" label="Zod schemas">
 
 :::caution
 
@@ -55,9 +83,13 @@ export const Post = z.response({
 }).prismaModel(prisma.post);
 ```
 
-## Perform CRUD operations on response `prismaModel`
+</TabItem>
 
-Any endpoint whose `response` has a `prismaModel` declared with have `ctx.prisma`
+</Tabs>
+
+## Perform CRUD operations on response Prisma model
+
+Any endpoint whose `response` has a Prisma model declared with have `ctx.prisma`
 available in its `handler`. `ctx.prisma` provides wrappers for the following methods
 that magically inject options for [`include`](/stl/inclusion)
 and [`select`](/stl/selection) params as necessary:
@@ -75,6 +107,65 @@ This currently only works if the primary key is named `id`.
 We plan to remove this limitation soon.
 
 :::
+
+<Tabs groupId="schema-variants">
+<TabItem value="codegen" label="Codegen schemas">
+
+```ts
+// ~/api/posts/retrieve.ts
+
+import { stl } from "~/libs/stl";
+import { t } from "stainless";
+import { PostResponse } from "./models";
+
+type PathParams = {
+  postId: string;
+};
+
+type QueryParams = {
+  include?: t.Includes<Post>;
+  select?: t.Selects<Post>;
+};
+
+export const retrieve = stl
+  .types<{ path: PathParams; query: QueryParams; response: PostResponse }>()
+  .endpoint({
+    endpoint: "GET /api/posts/{postId}",
+    async handler({ postId }, ctx) {
+      // Prisma plugin magically injects options for include and select!
+      return await ctx.prisma.findUniqueOrThrow({ where: { id: postId } });
+    },
+  });
+```
+
+```ts
+// ~/api/posts/create.ts
+
+import { stl } from "~/libs/stl";
+import { t } from "stainless";
+import { PostResponse } from "./models";
+
+type Body = {
+  body: string;
+};
+
+export const create = stl
+  .types<{ body: Body; response: PostResponse }>()
+  .endpoint({
+    endpoint: "POST /api/posts",
+    async handler({ body }, ctx) {
+      return await ctx.prisma.create({
+        data: {
+          userId: ctx.requireCurrentUser().id,
+          body,
+        },
+      });
+    },
+  });
+```
+
+</TabItem>
+<TabItem value="runtime" label="Zod schemas">
 
 ```ts
 // ~/api/posts/retrieve.ts
@@ -125,9 +216,12 @@ export const create = stl.endpoint({
 });
 ```
 
-## Use `prismaModelLoader` on a parameter
+</TabItem>
+</Tabs>
 
-The following `post: z.string().prismaModelLoader(prisma.post)`
+## Loading a Prisma model from a parameter
+
+The following `post: PostIdLoader`
 parameter takes a string `id` as input from the `{post}` path
 parameter and is transformed to the fetched model instance in
 the `handler`.
@@ -138,6 +232,41 @@ This currently only works if the primary key is named `id`.
 We plan to remove this limitation soon.
 
 :::
+
+<Tabs groupId="schema-variants">
+<TabItem value="codegen" label="Codegen schemas">
+
+```ts
+// ~/api/posts/retrieve.ts
+
+import { stl } from "@/libs/stl";
+import { t } from "stainless";
+import { PrismaModelLoader } from "@stl-api/prisma";
+import prisma from "@/libs/prismadb";
+import { PostResponse } from "./models";
+
+export class PostIdLoader {
+  declare input: string;
+  model = prisma.post;
+}
+
+type PathParams = {
+  post: PostIdLoader;
+};
+
+export const retrieve = stl
+  .types<{ path: PathParams; response: PostResponse }>()
+  .endpoint({
+    endpoint: "GET /api/posts/{post}",
+    async handler({ post }, ctx) {
+      // here post is fetched Prisma model, not a string
+      return post;
+    },
+  });
+```
+
+</TabItem>
+<TabItem value="runtime" label="Zod schemas">
 
 ```ts
 // ~/api/posts/retrieve.ts
@@ -159,3 +288,6 @@ export const retrieve = stl.endpoint({
   },
 });
 ```
+
+</TabItem>
+</Tabs>

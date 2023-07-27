@@ -37,7 +37,7 @@ convention](/stl/intro#pristine).
 - `hasPreviousPage` (optional boolean) - whether there are more items before this page.
   May be omitted when paginating backward with `pageBefore`.
 
-[`z.pageResponse`](#zpageresponseitem) provides a Zod schema for these response fields.
+[`z.pageResponse`](#zpageresponseitem) and [`t.PageResponse`](#tpageresponse) provide Zod schemas for these response fields.
 
 ### Forward and backward pagination
 
@@ -45,6 +45,16 @@ Paginating backwards does not change the sort order; in other words,
 if we have page `A`, and we get page `B = pageAfter: A.endCursor`,
 then get page `C = pageBefore: B.startCursor`, `C` should be deep
 equal to `A` as long as no underlying data has changed.
+
+## Generated schema pagination types
+
+`stainless` exports the following types from
+`import { t } from 'stainless'`:
+
+### `t.PageResponse<I>`:
+
+Creates a Zod schema for a page response with an item schema from type
+`I`. The output type of this schema is `z.PageData<I>`.
 
 ## Pagination schema types
 

@@ -7,7 +7,7 @@ sidebar_position: 9
 ## Installation
 
 `stainless` is paired with a CLI in order to generate metadata and schema used to
-implement `stl.types` and the Typescript client. To get started, install the CLI:
+implement `stl.types`, `stl.codegenSchema`, and the Typescript client. To get started, install the CLI:
 
 ```bash
 npm i --save 'stainless-api/stl-api#cli-0.0.2'
@@ -28,7 +28,7 @@ enabled.
 
 :::
 
-The CLI looks for invocations of the `types` and `magic` methods on the `Stl` class. For this to work
+The CLI looks for invocations of the `types` and `codegenSchema` methods on the `Stl` class. For this to work
 correctly, these methods must be called inline for every usage; they cannot be wrapped
 in other functions or renamed.
 
@@ -36,7 +36,7 @@ in other functions or renamed.
 
 The CLI generates files in the `@stl-api/cli` folder within `node_modules`.
 Generation should be rerun every time an input type to `stl.types`,
-`stl.magic`, or any type those types depend on, change. The watch flag
+`stl.codegenSchema`, or any type those types depend on, change. The watch flag
 automates this process.
 
 ## Flags
