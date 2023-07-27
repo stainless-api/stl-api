@@ -13,12 +13,12 @@ export abstract class BaseSchema {
 export class Schema<O, I = O> extends BaseSchema {
   declare input: I;
   declare output: O;
-  validate(value: I, ctx: StlContext<any>): void {}
+  validate(value: output<I>, ctx: StlContext<any>): void {}
   transform(
-    value: I,
+    value: output<I>,
     ctx: StlContext<any>,
     zodInput: z.ParseInput
-  ): O | PromiseLike<O> {
+  ): output<O> | PromiseLike<output<O>> {
     return value as any;
   }
 }
@@ -55,7 +55,7 @@ export type input<T> = 0 extends 1 & T
 export type output<T> = 0 extends 1 & T
   ? any
   : T extends BaseSchema
-  ? T["output"]
+  ? output<T["output"]>
   : T extends Date
   ? Date
   : T extends Array<infer E>
@@ -120,7 +120,7 @@ type schemaTypeToZod<T extends BaseSchema> = T extends {
       z.IncludableInput<input<I>>
     >
   : T extends { [EffectsSymbol]: true; input: infer I; output: infer O }
-  ? z.ZodEffects<toZod<I>, O, input<I>>
+  ? z.ZodEffects<toZod<I>, output<O>, input<I>>
   : toZod<T["input"]>;
 
 export type OptionalMessage<T> = T extends true
@@ -276,8 +276,7 @@ export interface ArraySchemaProps {
 export const ArraySchemaSymbol = Symbol("ArraySchema");
 
 export class ArraySchema<T, Props extends ArraySchemaProps> extends Schema<
-  output<T>[],
-  input<T>[]
+  T[]
 > {
   declare [ArraySchemaSymbol]: true;
   declare props: Props;
@@ -287,10 +286,7 @@ export const SetSchemaSymbol = Symbol("SetSchema");
 
 type SetSchemaProps = ArraySchemaProps;
 
-export class SetSchema<T, Props extends SetSchemaProps> extends Schema<
-  Set<output<T>>,
-  Set<input<T>>
-> {
+export class SetSchema<T, Props extends SetSchemaProps> extends Schema<Set<T>> {
   declare [SetSchemaSymbol]: true;
   declare props: Props;
 }
@@ -344,10 +340,7 @@ export interface PageResponseType<I> {
 
 const PageResponseSymbol = Symbol("PageResponse");
 
-export class PageResponse<I> extends Schema<
-  PageResponseType<output<I>>,
-  PageResponseType<input<I>>
-> {
+export class PageResponse<I> extends Schema<PageResponseType<I>> {
   declare [PageResponseSymbol]: true;
   declare item: I;
 }
