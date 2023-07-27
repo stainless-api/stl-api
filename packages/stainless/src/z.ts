@@ -256,8 +256,8 @@ export type IncludableZodType<T extends z.ZodTypeAny> = ZodMetadata<
 
 z.ZodType.prototype.includable = function includable(this: z.ZodTypeAny) {
   return stlPreprocess(
-    (input: StlTransformInput<any>, stlContext: StlContext<any>) => {
-      const { data, path } = input;
+    (data: unknown, stlContext: StlContext<any>, zodInput: z.ParseInput) => {
+      const { path } = zodInput;
       const include = getIncludes(stlContext);
       return include && zodPathIsIncluded(path, include) ? data : undefined;
     },
@@ -458,13 +458,10 @@ declare module "zod" {
   }
 }
 
-export type StlTransformInput<Input> = z.ParseInput & {
-  data: Input;
-};
-
 export type StlTransform<Input, Output> = (
-  input: StlTransformInput<Input>,
-  ctx: StlContext<any>
+  input: Input,
+  ctx: StlContext<any>,
+  zodInput: z.ParseInput
 ) => Output | Promise<Output>;
 
 export interface StlParseContext extends z.ParseContext {
@@ -576,10 +573,11 @@ z.ZodEffects.prototype._parse = function _parse(
       throw new Error(`missing stlContext in .stlTransform effect`);
     }
     const { ctx } = this._processInputParams(input);
-    const processed = effect.transform(
-      { data: ctx.data, path: ctx.path, parent: ctx },
-      stlContext
-    );
+    const processed = effect.transform(ctx.data, stlContext, {
+      data: ctx.data,
+      path: ctx.path,
+      parent: ctx,
+    });
     if (ctx.common.issues.length) {
       return {
         status: "dirty",
@@ -615,10 +613,11 @@ z.ZodEffects.prototype._parse = function _parse(
         if (!isValid(base)) return base;
 
         return Promise.resolve(
-          effect.transform(
-            { data: base.value, path: input.path, parent: input.parent },
-            stlContext
-          )
+          effect.transform(base.value, stlContext, {
+            data: base.value,
+            path: input.path,
+            parent: input.parent,
+          })
         ).then((result) => ({ status: status.value, value: result }));
       });
   }
@@ -642,8 +641,9 @@ z.ZodType.prototype.stlTransform = function stlTransform(
 };
 
 export type StlPreprocess = (
-  input: StlTransformInput<unknown>,
-  ctx: StlContext<any>
+  input: unknown,
+  ctx: StlContext<any>,
+  zodInput: z.ParseInput
 ) => unknown;
 
 export function stlPreprocess<I extends z.ZodTypeAny>(

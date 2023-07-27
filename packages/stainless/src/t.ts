@@ -15,9 +15,9 @@ export class Schema<O, I = O> extends BaseSchema {
   declare output: O;
   validate(value: I, ctx: StlContext<any>): void {}
   transform(
-    // todo: improve parameter types?
-    value: z.StlTransformInput<I>,
-    ctx: StlContext<any>
+    value: I,
+    ctx: StlContext<any>,
+    zodInput: z.ParseInput
   ): O | PromiseLike<O> {
     return value as any;
   }
