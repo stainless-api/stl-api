@@ -51,6 +51,6 @@
     "qs": "^6.11.2",
     "ts-node": "^10.9.1",
     "zod": "^3.21.4",
-    "zod-openapi": "github:stainless-api/zod-openapi#2.5.1"
+    "zod-openapi": "github:stainless-api/zod-openapi#2.8.0"
   }
 }

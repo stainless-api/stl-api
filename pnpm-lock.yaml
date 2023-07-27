@@ -501,8 +501,8 @@ importers:
         specifier: ^3.21.4
         version: 3.21.4
       zod-openapi:
-        specifier: github:stainless-api/zod-openapi#2.5.1
-        version: github.com/stainless-api/zod-openapi/5817cf4167a4892b9e364ecc75e4cd6b973e474e(zod@3.21.4)
+        specifier: github:stainless-api/zod-openapi#2.8.0
+        version: github.com/stainless-api/zod-openapi/550978836406882613e9547b2e9486fa7448a37b(zod@3.21.4)
     devDependencies:
       '@types/jest':
         specifier: ^29.5.1
@@ -12656,11 +12656,11 @@ packages:
     resolution: {integrity: sha512-V50KMwwzqJV0NpZIZFwfOD5/lyny3WlSzRiXgA0G7VUnRlqttta1L6UQIHzd6EuBY/cHGfwTIck7w1yH6Q5zUw==}
     dev: false
 
-  github.com/stainless-api/zod-openapi/5817cf4167a4892b9e364ecc75e4cd6b973e474e(zod@3.21.4):
-    resolution: {tarball: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/5817cf4167a4892b9e364ecc75e4cd6b973e474e}
-    id: github.com/stainless-api/zod-openapi/5817cf4167a4892b9e364ecc75e4cd6b973e474e
+  github.com/stainless-api/zod-openapi/550978836406882613e9547b2e9486fa7448a37b(zod@3.21.4):
+    resolution: {tarball: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b}
+    id: github.com/stainless-api/zod-openapi/550978836406882613e9547b2e9486fa7448a37b
     name: zod-openapi
-    version: 2.5.1
+    version: 2.8.0
     engines: {node: '>=16.11'}
     peerDependencies:
       zod: ^3.21.4
