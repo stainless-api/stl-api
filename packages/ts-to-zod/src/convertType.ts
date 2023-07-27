@@ -11,6 +11,7 @@ import {
   objectSchemaProperties,
   stringSchemaProperties,
 } from "./typeSchemaUtils";
+import { convertSchema } from "./convertSchema";
 
 export interface Diagnostics {
   errors: Incident[];
@@ -186,7 +187,7 @@ export class ConvertTypeContext extends SchemaGenContext {
   }
 }
 
-function isDeclarationImported(declaration: tm.Node): boolean {
+export function isDeclarationImported(declaration: tm.Node): boolean {
   return (
     declaration instanceof tm.ImportSpecifier ||
     declaration instanceof tm.ImportClause ||
@@ -300,7 +301,7 @@ export function processModuleIdentifiers(fileInfo: FileInfo) {
   }
 }
 
-function prefixValueWithModule(
+export function prefixValueWithModule(
   ctx: SchemaGenContext,
   name: string,
   currentFilePath: string,
@@ -457,85 +458,10 @@ export function convertType(
   const typeSymbol = ty.getSymbol();
   const declaration = typeSymbol ? getDeclaration(typeSymbol) : undefined;
 
-  const baseTypeName = getBaseTypeName(ty);
+  const superclassTypeName = getSuperclassName(ty);
   let packageTypeName = undefined;
   if (typeSymbol) {
     packageTypeName = typeSymbol.getName();
-  }
-
-  switch (baseTypeName) {
-    case "Transform":
-      return convertTransformRefineType(
-        ctx,
-        ty,
-        typeSymbol,
-        "transform",
-        diagnosticItem
-      );
-    case "Refine":
-      return convertTransformRefineType(
-        ctx,
-        ty,
-        typeSymbol,
-        "refine",
-        diagnosticItem
-      );
-    case "SuperRefine":
-      return convertTransformRefineType(
-        ctx,
-        ty,
-        typeSymbol,
-        "superRefine",
-        diagnosticItem
-      );
-  }
-  if (isStainlessSymbol(typeSymbol)) {
-    switch (typeSymbol?.getName()) {
-      case "Includable":
-        return convertSimpleSchemaClassSuffix(
-          ctx,
-          ty,
-          "includable",
-          diagnosticItem
-        );
-      case "Selectable":
-        return convertSimpleSchemaClassSuffix(
-          ctx,
-          ty,
-          "selectable",
-          diagnosticItem
-        );
-      case "Selection":
-        return convertSimpleSchemaClassSuffix(
-          ctx,
-          ty,
-          "selection",
-          diagnosticItem
-        );
-      case "Includes":
-        return convertIncludesSelects(ctx, ty, "includes", diagnosticItem);
-      case "Selects":
-        return convertIncludesSelects(ctx, ty, "selects", diagnosticItem);
-      case "PageResponse":
-        return convertSimpleSchemaClassZ(
-          ctx,
-          ty,
-          "pageResponse",
-          diagnosticItem
-        );
-    }
-  }
-
-  if (baseTypeName === "ZodType" && isZodSymbol(typeSymbol)) {
-    ctx.addError(
-      diagnosticItem,
-      {
-        message:
-          "Zod schema types are not valid input types, except as `typeof schemaValue` " +
-          "within a top-level type argument or object property",
-      },
-      true
-    );
   }
 
   switch (packageTypeName) {
@@ -683,6 +609,83 @@ export function convertType(
     }
   }
 
+  switch (superclassTypeName) {
+    case "Schema":
+      return convertSchema(ctx, ty, typeSymbol!, diagnosticItem);
+    case "Transform":
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "transform",
+        diagnosticItem
+      );
+    case "Refine":
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "refine",
+        diagnosticItem
+      );
+    case "SuperRefine":
+      return convertTransformRefineType(
+        ctx,
+        ty,
+        typeSymbol,
+        "superRefine",
+        diagnosticItem
+      );
+  }
+  if (isStainlessSymbol(typeSymbol)) {
+    switch (typeSymbol?.getName()) {
+      case "Includable":
+        return convertSimpleSchemaClassSuffix(
+          ctx,
+          ty,
+          "includable",
+          diagnosticItem
+        );
+      case "Selectable":
+        return convertSimpleSchemaClassSuffix(
+          ctx,
+          ty,
+          "selectable",
+          diagnosticItem
+        );
+      case "Selection":
+        return convertSimpleSchemaClassSuffix(
+          ctx,
+          ty,
+          "selection",
+          diagnosticItem
+        );
+      case "Includes":
+        return convertIncludesSelects(ctx, ty, "includes", diagnosticItem);
+      case "Selects":
+        return convertIncludesSelects(ctx, ty, "selects", diagnosticItem);
+      case "PageResponse":
+        return convertSimpleSchemaClassZ(
+          ctx,
+          ty,
+          "pageResponse",
+          diagnosticItem
+        );
+    }
+  }
+
+  if (superclassTypeName === "ZodType" && isZodSymbol(typeSymbol)) {
+    ctx.addError(
+      diagnosticItem,
+      {
+        message:
+          "Zod schema types are not valid input types, except as `typeof schemaValue` " +
+          "within a top-level type argument or object property",
+      },
+      true
+    );
+  }
+
   if (!ctx.isRoot && !generateInline && !isNativeSymbol(typeSymbol)) {
     const symbol =
       ty.getAliasSymbol() ||
@@ -710,14 +713,14 @@ export function convertType(
     return zodConstructor("boolean");
   }
 
-  switch (baseTypeName) {
+  switch (superclassTypeName) {
     case "PrismaModel":
       return convertPrismaModelType(
         ctx,
         ty,
         typeSymbol!,
         "prismaModel",
-        baseTypeName,
+        superclassTypeName,
         diagnosticItem
       );
     case "PrismaModelLoader":
@@ -726,7 +729,7 @@ export function convertType(
         ty,
         typeSymbol!,
         "prismaModelLoader",
-        baseTypeName,
+        superclassTypeName,
         diagnosticItem
       );
   }
@@ -1033,7 +1036,7 @@ function zodConstructor(
   );
 }
 
-function methodCall(
+export function methodCall(
   target: ts.Expression,
   name: string,
   args: readonly ts.Expression[] = []
@@ -1717,7 +1720,7 @@ function mapGetOrCreate<K, V>(map: Map<K, V>, key: K, init: () => V): V {
   return value;
 }
 
-function isDeclarationExported(declaration: tm.Node): boolean {
+export function isDeclarationExported(declaration: tm.Node): boolean {
   // @ts-expect-error localSymbol untyped
   return declaration.compilerNode.localSymbol?.exportSymbol != null;
 }
@@ -1727,7 +1730,7 @@ function getTypeId(type: tm.Type): number {
   return type.compilerType.id;
 }
 
-function getBaseTypeName(type: tm.Type): string | undefined {
+function getSuperclassName(type: tm.Type): string | undefined {
   const symbol = type.getSymbol();
   if (!symbol) return undefined;
   const declaration = getDeclaration(symbol);
@@ -1741,8 +1744,8 @@ function getBaseTypeName(type: tm.Type): string | undefined {
     ts.SyntaxKind.ExtendsKeyword
   );
   const extendsTypeNode = heritageClause?.getTypeNodes()[0];
-  const baseSymbol = extendsTypeNode?.getType().getSymbol();
-  return baseSymbol?.getName();
+  const superclassSymbol = extendsTypeNode?.getType().getSymbol();
+  return superclassSymbol?.getName();
 }
 
 /** Is a type either a literal or union of literalish types */
@@ -1765,7 +1768,7 @@ function getLiteralValues(
   else return [];
 }
 
-function getTypeFilePath(type: tm.Type): string | undefined {
+export function getTypeFilePath(type: tm.Type): string | undefined {
   return getTypeDeclaration(type)?.getSourceFile()?.getFilePath();
 }
 
@@ -1775,7 +1778,7 @@ function getTypeDeclaration(type: tm.Type): tm.Node | undefined {
   return getDeclaration(symbol);
 }
 
-function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
+export function getDeclaration(symbol: tm.Symbol): tm.Node | undefined {
   let importDeclaration: tm.ImportSpecifier | undefined;
   const declarations = symbol.getDeclarations();
   for (const declaration of declarations) {

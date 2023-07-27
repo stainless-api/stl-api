@@ -5,6 +5,7 @@ import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
 import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
 import { PostResponse as PostResponseSchema } from "../../.stl-codegen/api/posts/models";
+import { Post as RawPrismaPost } from "@prisma/client";
 
 type Uuid = t.StringSchema<{ uuid: true }>;
 export const IncludableUserSchema = z.lazy(() => User).includable();
@@ -16,27 +17,25 @@ export const IncludableCommentsFieldSchema = z
   .array(z.lazy(() => CommentSelection))
   .selectable();
 
-export class PostResponse extends PrismaModel {
-  declare input: {
-    id: Uuid;
-    body: string;
-    createdAt: Date;
-    updatedAt: Date;
-    userId: Uuid;
-    likedIds: Uuid[];
-    image?: string | null;
-    user: t.ZodSchema<{ schema: typeof IncludableUserSchema }>;
-    user_fields: t.ZodSchema<{ schema: typeof SelectableUserSchema }>;
-    comments: t.ZodSchema<{ schema: typeof IncludableCommentsSchema }>;
-    comments_fields: t.ZodSchema<{
-      schema: typeof IncludableCommentsFieldSchema;
-    }>;
-  };
+export class PostResponse extends PrismaModel<{
+  id: Uuid;
+  body: string;
+  createdAt: Date;
+  updatedAt: Date;
+  userId: Uuid;
+  likedIds: Uuid[];
+  image?: string | null;
+  user: t.ZodSchema<{ schema: typeof IncludableUserSchema }>;
+  user_fields: t.ZodSchema<{ schema: typeof SelectableUserSchema }>;
+  comments: t.ZodSchema<{ schema: typeof IncludableCommentsSchema }>;
+  comments_fields: t.ZodSchema<{
+    schema: typeof IncludableCommentsFieldSchema;
+  }>;
+}> {
   model = prisma.post;
 }
 
-export class PostIdLoader extends PrismaModelLoader {
-  declare input: string;
+export class PostIdLoader extends PrismaModelLoader<RawPrismaPost, string> {
   model = prisma.post;
 }
 

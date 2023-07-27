@@ -344,3 +344,8 @@ export class PageResponse<I> extends Schema<PageResponseType<I>> {
   declare [PageResponseSymbol]: true;
   declare item: I;
 }
+
+export class ZodSchema<S extends { schema: z.ZodTypeAny }> extends Schema<
+  z.output<S["schema"]>,
+  z.input<S["schema"]>
+> {}

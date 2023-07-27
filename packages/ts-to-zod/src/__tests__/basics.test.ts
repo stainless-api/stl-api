@@ -1,7 +1,7 @@
 import { testCase } from "./testCase";
 import { multiFileTestCase } from "./multiFileTestCase";
 
-import { t } from "stainless";
+import { StlContext, t } from "stainless";
 
 type anyType = any;
 it(`any`, () =>
@@ -390,6 +390,73 @@ it(`zod schema property`, async () =>
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
 import * as BasicsTest from "./basics.test";
 const zodSchemaProperty: z.ZodTypeAny = z.object({ zod: z.lazy(() => BasicsTest.objectSchema) });
+",
+}
+`));
+
+export class TransformSchema extends t.Schema<string, number> {
+  transform(value: number): string {
+    return String(value);
+  }
+}
+
+it(`schema with transform`, async () =>
+  expect(
+    await multiFileTestCase({
+      __filename,
+      getNode: (sourceFile) => sourceFile.getClass("TransformSchema"),
+    })
+  ).toMatchInlineSnapshot(`
+{
+  "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
+import * as BasicsTest from "./basics.test";
+export const TransformSchema: z.ZodTypeAny = z.number().stlTransform(new BasicsTest.TransformSchema().transform);
+",
+}
+`));
+
+export class ValidateSchema extends t.Schema<string> {
+  validate(input: string): boolean {
+    return input.length % 2 === 0;
+  }
+}
+
+it(`schema with transform`, async () =>
+  expect(
+    await multiFileTestCase({
+      __filename,
+      getNode: (sourceFile) => sourceFile.getClass("ValidateSchema"),
+    })
+  ).toMatchInlineSnapshot(`
+{
+  "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
+import * as BasicsTest from "./basics.test";
+export const ValidateSchema: z.ZodTypeAny = z.string().refine(new BasicsTest.ValidateSchema().validate);
+",
+}
+`));
+
+export class ValidateTransformSchema extends t.Schema<string, number> {
+  validate(input: number): boolean {
+    return input % 2 === 0;
+  }
+
+  transform(input: number): string {
+    return String(input);
+  }
+}
+
+it(`schema with validate, transform`, async () =>
+  expect(
+    await multiFileTestCase({
+      __filename,
+      getNode: (sourceFile) => sourceFile.getClass("ValidateTransformSchema"),
+    })
+  ).toMatchInlineSnapshot(`
+{
+  "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
+import * as BasicsTest from "./basics.test";
+export const ValidateTransformSchema: z.ZodTypeAny = z.number().refine(new BasicsTest.ValidateTransformSchema().validate).stlTransform(new BasicsTest.ValidateTransformSchema().transform);
 ",
 }
 `));
