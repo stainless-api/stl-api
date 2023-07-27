@@ -4,7 +4,7 @@ import prisma from "../../libs/prismadb";
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
 import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
-import { PostType as PostTypeSchema } from "../../.stl-codegen/api/posts/models";
+import { PostResponse as PostResponseSchema } from "../../.stl-codegen/api/posts/models";
 
 type Uuid = t.StringSchema<{ uuid: true }>;
 export const IncludableUserSchema = z.lazy(() => User).includable();
@@ -16,7 +16,7 @@ export const IncludableCommentsFieldSchema = z
   .array(z.lazy(() => CommentSelection))
   .selectable();
 
-export class PostType extends PrismaModel {
+export class PostResponse extends PrismaModel {
   declare input: {
     id: Uuid;
     body: string;
@@ -35,12 +35,12 @@ export class PostType extends PrismaModel {
   model = prisma.post;
 }
 
-export class PostLoader extends PrismaModelLoader {
+export class PostIdLoader extends PrismaModelLoader {
   declare input: string;
   model = prisma.post;
 }
 
-export const Post = stl.codegenSchema<PostType>(PostTypeSchema);
+export const Post = stl.codegenSchema<PostResponse>(PostResponseSchema);
 
 export const PostSelection = Post.selection();
 

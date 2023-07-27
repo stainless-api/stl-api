@@ -1,6 +1,6 @@
 import { z } from "stainless";
 import * as Models from "../../../api/posts/models";
-export const PostType: z.ZodTypeAny = z
+export const PostResponse: z.ZodTypeAny = z
   .object({
     id: z.string().uuid(),
     body: z.string(),
@@ -14,7 +14,7 @@ export const PostType: z.ZodTypeAny = z
     comments: z.lazy(() => Models.IncludableCommentsSchema),
     comments_fields: z.lazy(() => Models.IncludableCommentsFieldSchema),
   })
-  .prismaModel(() => new Models.PostType().model);
-export const PostLoader: z.ZodTypeAny = z
+  .prismaModel(() => new Models.PostResponse().model);
+export const PostIdLoader: z.ZodTypeAny = z
   .string()
-  .prismaModelLoader(() => new Models.PostLoader().model);
+  .prismaModelLoader(() => new Models.PostIdLoader().model);

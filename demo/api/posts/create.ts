@@ -1,9 +1,9 @@
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
-import { PostType } from "./models";
+import { PostResponse } from "./models";
 
-type Query = {
-  include?: t.Includes<PostType, 3>;
+type QueryParams = {
+  include?: t.Includes<PostResponse, 3>;
 };
 
 type Body = {
@@ -12,9 +12,9 @@ type Body = {
 
 export const create = stl
   .types<{
-    query: Query;
+    query: QueryParams;
     body: Body;
-    response: PostType;
+    response: PostResponse;
   }>()
   .endpoint({
     endpoint: "POST /api/posts",

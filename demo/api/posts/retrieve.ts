@@ -1,18 +1,18 @@
 import { stl } from "../../libs/stl";
 import { z, t } from "stainless";
-import { PostType, PostLoader } from "./models";
+import { PostResponse, PostIdLoader } from "./models";
 
-type Path = {
-  post: PostLoader;
+type PathParams = {
+  post: PostIdLoader;
 };
 
-type Query = {
-  include?: t.Includes<PostType, 3>;
-  select?: t.Selects<PostType, 3>;
+type QueryParams = {
+  include?: t.Includes<PostResponse, 3>;
+  select?: t.Selects<PostResponse, 3>;
 };
 
 export const retrieve = stl
-  .types<{ response: PostType; path: Path; query: Query }>()
+  .types<{ response: PostResponse; path: PathParams; query: QueryParams }>()
   .endpoint({
     endpoint: "GET /api/posts/{post}",
 
