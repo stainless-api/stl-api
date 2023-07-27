@@ -6,7 +6,7 @@ sidebar_position: 1
 
 We provide two ways of converting schemas to types. The first is `stl.types<>().endpoint()`,
 which converts its type parameters to Zod schemas. The second is `stl.codegenSchema<>()`, which our
-CLI modifies to inject the Zod schema corresponding to the given type argument. The function
+CLI modifies to inject the Zod schema corresponding to the given type argumenz. The function
 evaluates to this schema value.
 
 [`stl`](/stl/cli) utilizes the Typescript compiler's type-checking API to enable powerful type analysis.
@@ -68,7 +68,7 @@ these takes properties corresponding to [Zod primitive validation rules](https:/
 of these types and properties deviate from the patterns shown above.
 These are documented below.
 
-### `t.StringSchema<Props>`
+### `z.StringSchema<Props>`
 
 #### [`datetime`](https://zod.dev/?id=iso-datetimes)
 
@@ -89,7 +89,7 @@ properties. `message` is the error message used on validation failure.
 The `regex` property allows a string to be validated against a regular expression. Unlike the Zod `.regex()` property, this accepts a string
 that is passed to the `RegExp` constructor at runtime.
 
-### `t.DateSchema<Props>`
+### `z.DateSchema<Props>`
 
 #### [`min`, `max`](https://zod.dev/?id=dates)
 
@@ -97,7 +97,7 @@ that is passed to the `RegExp` constructor at runtime.
 `Date` constructor at runtime to yield the minimum and maximum `Date`
 values.
 
-### `t.ObjectSchema<T, Props>`
+### `z.ObjectSchema<T, Props>`
 
 `ObjectSchema` takes an additional type parameter `T` of object type
 that is used as the base type for schema generation. For example,
@@ -119,7 +119,7 @@ These properties are offered with usual Zod semantics. Other object schema modif
 but modifiers like `merge`, `partial`, and `required` have Typescript
 analogs like `Partial` and `Required` that should be used instead.
 
-### `t.ArraySchema<T, Props>, SetSchema<T, Props>`
+### `z.ArraySchema<T, Props>, SetSchema<T, Props>`
 
 These two types take an additional type parameter `T` that defines
 the schema type of their elements. For example, `ArraySchema<number, {nonempty: true}>`
@@ -133,13 +133,13 @@ validation and parsing rules.
 Subclassing these types always requires declaring an input type via `declare input: I`, which is the type of
 the input schema at the start of parsing. `I` is not necessarily the
 type of the input received by the class: for example, it might be that
-of a `Transform` subclass. In order to support this more flexible usage, have `I` extend `t.SchemaInput<T>`, where `T` is the schema type you
-want your refine or transform utility to accept as input.
+of a `Transform` subclass. In order to support this more flexible usage, have `I` extend `z.SchemaInput<T>`, where `T` is the schema type you
+want your refine or transform utility to accept as inpuz.
 
 Note that when using subclasses of these types within schema types,
 the subclasses need to be exported from their modules.
 
-### `t.Refine`
+### `z.Refine`
 
 In order to implement a custom validation, or refinement, rule,
 create a class that extends the `Refine` class.
@@ -151,7 +151,7 @@ Let's say we want to validate that an array matches the Typescript type
 of the box, so we can use the `Refine` class to implement this:
 
 ```ts
-export class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
+export class RefineTuple<I extends z.SchemaInput<any[]>> extends z.Refine {
   declare input: I;
 
   refine(value: any[]): boolean {
@@ -163,7 +163,7 @@ export class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
 }
 ```
 
-`declare input: I` declares that the subclass of `t.Refine` refines values of type `I`.
+`declare input: I` declares that the subclass of `z.Refine` refines values of type `I`.
 
 Note that `refine` can be async and/or return a promise.
 
@@ -184,7 +184,7 @@ We'll also supply a custom error message.
 We can use it as such:
 
 ```ts
-export class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
+export class RefineTuple<I extends z.SchemaInput<any[]>> extends z.Refine {
   declare input: I;
 
   message = "expected a tuple of type [...string[], number]";
@@ -194,13 +194,13 @@ export class RefineTuple<I extends t.SchemaInput<any[]>> extends t.Refine {
 }
 ```
 
-### `t.SuperRefine`
+### `z.SuperRefine`
 
 Allows generating custom error messages on validation failure.
-Functions similarly to the Zod [`.superRefine`](https://zod.dev/?id=superrefine) method, where the `superRefine` method accepts a value for refinement and a context as input. Adding an issue on the context
+Functions similarly to the Zod [`.superRefine`](https://zod.dev/?id=superrefine) method, where the `superRefine` method accepts a value for refinement and a context as inpuz. Adding an issue on the context
 causes validation to fail; otherwise it succeeds.
 
-### `t.Transform`
+### `z.Transform`
 
 Allows transforming an input value to an output value of
 potentially different type, while optionally validating it with the context parameter
@@ -208,7 +208,7 @@ similarly to `superRefine`. As an example, take this transform
 implementation that converts any value to a string via coercion:
 
 ```ts
-class ToString<I extends t.SchemaInput<any>> extends t.Transform {
+class ToString<I extends z.SchemaInput<any>> extends z.Transform {
   declare input: I;
 
   transform(value: any): string {
@@ -309,7 +309,7 @@ automatically generating idiomatic Zod schema validators and transformers.
 
 However, you may want to use classic Zod schemas in some places,
 whether due to migrating existing schemas or due to advanced Zod usage we
-do not currently support. For this, we offer the `ZodSchema` class to inject
+do not currently supporz. For this, we offer the `ZodSchema` class to inject
 classic Zod schemas into generated schemas. `ZodSchema` takes a Zod schema
 by passing its type via `typeof schema`. This `typeof` clause must be inline.
 

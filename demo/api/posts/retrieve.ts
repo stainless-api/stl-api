@@ -1,5 +1,5 @@
 import { stl } from "../../libs/stl";
-import { z, t } from "stainless";
+import { z } from "stainless";
 import { PostResponse, PostIdLoader } from "./models";
 
 type PathParams = {
@@ -7,8 +7,8 @@ type PathParams = {
 };
 
 type QueryParams = {
-  include?: t.Includes<PostResponse, 3>;
-  select?: t.Selects<PostResponse, 3>;
+  include?: z.Includes<PostResponse, 3>;
+  select?: z.Selects<PostResponse, 3>;
 };
 
 export const retrieve = stl

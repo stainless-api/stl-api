@@ -5,18 +5,22 @@ import {
   SafeParseReturnType,
   isValid,
   ZodFirstPartyTypeKind,
-  ZodType,
 } from "zod";
 import { StlContext } from "./stl";
 import { SelectTree } from "./parseSelect";
 import { getSelects } from "./selects";
-import { getIncludes } from "./includes";
+import { getIncludes, IncludablePaths } from "./includes";
 import { pickBy } from "lodash/fp";
 import { mapValues } from "lodash";
 
 export * from "zod";
 export { selects, selectsSymbol, getSelects } from "./selects";
-export { includes, includesSymbol, getIncludes } from "./includes";
+export {
+  includes,
+  includesSymbol,
+  getIncludes,
+  IncludablePaths,
+} from "./includes";
 
 /**
  * TODO: try to come up with a better error message
@@ -304,7 +308,11 @@ declare module "zod" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     selection<T extends z.ZodTypeAny>(
       this: T
-    ): z.ZodType<Selection<z.output<T>>, this["_def"], Selection<z.input<T>>>;
+    ): z.ZodType<
+      SelectionReturn<z.output<T>>,
+      this["_def"],
+      SelectionReturn<z.input<T>>
+    >;
 
     /**
      * Marks this schema as selectable via a `select` query param.
@@ -344,7 +352,7 @@ export type SelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
   SelectableInput<z.input<T>>
 >;
 
-export type Selection<T> = T extends Array<infer E extends object>
+type SelectionReturn<T> = T extends Array<infer E extends object>
   ? Partial<E>[]
   : T extends object
   ? Partial<T>
@@ -799,4 +807,396 @@ export type CircularModel<
   z.output<Base> & { [K in keyof Props]: z.output<NonNullable<Props[K]>> },
   z.ZodTypeDef,
   z.input<Base> & { [K in keyof Props]: z.input<NonNullable<Props[K]>> }
+
+  //////////////////////////////////////////////////
+  //////////////////////////////////////////////////
+  ////////////// codegen schemas ///////////////////
+  //////////////////////////////////////////////////
+  //////////////////////////////////////////////////
 >;
+
+export const SchemaSymbol = Symbol("SchemaType");
+
+export abstract class Schema {
+  declare [SchemaSymbol]: true;
+  declare abstract input: any;
+  declare abstract output: any;
+  declare metadata?: object;
+}
+
+export type SchemaInput<I> = I | (Schema & { output: I });
+
+export const EffectlessSchemaSymbol = Symbol("EffectlessSchema");
+
+export abstract class EffectlessSchema extends Schema {
+  declare [EffectlessSchemaSymbol]: true;
+  declare output: Out<this["input"]>;
+}
+
+export class Metadata<Input, Metadata extends object> extends EffectlessSchema {
+  declare input: Input;
+  declare metadata: Metadata;
+}
+export const EffectsSymbol = Symbol("Effects");
+
+export abstract class Effects extends Schema {
+  declare [EffectsSymbol]: true;
+}
+
+export const TransformSymbol = Symbol("Transform");
+
+export abstract class Transform extends Effects {
+  declare [TransformSymbol]: true;
+  declare output: UnwrapPromise<ReturnType<this["transform"]>>;
+  abstract transform(value: Out<this["input"]>): any;
+}
+
+export type In<T> = 0 extends 1 & T
+  ? any
+  : T extends Schema
+  ? In<T["input"]>
+  : T extends Date
+  ? Date
+  : T extends Array<infer E>
+  ? Array<In<E>>
+  : T extends Set<infer E>
+  ? Set<In<E>>
+  : T extends Map<infer K, infer V>
+  ? Map<In<K>, In<V>>
+  : T extends PromiseLike<infer E>
+  ? PromiseLike<In<E>>
+  : T extends object
+  ? { [k in keyof T]: In<T[k]> }
+  : T;
+
+export type Out<T> = 0 extends 1 & T
+  ? any
+  : T extends Schema
+  ? T["output"]
+  : T extends Date
+  ? Date
+  : T extends Array<infer E>
+  ? Array<Out<E>>
+  : T extends Set<infer E>
+  ? Set<Out<E>>
+  : T extends Map<infer K, infer V>
+  ? Map<Out<K>, Out<V>>
+  : T extends PromiseLike<infer E>
+  ? PromiseLike<Out<E>>
+  : T extends object
+  ? { [k in keyof T]: Out<T[k]> }
+  : T;
+
+type UnwrapPromise<T> = T extends PromiseLike<infer V> ? V : T;
+
+export type toZod<T> = 0 extends 1 & T
+  ? any
+  : [null | undefined] extends [T]
+  ? z.ZodOptional<z.ZodNullable<toZod<NonNullable<T>>>>
+  : [null] extends [T]
+  ? z.ZodNullable<toZod<NonNullable<T>>>
+  : [undefined] extends [T]
+  ? z.ZodOptional<toZod<NonNullable<T>>>
+  : [T] extends [z.ZodTypeAny]
+  ? T
+  : [T] extends [Schema]
+  ? schemaTypeToZod<T>
+  : [T] extends [Date]
+  ? z.ZodDate
+  : [T] extends [Array<infer E>]
+  ? z.ZodArray<toZod<E>>
+  : [T] extends [Set<infer E>]
+  ? z.ZodSet<toZod<E>>
+  : [T] extends [Map<infer K, infer V>]
+  ? z.ZodMap<toZod<K>, toZod<V>>
+  : [T] extends [PromiseLike<infer E>]
+  ? z.ZodPromise<toZod<E>>
+  : [T] extends [object]
+  ? z.ZodObject<{ [k in keyof T]-?: toZod<T[k]> }>
+  : [number] extends [T]
+  ? z.ZodNumber
+  : [string] extends [T]
+  ? z.ZodString
+  : [boolean] extends [T]
+  ? z.ZodBoolean
+  : [bigint] extends [T]
+  ? z.ZodBigInt
+  : z.ZodType<Out<T>, any, In<T>>;
+
+type schemaTypeToZod<T extends Schema> = T extends {
+  metadata: infer M extends object;
+}
+  ? ZodMetadata<toZod<Omit<T, "metadata">>, M>
+  : T extends EffectlessSchema
+  ? toZod<T["input"]>
+  : T extends {
+      [IncludableSymbol]: true;
+      includable: infer I;
+    }
+  ? z.ZodEffects<toZod<I>, IncludableOutput<Out<I>>, IncludableInput<In<I>>>
+  : T extends { [EffectsSymbol]: true; input: infer I; output: infer O }
+  ? z.ZodEffects<toZod<I>, O, In<I>>
+  : toZod<T["input"]>;
+
+export const RefineSymbol = Symbol("Refine");
+
+export abstract class Refine extends Effects {
+  declare [RefineSymbol]: true;
+  declare output: this["refine"] extends (value: any) => value is infer O
+    ? O
+    : Out<this["input"]>;
+  abstract refine(value: Out<this["input"]>): boolean;
+  declare message?:
+    | string
+    | z.CustomErrorParams
+    | ((arg: Out<this["input"]>) => z.CustomErrorParams);
+}
+
+export const SuperRefineSymbol = Symbol("SuperRefine");
+
+export abstract class SuperRefine extends Effects {
+  declare [SuperRefineSymbol]: true;
+  declare output: this["superRefine"] extends (value: any) => value is infer O
+    ? O
+    : Out<this["input"]>;
+  abstract superRefine(
+    value: Out<this["input"]>,
+    ctx: z.RefinementCtx
+  ): boolean;
+}
+
+export type OptionalMessage<T> = T extends true
+  ? true | string
+  : T | [T, string];
+
+export type IPOptions =
+  | true
+  | string
+  | {
+      version?: "v4" | "v6";
+      message?: string;
+    };
+
+export type DateTimeOptions =
+  | true
+  | string
+  | {
+      precision?: number;
+      offset?: true;
+      message?: string;
+    };
+
+export interface StringSchemaProps {
+  max?: OptionalMessage<number>;
+  min?: OptionalMessage<number>;
+  length?: OptionalMessage<number>;
+
+  email?: OptionalMessage<true>;
+  url?: OptionalMessage<true>;
+  emoji?: OptionalMessage<true>;
+  uuid?: OptionalMessage<true>;
+  cuid?: OptionalMessage<true>;
+  cuid2?: OptionalMessage<true>;
+  ulid?: OptionalMessage<true>;
+
+  regex?: OptionalMessage<string>;
+  startsWith?: OptionalMessage<string>;
+  endsWith?: OptionalMessage<string>;
+
+  datetime?: DateTimeOptions;
+  ip?: IPOptions;
+
+  // transformations
+  trim?: true;
+  toLowerCase?: true;
+  toUpperCase?: true;
+}
+
+export const StringSchemaSymbol = Symbol("StringSchema");
+
+export class StringSchema<
+  Props extends StringSchemaProps
+> extends EffectlessSchema {
+  declare [StringSchemaSymbol]: true;
+  declare input: string;
+  declare props: Props;
+}
+
+export interface NumberSchemaProps {
+  gt?: OptionalMessage<number>;
+  gte?: OptionalMessage<number>;
+  min?: OptionalMessage<number>;
+  lt?: OptionalMessage<number>;
+  lte?: OptionalMessage<number>;
+  max?: OptionalMessage<number>;
+
+  multipleOf?: OptionalMessage<number>;
+  step?: OptionalMessage<number>;
+
+  int?: OptionalMessage<true>;
+  positive?: OptionalMessage<true>;
+  nonnegative?: OptionalMessage<true>;
+  negative?: OptionalMessage<true>;
+  nonpositive?: OptionalMessage<true>;
+  finite?: OptionalMessage<true>;
+  safe?: OptionalMessage<true>;
+}
+
+export const NumberSchemaSymbol = Symbol("NumberSchema");
+
+export class NumberSchema<
+  Props extends NumberSchemaProps
+> extends EffectlessSchema {
+  declare [NumberSchemaSymbol]: true;
+  declare input: number;
+  declare props: Props;
+}
+
+export interface BigIntSchemaProps {
+  gt?: OptionalMessage<bigint>;
+  gte?: OptionalMessage<bigint>;
+  min?: OptionalMessage<bigint>;
+  lt?: OptionalMessage<bigint>;
+  lte?: OptionalMessage<bigint>;
+  max?: OptionalMessage<bigint>;
+
+  multipleOf?: OptionalMessage<bigint>;
+
+  positive?: OptionalMessage<true>;
+  nonnegative?: OptionalMessage<true>;
+  negative?: OptionalMessage<true>;
+  nonpositive?: OptionalMessage<true>;
+}
+
+export const BigIntSchemaSymbol = Symbol("BigIntSchema");
+
+export class BigIntSchema<
+  Props extends BigIntSchemaProps
+> extends EffectlessSchema {
+  declare [BigIntSchemaSymbol]: true;
+  declare input: bigint;
+  declare props: Props;
+}
+
+export interface DateSchemaProps {
+  min?: OptionalMessage<string>;
+  max?: OptionalMessage<string>;
+}
+
+export const DateSchemaSymbol = Symbol("DateSchema");
+
+export class DateSchema<
+  Props extends DateSchemaProps
+> extends EffectlessSchema {
+  declare [DateSchemaSymbol]: true;
+  declare input: Date;
+  declare props: Props;
+}
+
+export interface ObjectSchemaProps {
+  passthrough?: OptionalMessage<true>;
+  strict?: OptionalMessage<true>;
+  catchall?: any;
+}
+
+export const ObjectSchemaSymbol = Symbol("ObjectSchema");
+
+export class ObjectSchema<
+  T extends object,
+  Props extends ObjectSchemaProps
+> extends EffectlessSchema {
+  declare [ObjectSchemaSymbol]: true;
+  declare input: T;
+  declare props: Props;
+}
+
+export interface ArraySchemaProps {
+  nonempty?: OptionalMessage<true>;
+
+  min?: OptionalMessage<number>;
+  max?: OptionalMessage<number>;
+  length?: OptionalMessage<number>;
+}
+
+export const ArraySchemaSymbol = Symbol("ArraySchema");
+
+export class ArraySchema<T, Props extends ArraySchemaProps> extends Schema {
+  declare [ArraySchemaSymbol]: true;
+  declare input: In<T>[];
+  declare output: Out<T>[];
+  declare props: Props;
+}
+
+export const SetSchemaSymbol = Symbol("SetSchema");
+
+type SetSchemaProps = ArraySchemaProps;
+
+export class SetSchema<T, Props extends SetSchemaProps> extends Schema {
+  declare [SetSchemaSymbol]: true;
+  declare input: In<T>[];
+  declare output: Out<T>[];
+  declare props: Props;
+}
+
+export const IncludableSymbol = Symbol("Includable");
+
+export class Includable<T> extends Effects {
+  declare [IncludableSymbol]: true;
+  declare includable: T;
+  declare input: IncludableInput<In<T>>;
+  declare output: IncludableOutput<Out<T>>;
+  declare metadata: { stainless: { includable: true } };
+}
+
+export class Includes<
+  T,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends EffectlessSchema {
+  declare input: IncludablePaths<Out<T>, Depth>[];
+  declare metadata: { stainless: { includes: true } };
+}
+
+export const SelectableSymbol = Symbol("Selectable");
+
+export class Selectable<T> extends Effects {
+  declare [SelectableSymbol]: true;
+  declare selectable: T;
+  declare input: SelectableInput<In<T>>;
+  declare output: SelectableOutput<Out<T>>;
+  declare metadata: { stainless: { selectable: true } };
+}
+
+export class Selects<
+  T,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+> extends Effects {
+  declare [EffectsSymbol]: true;
+  declare input: string;
+  declare output: SelectTree | null | undefined;
+  declare metadata: { stainless: { selects: true } };
+}
+
+export class Selection<T extends SchemaInput<any>> extends EffectlessSchema {
+  declare input: T;
+}
+
+export interface PageResponseType<I> {
+  startCursor: string | null;
+  endCursor: string | null;
+  hasNextPage?: boolean;
+  hasPreviousPage?: boolean;
+  items: I[];
+}
+
+const PageResponseSymbol = Symbol("PageResponse");
+
+export class PageResponse<I> extends EffectlessSchema {
+  declare [PageResponseSymbol]: true;
+  declare item: I;
+  declare input: PageResponseType<I>;
+}
+
+export class ZodSchema<S extends { schema: z.ZodTypeAny }> extends Effects {
+  declare input: z.input<S["schema"]>;
+  declare output: z.output<S["schema"]>;
+}

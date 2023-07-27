@@ -1,9 +1,8 @@
 import * as z from "./z";
-import * as t from "./t";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 export { type SelectTree, parseSelect } from "./parseSelect";
-export { z, t };
+export { z };
 export { createClient } from "./client";
 export { createRecursiveProxy } from "./createRecursiveProxy";
 export {
@@ -984,7 +983,7 @@ export class Stl<Plugins extends AnyPlugins> {
    * const partialSchema = stl.codegenSchema<Partial<{a: string}>>(z.object({a: z.string().optional()}));
    * ```
    */
-  codegenSchema<T>(schema: z.ZodTypeAny): t.toZod<T> {
+  codegenSchema<T>(schema: z.ZodTypeAny): z.toZod<T> {
     return schema as any;
   }
 
@@ -1040,13 +1039,13 @@ export class Stl<Plugins extends AnyPlugins> {
     TypeArgToZodObject<T, "path">,
     TypeArgToZodObject<T, "query">,
     TypeArgToZodObject<T, "body">,
-    "response" extends keyof T ? t.toZod<T["response"]> : z.ZodVoid
+    "response" extends keyof T ? z.toZod<T["response"]> : z.ZodVoid
   > {
     type Path = TypeArgToZodObject<T, "path">;
     type Query = TypeArgToZodObject<T, "query">;
     type Body = TypeArgToZodObject<T, "body">;
     type Response = "response" extends keyof T
-      ? t.toZod<T["response"]>
+      ? z.toZod<T["response"]>
       : z.ZodVoid;
     return {
       endpoint: <
@@ -1080,14 +1079,14 @@ export class Stl<Plugins extends AnyPlugins> {
 }
 
 type TypeArgToZod<T extends Types, K extends keyof Types> = K extends keyof T
-  ? t.toZod<T[K]>
+  ? z.toZod<T[K]>
   : undefined;
 
 type TypeArgToZodObject<
   T extends Types,
   K extends keyof Types
 > = K extends keyof T
-  ? t.toZod<T[K]> extends infer U extends ZodObjectSchema
+  ? z.toZod<T[K]> extends infer U extends ZodObjectSchema
     ? U
     : undefined
   : undefined;

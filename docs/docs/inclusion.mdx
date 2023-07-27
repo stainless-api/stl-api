@@ -23,12 +23,12 @@ $ curl localhost:3000/api/posts/5 -G -d 'include[]=user' -d 'include[]=comments'
 ## Implementing inclusion
 
 You can add support for an includable field by marking it
-`t.Includable<>` in the response schema and adding
-`include: t.Includes<...>` to your query schema.
+`z.Includable<>` in the response schema and adding
+`include: z.Includes<...>` to your query schema.
 
 :::caution
 
-Currently, the `t.Includes<...>` parameter must be named
+Currently, the `z.Includes<...>` parameter must be named
 `include` and declared in the `query`.
 
 :::
@@ -53,7 +53,7 @@ import prisma from "~/libs/prismadb";
 
 class UserResponse extends PrismaModel {
   declare input: {
-    id: t.StringSchema<{ uuid: true }>;
+    id: z.StringSchema<{ uuid: true }>;
     name?: string;
   };
   model = prisma.user;
@@ -61,9 +61,9 @@ class UserResponse extends PrismaModel {
 
 class PostResponse extends PrismaModel {
   declare input: {
-    id: t.StringSchema<{ uuid: true }>;
+    id: z.StringSchema<{ uuid: true }>;
     body: string;
-    user: t.Includable<UserResponse>;
+    user: z.Includable<UserResponse>;
   };
   model = prisma.post;
 }
@@ -78,7 +78,7 @@ type PathParams = {
 };
 
 type QueryParams = {
-  include: t.Includes<PostResponse>;
+  include: z.Includes<PostResponse>;
 };
 
 export const retrieve = stl
@@ -135,7 +135,7 @@ export const retrieve = stl.endpoint({
 
 </Tabs>
 
-`t.Includes<PostResponse>` automatically generates possible values
+`z.Includes<PostResponse>` automatically generates possible values
 for the `include` query parameter from the response properties
 that are marked `Includable` (including any nested includable
 properties).

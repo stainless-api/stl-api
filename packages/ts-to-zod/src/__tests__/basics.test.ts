@@ -1,7 +1,7 @@
 import { testCase } from "./testCase";
 import { multiFileTestCase } from "./multiFileTestCase";
 
-import { t } from "stainless";
+import { z } from "stainless";
 
 type anyType = any;
 it(`any`, () =>
@@ -372,11 +372,10 @@ it(`mapped type`, () =>
     `"z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })"`
   ));
 
-import { z } from "zod";
 export const objectSchema = z.object({ a: z.string() });
 
 type zodSchemaProperty = {
-  zod: t.ZodSchema<{ schema: typeof objectSchema }>;
+  zod: z.ZodSchema<{ schema: typeof objectSchema }>;
 };
 
 it(`zod schema property`, async () =>

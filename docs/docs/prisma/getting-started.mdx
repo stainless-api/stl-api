@@ -52,9 +52,9 @@ import { t } from "stainless";
 
 export class PostResponse extends PrismaModel {
   declare input: {
-    id: t.StringSchema<{uuid: true}>;
+    id: z.StringSchema<{uuid: true}>;
     body?: string | null;
-    userId: t.StringSchema<{uuid: true}>;
+    userId: z.StringSchema<{uuid: true}>;
   };
   model = primsa.post;
 }
@@ -123,8 +123,8 @@ type PathParams = {
 };
 
 type QueryParams = {
-  include?: t.Includes<Post>;
-  select?: t.Selects<Post>;
+  include?: z.Includes<Post>;
+  select?: z.Selects<Post>;
 };
 
 export const retrieve = stl

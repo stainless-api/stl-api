@@ -1,4 +1,3 @@
-import * as t from "../t";
 import * as z from "../z";
 
 export const PrismaModelSymbol = Symbol("PrismaModel");
@@ -9,7 +8,7 @@ interface PrismaHelpers {
   findUniqueOrThrow(args: any): Promise<any>;
 }
 
-export abstract class PrismaModel extends t.EffectlessSchema {
+export abstract class PrismaModel extends z.EffectlessSchema {
   declare [PrismaModelSymbol]: true;
   declare abstract model: PrismaHelpers;
   declare metadata: MakePrismaModelMetadata<this["model"]>;
@@ -23,7 +22,7 @@ type FindUniqueOrThrowResult<D extends PrismaHelpers> = D extends {
   ? Result
   : never;
 
-export abstract class PrismaModelLoader extends t.Effects {
+export abstract class PrismaModelLoader extends z.Effects {
   declare [PrismaModelLoaderSymbol]: true;
   declare output: FindUniqueOrThrowResult<this["model"]>;
   declare abstract model: PrismaHelpers;
@@ -31,7 +30,7 @@ export abstract class PrismaModelLoader extends t.Effects {
 
 type PathString = `/${string}`;
 
-export class PathStringSchema<I extends string = string> extends t.Refine {
+export class PathStringSchema<I extends string = string> extends z.Refine {
   declare input: I;
   refine(value: string): value is PathString {
     return value.startsWith("/");
@@ -42,8 +41,8 @@ type P = {
   s: PathStringSchema;
 };
 
-type Pinput = t.input<P>;
-type Poutput = t.output<P>;
+type Pinput = z.In<P>;
+type Poutput = z.Out<P>;
 
 type A = { a: 1 } | null | undefined;
 type B<T> = T extends object ? { [k in keyof T]: T[k] } : T;
@@ -52,15 +51,15 @@ type C = B<A>;
 type Post = {
   id: string;
   body: string;
-  user?: t.Includable<User>;
-  comments?: t.Includable<Comment[]>;
+  user?: z.Includable<User>;
+  comments?: z.Includable<Comment[]>;
 };
 
 type Comment = {
   id: string;
   body: string;
-  user?: t.Includable<User>;
-  post?: t.Includable<Post>;
+  user?: z.Includable<User>;
+  post?: z.Includable<Post>;
 };
 
 export function prismaModel<M>(model: M) {
@@ -82,17 +81,17 @@ class User extends PrismaModel {
   declare input: {
     id: string;
     email: string;
-    posts: t.Includable<Post[]>;
-    comments?: t.Includable<Comment[]>;
+    posts: z.Includable<Post[]>;
+    comments?: z.Includable<Comment[]>;
   };
   model = prismaUser;
 }
 
-type Q = t.toZod<t.Includable<Post[]> | undefined>;
+type Q = z.toZod<z.Includable<Post[]> | undefined>;
 
-type UserInput = t.input<User>;
-type UserOutput = t.output<User["input"]>;
-type UserZod = t.toZod<User>;
+type UserInput = z.In<User>;
+type UserOutput = z.Out<User["input"]>;
+type UserZod = z.toZod<User>;
 type UserZodInput = z.input<UserZod>;
 type UserZodOutput = z.output<UserZod>;
 
@@ -101,21 +100,21 @@ type UserZodPrisma = z.extractDeepMetadata<
   { stainless: { prismaModel: {} } }
 >;
 
-class ToString<Input = any> extends t.Transform {
+class ToString<Input = any> extends z.Transform {
   declare input: Input;
-  transform(value: t.output<Input>): string {
+  transform(value: z.Out<Input>): string {
     return String(value);
   }
 }
 
-class ParseNumber<Input = string> extends t.Transform {
+class ParseNumber<Input = string> extends z.Transform {
   declare input: Input;
-  transform(value: t.output<Input>): number {
+  transform(value: z.Out<Input>): number {
     return Number(value);
   }
 }
 
-class ShortString extends t.EffectlessSchema implements t.StringSchemaProps {
+class ShortString extends z.EffectlessSchema implements z.StringSchemaProps {
   declare input: string;
   max = 5;
 }
@@ -123,16 +122,16 @@ class ShortString extends t.EffectlessSchema implements t.StringSchemaProps {
 type X = {
   a: ParseNumber<ToString<Date>>;
   b: number;
-  c: t.Metadata<1 | 2, { stainless: { test: true } }>;
+  c: z.Metadata<1 | 2, { stainless: { test: true } }>;
   d: ShortString;
-  include: t.Includes<Post, 4>;
+  include: z.Includes<Post, 4>;
   userId: UserId;
   user: User;
 };
 
-type Xinput = t.input<X>;
-type Xoutput = t.output<X>;
+type Xinput = z.In<X>;
+type Xoutput = z.Out<X>;
 
-type Xzod = t.toZod<X>;
+type Xzod = z.toZod<X>;
 type XzodInput = z.input<Xzod>;
 type XzodOutput = z.output<Xzod>;
