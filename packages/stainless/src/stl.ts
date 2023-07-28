@@ -806,7 +806,7 @@ export class Stl<Plugins extends AnyPlugins> {
       throw new Error(`no endpoint handler defined`);
     }
 
-    const [request, ctx] = await this.prepareRequest(params, context);
+    const [request, ctx] = await this.parseParamsWithContext(params, context);
 
     const responseInput = await endpoint.handler(request, ctx);
 
