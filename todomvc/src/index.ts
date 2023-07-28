@@ -36,7 +36,10 @@ app.get("/items", (req, res) => {
 
 app.post("/items", (req, res) => {
   // Note: no validation here!
-  const id = crypto.randomUUID();
+  const id =
+    items.size === 0
+      ? "ed76baac-7b44-4a11-b345-56384ffa8ad8"
+      : crypto.randomUUID();
   console.log("got body", req.body);
   const newItem = { id, ...req.body };
   items.set(id, newItem);
