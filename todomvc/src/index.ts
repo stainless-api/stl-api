@@ -1,9 +1,5 @@
 import express, { Express, Request, Response } from "express";
 import { Stl, NotFoundError, z } from "stainless";
-import {
-  addStlEndpointToExpress,
-  stlExpressRouteHandler,
-} from "@stl-api/express";
 import * as crypto from "crypto";
 
 import { ItemLoader as ItemLoaderSchema } from "../.stl-codegen/src/index";

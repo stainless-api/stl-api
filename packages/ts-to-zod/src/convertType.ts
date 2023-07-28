@@ -311,13 +311,16 @@ export function prefixValueWithModule(
   escapedName?: string
 ): ts.Expression {
   const currentFileInfo = ctx.getFileInfo(currentFilePath);
-  return ctx.generateInUserFile ||
-    (!importFromUserFile && currentFilePath === valueFilePath)
-    ? factory.createIdentifier(escapedName || name)
-    : factory.createPropertyAccessExpression(
-        getModuleIdentifier(currentFileInfo, valueFilePath, importFromUserFile),
-        name
-      );
+  if (ctx.generateInUserFile) {
+    return factory.createIdentifier(escapedName || name);
+  } else if (!importFromUserFile && currentFilePath === valueFilePath) {
+    return factory.createIdentifier(name);
+  } else {
+    return factory.createPropertyAccessExpression(
+      getModuleIdentifier(currentFileInfo, valueFilePath, importFromUserFile),
+      name
+    );
+  }
 }
 
 interface GeneratedSchema {

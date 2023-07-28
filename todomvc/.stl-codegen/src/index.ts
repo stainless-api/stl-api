@@ -5,7 +5,7 @@ export const ItemLoader: z.ZodTypeAny = z
   .uuid()
   .stlTransform(new Index.ItemLoader().transform);
 export const RetrievePathParams: z.ZodTypeAny = z.object({
-  item: z.lazy(() => ItemLoaderSchema),
+  item: z.lazy(() => ItemLoader),
 });
 export const Item: z.ZodTypeAny = z.object({
   completed: z.boolean(),

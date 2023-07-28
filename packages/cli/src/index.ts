@@ -42,7 +42,7 @@ import {
   preprocessEndpoint,
 } from "./endpointPreprocess";
 
-import { program as argParser } from "commander";
+import { program as argParser, Option } from "commander";
 import {
   convertPathToImport,
   isSymbolStlMethod,
@@ -63,6 +63,11 @@ argParser.option(
   "-o, --outdir <path>",
   "the directory in which to generate schemas",
   ".stl-codegen"
+);
+argParser.addOption(
+  new Option("-m, --module-type")
+    .choices(["module", "commonjs"])
+    .default("commonjs")
 );
 argParser.allowExcessArguments(false);
 
@@ -118,6 +123,7 @@ async function main() {
     },
     rootPath,
     zPackage: "stainless",
+    moduleType: options.moduleType,
   } as const;
   const generationConfig = createGenerationConfig(generationOptions);
 
@@ -604,7 +610,7 @@ async function evaluate(
                 convertPathToImport(
                   generatePath(file.getFilePath(), generationConfig)
                 )
-              )}.js`
+              )}${generationConfig.moduleType === "module" ? ".js" : ""}`
             ),
           ]
         );

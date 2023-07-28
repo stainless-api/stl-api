@@ -15,6 +15,7 @@ export interface GenOptions {
   rootPath: string;
   /** the package from where to import the `z` constant */
   zPackage?: string;
+  moduleType?: "commonjs" | "module";
 }
 
 // produced via the _
@@ -24,6 +25,7 @@ export interface GenerationConfig {
   rootPath: string;
   suffix?: string;
   zPackage?: string;
+  moduleType: "commonjs" | "module";
 }
 
 export function createGenerationConfig(options: GenOptions): GenerationConfig {
@@ -52,5 +54,6 @@ export function createGenerationConfig(options: GenOptions): GenerationConfig {
     suffix,
     rootPath: options.rootPath,
     zPackage: options.zPackage,
+    moduleType: options.moduleType || "commonjs",
   };
 }
