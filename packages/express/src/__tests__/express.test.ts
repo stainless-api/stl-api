@@ -1,10 +1,6 @@
 import express, { Application, NextFunction, Request, Response } from "express";
 import { AnyEndpoint, Stl, StlContext, StlError, z } from "stainless";
-import {
-  addStlAPIToExpress,
-  addStlEndpointToExpress,
-  stlExpressAPI,
-} from "../index";
+import { addEndpointRoute, apiRouter } from "../index";
 import { promisify } from "util";
 import { Server } from "http";
 
@@ -27,7 +23,7 @@ async function serve(app: Application) {
 async function serveEndpoint(endpoint: AnyEndpoint) {
   const app = express();
   app.use(express.json());
-  addStlEndpointToExpress(app, endpoint);
+  addEndpointRoute(app, endpoint);
   return await serve(app);
 }
 
@@ -61,53 +57,54 @@ it("context.server", async function () {
 });
 
 it("routing and basePathMap", async function () {
-  await serve(
-    stlExpressAPI(
-      stl.api({
-        basePath: "/",
-        resources: {
-          posts: stl.resource({
-            summary: "posts",
-            actions: {
-              retrieve: stl.endpoint({
-                endpoint: "GET /api/posts/:postId",
-                path: z.object({ postId: z.coerce.number() }),
-                response: z.object({ postId: z.coerce.number() }),
-                handler: (params) => params,
+  const router = apiRouter(
+    stl.api({
+      basePath: "/",
+      resources: {
+        posts: stl.resource({
+          summary: "posts",
+          actions: {
+            retrieve: stl.endpoint({
+              endpoint: "GET /api/posts/:postId",
+              path: z.object({ postId: z.coerce.number() }),
+              response: z.object({ postId: z.coerce.number() }),
+              handler: (params) => params,
+            }),
+            update: stl.endpoint({
+              endpoint: "POST /api/posts/:postId",
+              path: z.object({ postId: z.coerce.number() }),
+              body: z.object({ content: z.string() }),
+              response: z.object({
+                postId: z.coerce.number(),
+                content: z.string(),
               }),
-              update: stl.endpoint({
-                endpoint: "POST /api/posts/:postId",
-                path: z.object({ postId: z.coerce.number() }),
-                body: z.object({ content: z.string() }),
-                response: z.object({
-                  postId: z.coerce.number(),
-                  content: z.string(),
-                }),
-                handler: (params) => params,
-              }),
-              list: stl.endpoint({
-                endpoint: "GET /api/posts",
-                response: z.any().array(),
-                handler: () => [],
-              }),
-            },
-          }),
-          comments: stl.resource({
-            summary: "comments",
-            actions: {
-              retrieve: stl.endpoint({
-                endpoint: "GET /api/comments/:commentId",
-                path: z.object({ commentId: z.coerce.number() }),
-                response: z.object({ commentId: z.coerce.number() }),
-                handler: (params) => params,
-              }),
-            },
-          }),
-        },
-      }),
-      { basePathMap: { "/api/": "/" } }
-    )
+              handler: (params) => params,
+            }),
+            list: stl.endpoint({
+              endpoint: "GET /api/posts",
+              response: z.any().array(),
+              handler: () => [],
+            }),
+          },
+        }),
+        comments: stl.resource({
+          summary: "comments",
+          actions: {
+            retrieve: stl.endpoint({
+              endpoint: "GET /api/comments/:commentId",
+              path: z.object({ commentId: z.coerce.number() }),
+              response: z.object({ commentId: z.coerce.number() }),
+              handler: (params) => params,
+            }),
+          },
+        }),
+      },
+    }),
+    { basePathMap: { "/api/": "/" } }
   );
+  const app = express();
+  app.use(router);
+  await serve(app);
   expect(
     await fetch(baseUrl + "/posts").then((r) => r.json())
   ).toMatchInlineSnapshot(`[]`);
@@ -247,26 +244,28 @@ it(`error handling`, async function () {
 it(`handleErrors: false`, async function () {
   const app = express();
   app.use(express.json());
-  addStlAPIToExpress(
-    app,
-    stl.api({
-      basePath: "/",
-      resources: {
-        comments: stl.resource({
-          summary: "comments",
-          actions: {
-            retrieve: stl.endpoint({
-              endpoint: "GET /comments/:commentId",
-              path: z.object({ commentId: z.coerce.number() }),
-              handler: () => {
-                throw new Error("this is a test!");
-              },
-            }),
-          },
-        }),
-      },
-    }),
-    { handleErrors: false }
+  app.use(express.text());
+  app.use(
+    apiRouter(
+      stl.api({
+        basePath: "/",
+        resources: {
+          comments: stl.resource({
+            summary: "comments",
+            actions: {
+              retrieve: stl.endpoint({
+                endpoint: "GET /comments/:commentId",
+                path: z.object({ commentId: z.coerce.number() }),
+                handler: () => {
+                  throw new Error("this is a test!");
+                },
+              }),
+            },
+          }),
+        },
+      }),
+      { handleErrors: false }
+    )
   );
   let gotErr;
   app.use(

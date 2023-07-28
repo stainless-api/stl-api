@@ -16,6 +16,7 @@ import {
   EndpointResponseOutput,
   StlContext,
   RequestData,
+  EndpointResponseInput,
 } from "stainless";
 import { parseEndpoint, type AnyEndpoint } from "stainless";
 
@@ -45,15 +46,32 @@ export type AddToExpressOptions = CreateExpressHandlerOptions & {
 };
 
 /**
- * Runs Stainless middleware and gets the Stainless request and context values
+ * Runs Stainless middleware and gets the parsed params
  * for a given Stainless API Endpoint and Express Request/Response.
  *
  * @param endpoint the endpoint to execute the request on
  * @param req the Express request
  * @param res the Express response
- * @returns a Promise that resolves to [request, context]
+ * @returns a Promise that resolves to the parsed params
  */
-export async function stlPrepareExpressRequest<EC extends AnyEndpoint>(
+export async function parseParams<EC extends AnyEndpoint>(
+  endpoint: EC,
+  req: Request,
+  res: Response
+): Promise<RequestData<EC["path"], EC["query"], EC["body"]>> {
+  return (await parseParamsWithContext(endpoint, req, res))[0];
+}
+
+/**
+ * Runs Stainless middleware and gets the parsed params and context
+ * for a given Stainless API Endpoint and Express Request/Response.
+ *
+ * @param endpoint the endpoint to execute the request on
+ * @param req the Express request
+ * @param res the Express response
+ * @returns a Promise that resolves to [params, context]
+ */
+export async function parseParamsWithContext<EC extends AnyEndpoint>(
   endpoint: EC,
   req: Request,
   res: Response
@@ -80,7 +98,24 @@ export async function stlPrepareExpressRequest<EC extends AnyEndpoint>(
     headers,
   });
 
-  return await stl.prepareRequest(params, context);
+  return await stl.parseParamsWithContext(params, context);
+}
+
+/**
+ * Creates a response for the given Stainless endpoint.
+ * @param endpoint An endpoint with a response schema
+ * @param response The response data
+ * @returns A promise that resolves to the schema-parsed response body,
+ * or rejects if `response` fails validation
+ */
+export async function makeResponse<EC extends AnyEndpoint>(
+  endpoint: EC,
+  response: EndpointResponseInput<EC>
+): Promise<EndpointResponseOutput<EC>> {
+  if (!endpoint.response) {
+    throw new Error("endpoint has no response schema");
+  }
+  return await endpoint.response.parseAsync(response);
 }
 
 /**
@@ -93,7 +128,7 @@ export async function stlPrepareExpressRequest<EC extends AnyEndpoint>(
  * @returns a Promise that resolves to the return value of the endpoint handler,
  * or rejects if it throws an error
  */
-export async function stlExecuteExpressRequest<EC extends AnyEndpoint>(
+export async function executeRequest<EC extends AnyEndpoint>(
   endpoint: AnyEndpoint,
   req: Request,
   res: Response
@@ -126,7 +161,7 @@ export async function stlExecuteExpressRequest<EC extends AnyEndpoint>(
 /**
  * Creates an express route handler function for the given stainless endpoint.
  */
-export function stlExpressRouteHandler(
+function expressHandler(
   endpoint: AnyEndpoint,
   options: CreateExpressHandlerOptions
 ): RequestHandler {
@@ -136,7 +171,7 @@ export function stlExpressRouteHandler(
     next: NextFunction
   ): Promise<void> => {
     try {
-      const result = await stlExecuteExpressRequest(endpoint, req, res);
+      const result = await executeRequest(endpoint, req, res);
       res.status(200).json(result);
       return;
     } catch (error) {
@@ -145,13 +180,13 @@ export function stlExpressRouteHandler(
         return;
       }
 
-      stlExpressErrorHandler(error, req, res, next);
+      errorHandler(error, req, res, next);
       return;
     }
   };
 }
 
-export const methodNotAllowedHandler: RequestHandler = (
+const methodNotAllowedHandler: RequestHandler = (
   req: Request,
   res: Response
 ) => {
@@ -162,7 +197,7 @@ export const methodNotAllowedHandler: RequestHandler = (
  * The default Express error handler middleware for errors thrown from
  * Stainless endpoints
  */
-export const stlExpressErrorHandler: ErrorRequestHandler = (
+const errorHandler: ErrorRequestHandler = (
   error: any,
   req: Request,
   res: Response
@@ -205,7 +240,7 @@ function convertExpressPath(
 /**
  * Registers a Stainless endpoint with the given Express Application or Router.
  */
-export function addStlEndpointToExpress(
+export function addEndpointRoute(
   router: Application | Router,
   endpoint: AnyEndpoint,
   options?: AddToExpressOptions
@@ -225,7 +260,7 @@ export function addStlEndpointToExpress(
   router[loweredMethod](
     expressPath,
     // @ts-expect-error this is valid
-    stlExpressRouteHandler(endpoint, options)
+    expressHandler(endpoint, options)
   );
 }
 
@@ -278,7 +313,7 @@ type AddEndpointsToExpressOptions = AddToExpressOptions & {
 /**
  * Registers all endpoints in a Stainless resource with the given Express Application or Router.
  */
-export function addStlResourceToExpress(
+function addResourceRoutes(
   router: Application | Router,
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
   options?: AddEndpointsToExpressOptions
@@ -288,13 +323,13 @@ export function addStlResourceToExpress(
     for (const action of Object.keys(actions)) {
       const endpoint = actions[action];
       if (!endpoint) continue;
-      addStlEndpointToExpress(router, endpoint, options);
+      addEndpointRoute(router, endpoint, options);
     }
   }
   if (options?.addMethodNotAllowedHandlers !== false) {
     if (namespacedResources) {
       for (const name of Object.keys(namespacedResources)) {
-        addStlResourceToExpress(router, namespacedResources[name], options);
+        addResourceRoutes(router, namespacedResources[name], options);
       }
     }
     addMethodNotAllowedHandlers(router, resource, options);
@@ -304,7 +339,7 @@ export function addStlResourceToExpress(
 /**
  * Creates an Express Router for the given Stainless resource
  */
-export function stlExpressResourceRouter(
+export function resourceRouter(
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
   options?: AddEndpointsToExpressOptions & RouterOptions
 ): Router {
@@ -312,20 +347,20 @@ export function stlExpressResourceRouter(
   router.use(express.json());
   router.use(express.text());
   router.use(express.raw());
-  addStlResourceToExpress(router, resource, options);
+  addResourceRoutes(router, resource, options);
   return router;
 }
 
 /**
  * Registers all endpoints in a Stainless API with the given Express Application or Router.
  */
-export function addStlAPIToExpress(
+function addAPIRoutes(
   router: Application | Router,
   api: AnyAPIDescription,
   options?: AddEndpointsToExpressOptions
 ) {
   const { topLevel, resources } = api;
-  addStlResourceToExpress(
+  addResourceRoutes(
     router,
     {
       actions: topLevel.actions,
@@ -338,7 +373,7 @@ export function addStlAPIToExpress(
 /**
  * Creates an Express Router for the given Stainless API
  */
-export function stlExpressAPIRouter(
+export function apiRouter(
   api: AnyAPIDescription,
   options?: AddEndpointsToExpressOptions
 ): Router {
@@ -346,18 +381,6 @@ export function stlExpressAPIRouter(
   router.use(express.json());
   router.use(express.text());
   router.use(express.raw());
-  addStlAPIToExpress(router, api, options);
+  addAPIRoutes(router, api, options);
   return router;
-}
-
-export function stlExpressAPI(
-  api: AnyAPIDescription,
-  options?: AddEndpointsToExpressOptions
-): Application {
-  const app = express();
-  app.use(express.json());
-  app.use(express.text());
-  app.use(express.raw());
-  addStlAPIToExpress(app, api, options);
-  return app;
 }

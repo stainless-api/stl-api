@@ -709,8 +709,7 @@ export class Stl<Plugins extends AnyPlugins> {
   }
 
   /**
-   * Runs middleware and gets the request and context arguments to
-   * pass to an endpoint handlers.
+   * Runs middleware and gets the parsed params to pass to an endpoint handler.
    * This should not be called in typical use.
    * It is primarily useful for implementing a plugin for
    * integrating with an underluing server implementation.
@@ -719,7 +718,25 @@ export class Stl<Plugins extends AnyPlugins> {
    * @param context context with `stl` and request-specific data
    * @returns a Promise that resolves to [request, context]
    */
-  async prepareRequest<EC extends AnyEndpoint>(
+  async parseParams<EC extends AnyEndpoint>(
+    params: Params,
+    context: StlContext<EC>
+  ): Promise<RequestData<EC["path"], EC["query"], EC["body"]>> {
+    return (await this.parseParamsWithContext(params, context))[0];
+  }
+
+  /**
+   * Runs middleware and gets the parsed params and context arguments to
+   * pass to an endpoint handler.
+   * This should not be called in typical use.
+   * It is primarily useful for implementing a plugin for
+   * integrating with an underluing server implementation.
+   * For a usage example, see `../../express/src/index.ts`.
+   * @param params request params
+   * @param context context with `stl` and request-specific data
+   * @returns a Promise that resolves to [request, context]
+   */
+  async parseParamsWithContext<EC extends AnyEndpoint>(
     params: Params,
     context: StlContext<EC>
   ): Promise<
@@ -789,7 +806,7 @@ export class Stl<Plugins extends AnyPlugins> {
       throw new Error(`no endpoint handler defined`);
     }
 
-    const [request, ctx] = await this.prepareRequest(params, context);
+    const [request, ctx] = await this.parseParamsWithContext(params, context);
 
     const responseInput = await endpoint.handler(request, ctx);
 
