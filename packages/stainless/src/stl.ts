@@ -2,6 +2,7 @@ import * as z from "./z";
 import * as t from "./t";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
+import coerceParams from "./coerceParams";
 export { type SelectTree, parseSelect } from "./parseSelect";
 export { z, t };
 export { createClient } from "./client";
@@ -144,6 +145,9 @@ export interface EndpointConfig {
   // auth etc goes here.
 }
 
+const coercedPath = Symbol("coercedPath");
+const coercedQuery = Symbol("coercedQuery");
+
 export interface BaseEndpoint<
   Config extends EndpointConfig | undefined,
   MethodAndUrl extends HttpEndpoint,
@@ -157,7 +161,9 @@ export interface BaseEndpoint<
   response: Response;
   config: Config;
   path: Path;
+  [coercedPath]?: Path;
   query: Query;
+  [coercedQuery]?: Query;
   body: Body;
 }
 
@@ -739,12 +745,18 @@ export class Stl<Plugins extends AnyPlugins> {
     };
 
     try {
-      context.parsedParams.query = await context.endpoint.query
-        ?.parseAsync(params.query, parseParams)
-        .catch(prependZodPath("<stainless request query>"));
-      context.parsedParams.path = await context.endpoint.path
-        ?.parseAsync(params.path, parseParams)
-        .catch(prependZodPath("<stainless request path>"));
+      if (context.endpoint.query) {
+        context.endpoint[coercedQuery] ??= coerceParams(context.endpoint.query);
+        context.parsedParams.query = await context.endpoint[coercedQuery]
+          .parseAsync(params.query, parseParams)
+          .catch(prependZodPath("<stainless request query>"));
+      }
+      if (context.endpoint.path) {
+        context.endpoint[coercedPath] ??= coerceParams(context.endpoint.path);
+        context.parsedParams.path = await context.endpoint[coercedPath]
+          .parseAsync(params.path, parseParams)
+          .catch(prependZodPath("<stainless request path>"));
+      }
       context.parsedParams.body = await context.endpoint.body
         ?.parseAsync(params.body, parseParams)
         .catch(prependZodPath("<stainless request body>"));
