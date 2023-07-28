@@ -7,7 +7,6 @@ type PathParams = {
 type QueryParams = {
   boolean?: boolean;
   number?: number;
-  bigint?: bigint;
   string?: string;
   date?: Date;
 };

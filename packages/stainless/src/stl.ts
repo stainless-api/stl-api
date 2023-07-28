@@ -274,7 +274,7 @@ export function isAPIDescription(value: unknown): value is AnyAPIDescription {
  */
 export type APIDescription<
   BasePath extends HttpPath,
-  TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
+  TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any> | undefined,
   Resources extends Record<string, AnyResourceConfig> | undefined
 > = {
   [apiSymbol]: true;
@@ -585,8 +585,10 @@ interface CreateResourceOptions<
 /** Parameters for {@link Stl.api} */
 interface CreateApiOptions<
   BasePath extends HttpPath,
-  TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
-  Resources extends Record<string, AnyResourceConfig> | undefined
+  TopLevel extends
+    | ResourceConfig<AnyActionsConfig, undefined, any>
+    | undefined = undefined,
+  Resources extends Record<string, AnyResourceConfig> | undefined = undefined
 > {
   basePath: BasePath;
   /**
@@ -922,8 +924,10 @@ export class Stl<Plugins extends AnyPlugins> {
    */
   api<
     BasePath extends HttpPath,
-    TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any>,
-    Resources extends Record<string, AnyResourceConfig> | undefined
+    TopLevel extends
+      | ResourceConfig<AnyActionsConfig, undefined, any>
+      | undefined = undefined,
+    Resources extends Record<string, AnyResourceConfig> | undefined = undefined
   >({
     basePath,
     openapi,
@@ -931,7 +935,10 @@ export class Stl<Plugins extends AnyPlugins> {
     resources,
   }: CreateApiOptions<BasePath, TopLevel, Resources>): APIDescription<
     BasePath,
-    TopLevel & OpenAPITopLevel<typeof openapi>,
+    TopLevel extends AnyResourceConfig
+      ? TopLevel & OpenAPITopLevel<typeof openapi>
+      : OpenAPITopLevel<typeof openapi> &
+          ResourceConfig<{}, undefined, undefined>,
     Resources
   > {
     const openapiEndpoint = openapi?.endpoint ?? `GET ${basePath}/openapi`;
@@ -963,7 +970,10 @@ export class Stl<Plugins extends AnyPlugins> {
     // ensures if openApi.endpoint !== false, then getOpenapi is provided
     return apiDescription as APIDescription<
       BasePath,
-      TopLevel & OpenAPITopLevel<typeof openapi>,
+      TopLevel extends AnyResourceConfig
+        ? TopLevel & OpenAPITopLevel<typeof openapi>
+        : OpenAPITopLevel<typeof openapi> &
+            ResourceConfig<{}, undefined, undefined>,
       Resources
     >;
   }
