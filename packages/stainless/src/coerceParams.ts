@@ -50,11 +50,8 @@ export const defaultCoerceBoolean = z
  * very helpful for params.
  */
 export const defaultCoerceString = z
-  .preprocess(
-    (value) =>
-      value == null || typeof value === "object" ? value : String(value),
-    z.string().nullish()
-  )
+  .string()
+  .nullish()
   .describe("defaultCoerceString");
 
 /**

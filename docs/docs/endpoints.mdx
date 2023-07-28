@@ -169,3 +169,121 @@ The [schema](/stl/schemas/runtime-zod-schemas) for the query (search) parameters
 ### `body`
 
 The [schema](/stl/schemas/runtime-zod-schemas) for the request body parameters.
+
+## Path and query parameter coercion
+
+Since the raw path and query parameters from an HTTP request are strings, if you
+provide a number, boolean, Date, or bigint schema for a parameter, Stainless will
+automatically coerce the raw value to that type.
+
+To accomplish this Stainless deeply maps the parameter schemas, adding a coercion
+preprocess step anywhere a number, boolean, Date or bigint schema is encountered.
+
+### Coercion defaults
+
+Stainless provides carefully-considered default coercion which is much more
+reasonable for path and query parameters than e.g. `z.coerce.number()`, which
+just does `Number(rawValue)`, meaning that `?num=` would get coerced to
+`{ num: 0 }`.
+
+#### Nullish values
+
+Boolean, number, Date and bigint coercion all share the following `null` and
+`undefined` coercion rules:
+
+| Raw Value (case insensitive) | Coerced Value |
+| ---------------------------- | ------------- |
+| `undefined`                  | `undefined`   |
+| `'undefined'`                | `undefined`   |
+| `''`                         | `undefined`   |
+| `null`                       | `null`        |
+| `'null'`                     | `null`        |
+| `'nil'`                      | `null`        |
+
+### Boolean coercion
+
+In addition to the [nullish rules](#nullish-values), booleans are coerced as follows:
+
+| Raw Value (case insensitive) | Coerced Value |
+| ---------------------------- | ------------- |
+| `true`                       | `true`        |
+| `'true'`                     | `true`        |
+| `false`                      | `false`       |
+| `'false'`                    | `false`       |
+
+### Number coercion
+
+In addition to the [nullish rules](#nullish-values), numbers are coerced as follows:
+
+| Raw Value (case insensitive) | Coerced Value |
+| ---------------------------- | ------------- |
+| `'-2.3e-6'`                  | `-2.3e-6`     |
+| `'Infinity'`                 | `Infinity`    |
+| `'-Infinity'`                | `-Infinity`   |
+| `'NaN'`                      | `Error`       |
+| `true`                       | `1`           |
+| `'true'`                     | `Error`       |
+| `false`                      | `0`           |
+| `'false'`                    | `Error`       |
+
+### BigInt coercion
+
+In addition to the [nullish rules](#nullish-values), bigints are coerced as follows:
+
+| Raw Value (case insensitive) | Coerced Value |
+| ---------------------------- | ------------- |
+| `'25'`                       | `25n`         |
+| `'-25'`                      | `-25n`        |
+| `true`                       | `1n`          |
+| `'true'`                     | `Error`       |
+| `false`                      | `0n`          |
+| `'false'`                    | `Error`       |
+
+### Date coercion
+
+In addition to the [nullish rules](#nullish-values), Dates are coerced as follows:
+
+| Raw Value (case insensitive)                                | Coerced Value             |
+| ----------------------------------------------------------- | ------------------------- |
+| `'2021'` (any year <= 3000)                                 | `new Date('2021')`        |
+| `2021`                                                      | `new Date(2021)`          |
+| `'1609909200'` (stringified unix timestamp)                 | `new Date(1609909200000)` |
+| `1609909200`                                                | `new Date(1609909200)`    |
+| `'1609909200000'` (stringified number > max unix timestamp) | `new Date(1609909200000)` |
+| `1609909200000`                                             | `new Date(1609909200000)` |
+| `'Jan 6 2021'`                                              | `new Date('Jan 6 2021')`  |
+| `'Jan'`                                                     | `Error`                   |
+| `true`                                                      | `Error`                   |
+| `false`                                                     | `Error`                   |
+
+### Overridding the default coercion
+
+The default Stainless coercion should be reasonable for many use cases, but if
+it's not perfect for your use case, you may wish to override it (especially when
+it comes to Date parameters). To override, you can create a custom schema like
+this:
+
+<Tabs groupId="schema-variants">
+<TabItem value="codegen" label="Codegen types">
+
+```ts
+import { t } from "stainless";
+
+class DateParam extends t.Schema<Date, unknown> {
+  transform(value: unknown): Date {
+    return new Date(String(value)); // or your custom date parsing logic
+  }
+}
+```
+
+</TabItem>
+<TabItem value="runtime" label="Zod schemas">
+
+```ts
+const DateParam = z.unknown().transform(
+  (value) => new Date(String(value)) // or your custom date parsing logic
+);
+```
+
+</TabItem>
+</Tabs>

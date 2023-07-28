@@ -50,10 +50,10 @@ defaultCoerceTests(defaultCoerceString, [
   [null, null],
   ["null", "null"],
   ["nil", "nil"],
-  [true, "true"],
+  [true, new Error()],
   ["true", "true"],
   ["false", "false"],
-  [false, "false"],
+  [false, new Error()],
   [{}, new Error()],
   [[], new Error()],
 ]);
@@ -98,7 +98,7 @@ defaultCoerceTests(defaultCoerceBigInt, [
   // @ts-ignore
   [false, 0n],
   // @ts-ignore
-  [25, 25n],
+  [-25, -25n],
   // @ts-ignore
   ["25", 25n],
   ["2.6", new Error()],
@@ -143,11 +143,9 @@ describe("coerceParams", () => {
       coerceParams(z.date().withMetadata({ foo: "bar" })).parse("2021-03-03")
     ).toEqual(new Date("2021-03-03"));
   });
-  it("ZodString in ZodArray", function () {
-    expect(coerceParams(z.string().array()).parse([1, 2, 3])).toEqual([
-      "1",
-      "2",
-      "3",
+  it("ZodNumber in ZodArray", function () {
+    expect(coerceParams(z.number().array()).parse(["1", "2", "3"])).toEqual([
+      1, 2, 3,
     ]);
   });
   it("ZodNumber in ZodLazy", function () {
@@ -158,9 +156,9 @@ describe("coerceParams", () => {
       coerceParams(
         z
           .object({ a: z.string(), b: z.number(), c: z.boolean() })
-          .catchall(z.string())
-      ).parse({ a: 123, b: "456", c: "true", d: true })
-    ).toEqual({ a: "123", b: 456, c: true, d: "true" });
+          .catchall(z.number())
+      ).parse({ a: "123", b: "456", c: "true", d: "789" })
+    ).toEqual({ a: "123", b: 456, c: true, d: 789 });
   });
   it("ZodBoolean in ZodCatch", function () {
     expect(coerceParams(z.boolean().catch(true)).parse("false")).toEqual(false);
@@ -206,8 +204,8 @@ describe("coerceParams", () => {
   });
   it("ZodMap", function () {
     expect(
-      coerceParams(z.map(z.string(), z.number())).parse(new Map([[1, "2"]]))
-    ).toEqual(new Map([["1", 2]]));
+      coerceParams(z.map(z.number(), z.number())).parse(new Map([["1", "2"]]))
+    ).toEqual(new Map([[1, 2]]));
   });
   it("ZodDiscriminatedUnion", function () {
     const schema = coerceParams(
@@ -217,7 +215,7 @@ describe("coerceParams", () => {
       ])
     );
     expect(schema.parse({ type: "a", a: "1" })).toEqual({ type: "a", a: 1 });
-    expect(schema.parse({ type: "b", b: 2 })).toEqual({ type: "b", b: "2" });
+    expect(schema.parse({ type: "b", b: "2" })).toEqual({ type: "b", b: "2" });
   });
   it("ZodUnion", function () {
     const schema = coerceParams(
@@ -227,7 +225,7 @@ describe("coerceParams", () => {
       ])
     );
     expect(schema.parse({ type: "a", a: "1" })).toEqual({ type: "a", a: 1 });
-    expect(schema.parse({ type: "b", b: 2 })).toEqual({ type: "b", b: "2" });
+    expect(schema.parse({ type: "b", b: "2" })).toEqual({ type: "b", b: "2" });
   });
   it("ZodUnion of ZodLiterals", function () {
     const schema = coerceParams(
@@ -236,7 +234,7 @@ describe("coerceParams", () => {
     expect(schema.parse(1)).toEqual(1);
     expect(schema.parse("1")).toEqual(1);
     expect(schema.parse("2")).toEqual(2);
-    expect(schema.parse(123)).toEqual("123");
+    expect(schema.parse("123")).toEqual("123");
     expect(() => schema.parse("4")).toThrow();
     expect(() => schema.parse(4)).toThrow();
   });
@@ -247,7 +245,7 @@ describe("coerceParams", () => {
         z.object({ a: z.number(), b: z.string() })
       )
     );
-    expect(schema.parse({ a: "1", b: 5 })).toEqual({ a: 1, b: "5" });
+    expect(schema.parse({ a: "1", b: "5" })).toEqual({ a: 1, b: "5" });
     expect(() => schema.parse({ a: "1" })).toThrow();
   });
   it("ZodRecord", function () {
@@ -255,7 +253,7 @@ describe("coerceParams", () => {
     expect(schema.parse({ a: "1", b: "2" })).toEqual({ a: 1, b: 2 });
   });
   it("ZodTuple", function () {
-    const schema = coerceParams(z.tuple([z.number(), z.string()]));
-    expect(schema.parse(["1", 2])).toEqual([1, "2"]);
+    const schema = coerceParams(z.tuple([z.number(), z.string(), z.boolean()]));
+    expect(schema.parse(["1", "2", "false"])).toEqual([1, "2", false]);
   });
 });
