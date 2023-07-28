@@ -103,7 +103,7 @@ export type Handler<
 /**
  * An object merging properties from path, query, and body params
  */
-type RequestData<
+export type RequestData<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined
@@ -709,25 +709,22 @@ export class Stl<Plugins extends AnyPlugins> {
   }
 
   /**
-   * Handles an incoming request by invoking the endpoint for it.
+   * Runs middleware and gets the request and context arguments to
+   * pass to an endpoint handlers.
    * This should not be called in typical use.
    * It is primarily useful for implementing a plugin for
    * integrating with an underluing server implementation.
-   * For a usage example, see `../../next/src/nextPlugin.rs`.
-   * @param endpoint endpoint to handle incoming request
+   * For a usage example, see `../../express/src/index.ts`.
    * @param params request params
-   * @param context context with `stl` and request-specific
-   * data
-   * @returns request response
+   * @param context context with `stl` and request-specific data
+   * @returns a Promise that resolves to [request, context]
    */
-  async execute<EC extends AnyEndpoint>(
+  async prepareRequest<EC extends AnyEndpoint>(
     params: Params,
     context: StlContext<EC>
-  ): Promise<ExtractExecuteResponse<EC>> {
-    if (!context.endpoint.handler) {
-      throw new Error(`no endpoint handler defined`);
-    }
-
+  ): Promise<
+    [RequestData<EC["path"], EC["query"], EC["body"]>, StlContext<EC>]
+  > {
     await this.loadEndpointTypeSchemas(context.endpoint);
 
     for (const plugin of Object.values(this.stainlessPlugins)) {
@@ -769,12 +766,39 @@ export class Stl<Plugins extends AnyPlugins> {
     }
 
     const { query, path, body } = context.parsedParams;
-    const responseInput = await context.endpoint.handler(
-      { ...body, ...path, ...query },
-      context as any as StlContext<EC>
-    );
-    const response = context.endpoint.response
-      ? await context.endpoint.response.parseAsync(responseInput, parseParams)
+    return [{ ...path, ...query, ...body }, context] as any;
+  }
+
+  /**
+   * Handles an incoming request by invoking the endpoint for it.
+   * This should not be called in typical use.
+   * It is primarily useful for implementing a plugin for
+   * integrating with an underluing server implementation.
+   * For a usage example, see `../../next/src/nextPlugin.ts`.
+   * @param endpoint endpoint to handle incoming request
+   * @param params request params
+   * @param context context with `stl` and request-specific data
+   * @returns request response
+   */
+  async execute<EC extends AnyEndpoint>(
+    params: Params,
+    context: StlContext<EC>
+  ): Promise<ExtractExecuteResponse<EC>> {
+    const { endpoint } = context;
+    if (!endpoint.handler) {
+      throw new Error(`no endpoint handler defined`);
+    }
+
+    const [request, ctx] = await this.prepareRequest(params, context);
+
+    const responseInput = await endpoint.handler(request, ctx);
+
+    const parseParams = {
+      stlContext: ctx,
+    };
+
+    const response = endpoint.response
+      ? await endpoint.response.parseAsync(responseInput, parseParams)
       : undefined;
 
     return response;
