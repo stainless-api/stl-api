@@ -560,13 +560,13 @@ export abstract class PrismaModelLoader<O, I> extends t.Schema<O, I> {
     | (() => {
         findUniqueOrThrow(args: any): Promise<O>;
       });
-  async transform(id: I, ctx: StlContext<any>): Promise<O> {
+  async transform(id: t.output<I>, ctx: StlContext<any>): Promise<t.output<O>> {
     const query = { where: { id } };
     const prisma: PrismaContext<any> = (ctx as any).prisma;
     const model = typeof this.model === "function" ? this.model() : this.model;
     if (prisma && model === prisma.prismaModel) {
       return await prisma.findUniqueOrThrow(query);
     }
-    return await model.findUniqueOrThrow(query);
+    return (await model.findUniqueOrThrow(query)) as any;
   }
 }
