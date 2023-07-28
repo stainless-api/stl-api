@@ -1,5 +1,6 @@
 import { SelectTree, parseSelect } from "./parseSelect";
-import { z, StlContext } from "./stl";
+import * as z from "./z";
+import { type StlContext } from "./stl";
 import { isEmpty, isPlainObject } from "lodash";
 
 export const selectsSymbol = Symbol("selects");
