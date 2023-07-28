@@ -1,5 +1,4 @@
-import { create } from "../../../../api/posts/create";
-import { list } from "../../../../api/posts/list";
+import { create, list } from "../../../../api/posts/index";
 import { stlNextAppRoute } from "@stl-api/next";
 
 const routerOptions = {

@@ -1,4 +1,4 @@
-import { User, UserSelection } from "../users/models";
+import { User, UserSelection } from "../users/index";
 import { z } from "stainless";
 import prisma from "../../libs/prismadb";
 
