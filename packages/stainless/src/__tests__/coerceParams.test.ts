@@ -84,6 +84,17 @@ describe("coerceParams", () => {
     expect(schema.parse({ type: "a", a: "1" })).toEqual({ type: "a", a: 1 });
     expect(schema.parse({ type: "b", b: 2 })).toEqual({ type: "b", b: "2" });
   });
+  it("ZodUnion of ZodLiterals", function () {
+    const schema = coerceParams(
+      z.union([z.literal(1), z.literal(2), z.literal(3), z.literal("123")])
+    );
+    expect(schema.parse(1)).toEqual(1);
+    expect(schema.parse("1")).toEqual(1);
+    expect(schema.parse("2")).toEqual(2);
+    expect(schema.parse(123)).toEqual("123");
+    expect(() => schema.parse("4")).toThrow();
+    expect(() => schema.parse(4)).toThrow();
+  });
   it("ZodIntersection", function () {
     const schema = coerceParams(
       z.intersection(
@@ -91,7 +102,8 @@ describe("coerceParams", () => {
         z.object({ a: z.number(), b: z.string() })
       )
     );
-    expect(schema.parse({ a: "1" })).toEqual({ a: 1, b: "undefined" });
+    expect(schema.parse({ a: "1", b: 5 })).toEqual({ a: 1, b: "5" });
+    expect(() => schema.parse({ a: "1" })).toThrow();
   });
   it("ZodRecord", function () {
     const schema = coerceParams(z.record(z.string(), z.number()));
