@@ -488,7 +488,8 @@ async function evaluate(
 
     // remove all of the now-unneeded codegen import declarations
     for (const importDeclaration of currentImports.values()) {
-      fileImportOperations.push(() => importDeclaration.remove());
+      // TODO: disabled due to removal of used import statements
+      // fileImportOperations.push(() => importDeclaration.remove());
     }
   }
 
