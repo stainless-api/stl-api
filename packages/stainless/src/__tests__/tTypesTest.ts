@@ -1,4 +1,3 @@
-import * as t from "../t";
 import * as z from "../z";
 
 export const PrismaModelSymbol = Symbol("PrismaModel");
@@ -9,7 +8,7 @@ interface PrismaHelpers {
   findUniqueOrThrow(args: any): Promise<any>;
 }
 
-export abstract class PrismaModel<O> extends t.Schema<O> {
+export abstract class PrismaModel<O> extends z.Schema<O> {
   declare [PrismaModelSymbol]: true;
   declare abstract model: PrismaHelpers;
   declare metadata: MakePrismaModelMetadata<this["model"]>;
@@ -23,7 +22,7 @@ type FindUniqueOrThrowResult<D extends PrismaHelpers> = D extends {
   ? Result
   : never;
 
-export abstract class PrismaModelLoader<O, I> extends t.Schema<O, I> {
+export abstract class PrismaModelLoader<O, I> extends z.Schema<O, I> {
   declare [PrismaModelLoaderSymbol]: true;
   declare abstract model: PrismaHelpers & {
     findUniqueOrThrow(args: any): Promise<O>;
@@ -37,15 +36,15 @@ type C = B<A>;
 type Post = {
   id: string;
   body: string;
-  user?: t.Includable<User>;
-  comments?: t.Includable<Comment[]>;
+  user?: z.Includable<User>;
+  comments?: z.Includable<Comment[]>;
 };
 
 type Comment = {
   id: string;
   body: string;
-  user?: t.Includable<User>;
-  post?: t.Includable<Post>;
+  user?: z.Includable<User>;
+  post?: z.Includable<Post>;
 };
 
 export function prismaModel<M>(model: M) {
@@ -69,17 +68,17 @@ class UserId extends PrismaModelLoader<PrismaUser, string> {
 class User extends PrismaModel<{
   id: string;
   email: string;
-  posts: t.Includable<Post[]>;
-  comments?: t.Includable<Comment[]>;
+  posts: z.Includable<Post[]>;
+  comments?: z.Includable<Comment[]>;
 }> {
   model = prisma.user;
 }
 
-type Q = t.toZod<t.Includable<Post[]> | undefined>;
+type Q = z.toZod<z.Includable<Post[]> | undefined>;
 
-type UserInput = t.input<User>;
-type UserOutput = t.output<User["input"]>;
-type UserZod = t.toZod<User>;
+type UserInput = z.In<User>;
+type UserOutput = z.Out<User["input"]>;
+type UserZod = z.toZod<User>;
 type UserZodInput = z.input<UserZod>;
 type UserZodOutput = z.output<UserZod>;
 

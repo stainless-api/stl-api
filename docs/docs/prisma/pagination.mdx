@@ -21,7 +21,7 @@ We plan to remove these limitations in the future.
 
 ## Easiest method: `ctx.prisma.paginate(options)`
 
-If your endpoint `response` declares a `t.PrismaModel<>`, you will
+If your endpoint `response` declares a `z.PrismaModel<>`, you will
 be able to call `ctx.prisma.paginate()`, and it will make the
 necessary `findMany` for the pagination params from the query and
 and additional options you provide:
@@ -38,9 +38,9 @@ import { stl } from "~/libs/stl";
 import { PostResponse } from "./models";
 
 // This assumes Post has a PrismaModel
-// declaration attached to it; t.PageResponse inherits
+// declaration attached to it; z.PageResponse inherits
 // the prisma model.
-type PagePostResponse = t.PageResponse<PostResponse>;
+type PagePostResponse = z.PageResponse<PostResponse>;
 
 type QueryParams = {
   // TODO: add support for default values
@@ -110,7 +110,7 @@ or `response` fields.
 params, but unlike [`paginate()`](#easiest-method-ctxprismapaginateoptions), it resolves to the array of items
 directly from Prisma.
 
-We plan to make [`t.PageResponse<>`](/stl/pagination#tpageresponseitem)
+We plan to make [`z.PageResponse<>`](/stl/pagination#tpageresponseitem)
 schemas accept an array of items
 as input soon, but currently you must pass the items to
 [`stl.plugins.prisma.pagination.makeResponse()`](#stlpluginsprismapaginationmakeresponsepaginationparams-items)

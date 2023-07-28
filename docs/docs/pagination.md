@@ -37,7 +37,7 @@ convention](/stl/intro#pristine).
 - `hasPreviousPage` (optional boolean) - whether there are more items before this page.
   May be omitted when paginating backward with `pageBefore`.
 
-[`z.pageResponse`](#zpageresponseitem) and [`t.PageResponse`](#tpageresponse) provide Zod schemas for these response fields.
+[`z.pageResponse`](#zpageresponseitem) and [`z.PageResponse`](#tpageresponse) provide Zod schemas for these response fields.
 
 ### Forward and backward pagination
 
@@ -51,7 +51,7 @@ equal to `A` as long as no underlying data has changed.
 `stainless` exports the following types from
 `import { t } from 'stainless'`:
 
-### `t.PageResponse<I>`:
+### `z.PageResponse<I>`:
 
 Creates a Zod schema for a page response with an item schema from type
 `I`. The output type of this schema is `z.PageData<I>`.

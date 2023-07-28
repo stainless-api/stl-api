@@ -1,7 +1,7 @@
 import { testCase } from "./testCase";
 import { multiFileTestCase } from "./multiFileTestCase";
 
-import { StlContext, t } from "stainless";
+import { z } from "stainless";
 
 type anyType = any;
 it(`any`, () =>
@@ -372,11 +372,10 @@ it(`mapped type`, () =>
     `"z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })"`
   ));
 
-import { z } from "zod";
 export const objectSchema = z.object({ a: z.string() });
 
 type zodSchemaProperty = {
-  zod: t.ZodSchema<{ schema: typeof objectSchema }>;
+  zod: z.ZodSchema<{ schema: typeof objectSchema }>;
 };
 
 it(`zod schema property`, async () =>
@@ -394,7 +393,7 @@ const zodSchemaProperty: z.ZodTypeAny = z.object({ zod: z.lazy(() => BasicsTest.
 }
 `));
 
-export class TransformSchema extends t.Schema<string, number> {
+export class TransformSchema extends z.Schema<string, number> {
   transform(value: number): string {
     return String(value);
   }
@@ -415,7 +414,7 @@ export const TransformSchema: z.ZodTypeAny = z.number().stlTransform(new BasicsT
 }
 `));
 
-export class ValidateSchema extends t.Schema<string> {
+export class ValidateSchema extends z.Schema<string> {
   validate(input: string): boolean {
     return input.length % 2 === 0;
   }
@@ -436,7 +435,7 @@ export const ValidateSchema: z.ZodTypeAny = z.string().refine(new BasicsTest.Val
 }
 `));
 
-export class ValidateTransformSchema extends t.Schema<string, number> {
+export class ValidateTransformSchema extends z.Schema<string, number> {
   validate(input: number): boolean {
     return input % 2 === 0;
   }

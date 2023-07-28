@@ -7,7 +7,6 @@ import {
   SelectTree,
   NotFoundError,
   z,
-  t,
 } from "stainless";
 import { includeSubPaths } from "./includeUtils";
 import { isPlainObject } from "lodash";
@@ -542,7 +541,7 @@ export const PrismaModelSymbol = Symbol("PrismaModel");
 
 type MakePrismaModelMetadata<M> = { stainless: { prismaModel: () => M } };
 
-export abstract class PrismaModel<O> extends t.Schema<O> {
+export abstract class PrismaModel<O> extends z.Schema<O> {
   declare [PrismaModelSymbol]: true;
   declare abstract model: PrismaHelpers;
   declare metadata: MakePrismaModelMetadata<this["model"]>;
@@ -550,9 +549,9 @@ export abstract class PrismaModel<O> extends t.Schema<O> {
 
 export const PrismaModelLoaderSymbol = Symbol("PrismaModelLoader");
 
-export abstract class PrismaModelLoader<O, I> extends t.Schema<O, I> {
+export abstract class PrismaModelLoader<O, I> extends z.Schema<O, I> {
   declare [PrismaModelLoaderSymbol]: true;
-  declare [t.EffectsSymbol]: true;
+  declare [z.EffectsSymbol]: true;
   declare abstract model:
     | {
         findUniqueOrThrow(args: any): Promise<O>;
@@ -560,7 +559,7 @@ export abstract class PrismaModelLoader<O, I> extends t.Schema<O, I> {
     | (() => {
         findUniqueOrThrow(args: any): Promise<O>;
       });
-  async transform(id: t.output<I>, ctx: StlContext<any>): Promise<t.output<O>> {
+  async transform(id: z.Out<I>, ctx: StlContext<any>): Promise<z.Out<O>> {
     const query = { where: { id } };
     const prisma: PrismaContext<any> = (ctx as any).prisma;
     const model = typeof this.model === "function" ? this.model() : this.model;

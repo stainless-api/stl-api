@@ -267,9 +267,9 @@ this:
 <TabItem value="codegen" label="Codegen types">
 
 ```ts
-import { t } from "stainless";
+import { z } from "stainless";
 
-class DateParam extends t.Schema<Date, unknown> {
+class DateParam extends z.Schema<Date, unknown> {
   transform(value: unknown): Date {
     return new Date(String(value)); // or your custom date parsing logic
   }

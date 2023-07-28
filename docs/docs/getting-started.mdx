@@ -67,7 +67,7 @@ import prisma from "~/libs/prisma";
 
 export class User extends PrismaModel {
   declare input: {
-    id: t.StringSchema<{ uuid: true }>;
+    id: z.StringSchema<{ uuid: true }>;
 
     username: string | null;
     email: string | null;
@@ -76,7 +76,7 @@ export class User extends PrismaModel {
     createdAt: Date;
     updatedAt: Date;
 
-    followingIds: t.StringSchema<{ uuid: true }>[];
+    followingIds: z.StringSchema<{ uuid: true }>[];
     hasNotification: boolean | null;
     followersCount: number;
   };

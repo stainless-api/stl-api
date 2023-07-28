@@ -50,19 +50,19 @@ the same format as `include`).
 ## Implementing select
 
 You can add support for a selectable field by marking it
-`t.Selectable<>` in the response schema and adding
-`select: t.Selects<>` to your query schema:
+`z.Selectable<>` in the response schema and adding
+`select: z.Selects<>` to your query schema:
 
 :::caution
 
-Currently, the `t.Selects<>` parameter must be named
+Currently, the `z.Selects<>` parameter must be named
 `select` and declared in the `query`.
 
 :::
 
 :::info
 
-Although `t.Selectable<>` can be can be instantiated with any type,
+Although `z.Selectable<>` can be can be instantiated with any type,
 it only works with schemas of type object or array of objects.
 
 :::
@@ -79,7 +79,7 @@ import prisma from "~/libs/prismadb";
 
 export class UserResponse extends PrismaModel {
   declare input: {
-    id: t.StringSchema<{ uuid: true }>;
+    id: z.StringSchema<{ uuid: true }>;
     name?: string;
   };
   model = primsa.user;
@@ -87,9 +87,9 @@ export class UserResponse extends PrismaModel {
 
 export class PostResponse extends PrismaModel {
   declare input: {
-    id: t.StringSchema<{ uuid: true }>;
+    id: z.StringSchema<{ uuid: true }>;
     body: string;
-    user_fields: t.Selectable<UserResponse>;
+    user_fields: z.Selectable<UserResponse>;
   };
   model = prisma.post;
 }
@@ -104,7 +104,7 @@ type PathParams = {
 };
 
 type QueryParams = {
-  select?: t.Selects<PostResponse>;
+  select?: z.Selects<PostResponse>;
 };
 
 export const retrieve = stl
@@ -160,9 +160,9 @@ export const retrieve = stl.endpoint({
 </TabItem>
 </Tabs>
 
-`t.Selects<Post>` creates a schema that automatically validates
+`z.Selects<Post>` creates a schema that automatically validates
 the `select` query parameter from the response properties
-that are marked `t.Selectable<>` (including any nested selectable
+that are marked `z.Selectable<>` (including any nested selectable
 properties).
 
 ## Automatic Prisma integration
@@ -223,7 +223,7 @@ const SelectablePost: z.CircularModel<
 
 // .prismaModel() must be called separately so that the z.ZodType annotation
 // doesn't erase its type information
-const Post = SelectablePost.prismaModel(prisma.post);
+const Post = SelectablePosz.prismaModel(prisma.post);
 
 export const retrieve = stl.endpoint({
   endpoint: "GET /api/posts/{post}",
