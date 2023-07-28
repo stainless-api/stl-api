@@ -459,3 +459,31 @@ export const ValidateTransformSchema: z.ZodTypeAny = z.number().refine(new Basic
 ",
 }
 `));
+
+export class ValidateTransformDefaultSchema extends z.Schema<string, number> {
+  default = "42";
+
+  validate(input: number): boolean {
+    return input % 2 === 0;
+  }
+
+  transform(input: number): string {
+    return String(input);
+  }
+}
+
+it(`schema with validate, transform, default`, async () =>
+  expect(
+    await multiFileTestCase({
+      __filename,
+      getNode: (sourceFile) =>
+        sourceFile.getClass("ValidateTransformDefaultSchema"),
+    })
+  ).toMatchInlineSnapshot(`
+{
+  "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
+import * as BasicsTest from "./basics.test";
+export const ValidateTransformDefaultSchema: z.ZodTypeAny = z.number().refine(new BasicsTest.ValidateTransformDefaultSchema().validate).stlTransform(new BasicsTest.ValidateTransformDefaultSchema().transform).default(new BasicsTest.ValidateTransformDefaultSchema().default);
+",
+}
+`));

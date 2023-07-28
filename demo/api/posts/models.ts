@@ -7,7 +7,6 @@ import { PrismaModel, PrismaModelLoader } from "@stl-api/prisma";
 import { PostResponse as PostResponseSchema } from "../../.stl-codegen/api/posts/models";
 import { Post as RawPrismaPost } from "@prisma/client";
 
-type Uuid = z.StringSchema<{ uuid: true }>;
 export const IncludableUserSchema = z.lazy(() => User).includable();
 export const SelectableUserSchema = z.lazy(() => UserSelection).selectable();
 export const IncludableCommentsSchema = z
@@ -18,12 +17,12 @@ export const IncludableCommentsFieldSchema = z
   .selectable();
 
 type PostProps = {
-  id: Uuid;
+  id: z.UUID;
   body: string;
   createdAt: Date;
   updatedAt: Date;
-  userId: Uuid;
-  likedIds: Uuid[];
+  userId: z.UUID;
+  likedIds: z.UUID[];
   image?: string | null;
   user: z.ZodSchema<{ schema: typeof IncludableUserSchema }>;
   user_fields: z.ZodSchema<{ schema: typeof SelectableUserSchema }>;

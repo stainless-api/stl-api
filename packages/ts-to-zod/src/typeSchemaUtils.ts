@@ -14,6 +14,7 @@ export const numberSchemaProperties = new Set([
   "nonpositive",
   "finite",
   "safe",
+  "default",
 ]);
 
 export const stringSchemaProperties = new Set([
@@ -35,6 +36,7 @@ export const stringSchemaProperties = new Set([
   "trim",
   "toLowerCase",
   "toUpperCase",
+  "default",
 ]);
 
 export const bigIntSchemaProperties = new Set([
@@ -49,6 +51,7 @@ export const bigIntSchemaProperties = new Set([
   "nonnegative",
   "negative",
   "nonpositive",
+  "default",
 ]);
 
 export const dateSchemaProperties = new Set(["min", "max"]);

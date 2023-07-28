@@ -832,6 +832,8 @@ export abstract class BaseSchema {
 export class Schema<O, I = O> extends BaseSchema {
   declare input: I;
   declare output: O;
+  declare default: O | (() => O);
+
   validate(value: Out<I>, ctx: StlContext<any>): void {}
   transform(
     value: Out<I>,
@@ -986,7 +988,11 @@ export interface StringSchemaProps {
   trim?: true;
   toLowerCase?: true;
   toUpperCase?: true;
+
+  default?: string;
 }
+
+export type UUID = StringSchema<{ uuid: true }>;
 
 export const StringSchemaSymbol = Symbol("StringSchema");
 
@@ -1016,6 +1022,8 @@ export interface NumberSchemaProps {
   nonpositive?: OptionalMessage<true>;
   finite?: OptionalMessage<true>;
   safe?: OptionalMessage<true>;
+
+  default?: number;
 }
 
 export const NumberSchemaSymbol = Symbol("NumberSchema");
@@ -1042,6 +1050,8 @@ export interface BigIntSchemaProps {
   nonnegative?: OptionalMessage<true>;
   negative?: OptionalMessage<true>;
   nonpositive?: OptionalMessage<true>;
+
+  default?: bigint;
 }
 
 export const BigIntSchemaSymbol = Symbol("BigIntSchema");

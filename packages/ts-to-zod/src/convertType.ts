@@ -12,6 +12,7 @@ import {
   stringSchemaProperties,
 } from "./typeSchemaUtils";
 import { convertSchema } from "./convertSchema";
+import { number } from "zod";
 
 export interface Diagnostics {
   errors: Incident[];
@@ -1586,6 +1587,9 @@ function convertSchemaType(
       continue;
     }
 
+    // default is generated after `z.schemaTypeName`
+    if (name === "default") continue;
+
     // ip and datetime are special in that they can take an object as a
     // parameter. This requires special logic in a few cases.
     const ipDatetimeSpecialCase = name === "ip" || name === "datetime";
@@ -1712,6 +1716,22 @@ function convertSchemaType(
     }
   }
 
+  const defaultProperty = typeArgs.getProperty("default");
+  if (defaultProperty) {
+    const defaultLiteral = defaultProperty
+      .getTypeAtLocation(ctx.node)
+      .getLiteralValue();
+    if (!defaultLiteral) {
+      ctx.addError(diagnosticItem, {
+        message: "`default` must be provided a literal value.",
+      });
+    } else {
+      expression = methodCall(expression, "default", [
+        convertLiteralValueToExpression(defaultLiteral),
+      ]);
+    }
+  }
+
   return expression;
 }
 
@@ -1831,18 +1851,17 @@ export function getPropertyDeclaration(
   }
 }
 
-/** Converts a path into an identifier suitable for local use within a file */
-function mangleString(str: string): string {
-  const unicodeLetterRegex = /\p{L}/u;
-  const escapedStringBuilder = ["__"];
-  for (const codePointString of str) {
-    if (codePointString === Path.sep) {
-      escapedStringBuilder.push("$");
-    } else if (unicodeLetterRegex.test(codePointString)) {
-      escapedStringBuilder.push(codePointString);
-    } else {
-      escapedStringBuilder.push(`u${codePointString.codePointAt(0)}`);
-    }
+function convertLiteralValueToExpression(
+  literal: string | number | ts.PseudoBigInt | undefined
+) {
+  switch (typeof literal) {
+    case "string":
+      return factory.createStringLiteral(literal);
+    case "number":
+      return factory.createNumericLiteral(literal);
+    case "undefined":
+      return factory.createIdentifier("undefined");
+    default:
+      return factory.createBigIntLiteral(literal);
   }
-  return escapedStringBuilder.join("");
 }

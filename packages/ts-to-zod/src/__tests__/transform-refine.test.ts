@@ -23,6 +23,7 @@ type T = {
     finite: true;
     safe: "too big";
     gt: [5, "5 and below too small!"];
+    default: 10;
   }>;
   object: z.ObjectSchema<{}, { passthrough: true }>;
   aliasedObject: z.ObjectSchema<Aliased, { strict: true }>;
@@ -46,11 +47,11 @@ it(`transform`, async () =>
     })
   ).toMatchInlineSnapshot(`
 {
-  "src/__tests__/transform-refine.tesz.codegen.ts": "import { z } from "zod";
+  "src/__tests__/transform-refine.test.codegen.ts": "import { z } from "zod";
 import * as TransformRefineTest from "./transform-refine.test";
 export const ParsePet: z.ZodTypeAny = z.string().refine(new TransformRefineTest.ParsePet().validate);
 const Aliased: z.ZodTypeAny = z.object({ x: z.string() });
-const T: z.ZodTypeAny = z.object({ a: z.date().transform(new TransformRefineTesz.ToString().transform).transform(new TransformRefineTesz.ParseFloat().transform), b: z.string().transform(new TransformRefineTesz.Coerce().transform), c: z.string().refine(new TransformRefineTesz.ParsePet().refine, new TransformRefineTesz.ParsePet().message), d: z.number().superRefine(new TransformRefineTesz.Even().superRefine), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!"), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()), includes: z.includes(z.lazy(() => Aliased), 3), deepIncludes: z.includes(z.lazy(() => Aliased), 5), selectable: z.lazy(() => Aliased).selectable(), selection: z.lazy(() => Aliased).selection(), pageResponse: z.pageResponse(z.lazy(() => Aliased)) });
+const T: z.ZodTypeAny = z.object({ c: z.lazy(() => ParsePetSchema), date: z.date().min(new Date("2023-01-10")), number: z.number().finite().safe("too big").gt(5, "5 and below too small!").default(10), object: z.object({}).passthrough(), aliasedObject: z.object({ x: z.string() }).strict(), array: z.array(z.number().nullable()).nonempty().min(5, "at least five elements needed"), datetime: z.string().datetime({ offset: true }), catchall: z.object({ a: z.number() }).catchall(z.string()), includes: z.includes(z.lazy(() => Aliased), 3), deepIncludes: z.includes(z.lazy(() => Aliased), 5), selectable: z.lazy(() => Aliased).selectable(), selection: z.lazy(() => Aliased).selection(), pageResponse: z.pageResponse(z.lazy(() => Aliased)) });
 ",
 }
 `));

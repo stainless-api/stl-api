@@ -53,13 +53,18 @@ export function convertSchema(
     typeFilePath,
     true
   );
+  const newClassExpression = factory.createNewExpression(
+    classExpression,
+    undefined,
+    []
+  );
 
   let schemaExpression = convertType(ctx, inputType, diagnosticItem);
 
   if (declaration.getMethod("validate")) {
     schemaExpression = methodCall(schemaExpression, "refine", [
       factory.createPropertyAccessExpression(
-        factory.createNewExpression(classExpression, undefined, []),
+        newClassExpression,
         factory.createIdentifier("validate")
       ),
     ]);
@@ -67,8 +72,17 @@ export function convertSchema(
   if (declaration.getMethod("transform")) {
     schemaExpression = methodCall(schemaExpression, "stlTransform", [
       factory.createPropertyAccessExpression(
-        factory.createNewExpression(classExpression, undefined, []),
+        newClassExpression,
         factory.createIdentifier("transform")
+      ),
+    ]);
+  }
+
+  if (declaration.getProperty("default")) {
+    schemaExpression = methodCall(schemaExpression, "default", [
+      factory.createPropertyAccessExpression(
+        newClassExpression,
+        factory.createIdentifier("default")
       ),
     ]);
   }
