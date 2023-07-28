@@ -2,6 +2,7 @@ import { z } from "stainless";
 import { stl } from "../libs/stl";
 import { users } from "./users";
 import { posts } from "./posts";
+import { params } from "./params";
 import { comments } from "./comments";
 
 export const api = stl.api({
@@ -13,6 +14,7 @@ export const api = stl.api({
     users,
     posts,
     comments,
+    params,
     test: stl.resource({
       summary: "test",
       internal: false,
