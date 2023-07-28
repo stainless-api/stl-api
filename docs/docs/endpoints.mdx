@@ -215,16 +215,16 @@ In addition to the [nullish rules](#nullish-values), booleans are coerced as fol
 
 In addition to the [nullish rules](#nullish-values), numbers are coerced as follows:
 
-| Raw Value (case insensitive) | Coerced Value |
-| ---------------------------- | ------------- |
-| `'-2.3e-6'`                  | `-2.3e-6`     |
-| `'Infinity'`                 | `Infinity`    |
-| `'-Infinity'`                | `-Infinity`   |
-| `'NaN'`                      | `Error`       |
-| `true`                       | `1`           |
-| `'true'`                     | `Error`       |
-| `false`                      | `0`           |
-| `'false'`                    | `Error`       |
+| Raw Value (⚠️ ️case _sensitive_) | Coerced Value |
+| -------------------------------- | ------------- |
+| `'-2.3e-6'`                      | `-2.3e-6`     |
+| `'Infinity'`                     | `Infinity`    |
+| `'-Infinity'`                    | `-Infinity`   |
+| `'NaN'`                          | `Error`       |
+| `true`                           | `1`           |
+| `'true'`                         | `Error`       |
+| `false`                          | `0`           |
+| `'false'`                        | `Error`       |
 
 ### BigInt coercion
 
