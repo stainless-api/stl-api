@@ -1,9 +1,9 @@
 import { stl } from "../../libs/stl";
-import { z, t } from "stainless";
+import { z } from "stainless";
 import { PostResponse } from "./models";
 
 type QueryParams = {
-  include?: t.Includes<PostResponse, 3>;
+  include?: z.Includes<PostResponse, 3>;
 };
 
 type Body = {
