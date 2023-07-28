@@ -14,6 +14,8 @@ import {
   AnyAPIDescription,
   AnyActionsConfig,
   EndpointResponseOutput,
+  StlContext,
+  RequestData,
 } from "stainless";
 import { parseEndpoint, type AnyEndpoint } from "stainless";
 
@@ -41,6 +43,45 @@ export type AddToExpressOptions = CreateExpressHandlerOptions & {
    */
   basePathMap?: BasePathMap;
 };
+
+/**
+ * Runs Stainless middleware and gets the Stainless request and context values
+ * for a given Stainless API Endpoint and Express Request/Response.
+ *
+ * @param endpoint the endpoint to execute the request on
+ * @param req the Express request
+ * @param res the Express response
+ * @returns a Promise that resolves to [request, context]
+ */
+export async function stlPrepareExpressRequest<EC extends AnyEndpoint>(
+  endpoint: EC,
+  req: Request,
+  res: Response
+): Promise<[RequestData<EC["path"], EC["query"], EC["body"]>, StlContext<EC>]> {
+  const { params: path, headers, body, query } = req;
+
+  const { stl } = endpoint;
+
+  const server: ExpressServerContext = {
+    type: "express",
+    args: [req, res],
+  };
+
+  const context = stl.initContext({
+    endpoint,
+    headers,
+    server,
+  });
+
+  const params = stl.initParams({
+    path,
+    query,
+    body,
+    headers,
+  });
+
+  return await stl.prepareRequest(params, context);
+}
 
 /**
  * Executes the given Express request on the given Stainless API Endpoint, returning

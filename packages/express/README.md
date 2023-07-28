@@ -30,6 +30,7 @@ Use this package to serve a Stainless API in an [Express](https://expressjs.com/
     - [Options](#options-6)
     - [Notes](#notes-6)
   - [Execute a Stainless API Endpoint for an Express request](#execute-a-stainless-api-endpoint-for-an-express-request)
+  - [Prepare a request for a Stainless API Endpoint and Express request](#prepare-a-request-for-a-stainless-api-endpoint-and-express-request)
 - [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions)
   - [`basePathMap?: Record<string, string>`](#basepathmap-recordstring-string)
   - [`handleErrors?: boolean` (default: `true`)](#handleerrors-boolean-default-true)
@@ -309,6 +310,38 @@ export const app = express();
 
 app.get("/api/posts/:postId", express.json(), (req: Request, res: Response) => {
   const response = await stlExecuteExpressRequest(retrievePosts, req, res);
+  res.status(200).json(response);
+});
+```
+
+## Prepare a request for a Stainless API Endpoint and Express request
+
+```ts
+stlPrepareExpressRequest<EC extends AnyEndpoint>(
+  endpoint: AnyEndpoint,
+  req: Request,
+  res: Response
+): Promise<[RequestData<EC["path"], EC["query"], EC["body"]>, StlContext<EC>]>
+```
+
+```ts
+import express, { Request, Response } from "express";
+import { stlPrepareExpressRequest } from "@stl-api/express";
+import retrievePosts from "./posts/retrieve";
+import prisma from "../libs/prismadb";
+
+export const app = express();
+
+app.get("/api/posts/:postId", express.json(), (req: Request, res: Response) => {
+  const [{ postId }, stlContext] = await stlPrepareExpressRequest(
+    retrievePosts,
+    req,
+    res
+  );
+  const post = await prisma.posts.findUniqueOrThrow({ where: { id: postId } });
+  const repsonse = await retrievePosts.response.parseAsync(responseInput, {
+    stlContext,
+  });
   res.status(200).json(response);
 });
 ```
