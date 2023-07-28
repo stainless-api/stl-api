@@ -1,11 +1,7 @@
-import fetch from "node-fetch";
-import { baseUrl } from "../testClient";
+import { testClient } from "../testClient";
 
 it("/api/openapi", async function () {
-  // testClient.getOpenapi() doesn't work yet because we don't
-  // have the path map build step yet
-  expect(await (await fetch(`${baseUrl}/openapi`)).json())
-    .toMatchInlineSnapshot(`
+  expect(await testClient.getOpenapi()).toMatchInlineSnapshot(`
     {
       "components": {
         "schemas": {
@@ -654,6 +650,96 @@ it("/api/openapi", async function () {
                     "schema": {
                       "properties": {},
                       "type": "object",
+                    },
+                  },
+                },
+                "description": "success",
+              },
+            },
+            "summary": "TODO",
+          },
+        },
+        "/api/params/{id}": {
+          "get": {
+            "description": "TODO",
+            "parameters": [
+              {
+                "in": "path",
+                "name": "id",
+                "required": true,
+                "schema": {
+                  "type": "number",
+                },
+              },
+              {
+                "in": "query",
+                "name": "boolean",
+                "schema": {
+                  "type": "boolean",
+                },
+              },
+              {
+                "in": "query",
+                "name": "number",
+                "schema": {
+                  "type": "number",
+                },
+              },
+              {
+                "in": "query",
+                "name": "string",
+                "schema": {
+                  "type": "string",
+                },
+              },
+              {
+                "in": "query",
+                "name": "date",
+                "schema": {
+                  "type": "string",
+                },
+              },
+            ],
+            "requestBody": {
+              "content": {
+                "application/json": {},
+              },
+            },
+            "responses": {
+              "200": {
+                "content": {
+                  "application/json": {
+                    "schema": {
+                      "allOf": [
+                        {
+                          "properties": {
+                            "id": {
+                              "type": "number",
+                            },
+                          },
+                          "required": [
+                            "id",
+                          ],
+                          "type": "object",
+                        },
+                        {
+                          "properties": {
+                            "boolean": {
+                              "type": "boolean",
+                            },
+                            "date": {
+                              "type": "string",
+                            },
+                            "number": {
+                              "type": "number",
+                            },
+                            "string": {
+                              "type": "string",
+                            },
+                          },
+                          "type": "object",
+                        },
+                      ],
                     },
                   },
                 },

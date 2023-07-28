@@ -2,7 +2,6 @@ import { z } from "stainless";
 export const QueryParams: z.ZodTypeAny = z.object({
   boolean: z.boolean().optional(),
   number: z.number().optional(),
-  bigint: z.bigint().optional(),
   string: z.string().optional(),
   date: z.date().optional(),
 });
