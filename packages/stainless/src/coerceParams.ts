@@ -170,6 +170,19 @@ export const defaultCoerceDate = z
   }, z.date().nullish())
   .describe("defaultCoerceDate");
 
+/**
+ * Deeply converts boolean, string, number, bigint, or date schemas within the given
+ * schema to automatically coerce their input.
+ *
+ * This is for path and query param schemas, which are typically objects with primitive
+ * properties, but could be arbitrarily complex according to what the user defines.
+ *
+ * For example if we wanted to parse an optional number query parameter like `?foo=123`,
+ * the user would provide `z.object({ foo: z.number().optional() })`.  However the raw
+ * value of the query would be `{ foo: '123' }` and the string value would fail parsing.
+ * But `coerceParams(z.object({ foo: z.number().optional() }))` creates a schema that
+ * will automatically coerce and output `{ foo: 123 }`.
+ */
 export default function coerceParams<T extends z.ZodTypeAny>(
   schema: T,
   {
