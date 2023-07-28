@@ -941,7 +941,7 @@ type schemaTypeToZod<T extends BaseSchema> = T extends {
   ? z.ZodEffects<toZod<I>, IncludableOutput<Out<I>>, IncludableInput<In<I>>>
   : T extends { [EffectsSymbol]: true; input: infer I; output: infer O }
   ? z.ZodEffects<toZod<I>, Out<O>, In<I>>
-  : toZod<T["input"]>;
+  : toZod<T["output"]>;
 
 export type OptionalMessage<T> = T extends true
   ? true | string
