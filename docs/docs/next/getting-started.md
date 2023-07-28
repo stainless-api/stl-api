@@ -19,10 +19,6 @@ Use this plugin to serve a Stainless API in a Next.js app.
 npm i --save 'stainless-api/stl-api#next-0.0.2'
 ```
 
-```
-npm i --save 'stainless-api/stl-api#next-0.0.2'
-```
-
 ## Next configuration
 
 If you're using the Stainless CLI to generate schemas from TS types,
