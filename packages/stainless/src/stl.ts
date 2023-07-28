@@ -1154,7 +1154,7 @@ interface TypeEndpointParams<
 > {
   endpoint: MethodAndUrl;
   config?: Config;
-  handler: Handler<
+  handler?: Handler<
     StlContext<BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>>,
     Path,
     Query,
