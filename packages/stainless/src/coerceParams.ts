@@ -135,10 +135,8 @@ export const defaultCoerceBigInt = z
  *   ?end_date=null            ZodError
  *   ?end_date=                ZodError
  *   ?end_date=1690517078852   ZodError
- *   ?
  *
- * z.coerce.bigint() just does JS `BigInt('')` coercion, which unfortunately
- * evaluates to `0n`.
+ * z.coerce.date() just does JS `new Date(...)` coercion.
  */
 export const defaultCoerceDate = z
   .preprocess((value) => {
