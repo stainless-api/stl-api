@@ -1,44 +1,176 @@
 import * as z from "./z";
 
-// z.coerce has problems in general...
-// z.coerce.boolean().parse('false') === true
-// z.coerce.number().parse('') === 0
-// z.coerce.string().parse(undefined) === 'undefined'
+/**
+ * 🤨 Why not use z.coerce.boolean()?
+ *
+ * Well, you'd probably want `?foo=false` to coerce to `{ foo: false }`.
+ * But if your schema was
+ *
+ *   z.object({ foo: z.coerce.boolean().optional() })
+ *
+ * It would coerce `?foo=false` to `{ foo: true }`...z.coerce.boolean() just
+ * does JS `Boolean('false')` coercion, which isn't very helpful for params.
+ *
+ * defaultCoerceBoolean coerces `?foo=false` to `{ foo: false }`
+ */
+export const defaultCoerceBoolean = z
+  .preprocess((value) => {
+    switch (typeof value === "string" ? value.toLowerCase() : value) {
+      case undefined:
+      case "undefined": // Code might request `?foo=undefined`
+      case "": // Code might request `?foo=`
+        return undefined;
+      case null:
+      case "null": // Code might request `?foo=null`
+      case "nil": // Maybe python could request `?foo=nil`
+        return null;
+      case true:
+      case "true":
+        return true;
+      case false:
+      case "false":
+        return false;
+      default:
+        return value; // let z.boolean() throw an error with the raw value
+    }
+  }, z.boolean().nullish())
+  .describe("defaultCoerceBoolean");
 
-const defaultCoerceBoolean = z.preprocess((value) => {
-  switch (typeof value === "string" ? value.toLowerCase() : value) {
-    case undefined:
-    case null:
-    case true:
-    case false:
-      return value;
-    case "t":
-    case "true":
-      return true;
-    case "f":
-    case "false":
-      return false;
-  }
-  return Boolean(value);
-}, z.boolean().nullish());
+/**
+ * 🤨 Why not use z.coerce.string()?
+ *
+ * Well, if you happen to have a required string param, you'd probably want
+ * to throw an error if it wasn't provided.  But that's not what would happen
+ * with this schema:
+ *
+ *   const schema = z.object({ foo: z.coerce.string() })
+ *   const parsed = schema.parse({}) // { foo: 'undefined' }
+ *
+ * z.coerce.string() just does JS `String(undefined)` coercion, which isn't
+ * very helpful for params.
+ */
+export const defaultCoerceString = z
+  .preprocess(
+    (value) =>
+      value == null || typeof value === "object" ? value : String(value),
+    z.string().nullish()
+  )
+  .describe("defaultCoerceString");
 
-const defaultCoerceString = z.preprocess(
-  (value) => (value == null ? value : String(value)),
-  z.string().nullish()
-);
+/**
+ * 🤨 Why not use z.coerce.number()?
+ *
+ * Well, if you happen to have a number param `foo`, you probably wouldn't
+ * want `?foo=` (an empty string) to get coerced to `0`. But that's not
+ * what happens with this schema:
+ *
+ *   const schema = z.object({ foo: z.coerce.number().optional() })
+ *   const parsed = schema.parse({ foo: '' }) // { foo: 0 }
+ *
+ * z.coerce.number() just does JS `Number('')` coercion, which unfortunately
+ * evaluates to `0`.
+ */
+export const defaultCoerceNumber = z
+  .preprocess((value) => {
+    switch (typeof value === "string" ? value.toLowerCase() : value) {
+      case null:
+      case "null": // Code might request `?foo=null`
+      case "nil": // Maybe python could request `?foo=nil`
+        return null;
+      case undefined:
+      case "undefined": // Code might request `?foo=undefined`
+      case "": // Number('') === 0 😱 Code might request `?foo=`
+        return undefined;
+      default:
+        const parsed = Number(value);
+        if (typeof value === "object" || isNaN(parsed)) {
+          return value; // let z.number() throw an error with the raw value
+        }
+        return parsed;
+    }
+  }, z.number().nullish())
+  .describe("defaultCoerceNumber");
 
-const defaultCoerceNumber = z.preprocess(
-  (value) => (value == null ? value : value === "" ? NaN : Number(value)),
-  z.number().nullish()
-);
+/**
+ * 🤨 Why not use z.coerce.bigint()?
+ *
+ * Well, if you have a bigint param `foo`, you probably wouldn't
+ * want `?foo=` (an empty string) to get coerced to `0`. But that's not
+ * what happens with this schema:
+ *
+ *   const schema = z.object({ foo: z.coerce.bigint().optional() })
+ *   const parsed = schema.parse({ foo: '' }) // { foo: 0n }
+ *
+ * z.coerce.bigint() just does JS `BigInt('')` coercion, which unfortunately
+ * evaluates to `0n`.
+ */
+export const defaultCoerceBigInt = z
+  .preprocess((value) => {
+    switch (typeof value === "string" ? value.toLowerCase() : value) {
+      case null:
+      case "null": // Code might request `?foo=null`
+      case "nil": // Maybe python could request `?foo=nil`
+        return null;
+      case undefined:
+      case "undefined": // Code might request `?foo=undefined`
+      case "": // Bigint('') === 0n 😱 Code might request `?foo=`
+        return undefined;
+      default:
+        if (typeof value === "object") return value; // let z.bigint() throw an error with the raw value
+        try {
+          return BigInt(value as any);
+        } catch (error) {
+          return value; // let z.bigint() throw an error with the raw value
+        }
+    }
+  }, z.bigint().nullish())
+  .describe("defaultCoerceBigint");
 
-const defaultCoerceBigInt = z.preprocess(
-  (value) =>
-    value == null ? value : value === "" ? undefined : BigInt(String(value)),
-  z.bigint().nullish()
-);
-
-const defaultCoerceDate = z.coerce.date();
+/**
+ * 🤨 Why not use z.coerce.date()?
+ *
+ * Well, there are many requests you can imagine code making that wouldn't
+ * work well with z.coerce.date()...
+ *
+ *   ?end_date=null            ZodError
+ *   ?end_date=                ZodError
+ *   ?end_date=1690517078852   ZodError
+ *   ?
+ *
+ * z.coerce.bigint() just does JS `BigInt('')` coercion, which unfortunately
+ * evaluates to `0n`.
+ */
+export const defaultCoerceDate = z
+  .preprocess((value) => {
+    switch (typeof value === "string" ? value.toLowerCase() : value) {
+      case null: // new Date(null) => 1970-01-01T00:00:00.000Z 😱 Code might request `?foo=null`
+      case "null":
+      case "nil": // Maybe python could request `?foo=nil`
+        return null;
+      case undefined:
+      case "undefined": // Code might request `?foo=undefined`
+      case "": // Code might request `?foo=`
+        return undefined;
+    }
+    switch (typeof value) {
+      case "string":
+        if (/\d+/.test(value)) {
+          // Code might request a timestamp like `?end_date=1690516673486
+          let num = Number(value);
+          if (num > 3000) {
+            // ?end_date=2021 would probably mean Jan 1, 2021
+            if (num < -(1 << 31)) num *= 1000; // new Date(num) is still in 1970...most likely a unix timestamp
+            value = num;
+          }
+        }
+        return new Date(value as any);
+      case "number":
+        return new Date(value);
+      default:
+        return value; // will pass if value is a Date; otherwise let z.date() throw an error with the raw value
+    }
+  }, z.date().nullish())
+  .describe("defaultCoerceDate");
 
 export default function coerceParams<T extends z.ZodTypeAny>(
   schema: T,
@@ -157,9 +289,9 @@ export default function coerceParams<T extends z.ZodTypeAny>(
       return coerceParamsInner(
         (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.in
       ).pipe(
-        coerceParamsInner(
-          (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.out
-        )
+        // probably shouldn't coerce in pipeline output...
+        // pipeline input should have already taken care of coercion
+        (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.out
       ) as any;
     }
     if (schema instanceof z.ZodMap) {

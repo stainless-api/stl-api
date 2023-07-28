@@ -1,5 +1,141 @@
-import { z } from "../stl";
-import coerceParams from "../coerceParams";
+import * as z from "../z";
+import { inspect } from "util";
+import coerceParams, {
+  defaultCoerceBoolean,
+  defaultCoerceNumber,
+  defaultCoerceString,
+  defaultCoerceBigInt,
+  defaultCoerceDate,
+} from "../coerceParams";
+
+function defaultCoerceTests<T extends z.ZodTypeAny>(
+  schema: T,
+  cases: [any, z.output<T> | Error][]
+) {
+  describe(schema.description || String(schema), () => {
+    for (const [input, expected] of cases) {
+      it(`${inspect(input)} -> ${inspect(expected)}`, () => {
+        if (expected instanceof Error) {
+          expect(() => schema.parse(input)).toThrow();
+        } else {
+          expect(schema.parse(input)).toEqual(expected);
+        }
+      });
+    }
+  });
+}
+
+defaultCoerceTests(defaultCoerceBoolean, [
+  [undefined, undefined],
+  ["undefined", undefined],
+  ["", undefined],
+  [null, null],
+  ["null", null],
+  ["nil", null],
+  [true, true],
+  ["true", true],
+  ["false", false],
+  [false, false],
+  [0, new Error()],
+  [1, new Error()],
+  ["a", new Error()],
+  [{}, new Error()],
+  [[], new Error()],
+]);
+
+defaultCoerceTests(defaultCoerceString, [
+  [undefined, undefined],
+  ["undefined", "undefined"],
+  ["", ""],
+  [null, null],
+  ["null", "null"],
+  ["nil", "nil"],
+  [true, "true"],
+  ["true", "true"],
+  ["false", "false"],
+  [false, "false"],
+  [{}, new Error()],
+  [[], new Error()],
+]);
+
+defaultCoerceTests(defaultCoerceNumber, [
+  [undefined, undefined],
+  ["undefined", undefined],
+  ["", undefined],
+  [null, null],
+  ["null", null],
+  ["nil", null],
+  [true, 1],
+  ["true", new Error()],
+  ["false", new Error()],
+  [false, 0],
+  [2.5, 2.5],
+  ["2.5", 2.5],
+  ["-2.3e-6", -2.3e-6],
+  ["Infinity", Infinity],
+  [Infinity, Infinity],
+  ["-Infinity", -Infinity],
+  [-Infinity, -Infinity],
+  ["NaN", new Error()],
+  [NaN, new Error()],
+  ["1a", new Error()],
+  ["-", new Error()],
+  [{}, new Error()],
+  [[], new Error()],
+]);
+
+defaultCoerceTests(defaultCoerceBigInt, [
+  [undefined, undefined],
+  ["undefined", undefined],
+  ["", undefined],
+  [null, null],
+  ["null", null],
+  ["nil", null],
+  // @ts-ignore
+  [true, 1n],
+  ["true", new Error()],
+  ["false", new Error()],
+  // @ts-ignore
+  [false, 0n],
+  // @ts-ignore
+  [25, 25n],
+  // @ts-ignore
+  ["25", 25n],
+  ["2.6", new Error()],
+  ["Infinity", new Error()],
+  [Infinity, new Error()],
+  ["-Infinity", new Error()],
+  [-Infinity, new Error()],
+  ["NaN", new Error()],
+  [NaN, new Error()],
+  ["1a", new Error()],
+  ["-", new Error()],
+  [{}, new Error()],
+  [[], new Error()],
+]);
+
+defaultCoerceTests(defaultCoerceDate, [
+  [undefined, undefined],
+  ["undefined", undefined],
+  ["", undefined],
+  [null, null],
+  ["null", null],
+  ["nil", null],
+  ["2021", new Date("2021")],
+  [2021, new Date(2021)],
+  ["1609909200", new Date("Jan 6 2021")],
+  [1609909200, new Date(1609909200)],
+  ["1609909200000", new Date("Jan 6 2021")],
+  [1609909200000, new Date("Jan 6 2021")],
+  ["Jan 6 2021", new Date("Jan 6 2021")],
+  [new Date("Jan 6 2021"), new Date("Jan 6 2021")],
+  ["Jan", new Error()],
+  ["a", new Error()],
+  [true, new Error()],
+  [false, new Error()],
+  [{}, new Error()],
+  [[], new Error()],
+]);
 
 describe("coerceParams", () => {
   it("ZodDate with ZodMetadata", () => {
@@ -27,7 +163,8 @@ describe("coerceParams", () => {
     ).toEqual({ a: "123", b: 456, c: true, d: "true" });
   });
   it("ZodBoolean in ZodCatch", function () {
-    expect(coerceParams(z.boolean().catch(true)).parse("")).toEqual(false);
+    expect(coerceParams(z.boolean().catch(true)).parse("false")).toEqual(false);
+    expect(coerceParams(z.boolean().catch(true)).parse("")).toEqual(undefined);
   });
   it("ZodNumber in ZodBranded", function () {
     expect(coerceParams(z.number().brand("foo")).parse("123")).toEqual(123);
@@ -57,7 +194,15 @@ describe("coerceParams", () => {
     ).toEqual(246);
   });
   it("ZodPipeline", function () {
-    expect(coerceParams(z.string().pipe(z.boolean())).parse(456)).toEqual(true);
+    expect(() =>
+      coerceParams(z.string().pipe(z.number())).parse(456)
+    ).toThrow();
+    expect(coerceParams(z.number().pipe(z.number().max(5))).parse("5")).toEqual(
+      5
+    );
+    expect(() =>
+      coerceParams(z.number().pipe(z.number().max(5))).parse("6")
+    ).toThrow();
   });
   it("ZodMap", function () {
     expect(

@@ -1,4 +1,5 @@
-import { z, StlContext } from "./stl";
+import * as z from "./z";
+import { type StlContext } from "./stl";
 
 export const includesSymbol = Symbol("includes");
 
