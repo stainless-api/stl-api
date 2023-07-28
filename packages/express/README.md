@@ -8,36 +8,27 @@ Use this package to serve a Stainless API in an [Express](https://expressjs.com/
 - [Table of Contents](#table-of-contents)
 - [Getting started](#getting-started)
   - [Installation](#installation)
-  - [Create an Express Application from a Stainless API](#create-an-express-application-from-a-stainless-api)
-    - [Options](#options)
-    - [Notes](#notes)
-  - [Create an Express Router from a Stainless API](#create-an-express-router-from-a-stainless-api)
-    - [Options](#options-1)
-    - [Notes](#notes-1)
-  - [Create an Express Router from a Stainless API Resource](#create-an-express-router-from-a-stainless-api-resource)
-    - [Options](#options-2)
-    - [Notes](#notes-2)
-  - [Register Stainless API Endpoints on an Express Application or Router](#register-stainless-api-endpoints-on-an-express-application-or-router)
-    - [Options](#options-3)
-    - [Notes](#notes-3)
-  - [Register Stainless Resource Endpoints on an Express Application or Router](#register-stainless-resource-endpoints-on-an-express-application-or-router)
-    - [Options](#options-4)
-    - [Notes](#notes-4)
-  - [Register a single Stainless API Endpoint on an Express Application or Router](#register-a-single-stainless-api-endpoint-on-an-express-application-or-router)
-    - [Options](#options-5)
-    - [Notes](#notes-5)
-  - [Create an Express request handler function for a single Stainless API Endpoint](#create-an-express-request-handler-function-for-a-single-stainless-api-endpoint)
-    - [Options](#options-6)
-    - [Notes](#notes-6)
-  - [Execute a Stainless API Endpoint for an Express request](#execute-a-stainless-api-endpoint-for-an-express-request)
-  - [Prepare a request for a Stainless API Endpoint and Express request](#prepare-a-request-for-a-stainless-api-endpoint-and-express-request)
-- [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions)
-  - [`basePathMap?: Record<string, string>`](#basepathmap-recordstring-string)
-  - [`handleErrors?: boolean` (default: `true`)](#handleerrors-boolean-default-true)
-  - [`addMethodNotAllowedHandlers?: boolean` (default: `true`)](#addmethodnotallowedhandlers-boolean-default-true)
-- [`AddToExpressOptions`](#addtoexpressoptions)
-  - [`basePathMap?: Record<string, string>`](#basepathmap-recordstring-string-1)
-  - [`handleErrors?: boolean` (default: `true`)](#handleerrors-boolean-default-true-1)
+  - [Creating an Express Router](#creating-an-express-router)
+    - [From an entire Stainless API](#from-an-entire-stainless-api)
+      - [Options](#options)
+      - [Notes](#notes)
+    - [From a Stainless Resource](#from-a-stainless-resource)
+      - [Options](#options-1)
+      - [Notes](#notes-1)
+  - [Lower-level APIs](#lower-level-apis)
+    - [Create an Express request handler](#create-an-express-request-handler)
+      - [Options](#options-2)
+      - [Notes](#notes-2)
+    - [Call a Stainless API endpoint from an Express handler](#call-a-stainless-api-endpoint-from-an-express-handler)
+    - [Parse request from an Express handler](#parse-request-from-an-express-handler)
+  - [Type Reference](#type-reference)
+    - [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions)
+      - [`basePathMap?: Record<string, string>`](#basepathmap-recordstring-string)
+      - [`handleErrors?: boolean` (default: `true`)](#handleerrors-boolean-default-true)
+      - [`addMethodNotAllowedHandlers?: boolean` (default: `true`)](#addmethodnotallowedhandlers-boolean-default-true)
+    - [`AddToExpressOptions`](#addtoexpressoptions)
+      - [`basePathMap?: Record<string, string>`](#basepathmap-recordstring-string-1)
+      - [`handleErrors?: boolean` (default: `true`)](#handleerrors-boolean-default-true-1)
 
 # Getting started
 
@@ -49,70 +40,40 @@ Use this package to serve a Stainless API in an [Express](https://expressjs.com/
 ## Installation
 
 ```
-npm i --save stainless-api/stl-api#express-0.0.2
+npm i --save 'stainless-api/stl-api#express-0.0.2'
 ```
 
-## Create an Express Application from a Stainless API
+## Creating an Express Router
+
+### From an entire Stainless API
 
 ```ts
-stlExpressAPI(
-  api: AnyAPIDescription,
-  options?: AddEndpointsToExpressOptions
-): Application
-```
-
-```ts
-import { stlExpressAPI } from "@stl-api/express";
-import api from "./api";
-
-export const app = stlExpressAPI(api);
-```
-
-### Options
-
-See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
-
-### Notes
-
-`stlExpressAPI` is provided as a convenience; for production use
-cases you'll probably want to use more fine-grained methods below
-that enable greater customization.
-
-`stlExpressAPI` installs default json, text and raw middleware on the app:
-
-```ts
-app.use(express.json());
-app.use(express.text());
-app.use(express.raw());
-```
-
-## Create an Express Router from a Stainless API
-
-```ts
-stlExpressAPIRouter(
+apiRouter(
   api: AnyAPIDescription,
   options?: AddEndpointsToExpressOptions
 ): Router
 ```
 
 ```ts
-import { stlExpressAPIRouter } from "@stl-api/express";
+import { apiRouter } from "@stl-api/express";
+import express from "express";
 import api from "./api";
 
-export const router = stlExpressAPIRouter(api);
+const app = express();
+app.use(apiRouter(api));
 ```
 
-### Options
+#### Options
 
 See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
 
-### Notes
+#### Notes
 
-`stlExpressAPIRouter` is provided as a convenience; for production use
+`apiRouter` is provided as a convenience; for production use
 cases you'll probably want to use more fine-grained methods below
 that enable greater customization.
 
-`stlExpressAPIRouter` installs default json, text and raw middleware on the router:
+`apiRouter` installs default json, text and raw middleware on the router:
 
 ```ts
 router.use(express.json());
@@ -120,33 +81,35 @@ router.use(express.text());
 router.use(express.raw());
 ```
 
-## Create an Express Router from a Stainless API Resource
+### From a Stainless Resource
 
 ```ts
-stlExpressResourceRouter(
+resourceRouter(
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
   options?: AddEndpointsToExpressOptions & RouterOptions
 ): Router
 ```
 
 ```ts
-import { stlExpressResourceRouter } from "@stl-api/express";
+import { resourceRouter } from "@stl-api/express";
+import express from "express";
 import posts from "./posts";
 
-export const router = stlExpressResourceRouter(posts);
+const app = express();
+app.use(resourceRouter(posts));
 ```
 
-### Options
+#### Options
 
 See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
 
-### Notes
+#### Notes
 
-`stlExpressResourceRouter` is provided as a convenience; for production use
+`resourceRouter` is provided as a convenience; for production use
 cases you'll probably want to use more fine-grained methods below
 that enable greater customization.
 
-`stlExpressResourceRouter` installs default json, text and raw middleware on the router:
+`resourceRouter` installs default json, text and raw middleware on the router:
 
 ```ts
 router.use(express.json());
@@ -154,111 +117,9 @@ router.use(express.text());
 router.use(express.raw());
 ```
 
-## Register Stainless API Endpoints on an Express Application or Router
+## Lower-level APIs
 
-```ts
-addStlAPIToExpress(
-  router: Application | Router,
-  api: AnyAPIDescription,
-  options?: AddEndpointsToExpressOptions
-): void
-```
-
-```ts
-import express from "express";
-import { addStlAPIToExpress } from "@stl-api/express";
-import api from "./api";
-
-export const app = express();
-// you'll need to specify body parser middleware, e.g.:
-app.use(express.json());
-app.use(express.text());
-app.use(express.raw());
-
-addStlAPIToExpress(app, api);
-```
-
-### Options
-
-See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
-
-### Notes
-
-By default `addStlAPIToExpress` will handle all errors on API routes.
-If you want to customize error handling you may want to pass the
-`handleErrors: false` and/or `addMethodNotAllowedHandlers: false`
-options.
-
-## Register Stainless Resource Endpoints on an Express Application or Router
-
-```ts
-addStlResourceToExpress(
-  router: Application | Router,
-  resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
-  options?: AddEndpointsToExpressOptions
-): void
-```
-
-```ts
-import express from "express";
-import { addStlResourceToExpress } from "@stl-api/express";
-import posts from "./posts";
-
-export const app = express();
-// you'll need to specify body parser middleware, e.g.:
-app.use(express.json());
-app.use(express.text());
-app.use(express.raw());
-
-addStlResourceToExpress(app, posts);
-```
-
-### Options
-
-See [`AddEndpointsToExpressOptions`](#addendpointstoexpressoptions).
-
-### Notes
-
-By default `addStlResourceToExpress` will handle all errors on API routes.
-If you want to customize error handling you may want to pass the
-`handleErrors: false` and/or `addMethodNotAllowedHandlers: false`
-options.
-
-## Register a single Stainless API Endpoint on an Express Application or Router
-
-```ts
-addStlEndpointToExpress(
-  router: Application | Router,
-  endpoint: AnyEndpoint,
-  options?: AddToExpressOptions
-): void
-```
-
-```ts
-import express from "express";
-import { addStlEndpointToExpress } from "@stl-api/express";
-import retrievePosts from "./posts/retrieve";
-
-export const app = express();
-// you'll need to specify body parser middleware, e.g.:
-app.use(express.json());
-app.use(express.text());
-app.use(express.raw());
-
-addStlEndpointToExpress(app, retrievePosts);
-```
-
-### Options
-
-See [`AddToExpressOptions`](#addtoexpressoptions).
-
-### Notes
-
-By default `addStlEndpointToExpress` will handle all errors on the route.
-If you want to customize error handling you may want to pass the
-`handleErrors: false` option.
-
-## Create an Express request handler function for a single Stainless API Endpoint
+### Create an Express request handler
 
 ```ts
 stlExpressRouteHandler(
@@ -281,17 +142,17 @@ app.get(
 );
 ```
 
-### Options
+#### Options
 
 See [`AddToExpressOptions`](#addtoexpressoptions).
 
-### Notes
+#### Notes
 
 By default `stlExpressRouteHandler` will handle all errors on the route.
 If you want to customize error handling you may want to pass the
 `handleErrors: false` option.
 
-## Execute a Stainless API Endpoint for an Express request
+### Call a Stainless API endpoint from an Express handler
 
 ```ts
 stlExecuteExpressRequest<EC extends AnyEndpoint>(
@@ -314,7 +175,7 @@ app.get("/api/posts/:postId", express.json(), (req: Request, res: Response) => {
 });
 ```
 
-## Prepare a request for a Stainless API Endpoint and Express request
+### Parse request from an Express handler
 
 ```ts
 stlPrepareExpressRequest<EC extends AnyEndpoint>(
@@ -346,34 +207,36 @@ app.get("/api/posts/:postId", express.json(), (req: Request, res: Response) => {
 });
 ```
 
-# `AddEndpointsToExpressOptions`
+## Type Reference
 
-## `basePathMap?: Record<string, string>`
+### `AddEndpointsToExpressOptions`
+
+#### `basePathMap?: Record<string, string>`
 
 Mappings to apply to Stainless API Endpoint paths. For example
 with `basePathMap: { '/api/', '/api/v2/' }, the endpoint
 `GET /api/posts`would GET transformed to `GET /api/v2/posts`
 
-## `handleErrors?: boolean` (default: `true`)
+#### `handleErrors?: boolean` (default: `true`)
 
 If `false`, errors will be passed to the `next` middleware;
 otherwise the created express handler will send the appropriate
 response if an error is caught.
 
-## `addMethodNotAllowedHandlers?: boolean` (default: `true`)
+#### `addMethodNotAllowedHandlers?: boolean` (default: `true`)
 
 Whether to add 405 method not allowed handlers to the Express
 `Router` or `Application`
 
-# `AddToExpressOptions`
+### `AddToExpressOptions`
 
-## `basePathMap?: Record<string, string>`
+#### `basePathMap?: Record<string, string>`
 
 Mappings to apply to Stainless API Endpoint paths. For example
 with `basePathMap: { '/api/', '/api/v2/' }, the endpoint
 `GET /api/posts`would get transformed to `GET /api/v2/posts`
 
-## `handleErrors?: boolean` (default: `true`)
+#### `handleErrors?: boolean` (default: `true`)
 
 If `false`, errors will be passed to the `next` middleware;
 otherwise the created express handler will send the appropriate
