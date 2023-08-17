@@ -10,7 +10,7 @@ sidebar_position: 9
 implement `stl.types`, `stl.codegenSchema`, and the Typescript client. To get started, install the CLI:
 
 ```bash
-npm i --save 'stainless-api/stl-api#cli-0.0.2'
+npm i --save 'stainless-api/stl-api#cli-0.0.3'
 ```
 
 ## Usage

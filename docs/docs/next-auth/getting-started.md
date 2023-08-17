@@ -16,7 +16,7 @@ This guide assumes you've already set up [@stl-api/next](/stl/next/getting-start
 ## Installation
 
 ```
-npm i --save next-auth 'stainless-api/stl-api#next-auth-0.0.2'
+npm i --save next-auth 'stainless-api/stl-api#next-auth-0.0.3'
 ```
 
 ## Add `[...nextauth]` route

@@ -40,7 +40,7 @@ Use this package to serve a Stainless API in an [Express](https://expressjs.com/
 ## Installation
 
 ```
-npm i --save 'stainless-api/stl-api#express-0.0.2'
+npm i --save 'stainless-api/stl-api#express-0.0.3'
 ```
 
 ## Creating an Express Router

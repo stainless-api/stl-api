@@ -16,7 +16,7 @@ Use this plugin to serve a Stainless API in a Next.js app.
 ## Installation
 
 ```
-npm i --save 'stainless-api/stl-api#express-0.0.2'
+npm i --save 'stainless-api/stl-api#express-0.0.3'
 ```
 
 ## Creating an Express Router

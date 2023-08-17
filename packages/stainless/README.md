@@ -53,11 +53,11 @@ We will soon provide a `create-stl-app` API. Until then:
 ## Installation
 
 ```bash
-npm i --save stainless-api/stl-api#stainless-0.0.2 stainless-api/stl-api#next-0.0.2
+npm i --save stainless-api/stl-api#stainless-0.0.3 stainless-api/stl-api#next-0.0.3
 
 # Optional plugins:
-npm i --save stainless-api/stl-api#next-auth-0.0.2  # If you are using next-auth
-npm i --save stainless-api/stl-api#prisma-0.0.2     # If you are using Prisma
+npm i --save stainless-api/stl-api#next-auth-0.0.3  # If you are using next-auth
+npm i --save stainless-api/stl-api#prisma-0.0.3     # If you are using Prisma
 ```
 
 ## Create Stainless instance

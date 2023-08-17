@@ -6814,7 +6814,7 @@ packages:
       manage-path: 2.0.0
       opt-cli: 1.5.1
       path-exists: 3.0.0
-      spawn-command: 0.0.2
+      spawn-command: 0.0.3
     dev: true
 
   /github-slugger@1.5.0:
@@ -9409,7 +9409,7 @@ packages:
       commander: 2.9.0
       lodash.clone: 4.3.2
       manage-path: 2.0.0
-      spawn-command: 0.0.2-1
+      spawn-command: 0.0.3-1
     dev: true
 
   /p-cancelable@1.1.0:
@@ -11314,11 +11314,11 @@ packages:
     resolution: {integrity: sha512-q/JSVd1Lptzhf5bkYm4ob4iWPjx0KiRe3sRFBNrVqbJkFaBm5vbbowy1mymoPNLRa52+oadOhJ+K49wsSeSjTA==}
     dev: false
 
-  /spawn-command@0.0.2:
+  /spawn-command@0.0.3:
     resolution: {integrity: sha1-lUThpDygRfhTGqwaSMspva5iM44=}
     dev: true
 
-  /spawn-command@0.0.2-1:
+  /spawn-command@0.0.3-1:
     resolution: {integrity: sha1-YvXpRmmBwbeW3Fkpk34RycaSG9A=}
     dev: true
 
