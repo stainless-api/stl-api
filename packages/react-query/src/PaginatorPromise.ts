@@ -1,5 +1,8 @@
 import { z, Page, PaginatorPromise as BasePaginatorPromise } from "stainless";
-import { ClientPromiseProps, ExtractClientPromiseProps } from "./ClientPromise";
+import {
+  ClientPromiseProps,
+  ExtractClientPromiseProps,
+} from "./ClientPromise.js";
 
 export class PaginatorPromise<
   D extends z.PageData<any>

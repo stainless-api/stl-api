@@ -11,7 +11,7 @@ import {
   MutateOptions as BaseMutateOptions,
   MutationObserverResult,
 } from "@tanstack/react-query";
-import { EndpointPathParam } from ".";
+import { EndpointPathParam } from "./index.js";
 
 export type ClientUseMutation<
   E extends AnyEndpoint,

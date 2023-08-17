@@ -11,8 +11,8 @@ import {
   type UseInfiniteQueryOptions as BaseUseInfiniteQueryOptions,
   type UseInfiniteQueryResult as BaseUseInfiniteQueryResult,
 } from "@tanstack/react-query";
-import { EndpointPathParam, KeysEnum, PaginatedActions } from ".";
-import { UpperFirst } from "./util";
+import { EndpointPathParam, KeysEnum, PaginatedActions } from "./index.js";
+import { UpperFirst } from "./util.js";
 
 type UseInfiniteAction<Action extends string> =
   `useInfinite${UpperFirst<Action>}`;

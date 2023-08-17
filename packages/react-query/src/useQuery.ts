@@ -11,7 +11,7 @@ import {
   type UseQueryOptions as BaseUseQueryOptions,
   type UseQueryResult,
 } from "@tanstack/react-query";
-import { EndpointPathParam } from ".";
+import { EndpointPathParam } from "./index.js";
 
 export type ClientUseQuery<
   E extends AnyEndpoint,
