@@ -35,6 +35,6 @@
     "zod": "^3.21.4"
   },
   "peerDependencies": {
-    "prisma": "^4.0.0"
+    "prisma": "^5.1.1"
   }
 }
