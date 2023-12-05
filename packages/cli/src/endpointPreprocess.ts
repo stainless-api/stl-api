@@ -1,7 +1,10 @@
 import * as tm from "ts-morph";
 
 import { isSymbolStlMethod } from "./utils";
-import { ConvertTypeContext, getPropertyDeclaration } from "ts-to-zod/dist/convertType";
+import {
+  ConvertTypeContext,
+  getPropertyDeclaration,
+} from "ts-to-zod/dist/convertType";
 
 export type NodeType = [tm.Node, tm.Type];
 

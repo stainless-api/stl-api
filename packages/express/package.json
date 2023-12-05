@@ -25,18 +25,18 @@
     "clean": "rimraf dist *.tsbuildinfo"
   },
   "devDependencies": {
-    "@types/express": "^4.17.17",
-    "@types/jest": "^29.5.2",
-    "@types/node": "^20.2.3",
-    "@types/node-fetch": "^2.6.4",
-    "jest": "^29.5.0",
+    "@types/express": "^4.17.21",
+    "@types/jest": "^29.5.10",
+    "@types/node": "^20.10.3",
+    "@types/node-fetch": "^2.6.9",
+    "jest": "^29.7.0",
     "jest-watch-typeahead": "^2.2.2",
-    "node-fetch": "^2.6.11",
-    "ts-jest": "^29.1.0",
-    "typescript": "^5.0.4"
+    "node-fetch": "^2.7.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.2"
   },
   "dependencies": {
-    "express": "^4.18.1",
+    "express": "^4.18.2",
     "lodash": "^4.17.21",
     "stainless": "workspace:*"
   }
