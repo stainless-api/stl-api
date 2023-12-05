@@ -1,8 +1,8 @@
 export interface ExternalInterface {
-    x: number,
+  x: number;
 }
 
 export enum TestEnumAdditional {
-    A = 1,
-    B = "hello",
+  A = 1,
+  B = "hello",
 }
