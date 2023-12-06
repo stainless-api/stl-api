@@ -259,10 +259,7 @@ export function createClient<Api extends AnyAPIDescription>(
             )
             .join("/")
         );
-        const url = new URL(baseUrl);
-        url.pathname = pathname;
-        const uri = url.toString();
-        return { method: method as HttpMethod, pathname, uri };
+        return { method: method as HttpMethod, pathname, uri: pathname };
       }
     }
     let path = callPath.join("/"); // eg; /issuing/cards
