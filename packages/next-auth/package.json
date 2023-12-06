@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/next-auth",
-  "version": "0.0.3",
+  "version": "0.1.0",
   "description": "next-auth plugin for stainless api",
   "author": "dev@stainlessapi.com",
   "repository": {
