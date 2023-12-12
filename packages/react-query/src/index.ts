@@ -240,17 +240,17 @@ export function createUseReactQueryClient<Api extends AnyAPIDescription>(
           ? (args.pop() as Record<string, any>)
           : undefined);
 
-      const firstArg = args[0];
-      const path =
-        typeof firstArg === "string" || typeof firstArg === "number"
-          ? firstArg
-          : undefined;
+      // Hack: this is not a fully correct way to tell whether or not something is a path argument, but it
+      // suffices for now.
+      const pathArgs = args.filter(
+        (arg) => typeof arg === "string" || typeof arg === "number"
+      );
 
       const queryKeyCallPath = [...callPath];
       if (isQueryKeyMethod) queryKeyCallPath.pop();
       const queryKey = [
         ...queryKeyCallPath,
-        ...(path ? [path] : []),
+        ...(pathArgs ? pathArgs : []),
         ...(query ? [query] : []),
       ];
 
