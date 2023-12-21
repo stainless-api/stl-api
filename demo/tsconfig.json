@@ -11,7 +11,7 @@
     "preserveSymlinks": true,
     "esModuleInterop": true,
     "module": "CommonJS",
-    "moduleResolution": "nodenext",
+    "moduleResolution": "node",
     "resolveJsonModule": true,
     "jsx": "preserve",
 
