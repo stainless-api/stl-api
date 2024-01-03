@@ -323,6 +323,7 @@ export class BadRequestError extends StlError {
    */
   constructor(response?: Record<string, any>) {
     super(400, { error: "bad request", ...response });
+    Object.setPrototypeOf(this, StlError.prototype);
   }
 }
 
@@ -333,6 +334,7 @@ export class UnauthorizedError extends StlError {
    */
   constructor(response?: Record<string, any>) {
     super(401, { error: "unauthorized", ...response });
+    Object.setPrototypeOf(this, StlError.prototype);
   }
 }
 
@@ -343,6 +345,7 @@ export class ForbiddenError extends StlError {
    */
   constructor(response?: Record<string, any>) {
     super(403, { error: "forbidden", ...response });
+    Object.setPrototypeOf(this, StlError.prototype);
   }
 }
 
@@ -353,6 +356,7 @@ export class NotFoundError extends StlError {
    */
   constructor(response?: Record<string, any>) {
     super(404, { error: "not found", ...response });
+    Object.setPrototypeOf(this, StlError.prototype);
   }
 }
 
