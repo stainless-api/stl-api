@@ -1,11 +1,10 @@
 import {
   AnyAPIDescription,
   AnyEndpoint,
-  AnyBaseEndpoint,
   MakeStainlessPlugin,
   NotFoundError,
-  StlError,
   allEndpoints,
+  isStlError,
 } from "stainless";
 import qs from "qs";
 import { NextApiRequest, NextApiResponse } from "next";
@@ -162,7 +161,7 @@ function makeRouter(
       const result = await stl.execute(params, context);
       return NextResponse.json(result);
     } catch (error) {
-      if (error instanceof StlError) {
+      if (isStlError(error)) {
         return NextResponse.json(error.response, {
           status: error.statusCode,
         });
@@ -239,7 +238,7 @@ function makeRouter(
       const result = await stl.execute(params, context);
       res.status(200).send(result);
     } catch (error) {
-      if (error instanceof StlError) {
+      if (isStlError(error)) {
         res.status(error.statusCode).json(error.response);
         return;
       }

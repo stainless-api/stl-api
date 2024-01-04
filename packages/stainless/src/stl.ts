@@ -295,6 +295,10 @@ export type RouteMapAction = {
 
 export type AnyAPIDescription = APIDescription<any, any, any>;
 
+export const isStlError = (value: unknown): value is StlError => {
+  return value instanceof StlError || (value as any)?._isStlError === true;
+};
+
 /**
  * Throw `StlError` and its subclasses within endpoint `handler` methods
  * to return 4xx or 5xx HTTP error responses to the user, with well-formatted
@@ -304,6 +308,8 @@ export type AnyAPIDescription = APIDescription<any, any, any>;
  * codes we don't yet provide out of the box.
  */
 export class StlError extends Error {
+  _isStlError = true;
+
   /**
    * @param statusCode
    * @param response optional data included in the body of the response JSON.
