@@ -10,13 +10,13 @@ import express, {
   RouterOptions,
 } from "express";
 import {
-  StlError,
   AnyAPIDescription,
   AnyActionsConfig,
   EndpointResponseOutput,
   StlContext,
   RequestData,
   EndpointResponseInput,
+  isStlError,
 } from "stainless";
 import { parseEndpoint, type AnyEndpoint } from "stainless";
 
@@ -202,7 +202,7 @@ const errorHandler: ErrorRequestHandler = (
   req: Request,
   res: Response
 ) => {
-  if (error instanceof StlError) {
+  if (isStlError(error)) {
     res.status(error.statusCode).json(error.response);
     return;
   }
