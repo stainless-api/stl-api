@@ -124,10 +124,7 @@ function makeRouter(
         throw new NotFoundError();
       }
 
-      const {
-        handlers: [endpoint],
-        params: path,
-      } = match;
+      const [endpoint, path] = match[0][0];
 
       const server: NextServerContext = {
         type: "nextjs",
@@ -205,10 +202,7 @@ function makeRouter(
         throw new NotFoundError();
       }
 
-      const {
-        handlers: [endpoint],
-        params: path,
-      } = match;
+      const [endpoint, path] = match[0][0];
 
       const server: NextServerContext = {
         type: "nextjs",
