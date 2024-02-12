@@ -109,8 +109,8 @@ function makeRouter(
       const match = routeMatcher.match(method, pathname);
 
       if (!isValidRouteMatch(match)) {
-        const enabledMethods = methods.filter(
-          (method) => routeMatcher.match(method, pathname) != null
+        const enabledMethods = methods.filter((method) =>
+          isValidRouteMatch(routeMatcher.match(method, pathname))
         );
         if (enabledMethods.length) {
           return NextResponse.json(
@@ -189,8 +189,8 @@ function makeRouter(
       const match = routeMatcher.match(method, pathname);
 
       if (!isValidRouteMatch(match)) {
-        const enabledMethods = methods.filter(
-          (method) => routeMatcher.match(method, pathname) != null
+        const enabledMethods = methods.filter((method) =>
+          isValidRouteMatch(routeMatcher.match(method, pathname))
         );
         if (enabledMethods.length) {
           res.status(405).json({
