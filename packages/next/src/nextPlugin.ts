@@ -11,6 +11,7 @@ import { NextApiRequest, NextApiResponse } from "next";
 import { TrieRouter } from "hono/router/trie-router";
 import { endpointToHono } from "./endpointToHono";
 import { NextRequest, NextResponse } from "next/server";
+import { Result } from "hono/router";
 
 declare module "stainless" {
   interface StlContext<EC extends AnyBaseEndpoint> {
@@ -107,7 +108,7 @@ function makeRouter(
       const { pathname, search } = new URL(url);
       const match = routeMatcher.match(method, pathname);
 
-      if (!match || !match[0]) {
+      if (!isValidRouteMatch(match)) {
         const enabledMethods = methods.filter(
           (method) => routeMatcher.match(method, pathname) != null
         );
@@ -187,7 +188,7 @@ function makeRouter(
       const { pathname } = new URL(`http://localhost${url}`);
       const match = routeMatcher.match(method, pathname);
 
-      if (!match || !match[0]) {
+      if (!isValidRouteMatch(match)) {
         const enabledMethods = methods.filter(
           (method) => routeMatcher.match(method, pathname) != null
         );
@@ -247,6 +248,14 @@ function makeRouter(
   };
   return { appHandler, pagesHandler };
 }
+
+const isValidRouteMatch = (m: Result<AnyEndpoint>) => {
+  if (!m) return false;
+
+  if (m[0].length === 0) return false;
+
+  return true;
+};
 
 export const stlNextPageRoute = <Endpoints extends AnyEndpoint[]>(
   ...endpoints: Endpoints
