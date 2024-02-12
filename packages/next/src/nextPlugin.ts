@@ -107,7 +107,7 @@ function makeRouter(
       const { pathname, search } = new URL(url);
       const match = routeMatcher.match(method, pathname);
 
-      if (!match) {
+      if (!match || !match[0]) {
         const enabledMethods = methods.filter(
           (method) => routeMatcher.match(method, pathname) != null
         );
@@ -187,7 +187,7 @@ function makeRouter(
       const { pathname } = new URL(`http://localhost${url}`);
       const match = routeMatcher.match(method, pathname);
 
-      if (!match) {
+      if (!match || !match[0]) {
         const enabledMethods = methods.filter(
           (method) => routeMatcher.match(method, pathname) != null
         );
