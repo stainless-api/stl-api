@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/next-auth",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "next-auth plugin for stainless api",
   "author": "dev@stainlessapi.com",
   "repository": {
@@ -28,7 +28,7 @@
   "devDependencies": {
     "@types/node": "^20.10.3",
     "next": "^13.5.6",
-    "next-auth": "^4.24.5",
+    "next-auth": "^4.24.7",
     "typescript": "^5.3.2"
   },
   "dependencies": {
@@ -37,6 +37,6 @@
   },
   "peerDependenices": {
     "next": "^13.5.6",
-    "next-auth": "^4.24.5"
+    "next-auth": "^4.24.7"
   }
 }
