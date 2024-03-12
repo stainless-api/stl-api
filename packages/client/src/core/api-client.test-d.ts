@@ -1,4 +1,4 @@
-import { describe, test } from "vitest";
+import { describe, expectTypeOf, test } from "vitest";
 import { makeClient } from "./api-client";
 import { cats } from "../test-util/cat-api";
 import { dogs } from "../test-util/dog-api";
@@ -29,6 +29,22 @@ describe("Resource Client", () => {
       let retrieveLitterOutput = client
         .cats<"retrieveLitter">("shiro")
         .litter.retrieveLitter();
+
+      expectTypeOf(listOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }[]>
+      >();
+      expectTypeOf(createOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }>
+      >();
+      expectTypeOf(retrieveOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }>
+      >();
+      expectTypeOf(updateOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }>
+      >();
+      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }[]>
+      >();
     });
 
     test("adds `use${Verb}` aliases", () => {
@@ -42,6 +58,22 @@ describe("Resource Client", () => {
       let retrieveLitterOutput = client
         .cats<"retrieveLitter">("shiro")
         .litter.useRetrieveLitter();
+
+      expectTypeOf(listOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }[]>
+      >();
+      expectTypeOf(createOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }>
+      >();
+      expectTypeOf(retrieveOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }>
+      >();
+      expectTypeOf(updateOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }>
+      >();
+      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }[]>
+      >();
     });
   });
 
@@ -59,12 +91,20 @@ describe("Resource Client", () => {
       let retrieveLitterOutput = client
         .cats<"retrieveLitter">("shiro")
         .litter.retrieveLitter();
+
+      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }[]>
+      >();
     });
 
     test("Allows discriminating between functions using object parameter", () => {
       let retrieveOutput = client
         .cats({ catName: "shiro", discriminator: "retrieve" })
         .retrieve();
+
+      expectTypeOf(retrieveOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }>
+      >();
     });
   });
 
@@ -83,10 +123,18 @@ describe("Resource Client", () => {
     test("has a methods for sibling resources", () => {
       let catListOutput = client.cats.list();
       let dogListOutput = client.dogs.list();
+
+      expectTypeOf(catListOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }[]>
+      >();
+      expectTypeOf(dogListOutput).toEqualTypeOf<
+        Promise<{ name: string; color: string }[]>
+      >();
     });
 
     test("has a methods for sub resources", () => {
       let dogTreatOutput = client.dogs.dogTreats.get();
+      expectTypeOf(dogTreatOutput).toEqualTypeOf<Promise<{ yummy: boolean }>>();
     });
   });
 });
