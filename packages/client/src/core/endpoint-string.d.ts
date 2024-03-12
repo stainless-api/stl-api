@@ -1,4 +1,5 @@
 import type { HttpMethod } from "stainless";
+import * as Tuple from "../util/tuples";
 
 export { HttpMethod };
 
@@ -10,25 +11,36 @@ export type ExtractMethod<E extends Endpoint> =
 export type ExtractPath<E extends Endpoint> =
   E extends `${string} ${infer Path}` ? Path : never;
 
-interface ParamPart<T extends string> {
+export interface ParamPart<T extends string> {
   type: "param";
   name: T;
 }
 
-interface ResourcePart<T extends string> {
+export interface ResourcePart<T extends string> {
   type: "resource";
   name: T;
 }
 
 type RemoveLeadingSlash<T extends string> = T extends `/${infer S}` ? S : T;
 
-type PathPart<T extends string> = T extends `{${infer Part}}`
+export type PathPart = ResourcePart | ParamPart;
+
+type InferPathPart<T extends string> = T extends `{${infer Part}}`
   ? ParamPart<Part>
   : ResourcePart<T>;
+
+type MaybeSpace = "" | " ";
 
 export type SplitPathIntoParts<
   T extends string,
   S extends string = RemoveLeadingSlash<T>
 > = S extends `${infer Part}/${infer Rest}`
-  ? [PathPart<Part>, ...SplitPathIntoParts<Rest>]
-  : [PathPart<S>];
+  ? Part extends `${HttpMethod}${MaybeSpace}`
+    ? [...SplitPathIntoParts<Rest>]
+    : [InferPathPart<Part>, ...SplitPathIntoParts<Rest>]
+  : [InferPathPart<S>];
+
+export type FilterPathParts<
+  Path extends readonly InferPathPart[],
+  Filter extends string
+> = Tuple.Filter<Path, ResourcePart<RemoveLeadingSlash<Filter>>>;

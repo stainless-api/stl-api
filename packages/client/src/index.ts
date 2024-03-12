@@ -66,6 +66,6 @@ export type Client<
 >;
 
 // Implementation
-export function endpoint<M extends HttpMethod, P extends string>(
-  config: EndpointConfig<M, P>
-): Client<[], []> {}
+// export function endpoint<M extends HttpMethod, P extends string>(
+//   config: EndpointConfig<M, P>
+// ): Client<[], []> {}

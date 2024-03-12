@@ -3,7 +3,9 @@ import {
   Endpoint,
   ExtractMethod,
   ExtractPath,
+  FilterPathParts,
   HttpMethod,
+  InferPathPart,
   SplitPathIntoParts,
 } from "./endpoint-string";
 
@@ -29,18 +31,18 @@ describe("Endpoint string", () => {
       expectTypeOf<
         ExtractMethod<WellFormedEndpoint>
       >().toMatchTypeOf<HttpMethod>();
-      expectTypeOf<ExtractMethod<`POST /foo`>>().toMatchTypeOf<"POST">();
-      expectTypeOf<ExtractMethod<`GET /foo`>>().toMatchTypeOf<"GET">();
-      expectTypeOf<ExtractMethod<`PUT /foo`>>().toMatchTypeOf<"PUT">();
-      expectTypeOf<ExtractMethod<`DELETE /foo`>>().toMatchTypeOf<"DELETE">();
-      expectTypeOf<ExtractMethod<`HEAD /foo`>>().toMatchTypeOf<"HEAD">();
-      expectTypeOf<ExtractMethod<`OPTIONS /foo`>>().toMatchTypeOf<"OPTIONS">();
+      expectTypeOf<ExtractMethod<`POST /foo`>>().toEqualTypeOf<"POST">();
+      expectTypeOf<ExtractMethod<`GET /foo`>>().toEqualTypeOf<"GET">();
+      expectTypeOf<ExtractMethod<`PUT /foo`>>().toEqualTypeOf<"PUT">();
+      expectTypeOf<ExtractMethod<`DELETE /foo`>>().toEqualTypeOf<"DELETE">();
+      expectTypeOf<ExtractMethod<`HEAD /foo`>>().toEqualTypeOf<"HEAD">();
+      expectTypeOf<ExtractMethod<`OPTIONS /foo`>>().toEqualTypeOf<"OPTIONS">();
     });
 
     test("can extract the path", () => {
       expectTypeOf<
         ExtractPath<WellFormedEndpoint>
-      >().toMatchTypeOf<"/foo/bar/{baz}/{foo}/bar/{baz}">();
+      >().toEqualTypeOf<"/foo/bar/{baz}/{foo}/bar/{baz}">();
     });
   });
 
@@ -49,7 +51,7 @@ describe("Endpoint string", () => {
       type Path = ExtractPath<WellFormedEndpoint>;
       type Parts = SplitPathIntoParts<Path>;
 
-      expectTypeOf<Parts>().toMatchTypeOf<
+      expectTypeOf<Parts>().toEqualTypeOf<
         [
           {
             type: "resource";
@@ -79,8 +81,19 @@ describe("Endpoint string", () => {
       >;
     });
 
+    test("Ignores HTTP verbs", () => {
+      expectTypeOf<SplitPathIntoParts<"POST /foo">>().toEqualTypeOf<
+        [
+          {
+            type: "resource";
+            name: "foo";
+          }
+        ]
+      >;
+    });
+
     test("can handle a single resource", () => {
-      expectTypeOf<SplitPathIntoParts<"/foo">>().toMatchTypeOf<
+      expectTypeOf<SplitPathIntoParts<"/foo">>().toEqualTypeOf<
         [
           {
             type: "resource";
@@ -91,7 +104,7 @@ describe("Endpoint string", () => {
     });
 
     test("can handle a single param", () => {
-      expectTypeOf<SplitPathIntoParts<"/{foo}">>().toMatchTypeOf<
+      expectTypeOf<SplitPathIntoParts<"/{foo}">>().toEqualTypeOf<
         [
           {
             type: "param";
@@ -102,7 +115,7 @@ describe("Endpoint string", () => {
     });
 
     test("can handle sequential params", () => {
-      expectTypeOf<SplitPathIntoParts<"/{foo}/{bar}/{baz}">>().toMatchTypeOf<
+      expectTypeOf<SplitPathIntoParts<"/{foo}/{bar}/{baz}">>().toEqualTypeOf<
         [
           {
             type: "param";
@@ -115,6 +128,26 @@ describe("Endpoint string", () => {
           {
             type: "param";
             name: "baz";
+          }
+        ]
+      >;
+    });
+  });
+
+  describe("Filtering paths", () => {
+    test("can filter out path parts", () => {
+      type Path = SplitPathIntoParts<"POST /api/foo/bar">;
+      type FilteredPath = FilterPathParts<Path, "api">;
+
+      expectTypeOf<FilteredPath>().toEqualTypeOf<
+        [
+          {
+            type: "resource";
+            name: "foo";
+          },
+          {
+            type: "resource";
+            name: "bar";
           }
         ]
       >;
