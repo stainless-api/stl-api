@@ -1,101 +1,134 @@
-import {
-  AnyEndpoint,
-  AnyResourceConfig,
-  Endpoint,
-  EndpointBodyInput,
-  EndpointResponseOutput,
-} from "stainless";
-import {
-  SplitPathIntoParts,
-  PathPart,
-  ResourcePathPart,
-  ParamPathPart,
-} from "./endpoint-string";
-import { UnionToIntersection } from "../util/unnest";
-import { CamelCase, Replace } from "../util/strings";
+import { AnyResourceConfig } from "stainless";
+import { Client } from "./api-client-types";
+import { PathPart } from "./endpoint-string";
 
-type CallableEndpoint<
-  ActionName extends string,
-  EPConfig extends AnyEndpoint,
-  Path extends PathPart[] = SplitPathIntoParts<EPConfig["endpoint"]>,
-  H extends PathPart = Path[0]
-> = Path extends [H, ...infer R]
-  ? R extends PathPart[]
-    ? H extends ResourcePathPart<string>
-      ? /** Add types for path resource */
-        {
-          [key in H["name"] as CamelCase<H["name"]>]: CallableEndpoint<
-            ActionName,
-            EPConfig,
-            R
-          >;
-        }
-      : H extends ParamPathPart<string>
-      ? /** Add types for path parameter method */
-        {
-          <AN extends ActionName>(
-            /** Unfortunately, we can't name the parameter dynamically, at least not yet: https://github.com/microsoft/TypeScript/issues/56093 */
-            pathParam: /** The pathParam _should_ be EPConfig["path"][H["name"]], but the types from stl.api seem incomplete and so that was always unknown */
-            | (string | number)
-              | ({ [param in H["name"]]: string | number } & {
-                  /**
-                   * We can't name the parameter dynamically, at least not yet: https://github.com/microsoft/TypeScript/issues/56093
-                   * Right now the discriminator param is to allow the function overrides to be discriminated between.
-                   */
-                  discriminator: AN;
-                })
-          ): CallableEndpoint<ActionName, EPConfig, R>;
-        }
-      : never
-    : never
-  : /** Add types for API call method */ {
-      [key in ActionName as
-        | key
-        | `use${Capitalize<key>}`]: EndpointBodyInput<EPConfig> extends undefined
-        ? () => Promise<EndpointResponseOutput<EPConfig>>
-        : (
-            body: EndpointBodyInput<EPConfig>
-          ) => Promise<EndpointResponseOutput<EPConfig>>;
-    };
+interface ClientConfig {
+  fetch?: typeof fetch;
+}
 
-type RemoveBasePath<
-  BasePath extends `/${string}`,
-  EPConfig extends AnyEndpoint
-> = Endpoint<
-  EPConfig["config"],
-  Replace<EPConfig["endpoint"], BasePath, "">,
-  EPConfig["path"],
-  EPConfig["query"],
-  EPConfig["body"],
-  EPConfig["response"]
->;
+const emptyFn = function () {};
 
-type CallableResource<
-  BasePath extends `/${string}`,
-  Resource extends AnyResourceConfig
-> = UnionToIntersection<
-  {
-    [A in keyof Resource["actions"] & string]: CallableEndpoint<
-      A,
-      RemoveBasePath<BasePath, Resource["actions"][A]>
-    >;
-  }[keyof Resource["actions"] & string]
->;
+function isLastAppyCall(callSite: string) {
+  const isAwaited = callSite === "then";
+  const isHook = callSite.startsWith("use");
+  return isAwaited || isHook;
+}
 
-type Client<
-  BasePath extends `/${string}`,
-  Resources extends Record<string, AnyResourceConfig>
-> = UnionToIntersection<
-  {
-    [R in keyof Resources]: CallableResource<BasePath, Resources[R]>;
-  }[keyof Resources]
->;
+let i = 0;
+
+type CallPathPart = {
+  handler: "base" | "get" | "apply" | "param";
+  name: string;
+  args?: unknown[];
+};
+
+const methodSynonyms = {
+  GET: ["get", "list", "retrieve"],
+  POST: ["post", "create", "make"],
+  PUT: ["put"],
+  PATCH: ["patch", "update"],
+  DELETE: ["delete", "destroy"],
+};
+
+function inferMethod({ name, args }: CallPathPart) {
+  for (const [method, words] of Object.entries(methodSynonyms)) {
+    if (words.includes(name)) {
+      return method;
+    }
+  }
+
+  return args ? "POST" : "GET";
+}
+
+function constructPath(callPath: CallPathPart[]) {
+  const path = callPath.map((pathPart) => pathPart.name).join("/");
+  console.log({ parts: callPath, path });
+
+  return path;
+}
+
+async function makeRequest(config: ClientConfig, callPath: CallPathPart[]) {
+  console.log("Making request");
+  const method = inferMethod(callPath.pop()!);
+  const url = constructPath(callPath);
+  const fetchFn = config.fetch ?? fetch;
+  const response = await fetchFn(url, { method });
+  console.log("Returning response");
+  return response.json();
+}
+
+function createClientProxy(
+  config: ClientConfig,
+  callPath: CallPathPart[] = [],
+  pendingArgs?: unknown[]
+): unknown {
+  // Object.defineProperty(emptyFn, "name", {
+  //   value: callPath[callPath.length - 1],
+  //   writable: false,
+  // });
+
+  return new Proxy(emptyFn, {
+    get(target, key) {
+      console.log(i++, "get", { target, key, callPath, pendingArgs });
+      if (typeof key === "symbol") {
+        return;
+      }
+
+      if (isLastAppyCall(key)) {
+        return makeRequest(config, callPath);
+      }
+
+      if (pendingArgs) {
+        callPath.push({
+          handler: "param",
+          name: pendingArgs.join("/"),
+        });
+      }
+
+      const pathPart = { handler: "get", name: key } as const;
+      return createClientProxy(config, [...callPath, pathPart]);
+    },
+    apply(_target, _thisArg, argumentsList) {
+      // console.log(i++, "apply", {
+      //   target,
+      //   thisArg,
+      //   argumentsList,
+      //   callPath,
+      //   pendingArgs,
+      // });
+
+      // if (isLastAppyCall(callPath)) {
+      //   return makeRequest(config, callPath);
+      // }
+
+      // const pathPart = {
+      //   handler: "apply",
+      //   name: argumentsList.every(
+      //     (arg) => typeof arg === "string" || typeof arg === "number"
+      //   )
+      //     ? argumentsList.join("/")
+      //     : "body",
+      //   args: argumentsList,
+      // } as const;
+
+      return createClientProxy(config, callPath, argumentsList);
+    },
+  });
+}
 
 export function makeClient<
   API extends {
     basePath: `/${string}`;
     resources: Record<string, AnyResourceConfig>;
   }
->(): Client<API["basePath"], API["resources"]> {
-  return {} as Client<API["basePath"], API["resources"]>;
+>(config: ClientConfig = {}): Client<API["basePath"], API["resources"]> {
+  const basePathPart = {
+    handler: "base",
+    name: "/api",
+  } as const satisfies PathPart;
+
+  return createClientProxy(config, [basePathPart]) as Client<
+    API["basePath"],
+    API["resources"]
+  >;
 }

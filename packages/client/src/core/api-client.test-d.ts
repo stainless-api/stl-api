@@ -7,7 +7,7 @@ import { Stl } from "stainless";
 
 const stl = new Stl({ plugins: {} });
 
-describe("Resource Client", () => {
+describe("API Client", () => {
   describe("single resource", () => {
     const api = stl.api({
       basePath: "/api",
