@@ -5,7 +5,6 @@ import {
   ExtractPath,
   FilterPathParts,
   HttpMethod,
-  InferPathPart,
   SplitPathIntoParts,
 } from "./endpoint-string";
 

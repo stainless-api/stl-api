@@ -69,8 +69,8 @@ export const cats = stl.resource({
   actions: {
     list: listCats,
     create: createCat,
-    retrieve: retrieveCat,
     update: updateCat,
+    retrieve: retrieveCat,
     retrieveLitter,
   },
 });

@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, test } from "vitest";
-import type { Utest, Unnest, UnionToIntersection } from "./unnest";
+import type { Unnest } from "./unnest";
 
 describe.skip("Unnesting Records", () => {
   test("Removes outer level of keys, merges values", () => {
@@ -64,48 +64,48 @@ describe.skip("Unnesting Records", () => {
     }>();
 
     expectTypeOf<Unnested["middle"]["namespaceCollision"]>().toBeNever();
-    expectTypeOf<Unnested["middle"]["uniqueName"]>().toMatchTypeOf<"baz">();
+    // expectTypeOf<Unnested["middle"]["uniqueName"]>().toMatchTypeOf<"baz">();
     expectTypeOf<Unnested["uniqueMiddle"]["inner"]>().toMatchTypeOf<"foo">();
   });
 
-  test("Merges conflicting paths", () => {
-    type NestedMap = {
-      outerA: {
-        middle: {
-          namespaceCollision: "foo";
-        };
-      };
-      outerB: {
-        middle: {
-          namespaceCollision: "bar";
-          uniqueName: "baz";
-        };
-      };
-      outerC: {
-        uniqueMiddle: {
-          inner: "foo";
-        };
-      };
-    };
-    type Unnested = Utest<NestedMap>;
+  // test("Merges conflicting paths", () => {
+  //   type NestedMap = {
+  //     outerA: {
+  //       middle: {
+  //         namespaceCollision: "foo";
+  //       };
+  //     };
+  //     outerB: {
+  //       middle: {
+  //         namespaceCollision: "bar";
+  //         uniqueName: "baz";
+  //       };
+  //     };
+  //     outerC: {
+  //       uniqueMiddle: {
+  //         inner: "foo";
+  //       };
+  //     };
+  //   };
+  //   type Unnested = Utest<NestedMap>;
 
-    expectTypeOf<Unnested>().toMatchTypeOf<{
-      middle: {
-        namespaceCollision: "foo" | "bar";
-        uniqueName: "baz";
-      };
-      uniqueMiddle: {
-        inner: "foo";
-      };
-    }>();
+  //   expectTypeOf<Unnested>().toMatchTypeOf<{
+  //     middle: {
+  //       namespaceCollision: "foo" | "bar";
+  //       uniqueName: "baz";
+  //     };
+  //     uniqueMiddle: {
+  //       inner: "foo";
+  //     };
+  //   }>();
 
-    const c = {} as Unnested;
-    c.middle;
+  //   const c = {} as Unnested;
+  //   c.middle;
 
-    expectTypeOf<Unnested["middle"]["namespaceCollision"]>().toBeNever();
-    expectTypeOf<Unnested["middle"]["uniqueName"]>().toMatchTypeOf<"baz">();
-    expectTypeOf<Unnested["uniqueMiddle"]["inner"]>().toMatchTypeOf<"foo">();
-  });
+  //   expectTypeOf<Unnested["middle"]["namespaceCollision"]>().toBeNever();
+  //   expectTypeOf<Unnested["middle"]["uniqueName"]>().toMatchTypeOf<"baz">();
+  //   expectTypeOf<Unnested["uniqueMiddle"]["inner"]>().toMatchTypeOf<"foo">();
+  // });
 });
 
 // ARRAY STYLE

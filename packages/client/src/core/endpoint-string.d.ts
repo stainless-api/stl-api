@@ -11,23 +11,23 @@ export type ExtractMethod<E extends Endpoint> =
 export type ExtractPath<E extends Endpoint> =
   E extends `${string} ${infer Path}` ? Path : never;
 
-export interface ParamPart<T extends string> {
+export interface ParamPathPart<T extends string> {
   type: "param";
   name: T;
 }
 
-export interface ResourcePart<T extends string> {
+export interface ResourcePathPart<T extends string> {
   type: "resource";
   name: T;
 }
 
 type RemoveLeadingSlash<T extends string> = T extends `/${infer S}` ? S : T;
 
-export type PathPart = ResourcePart | ParamPart;
+export type PathPart = ResourcePathPart | ParamPathPart;
 
 type InferPathPart<T extends string> = T extends `{${infer Part}}`
-  ? ParamPart<Part>
-  : ResourcePart<T>;
+  ? ParamPathPart<Part>
+  : ResourcePathPart<T>;
 
 type MaybeSpace = "" | " ";
 
@@ -43,4 +43,4 @@ export type SplitPathIntoParts<
 export type FilterPathParts<
   Path extends readonly InferPathPart[],
   Filter extends string
-> = Tuple.Filter<Path, ResourcePart<RemoveLeadingSlash<Filter>>>;
+> = Tuple.Filter<Path, ResourcePathPart<RemoveLeadingSlash<Filter>>>;

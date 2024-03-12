@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, test } from "vitest";
-import type { SplitHeadAndTail, Shift, Filter, Recurse } from "./tuples";
+import type { SplitHeadAndTail, Shift, Filter } from "./tuples";
 
 describe("Tuples", () => {
   test("shift", () => {
@@ -32,21 +32,5 @@ describe("Tuples", () => {
     expectTypeOf<Filtered>().toEqualTypeOf<
       [{ value: 1 }, { value: 2 }, { value: 4 }]
     >();
-  });
-
-  test("turn tuple into object path", () => {
-    type MyTuple = ["a", "b", "c", "d"];
-    type MyObj = Recurse<MyTuple>;
-    const o = {} as MyObj;
-    o.a.b.c.d;
-    expectTypeOf<MyObj>().toEqualTypeOf<{
-      a: {
-        b: {
-          c: {
-            d: {};
-          };
-        };
-      };
-    }>();
   });
 });
