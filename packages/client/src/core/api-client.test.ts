@@ -16,6 +16,9 @@ const api = stl.api({
   },
 });
 
+type API = typeof api;
+type Config = { basePath: "/api" };
+
 const mockFetchImplementation = async (
   input: string | URL | Request,
   options?: RequestInit
@@ -25,7 +28,6 @@ const mockFetchImplementation = async (
 
   switch (`${options?.method} ${input}`) {
     case "GET /api/cats":
-    case "GET foobar/cats":
       payload = [mockCat];
       break;
     case "PATCH /api/cats/shiro":
@@ -48,35 +50,14 @@ const mockFetchImplementation = async (
 };
 
 describe("API Client", () => {
-  describe("client configuration", () => {
-    type API = typeof api;
-    let client: Client<API["basePath"], API["resources"]>;
-    let mockFetch: typeof fetch;
-
-    beforeEach(() => {
-      mockFetch = vi.fn(mockFetchImplementation);
-      client = makeClient<API>({ fetch: mockFetch, basePath: "foobar" });
-    });
-
-    afterEach(() => {
-      vi.restoreAllMocks();
-    });
-
-    it("can have it's base path configured", async () => {
-      const cats = await client.cats.list();
-      expect(mockFetch).toHaveBeenCalledWith("foobar/cats", { method: "GET" });
-      expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
-    });
-  });
-
   describe("fetch calls", () => {
-    type API = typeof api;
-    let client: Client<API["basePath"], API["resources"]>;
+    let client: Client<API, Config>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
       mockFetch = vi.fn(mockFetchImplementation);
-      client = makeClient<API>({ fetch: mockFetch });
+      const config = { fetch: mockFetch, basePath: "/api" as const };
+      client = makeClient<API, Config>(config);
     });
 
     afterEach(() => {
@@ -116,13 +97,13 @@ describe("API Client", () => {
   });
 
   describe("react hook calls", () => {
-    type API = typeof api;
-    let client: Client<API["basePath"], API["resources"]>;
+    let client: Client<API, Config>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
       mockFetch = vi.fn(fetch).mockImplementation(mockFetchImplementation);
-      client = makeClient<API>({ fetch: mockFetch });
+      const config = { fetch: mockFetch, basePath: "/api" as const };
+      client = makeClient<API, Config>(config);
     });
 
     afterEach(() => {

@@ -16,7 +16,8 @@ describe("API Client", () => {
       },
     });
 
-    const client = makeClient<typeof api>();
+    const config = { basePath: "/api" as const };
+    const client = makeClient<typeof api, typeof config>(config);
 
     test("adds methods for each verb", () => {
       let listOutput = client.cats.list();
@@ -94,7 +95,8 @@ describe("API Client", () => {
       },
     });
 
-    const client = makeClient<typeof api>();
+    const config = { basePath: "/api" as const };
+    const client = makeClient<typeof api, typeof config>(config);
 
     test("Allows discriminating between functions using generics", () => {
       let retrieveLitterOutput = client
@@ -127,7 +129,8 @@ describe("API Client", () => {
       },
     });
 
-    const client = makeClient<typeof api>();
+    const config = { basePath: "/api" as const };
+    const client = makeClient<typeof api, typeof config>(config);
 
     test("has a methods for sibling resources", () => {
       let catListOutput = client.cats.list();

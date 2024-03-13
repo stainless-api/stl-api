@@ -13,10 +13,16 @@ import {
 } from "./endpoint-string";
 import { UnionToIntersection } from "../util/unnest";
 import { CamelCase, Replace } from "../util/strings";
+import {
+  ExtensionAdapters,
+  ExtensionConfig,
+  GetExtensions,
+} from "../extensions";
 
 type CallableEndpoint<
   ActionName extends string,
   EPConfig extends AnyEndpoint,
+  Extensions extends ExtensionConfig,
   Path extends PathPart[] = SplitPathIntoParts<EPConfig["endpoint"]>,
   H extends PathPart = Path[0]
 > = Path extends [H, ...infer R]
@@ -27,6 +33,7 @@ type CallableEndpoint<
           [key in H["name"] as CamelCase<H["name"]>]: CallableEndpoint<
             ActionName,
             EPConfig,
+            Extensions,
             R
           >;
         }
@@ -44,7 +51,7 @@ type CallableEndpoint<
                    */
                   discriminator: AN;
                 })
-          ): CallableEndpoint<ActionName, EPConfig, R>;
+          ): CallableEndpoint<ActionName, EPConfig, Extensions, R>;
         }
       : never
     : never
@@ -64,6 +71,14 @@ type CallableEndpoint<
             queryKey: string[];
             queryFn: () => Promise<EndpointResponseOutput<EPConfig>>;
           };
+    } & {
+      [key in ActionName]: keyof Extensions extends string
+        ? GetExtensions<
+            Extensions,
+            EndpointBodyInput<EPConfig>,
+            EndpointResponseOutput<EPConfig>
+          >
+        : "undefined";
     };
 
 type RemoveBasePath<
@@ -80,26 +95,43 @@ type RemoveBasePath<
 
 type CallableResource<
   BasePath extends `/${string}`,
-  Resource extends AnyResourceConfig
+  Resource extends AnyResourceConfig,
+  Extensions extends ExtensionConfig
 > = UnionToIntersection<
   {
     [A in keyof Resource["actions"] & string]: CallableEndpoint<
       A,
-      RemoveBasePath<BasePath, Resource["actions"][A]>
+      RemoveBasePath<BasePath, Resource["actions"][A]>,
+      Extensions
     >;
   }[keyof Resource["actions"] & string]
 >;
 
+export interface APIConfig {
+  basePath: `/${string}`;
+  resources: Record<string, AnyResourceConfig>;
+}
+
+export interface ClientConfig<BP extends string = string> {
+  /**
+   * This needs to match what is passed to stl.api() when creating an API
+   * It is redundant, but required to have runtime access to the string in the client
+   */
+  basePath: BP;
+  fetch?: typeof fetch;
+  extensions?: ExtensionConfig;
+}
+
 export type Client<
-  BasePath extends `/${string}`,
-  Resources extends Record<string, AnyResourceConfig>
+  API extends APIConfig,
+  Config extends ClientConfig,
+  Resources = API["resources"]
 > = UnionToIntersection<
   {
-    [R in keyof Resources]: CallableResource<BasePath, Resources[R]>;
+    [R in keyof Resources]: CallableResource<
+      API["basePath"],
+      Resources[R],
+      Config["extensions"]
+    >;
   }[keyof Resources]
 >;
-
-export interface ClientConfig {
-  basePath?: string;
-  fetch?: typeof fetch;
-}

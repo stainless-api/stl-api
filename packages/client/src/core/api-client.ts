@@ -1,5 +1,5 @@
 import { AnyResourceConfig, HttpMethod } from "stainless";
-import { Client, ClientConfig } from "./api-client-types";
+import { APIConfig, Client, ClientConfig } from "./api-client-types";
 import { kebabCase } from "../util/strings";
 
 const methodSynonyms = {
@@ -55,7 +55,7 @@ function makeUrl(callPath: string[]) {
  * @returns
  */
 async function makeRequest(
-  config: ClientConfig,
+  config: ClientConfig<string>,
   action: string,
   callPath: string[],
   body?: unknown
@@ -75,7 +75,7 @@ async function makeRequest(
 }
 
 function createClientProxy(
-  config: ClientConfig,
+  config: ClientConfig<string>,
   callPath: string[],
   pendingArgs: unknown[] = []
 ): unknown {
@@ -137,13 +137,9 @@ function createClientProxy(
  * @returns Client API
  */
 export function makeClient<
-  API extends {
-    basePath: `/${string}`;
-    resources: Record<string, AnyResourceConfig>;
-  }
->(config: ClientConfig = {}): Client<API["basePath"], API["resources"]> {
-  return createClientProxy(config, [config.basePath ?? "/api"]) as Client<
-    API["basePath"],
-    API["resources"]
-  >;
+  API extends APIConfig,
+  /** Unfortunately this cannot be infered from the parameter since the API generic needs to be specified */
+  Config extends ClientConfig<API["basePath"]>
+>(config: Config): Client<API, Config> {
+  return createClientProxy(config, [config.basePath]) as Client<API, Config>;
 }
