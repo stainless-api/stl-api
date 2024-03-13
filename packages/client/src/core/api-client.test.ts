@@ -169,7 +169,7 @@ describe("API Client", () => {
     it("can make fetch calls", async () => {
       const { queryFn, queryKey } = client.cats.useList();
 
-      expect(queryKey).toEqual("/api/cats");
+      expect(queryKey).toEqual(["/api/cats"]);
       expect(queryFn).toBeTypeOf("function");
 
       const cats = await queryFn();
@@ -182,7 +182,7 @@ describe("API Client", () => {
         .cats<"update">("shiro")
         .useUpdate({ name: "Shiro!" });
 
-      expect(queryKey).toEqual("/api/cats/shiro");
+      expect(queryKey).toEqual(["/api/cats/shiro"]);
       expect(queryFn).toBeTypeOf("function");
 
       const update = await queryFn();

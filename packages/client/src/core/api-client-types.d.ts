@@ -57,11 +57,11 @@ type CallableEndpoint<
     } & {
       [key in ActionName as `use${Capitalize<key>}`]: EndpointBodyInput<EPConfig> extends undefined
         ? () => {
-            queryKey: string;
+            queryKey: string[];
             queryFn: () => Promise<EndpointResponseOutput<EPConfig>>;
           }
         : (body: EndpointBodyInput<EPConfig>) => {
-            queryKey: string;
+            queryKey: string[];
             queryFn: () => Promise<EndpointResponseOutput<EPConfig>>;
           };
     };

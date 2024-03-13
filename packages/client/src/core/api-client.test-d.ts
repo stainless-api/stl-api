@@ -64,23 +64,23 @@ describe("API Client", () => {
         .litter.useRetrieveLitter();
 
       expectTypeOf(listOutput).toEqualTypeOf<{
-        queryKey: string;
+        queryKey: string[];
         queryFn: () => Promise<{ name: string; color: string }[]>;
       }>();
       expectTypeOf(createOutput).toEqualTypeOf<{
-        queryKey: string;
+        queryKey: string[];
         queryFn: () => Promise<{ name: string; color: string }>;
       }>();
       expectTypeOf(retrieveOutput).toEqualTypeOf<{
-        queryKey: string;
+        queryKey: string[];
         queryFn: () => Promise<{ name: string; color: string }>;
       }>();
       expectTypeOf(updateOutput).toEqualTypeOf<{
-        queryKey: string;
+        queryKey: string[];
         queryFn: () => Promise<{ name: string; color: string }>;
       }>();
       expectTypeOf(retrieveLitterOutput).toEqualTypeOf<{
-        queryKey: string;
+        queryKey: string[];
         queryFn: () => Promise<{ name: string; color: string }[]>;
       }>();
     });

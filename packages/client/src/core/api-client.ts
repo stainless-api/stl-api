@@ -108,7 +108,7 @@ function createClientProxy(
 
         return {
           queryFn: () => makeRequest(config, action, path, body),
-          queryKey: makeUrl(path),
+          queryKey: [makeUrl(path)],
         };
       }
 
