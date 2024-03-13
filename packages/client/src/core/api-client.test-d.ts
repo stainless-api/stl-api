@@ -25,7 +25,9 @@ describe("API Client", () => {
         color: "black",
       });
       let retrieveOutput = client.cats<"retrieve">("shiro").retrieve();
-      let updateOutput = client.cats("shiro").update({ color: "white" });
+      let updateOutput = client
+        .cats<"update">("shiro")
+        .update({ color: "white" });
       let retrieveLitterOutput = client
         .cats<"retrieveLitter">("shiro")
         .litter.retrieveLitter();
@@ -54,7 +56,9 @@ describe("API Client", () => {
         color: "black",
       });
       let retrieveOutput = client.cats<"retrieve">("shiro").useRetrieve();
-      let updateOutput = client.cats("shiro").useUpdate({ color: "white" });
+      let updateOutput = client
+        .cats<"update">("shiro")
+        .useUpdate({ color: "white" });
       let retrieveLitterOutput = client
         .cats<"retrieveLitter">("shiro")
         .litter.useRetrieveLitter();

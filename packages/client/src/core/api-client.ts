@@ -1,26 +1,5 @@
-import { AnyResourceConfig } from "stainless";
-import { Client } from "./api-client-types";
-import { PathPart } from "./endpoint-string";
-
-interface ClientConfig {
-  fetch?: typeof fetch;
-}
-
-const emptyFn = function () {};
-
-function isLastAppyCall(callSite: string) {
-  const isAwaited = callSite === "then";
-  const isHook = callSite.startsWith("use");
-  return isAwaited || isHook;
-}
-
-let i = 0;
-
-type CallPathPart = {
-  handler: "base" | "get" | "apply" | "param";
-  name: string;
-  args?: unknown[];
-};
+import { AnyResourceConfig, HttpMethod } from "stainless";
+import { Client, ClientConfig } from "./api-client-types";
 
 const methodSynonyms = {
   GET: ["get", "list", "retrieve"],
@@ -28,88 +7,97 @@ const methodSynonyms = {
   PUT: ["put"],
   PATCH: ["patch", "update"],
   DELETE: ["delete", "destroy"],
-};
+  OPTIONS: [],
+  HEAD: [],
+} satisfies Record<HttpMethod, string[]>;
 
-function inferMethod({ name, args }: CallPathPart) {
+export function inferHTTPMethod(
+  methodName: string,
+  body?: unknown
+): HttpMethod {
   for (const [method, words] of Object.entries(methodSynonyms)) {
-    if (words.includes(name)) {
-      return method;
+    if (words.some((word) => methodName.toLowerCase().includes(word))) {
+      return method as HttpMethod; // Object.entries is poorly typed
     }
   }
 
-  return args ? "POST" : "GET";
+  return body ? "POST" : "GET";
 }
 
-function constructPath(callPath: CallPathPart[]) {
-  const path = callPath.map((pathPart) => pathPart.name).join("/");
-  console.log({ parts: callPath, path });
-
-  return path;
+function isAwaitingPromise(callSite: string) {
+  return callSite === "then";
 }
 
-async function makeRequest(config: ClientConfig, callPath: CallPathPart[]) {
-  console.log("Making request");
-  const method = inferMethod(callPath.pop()!);
-  const url = constructPath(callPath);
+function isCallingHook(callSite: string) {
+  const isHook = callSite.startsWith("use");
+  return isHook;
+}
+
+function isValidPathParam(arg: unknown): arg is string | number {
+  return typeof arg === "string" || typeof arg === "number";
+}
+
+async function makeRequest(
+  config: ClientConfig,
+  callPath: string[],
+  body?: unknown
+) {
+  const method = inferHTTPMethod(callPath.pop() ?? "", body);
+  const url = callPath.join("/");
   const fetchFn = config.fetch ?? fetch;
-  const response = await fetchFn(url, { method });
-  console.log("Returning response");
-  return response.json();
+  const options: RequestInit = body
+    ? {
+        body: JSON.stringify(body),
+        method,
+      }
+    : { method };
+
+  const response = await fetchFn(url, options);
+  return await response.json();
 }
 
 function createClientProxy(
   config: ClientConfig,
-  callPath: CallPathPart[] = [],
-  pendingArgs?: unknown[]
+  callPath: string[],
+  pendingArgs: unknown[] = []
 ): unknown {
-  // Object.defineProperty(emptyFn, "name", {
-  //   value: callPath[callPath.length - 1],
-  //   writable: false,
-  // });
+  const proxyClient = function () {};
 
-  return new Proxy(emptyFn, {
+  return new Proxy(proxyClient, {
     get(target, key) {
-      console.log(i++, "get", { target, key, callPath, pendingArgs });
       if (typeof key === "symbol") {
         return;
       }
 
-      if (isLastAppyCall(key)) {
-        return makeRequest(config, callPath);
+      if (isAwaitingPromise(key)) {
+        // Allow the subsequent "apply" hook to handle resolving the API request
+        // Ensure the pendingArgs are passed through in case they contain a body param
+        return createClientProxy(config, [...callPath, key], pendingArgs);
       }
 
-      if (pendingArgs) {
-        callPath.push({
-          handler: "param",
-          name: pendingArgs.join("/"),
-        });
+      if (isValidPathParam(pendingArgs[0])) {
+        callPath.push(pendingArgs[0].toString());
       }
 
-      const pathPart = { handler: "get", name: key } as const;
-      return createClientProxy(config, [...callPath, pathPart]);
+      return createClientProxy(config, [...callPath, key], undefined);
     },
     apply(_target, _thisArg, argumentsList) {
-      // console.log(i++, "apply", {
-      //   target,
-      //   thisArg,
-      //   argumentsList,
-      //   callPath,
-      //   pendingArgs,
-      // });
+      const lastCall = callPath[callPath.length - 1];
 
-      // if (isLastAppyCall(callPath)) {
-      //   return makeRequest(config, callPath);
-      // }
+      if (isAwaitingPromise(lastCall)) {
+        const [resolve] = argumentsList;
+        const request = makeRequest(
+          config,
+          // Remove "then" from callPath and use previous args
+          callPath.slice(0, -1),
+          pendingArgs[0]
+        );
+        return resolve(request);
+      }
 
-      // const pathPart = {
-      //   handler: "apply",
-      //   name: argumentsList.every(
-      //     (arg) => typeof arg === "string" || typeof arg === "number"
-      //   )
-      //     ? argumentsList.join("/")
-      //     : "body",
-      //   args: argumentsList,
-      // } as const;
+      if (isCallingHook(lastCall)) {
+        return makeRequest(config, callPath, argumentsList[0]);
+      }
 
       return createClientProxy(config, callPath, argumentsList);
     },
@@ -122,12 +110,7 @@ export function makeClient<
     resources: Record<string, AnyResourceConfig>;
   }
 >(config: ClientConfig = {}): Client<API["basePath"], API["resources"]> {
-  const basePathPart = {
-    handler: "base",
-    name: "/api",
-  } as const satisfies PathPart;
-
-  return createClientProxy(config, [basePathPart]) as Client<
+  return createClientProxy(config, [config.basePath ?? "/api"]) as Client<
     API["basePath"],
     API["resources"]
   >;

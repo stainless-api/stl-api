@@ -90,3 +90,8 @@ export type Client<
     [R in keyof Resources]: CallableResource<BasePath, Resources[R]>;
   }[keyof Resources]
 >;
+
+export interface ClientConfig {
+  basePath?: string;
+  fetch?: typeof fetch;
+}
