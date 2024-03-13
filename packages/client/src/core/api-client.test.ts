@@ -1,63 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeClient } from "./api-client";
-import { cats } from "../test-util/cat-api";
-import { dogs } from "../test-util/dog-api";
-import { dogTreats } from "../test-util/dog-treat-api";
-import { Stl } from "stainless";
 import { Client } from "./api-client-types";
-
-const stl = new Stl({ plugins: {} });
-const api = stl.api({
-  basePath: "/api",
-  resources: {
-    cats,
-    dogs,
-    dogTreats,
-  },
-});
-
-type API = typeof api;
-type Config = { basePath: "/api" };
-
-const mockFetchImplementation = async (
-  input: string | URL | Request,
-  options?: RequestInit
-) => {
-  const mockCat = { name: "Shiro", color: "black" };
-  let payload;
-
-  switch (`${options?.method} ${input}`) {
-    case "GET /api/cats":
-      payload = [mockCat];
-      break;
-    case "PATCH /api/cats/shiro":
-      const update = options?.body ? JSON.parse(options.body as any) : {};
-      payload = {
-        ...mockCat,
-        ...update,
-      };
-      break;
-    case "GET /api/dogs/fido/dog-treats":
-      payload = { yummy: true };
-      break;
-    case "GET /api/dogs":
-      throw new Error("Expected to throw");
-    default:
-      throw new Error(`Unmocked endpoint: ${options?.method} ${input}`);
-  }
-
-  return new Response(JSON.stringify(payload));
-};
+import * as MockAPI from "../test-util/api-server";
 
 describe("API Client", () => {
   describe("fetch calls", () => {
-    let client: Client<API, Config>;
+    let client: Client<MockAPI.API, MockAPI.Config>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
-      mockFetch = vi.fn(mockFetchImplementation);
+      mockFetch = vi.fn(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeClient<API, Config>(config);
+      client = makeClient<MockAPI.API, MockAPI.Config>(config);
     });
 
     afterEach(() => {
@@ -97,13 +51,15 @@ describe("API Client", () => {
   });
 
   describe("react hook calls", () => {
-    let client: Client<API, Config>;
+    let client: Client<MockAPI.API, MockAPI.Config>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
-      mockFetch = vi.fn(fetch).mockImplementation(mockFetchImplementation);
+      mockFetch = vi
+        .fn(fetch)
+        .mockImplementation(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeClient<API, Config>(config);
+      client = makeClient<MockAPI.API, MockAPI.Config>(config);
     });
 
     afterEach(() => {

@@ -11,7 +11,7 @@ import {
   ResourcePathPart,
   ParamPathPart,
 } from "./endpoint-string";
-import { UnionToIntersection } from "../util/unnest";
+import { UnionToIntersection } from "../util/union-to-intersection";
 import { CamelCase, Replace } from "../util/strings";
 import {
   ExtensionAdapters,
