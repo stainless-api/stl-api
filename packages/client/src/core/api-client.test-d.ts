@@ -142,7 +142,7 @@ describe("API Client", () => {
     });
 
     test("has a methods for sub resources", () => {
-      let dogTreatOutput = client.dogs.dogTreats.get();
+      let dogTreatOutput = client.dogs("fido").dogTreats.get();
       expectTypeOf(dogTreatOutput).toEqualTypeOf<Promise<{ yummy: boolean }>>();
     });
   });

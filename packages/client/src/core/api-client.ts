@@ -1,5 +1,6 @@
 import { AnyResourceConfig, HttpMethod } from "stainless";
 import { Client, ClientConfig } from "./api-client-types";
+import { kebabCase } from "../util/strings";
 
 const methodSynonyms = {
   GET: ["get", "list", "retrieve"],
@@ -11,12 +12,16 @@ const methodSynonyms = {
   HEAD: [],
 } satisfies Record<HttpMethod, string[]>;
 
-export function inferHTTPMethod(
-  methodName: string,
-  body?: unknown
-): HttpMethod {
+/**
+ * Since the client needs to operate only on types,
+ * we have to guess the correct HTTP verb from the method at the end of the client API call chain
+ * @param action Client API method name, e.g. list, useRetrieve
+ * @param body Request body
+ * @returns HttpMethod
+ */
+export function inferHTTPMethod(action: string, body?: unknown): HttpMethod {
   for (const [method, words] of Object.entries(methodSynonyms)) {
-    if (words.some((word) => methodName.toLowerCase().includes(word))) {
+    if (words.some((word) => action.toLowerCase().includes(word))) {
       return method as HttpMethod; // Object.entries is poorly typed
     }
   }
@@ -38,9 +43,17 @@ function isValidPathParam(arg: unknown): arg is string | number {
 }
 
 function makeUrl(callPath: string[]) {
-  return callPath.join("/");
+  return callPath.map(kebabCase).join("/");
 }
 
+/**
+ * Our wrapper around fetch. For now we presume the response is JSON and handle it as such for the caller.
+ * @param config
+ * @param action Client API method name, e.g. list, useRetrieve
+ * @param callPath Each part of the URL we will hit based on the client API call chain
+ * @param body Request body
+ * @returns
+ */
 async function makeRequest(
   config: ClientConfig,
   action: string,
@@ -117,6 +130,12 @@ function createClientProxy(
   });
 }
 
+/**
+ * Main entry for the client library
+ * Provides an interface to construct API calls to a server with a matching API configuration
+ * @param config
+ * @returns Client API
+ */
 export function makeClient<
   API extends {
     basePath: `/${string}`;

@@ -35,6 +35,9 @@ const mockFetchImplementation = async (
         ...update,
       };
       break;
+    case "GET /api/dogs/fido/dog-treats":
+      payload = { yummy: true };
+      break;
     case "GET /api/dogs":
       throw new Error("Expected to throw");
     default:
@@ -44,50 +47,50 @@ const mockFetchImplementation = async (
   return new Response(JSON.stringify(payload));
 };
 
-describe("Inferring method from verb", () => {
-  it("defaults to GET requests", () => {
+describe("Inferring HTTP method from verb", () => {
+  it("defaults to GET", () => {
     expect(inferHTTPMethod("foobarbaz")).toEqual("GET");
   });
 
-  it("defaults to GET requests if there is no body", () => {
+  it("defaults to GET if there is no body", () => {
     expect(inferHTTPMethod("foobarbaz", undefined)).toEqual("GET");
   });
 
-  it("defaults to POST requests if there is a body", () => {
+  it("defaults to POST if there is a body", () => {
     expect(inferHTTPMethod("foobarbaz", {})).toEqual("POST");
   });
 
-  it("can infer GET requests", () => {
+  it("can infer GET", () => {
     expect(inferHTTPMethod("get")).toEqual("GET");
     expect(inferHTTPMethod("list")).toEqual("GET");
     expect(inferHTTPMethod("retrieve")).toEqual("GET");
   });
 
-  it("can infer POST requests", () => {
+  it("can infer POST", () => {
     expect(inferHTTPMethod("post")).toEqual("POST");
     expect(inferHTTPMethod("create")).toEqual("POST");
     expect(inferHTTPMethod("make")).toEqual("POST");
   });
 
-  it("can infer PUT requests", () => {
+  it("can infer PUT", () => {
     expect(inferHTTPMethod("put")).toEqual("PUT");
   });
 
-  it("can infer PATCH requests", () => {
+  it("can infer PATCH", () => {
     expect(inferHTTPMethod("patch")).toEqual("PATCH");
     expect(inferHTTPMethod("update")).toEqual("PATCH");
   });
 
-  it("can infer DELETE requests", () => {
+  it("can infer DELETE", () => {
     expect(inferHTTPMethod("delete")).toEqual("DELETE");
     expect(inferHTTPMethod("destroy")).toEqual("DELETE");
   });
 
-  it("can infer prefixed requests", () => {
+  it("can infer from prefixed key word", () => {
     expect(inferHTTPMethod("useUpdate")).toEqual("PATCH");
   });
 
-  it("can infer suffixed requests", () => {
+  it("can infer from suffixed key word", () => {
     expect(inferHTTPMethod("updateAllCats")).toEqual("PATCH");
   });
 });
@@ -149,6 +152,14 @@ describe("API Client", () => {
       await expect(async () => await client.dogs.list()).rejects.toThrowError(
         "Expected to throw"
       );
+    });
+
+    it("can handle case changes", async () => {
+      const treat = await client.dogs("fido").dogTreats.get();
+      expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dog-treats", {
+        method: "GET",
+      });
+      expect(treat).toStrictEqual({ yummy: true });
     });
   });
 
