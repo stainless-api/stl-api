@@ -5,7 +5,7 @@ import { dogTreats } from "../test-util/dog-treat-api";
 import { Stl } from "stainless";
 import { makeClient } from "../core/api-client";
 import { ClientConfig } from "../core/api-client-types";
-import { ReactQueryInstance } from "./react-query";
+import { Config } from "./react-query";
 
 const stl = new Stl({ plugins: {} });
 
@@ -22,7 +22,7 @@ describe("Client extensions", () => {
 
     const config = {
       basePath: "/api" as const,
-      extensions: { reactQuery: {} as ReactQueryInstance },
+      extensions: { reactQuery: {} as Config },
     } satisfies ClientConfig;
     const client = makeClient<typeof api, typeof config>(config);
 
@@ -41,7 +41,7 @@ describe("Client extensions", () => {
     });
 
     test("adds useMutation method", () => {
-      const mutation = client.cats("shiro").update.useMutation();
+      const mutation = client.cats<"update">("shiro").update.useMutation();
       expectTypeOf(mutation.mutate).toBeCallableWith({
         name: "string",
         color: "string",
@@ -54,7 +54,7 @@ describe("Client extensions", () => {
 
     test("adds getQueryKey method", () => {
       const queryKey = client.cats.list.getQueryKey();
-      expectTypeOf(queryKey).toEqualTypeOf<string>();
+      expectTypeOf(queryKey).toEqualTypeOf<string[]>();
     });
 
     test("keeps non react-query methods", async () => {

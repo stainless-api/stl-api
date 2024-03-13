@@ -1,6 +1,7 @@
 import { AnyResourceConfig, HttpMethod } from "stainless";
 import { APIConfig, Client, ClientConfig } from "./api-client-types";
 import { kebabCase } from "../util/strings";
+import { getExtensionHandler } from "../extensions";
 
 const methodSynonyms = {
   GET: ["get", "list", "retrieve"],
@@ -112,6 +113,21 @@ function createClientProxy(
         const request = makeRequest(config, action, path, body);
 
         return request.then(resolve).catch(reject);
+      }
+
+      if (config.extensions) {
+        const action = callPath.slice(-1)[0];
+        const path = callPath.slice(0, -1);
+        const body = argumentsList[0];
+        const queryFn = () => makeRequest(config, action, path, body);
+        const queryKey = [makeUrl(path)];
+        const handler = getExtensionHandler(
+          config.extensions,
+          action,
+          queryFn,
+          queryKey
+        );
+        return handler?.(...argumentsList);
       }
 
       if (isCallingHook(lastCall)) {

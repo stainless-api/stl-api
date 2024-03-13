@@ -83,11 +83,12 @@ describe("react-query extension runtime", () => {
       vi.restoreAllMocks();
     });
 
-    it("Should send the correct queryFn", () => {
+    it("Should send the correct queryFn and queryKey", () => {
       client.cats.list.useQuery();
-      expect(mockUseQuery).toBeCalledWith("");
+      expect(mockUseQuery).toBeCalledWith({
+        queryFn: expect.any(Function),
+        queryKey: ["/api/cats/list"],
+      });
     });
-
-    it("Should send the correct queryKey", () => {});
   });
 });
