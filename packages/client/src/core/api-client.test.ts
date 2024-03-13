@@ -35,8 +35,10 @@ const mockFetchImplementation = async (
         ...update,
       };
       break;
+    case "GET /api/dogs":
+      throw new Error("Expected to throw");
     default:
-      payload = {};
+      throw new Error(`Unmocked endpoint: ${options?.method} ${input}`);
   }
 
   return new Response(JSON.stringify(payload));
@@ -142,6 +144,12 @@ describe("API Client", () => {
         body: JSON.stringify({ name: "Shiro!" }),
       });
     });
+
+    it("can handle API errors", async () => {
+      await expect(async () => await client.dogs.list()).rejects.toThrowError(
+        "Expected to throw"
+      );
+    });
   });
 
   describe("react hook calls", () => {
@@ -159,15 +167,25 @@ describe("API Client", () => {
     });
 
     it("can make fetch calls", async () => {
-      const cats = await client.cats.useList();
+      const { queryFn, queryKey } = client.cats.useList();
+
+      expect(queryKey).toEqual("/api/cats");
+      expect(queryFn).toBeTypeOf("function");
+
+      const cats = await queryFn();
       expect(mockFetch).toHaveBeenCalledWith("/api/cats", { method: "GET" });
       expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
     });
 
     it("can send a request body", async () => {
-      const update = await client
+      const { queryFn, queryKey } = client
         .cats<"update">("shiro")
         .useUpdate({ name: "Shiro!" });
+
+      expect(queryKey).toEqual("/api/cats/shiro");
+      expect(queryFn).toBeTypeOf("function");
+
+      const update = await queryFn();
       expect(mockFetch).toHaveBeenCalledWith("/api/cats/shiro", {
         method: "PATCH",
         body: JSON.stringify({ name: "Shiro!" }),

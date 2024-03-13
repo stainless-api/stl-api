@@ -49,13 +49,21 @@ type CallableEndpoint<
       : never
     : never
   : /** Add types for API call method */ {
-      [key in ActionName as
-        | key
-        | `use${Capitalize<key>}`]: EndpointBodyInput<EPConfig> extends undefined
+      [key in ActionName]: EndpointBodyInput<EPConfig> extends undefined
         ? () => Promise<EndpointResponseOutput<EPConfig>>
         : (
             body: EndpointBodyInput<EPConfig>
           ) => Promise<EndpointResponseOutput<EPConfig>>;
+    } & {
+      [key in ActionName as `use${Capitalize<key>}`]: EndpointBodyInput<EPConfig> extends undefined
+        ? () => {
+            queryKey: string;
+            queryFn: () => Promise<EndpointResponseOutput<EPConfig>>;
+          }
+        : (body: EndpointBodyInput<EPConfig>) => {
+            queryKey: string;
+            queryFn: () => Promise<EndpointResponseOutput<EPConfig>>;
+          };
     };
 
 type RemoveBasePath<

@@ -37,13 +37,18 @@ function isValidPathParam(arg: unknown): arg is string | number {
   return typeof arg === "string" || typeof arg === "number";
 }
 
+function makeUrl(callPath: string[]) {
+  return callPath.join("/");
+}
+
 async function makeRequest(
   config: ClientConfig,
+  action: string,
   callPath: string[],
   body?: unknown
 ) {
-  const method = inferHTTPMethod(callPath.pop() ?? "", body);
-  const url = callPath.join("/");
+  const method = inferHTTPMethod(action, body);
+  const url = makeUrl(callPath);
   const fetchFn = config.fetch ?? fetch;
   const options: RequestInit = body
     ? {
@@ -64,7 +69,7 @@ function createClientProxy(
   const proxyClient = function () {};
 
   return new Proxy(proxyClient, {
-    get(target, key) {
+    get(_target, key) {
       if (typeof key === "symbol") {
         return;
       }
@@ -85,18 +90,26 @@ function createClientProxy(
       const lastCall = callPath[callPath.length - 1];
 
       if (isAwaitingPromise(lastCall)) {
-        const [resolve] = argumentsList;
-        const request = makeRequest(
-          config,
-          // Remove "then" from callPath and use previous args
-          callPath.slice(0, -1),
-          pendingArgs[0]
-        );
-        return resolve(request);
+        const [resolve, reject] = argumentsList;
+        // Remove "then" from callPath and use previous args
+        callPath.pop();
+        const action = callPath.slice(-1)[0];
+        const path = callPath.slice(0, -1);
+        const body = pendingArgs[0];
+        const request = makeRequest(config, action, path, body);
+
+        return request.then(resolve).catch(reject);
       }
 
       if (isCallingHook(lastCall)) {
-        return makeRequest(config, callPath, argumentsList[0]);
+        const action = callPath.slice(-1)[0];
+        const path = callPath.slice(0, -1);
+        const body = argumentsList[0];
+
+        return {
+          queryFn: () => makeRequest(config, action, path, body),
+          queryKey: makeUrl(path),
+        };
       }
 
       return createClientProxy(config, callPath, argumentsList);

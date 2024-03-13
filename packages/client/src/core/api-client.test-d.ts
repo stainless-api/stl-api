@@ -63,21 +63,26 @@ describe("API Client", () => {
         .cats<"retrieveLitter">("shiro")
         .litter.useRetrieveLitter();
 
-      expectTypeOf(listOutput).toEqualTypeOf<
-        Promise<{ name: string; color: string }[]>
-      >();
-      expectTypeOf(createOutput).toEqualTypeOf<
-        Promise<{ name: string; color: string }>
-      >();
-      expectTypeOf(retrieveOutput).toEqualTypeOf<
-        Promise<{ name: string; color: string }>
-      >();
-      expectTypeOf(updateOutput).toEqualTypeOf<
-        Promise<{ name: string; color: string }>
-      >();
-      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<
-        Promise<{ name: string; color: string }[]>
-      >();
+      expectTypeOf(listOutput).toEqualTypeOf<{
+        queryKey: string;
+        queryFn: () => Promise<{ name: string; color: string }[]>;
+      }>();
+      expectTypeOf(createOutput).toEqualTypeOf<{
+        queryKey: string;
+        queryFn: () => Promise<{ name: string; color: string }>;
+      }>();
+      expectTypeOf(retrieveOutput).toEqualTypeOf<{
+        queryKey: string;
+        queryFn: () => Promise<{ name: string; color: string }>;
+      }>();
+      expectTypeOf(updateOutput).toEqualTypeOf<{
+        queryKey: string;
+        queryFn: () => Promise<{ name: string; color: string }>;
+      }>();
+      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<{
+        queryKey: string;
+        queryFn: () => Promise<{ name: string; color: string }[]>;
+      }>();
     });
   });
 
