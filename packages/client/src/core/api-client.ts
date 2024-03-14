@@ -1,4 +1,4 @@
-import { AnyResourceConfig, HttpMethod } from "stainless";
+import { HttpMethod } from "stainless";
 import { APIConfig, Client, ClientConfig } from "./api-client-types";
 import { kebabCase } from "../util/strings";
 import { getExtensionHandler } from "../extensions";
@@ -43,8 +43,10 @@ function isValidPathParam(arg: unknown): arg is string | number {
   return typeof arg === "string" || typeof arg === "number";
 }
 
-function makeUrl(callPath: string[]) {
-  return callPath.map(kebabCase).join("/");
+function makeUrl(callPath: string[], outputCase: "camel" | "kebab" = "kebab") {
+  return outputCase === "kebab"
+    ? callPath.map(kebabCase).join("/")
+    : callPath.join("/");
 }
 
 /**
@@ -62,16 +64,22 @@ async function makeRequest(
   body?: unknown
 ) {
   const method = inferHTTPMethod(action, body);
-  const url = makeUrl(callPath);
+  const url = makeUrl(callPath, config.urlCase);
   const fetchFn = config.fetch ?? fetch;
-  const options: RequestInit = body
-    ? {
-        body: JSON.stringify(body),
-        method,
-      }
-    : { method };
+  const options: RequestInit =
+    method !== "GET" && body !== undefined
+      ? {
+          body: JSON.stringify(body),
+          method,
+          headers: {
+            "Content-Type": "application/json",
+          },
+        }
+      : { method };
 
+  console.log(`@stl-api/client is fetching: ${method} ${url}`);
   const response = await fetchFn(url, options);
+
   return await response.json();
 }
 
@@ -84,7 +92,7 @@ function createClientProxy(
 
   return new Proxy(proxyClient, {
     get(_target, key) {
-      if (typeof key === "symbol") {
+      if (typeof key === "symbol" || key === "prototype") {
         return;
       }
 
@@ -116,18 +124,22 @@ function createClientProxy(
       }
 
       if (config.extensions) {
-        const action = callPath.slice(-1)[0];
-        const path = callPath.slice(0, -1);
+        const [action, extensionMethod] = callPath.slice(-2);
+        const path = callPath.slice(0, -2);
         const body = argumentsList[0];
-        const queryFn = () => makeRequest(config, action, path, body);
-        const queryKey = [makeUrl(path)];
+        const queryFn = (callTimeBody?: any) =>
+          makeRequest(config, action, path, callTimeBody ?? body);
+        const queryKey = [makeUrl(path, config.urlCase)];
         const handler = getExtensionHandler(
           config.extensions,
-          action,
+          extensionMethod,
           queryFn,
           queryKey
         );
-        return handler?.(...argumentsList);
+
+        if (handler) {
+          return handler(...argumentsList);
+        }
       }
 
       if (isCallingHook(lastCall)) {
@@ -137,7 +149,7 @@ function createClientProxy(
 
         return {
           queryFn: () => makeRequest(config, action, path, body),
-          queryKey: [makeUrl(path)],
+          queryKey: [makeUrl(path, config.urlCase)],
         };
       }
 

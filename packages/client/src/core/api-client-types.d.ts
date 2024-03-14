@@ -119,6 +119,7 @@ export interface ClientConfig<BP extends string = string> {
    */
   basePath: BP;
   fetch?: typeof fetch;
+  urlCase?: "camel" | "kebab";
   extensions?: ExtensionConfig;
 }
 

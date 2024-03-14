@@ -21,6 +21,7 @@ export async function mockFetchImplementation(
         ...update,
       };
       break;
+    case "GET /api/dogs/fido/dogTreats":
     case "GET /api/dogs/fido/dog-treats":
       payload = { yummy: true };
       break;

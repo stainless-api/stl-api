@@ -43,8 +43,14 @@ describe("react-query extension runtime", () => {
       client.cats.list.useQuery();
       expect(mockUseQuery).toBeCalledWith({
         queryFn: expect.any(Function),
-        queryKey: ["/api/cats/list"],
+        queryKey: ["/api/cats"],
       });
+    });
+
+    it("Should not affect non-extension methods", async () => {
+      const cats = client.cats.useList();
+      await cats.queryFn();
+      expect(mockFetch).toBeCalledWith("/api/cats", { method: "GET" });
     });
   });
 });

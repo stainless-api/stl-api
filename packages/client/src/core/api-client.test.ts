@@ -4,6 +4,33 @@ import { Client } from "./api-client-types";
 import * as MockAPI from "../test-util/api-server";
 
 describe("API Client", () => {
+  describe("configuration options", () => {
+    let client: Client<MockAPI.API, MockAPI.Config>;
+    let mockFetch: typeof fetch;
+
+    beforeEach(() => {
+      mockFetch = vi.fn(MockAPI.mockFetchImplementation);
+      const config = {
+        fetch: mockFetch,
+        basePath: "/api" as const,
+        urlCase: "camel",
+      };
+      client = makeClient<MockAPI.API, MockAPI.Config>(config);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("can preserve camel casing", async () => {
+      const treat = await client.dogs("fido").dogTreats.get();
+      expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dogTreats", {
+        method: "GET",
+      });
+      expect(treat).toStrictEqual({ yummy: true });
+    });
+  });
+
   describe("fetch calls", () => {
     let client: Client<MockAPI.API, MockAPI.Config>;
     let mockFetch: typeof fetch;
