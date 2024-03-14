@@ -1,0 +1,47 @@
+{
+  "name": "@stl-api/client",
+  "version": "0.0.1-alpha.1",
+  "description": "primary client package for stl-api",
+  "author": "dev@stainlessapi.com",
+  "license": "ISC",
+  "source": "src/index.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/cjs/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./*": {
+      "types": "./dist/cjs/*.d.ts",
+      "require": "./dist/cjs/*.js",
+      "import": "./dist/esm/*.js",
+      "default": "./dist/esm/*.js"
+    }
+  },
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest watch",
+    "prebuild": "mkdir -p dist/esm && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
+  },
+  "keywords": [
+    "stainless",
+    "api"
+  ],
+  "dependencies": {
+    "stainless": "github:stainless-api/stl-api#stainless-0.1.3"
+  },
+  "devDependencies": {
+    "@tanstack/react-query": "^5.28.0",
+    "vitest": "^1.3.1"
+  },
+  "peerDependencies": {
+    "@tanstack/react-query": "~5.x"
+  }
+}

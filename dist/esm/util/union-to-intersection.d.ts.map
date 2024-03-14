@@ -1,0 +1,1 @@
+{"version":3,"file":"union-to-intersection.d.ts","sourceRoot":"","sources":["../../../src/util/union-to-intersection.ts"],"names":[],"mappings":"AACA,MAAM,MAAM,mBAAmB,CAAC,CAAC,IAAI,CACnC,CAAC,SAAS,GAAG,GAAG,CAAC,CAAC,EAAE,CAAC,KAAK,GAAG,GAAG,KAAK,CACtC,SAAS,CAAC,CAAC,EAAE,MAAM,CAAC,KAAK,GAAG,GACzB,CAAC,GACD,KAAK,CAAC"}
