@@ -1,13 +1,19 @@
 {
-  "name": "client",
-  "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "name": "@stl-api/client",
+  "version": "0.0.1",
+  "description": "primary client package for stl-api",
+  "author": "dev@stainlessapi.com",
+  "main": "dist/index.js",
   "scripts": {
-    "test": "vitest watch"
+    "clean": "rimraf dist",
+    "build": "tsc -p tsconfig.json",
+    "test": "vitest watch",
+    "prepublishOnly": "npm run clean && npm run build && npm test"
   },
-  "keywords": [],
-  "author": "",
+  "keywords": [
+    "stainless",
+    "api"
+  ],
   "license": "ISC",
   "dependencies": {
     "stainless": "workspace:*"
