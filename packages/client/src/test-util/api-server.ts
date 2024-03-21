@@ -44,5 +44,19 @@ export const api = stl.api({
   },
 });
 
+export const nestedApi = stl.api({
+  basePath: "/api",
+  resources: {
+    cats,
+    dogs: {
+      ...dogs,
+      namespacedResources: {
+        dogTreats,
+      },
+    },
+  },
+});
+
 export type API = typeof api;
-export type Config = { basePath: "/api" };
+export const config = { basePath: "/api" } as const;
+export type Config = typeof config;
