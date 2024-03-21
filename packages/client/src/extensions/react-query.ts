@@ -17,7 +17,7 @@ export type MakeExtension<Input, Output> = Input extends undefined
       ): ReactQuery.UseSuspenseQueryResult<Output>;
       useMutation(
         opts?: UseMutationOptions
-      ): ReactQuery.UseMutationResult<Input, unknown, Output>;
+      ): ReactQuery.UseMutationResult<Output, unknown, Input>;
       getQueryKey(): string[];
     }
   : {
@@ -31,7 +31,7 @@ export type MakeExtension<Input, Output> = Input extends undefined
       ): ReactQuery.UseSuspenseQueryResult<Output>;
       useMutation(
         opts?: UseMutationOptions
-      ): ReactQuery.UseMutationResult<Input, unknown, Output>;
+      ): ReactQuery.UseMutationResult<Output, unknown, Input>;
       getQueryKey(): string[];
     };
 

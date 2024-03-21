@@ -44,12 +44,12 @@ export interface Client {
         }[]
       >;
       useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-        undefined,
-        unknown,
         {
           name: string;
           color: string;
-        }[]
+        }[],
+        unknown,
+        undefined
       >;
       getQueryKey(): string[];
     };
@@ -139,13 +139,13 @@ export interface Client {
         }>;
         useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
           {
-            name?: string | undefined;
-            color?: string | undefined;
+            name: string;
+            color: string;
           },
           unknown,
           {
-            name: string;
-            color: string;
+            name?: string | undefined;
+            color?: string | undefined;
           }
         >;
         getQueryKey(): string[];
@@ -173,12 +173,12 @@ export interface Client {
           color: string;
         }>;
         useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-          undefined,
-          unknown,
           {
             name: string;
             color: string;
-          }
+          },
+          unknown,
+          undefined
         >;
         getQueryKey(): string[];
       };
@@ -214,12 +214,12 @@ export interface Client {
             }[]
           >;
           useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-            undefined,
-            unknown,
             {
               name: string;
               color: string;
-            }[]
+            }[],
+            unknown,
+            undefined
           >;
           getQueryKey(): string[];
         };
@@ -258,12 +258,12 @@ export interface Client {
         }[]
       >;
       useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-        undefined,
-        unknown,
         {
           name: string;
           color: string;
-        }[]
+        }[],
+        unknown,
+        undefined
       >;
       getQueryKey(): string[];
     };
@@ -336,12 +336,12 @@ export interface Client {
           color: string;
         }>;
         useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-          undefined,
-          unknown,
           {
             name: string;
             color: string;
-          }
+          },
+          unknown,
+          undefined
         >;
         getQueryKey(): string[];
       };
@@ -385,13 +385,13 @@ export interface Client {
         }>;
         useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
           {
-            name?: string | undefined;
-            color?: string | undefined;
+            name: string;
+            color: string;
           },
           unknown,
           {
-            name: string;
-            color: string;
+            name?: string | undefined;
+            color?: string | undefined;
           }
         >;
         getQueryKey(): string[];
@@ -428,12 +428,12 @@ export interface Client {
             }[]
           >;
           useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-            undefined,
-            unknown,
             {
               name: string;
               color: string;
-            }[]
+            }[],
+            unknown,
+            undefined
           >;
           getQueryKey(): string[];
         };
@@ -466,11 +466,11 @@ export interface Client {
             }[]
           >;
           useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-            undefined,
-            unknown,
             {
               yummy: boolean;
-            }[]
+            }[],
+            unknown,
+            undefined
           >;
           getQueryKey(): string[];
         };
@@ -496,11 +496,11 @@ export interface Client {
             useMutation(
               opts?: UseMutationOptions
             ): ReactQuery.UseMutationResult<
-              undefined,
-              unknown,
               {
                 yummy: boolean;
-              }
+              },
+              unknown,
+              undefined
             >;
             getQueryKey(): string[];
           };

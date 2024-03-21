@@ -148,7 +148,8 @@ function nestEndpoints(
 function zodToString(schema: ZodTypeAny) {
   const { node } = zodToTs(schema);
   const nodeString = printNode(node);
-  return nodeString;
+  // This happens with large, lazyily loaded zod types
+  return nodeString.replaceAll(" Identifier ", " unknown ");
 }
 
 function makeParameterType(
@@ -223,7 +224,7 @@ function makeActionType(
           ): ReactQuery.UseSuspenseQueryResult<${returnType}>;
           useMutation(
             opts?: UseMutationOptions
-          ): ReactQuery.UseMutationResult<${input}, unknown, ${returnType}>;
+          ): ReactQuery.UseMutationResult<${returnType}, unknown, ${input}>;
           getQueryKey(): string[];
           };`);
     } else {
@@ -238,7 +239,7 @@ function makeActionType(
           ): ReactQuery.UseSuspenseQueryResult<${returnType}>;
           useMutation(
             opts?: UseMutationOptions
-          ): ReactQuery.UseMutationResult<undefined, unknown, ${returnType}>;
+          ): ReactQuery.UseMutationResult<${returnType}, unknown, void>;
           getQueryKey(): string[];
           };`);
     }
@@ -282,7 +283,8 @@ function makeTypes(
   apiMap: ApiMap,
   api: APIConfig,
   config: ClientConfig,
-  installLocation: string
+  installLocation: string,
+  reactQueryAlias: string
 ) {
   const output: string[] = [];
   output.push(dedent`
@@ -294,7 +296,7 @@ function makeTypes(
   if (config.extensions) {
     output.push(dedent`
       // React-query extension related types
-      import * as ReactQuery from "@tanstack/react-query";
+      import * as ReactQuery from "${reactQueryAlias}";
 
       type StlApiProvidedOpts = "queryFn" | "queryKey" | "mutationFn";
       type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts>;
@@ -320,12 +322,19 @@ function makeTypes(
 export async function generateOutput<API extends APIConfig>(
   api: API,
   config: ClientConfig<API["basePath"]>,
-  installLocation: string = "@stl-api/client"
+  installLocation: string = "@stl-api/client",
+  reactQueryAlias: string = "@tanstack/react-query"
 ) {
   const resources = getResources(api.resources);
   const endpoints = getEndpoints(resources);
   const apiMap = nestEndpoints(endpoints, config.basePath);
-  const output = makeTypes(apiMap, api, config, installLocation);
+  const output = makeTypes(
+    apiMap,
+    api,
+    config,
+    installLocation,
+    reactQueryAlias
+  );
 
   return await prettier.format(output.flat().join("\n"));
 }
