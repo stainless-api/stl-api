@@ -147,8 +147,10 @@ describe("Generated API Client", () => {
     });
 
     test("has a methods for sub resources", () => {
-      let dogTreatOutput = client.dogs("fido").dogTreats.get();
-      expectTypeOf(dogTreatOutput).toEqualTypeOf<Promise<{ yummy: boolean }>>();
+      let dogTreatOutput = client.dogs<"list">("fido").dogTreats.list();
+      expectTypeOf(dogTreatOutput).toEqualTypeOf<
+        Promise<{ yummy: boolean }[]>
+      >();
     });
   });
 });

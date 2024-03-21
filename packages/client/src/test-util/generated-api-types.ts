@@ -1,3 +1,4 @@
+/* eslint-disable prettier/prettier */
 // This is an auto-generated file, any manual changes will be overwritten.
 import { ClientConfig, makeClientWithExplicitTypes } from "../index";
 // React-query extension related types
@@ -438,32 +439,110 @@ export interface Client {
         };
       };
       dogTreats: {
-        useGet(): {
-          queryFn(): Promise<{
-            yummy: boolean;
-          }>;
+        useList(): {
+          queryFn(): Promise<
+            {
+              yummy: boolean;
+            }[]
+          >;
           queryKey: string[];
         };
-        get: {
-          (): Promise<{
-            yummy: boolean;
-          }>;
-          useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
-            yummy: boolean;
-          }>;
+        list: {
+          (): Promise<
+            {
+              yummy: boolean;
+            }[]
+          >;
+          useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<
+            {
+              yummy: boolean;
+            }[]
+          >;
           useSuspenseQuery(
             opts?: UseQueryOptions
-          ): ReactQuery.UseSuspenseQueryResult<{
-            yummy: boolean;
-          }>;
+          ): ReactQuery.UseSuspenseQueryResult<
+            {
+              yummy: boolean;
+            }[]
+          >;
           useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
             undefined,
             unknown,
             {
               yummy: boolean;
-            }
+            }[]
           >;
           getQueryKey(): string[];
+        };
+        (treatId: string | number): {
+          useRetrieveTreat(): {
+            queryFn(): Promise<{
+              yummy: boolean;
+            }>;
+            queryKey: string[];
+          };
+          retrieveTreat: {
+            (): Promise<{
+              yummy: boolean;
+            }>;
+            useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
+              yummy: boolean;
+            }>;
+            useSuspenseQuery(
+              opts?: UseQueryOptions
+            ): ReactQuery.UseSuspenseQueryResult<{
+              yummy: boolean;
+            }>;
+            useMutation(
+              opts?: UseMutationOptions
+            ): ReactQuery.UseMutationResult<
+              undefined,
+              unknown,
+              {
+                yummy: boolean;
+              }
+            >;
+            getQueryKey(): string[];
+          };
+          useUpdate(body: { yummy: boolean }): {
+            queryFn(): Promise<{
+              yummy: boolean;
+            }>;
+            queryKey: string[];
+          };
+          update: {
+            (body: { yummy: boolean }): Promise<{
+              yummy: boolean;
+            }>;
+            useQuery(
+              body: {
+                yummy: boolean;
+              },
+              opts?: UseQueryOptions
+            ): ReactQuery.UseQueryResult<{
+              yummy: boolean;
+            }>;
+            useSuspenseQuery(
+              body: {
+                yummy: boolean;
+              },
+              opts?: UseQueryOptions
+            ): ReactQuery.UseSuspenseQueryResult<{
+              yummy: boolean;
+            }>;
+            useMutation(
+              opts?: UseMutationOptions
+            ): ReactQuery.UseMutationResult<
+              {
+                yummy: boolean;
+              },
+              unknown,
+              {
+                yummy: boolean;
+              }
+            >;
+            getQueryKey(): string[];
+          };
         };
       };
     };

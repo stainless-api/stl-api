@@ -6,6 +6,7 @@ import { camelCase, capitalize } from "../util/strings";
 import { ZodTypeAny } from "stainless/dist/z";
 import dedent from "dedent-js";
 import prettier from "prettier";
+import * as _ from "lodash";
 
 type GenericResourceConfi = ResourceConfig<AnyActionsConfig, any, any>;
 
@@ -111,7 +112,19 @@ function recursiveSet(
     }
     const returnValue = {};
     recursiveSet(returnValue, rest);
-    obj[current.name].asParam = [...obj[current.name].asParam, returnValue];
+    const key = Object.keys(returnValue)[0];
+    const existingIndex = obj[current.name].asParam.findIndex((param: any) => {
+      return Object.keys(param).includes(key);
+    });
+
+    if (existingIndex > -1) {
+      obj[current.name].asParam[existingIndex] = _.merge(
+        obj[current.name].asParam[existingIndex],
+        returnValue
+      );
+    } else {
+      obj[current.name].asParam = [...obj[current.name].asParam, returnValue];
+    }
     return;
   }
 }
@@ -273,6 +286,7 @@ function makeTypes(
 ) {
   const output: string[] = [];
   output.push(dedent`
+    /* eslint-disable prettier/prettier */
     // This is an auto-generated file, any manual changes will be overwritten.
     import { ClientConfig, makeClientWithExplicitTypes } from "${installLocation}";
   `);

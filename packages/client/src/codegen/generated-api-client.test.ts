@@ -23,10 +23,16 @@ describe("Generated API Client", () => {
     });
 
     it("can preserve camel casing", async () => {
-      const treat = await client.dogs("fido").dogTreats.get();
-      expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dogTreats", {
-        method: "GET",
-      });
+      const treat = await client
+        .dogs("fido")
+        .dogTreats("treatId")
+        .retrieveTreat();
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/dogs/fido/dogTreats/treatId",
+        {
+          method: "GET",
+        }
+      );
       expect(treat).toStrictEqual({ yummy: true });
     });
   });
@@ -70,11 +76,11 @@ describe("Generated API Client", () => {
     });
 
     it("can handle case changes", async () => {
-      const treat = await client.dogs("fido").dogTreats.get();
+      const treat = await client.dogs("fido").dogTreats.list();
       expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dog-treats", {
         method: "GET",
       });
-      expect(treat).toStrictEqual({ yummy: true });
+      expect(treat).toStrictEqual([{ yummy: true }]);
     });
   });
 
@@ -122,6 +128,38 @@ describe("Generated API Client", () => {
         body: JSON.stringify({ name: "Shiro!" }),
       });
       expect(update).toStrictEqual({ name: "Shiro!", color: "black" });
+    });
+
+    it("can handle overlapping path params at multi-level depth", async () => {
+      const treat = await client
+        .dogs("fido")
+        .dogTreats("treatId")
+        .retrieveTreat();
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/dogs/fido/dog-treats/treatId",
+        {
+          method: "GET",
+        }
+      );
+      expect(treat).toStrictEqual({ yummy: true });
+
+      const treats = await client.dogs("fido").dogTreats.list();
+      expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dog-treats", {
+        method: "GET",
+      });
+      expect(treats).toStrictEqual([{ yummy: true }]);
+
+      const update = await client
+        .dogs("fido")
+        .dogTreats("treatId")
+        .update({ yummy: false });
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/dogs/fido/dog-treats/treatId",
+        {
+          method: "PATCH",
+        }
+      );
+      expect(update).toStrictEqual({ yummy: false });
     });
   });
 });

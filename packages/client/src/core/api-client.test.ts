@@ -23,7 +23,7 @@ describe("API Client", () => {
     });
 
     it("can preserve camel casing", async () => {
-      const treat = await client.dogs("fido").dogTreats.get();
+      const treat = await client.dogs<"list">("fido").dogTreats.list();
       expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dogTreats", {
         method: "GET",
       });
@@ -72,7 +72,7 @@ describe("API Client", () => {
     });
 
     it("can handle case changes", async () => {
-      const treat = await client.dogs("fido").dogTreats.get();
+      const treat = await client.dogs<"list">("fido").dogTreats.list();
       expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dog-treats", {
         method: "GET",
       });
