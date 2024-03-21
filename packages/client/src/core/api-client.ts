@@ -171,3 +171,13 @@ export function makeClient<
 >(config: Config): Client<API, Config> {
   return createClientProxy(config, [config.basePath]) as Client<API, Config>;
 }
+
+/**
+ * Main entry for the client library
+ * Provides an interface to construct API calls to a server with a matching API configuration
+ * @param config
+ * @returns Client API
+ */
+export function makeFastClient<T>(config: ClientConfig): T {
+  return createClientProxy(config, [config.basePath]) as T;
+}
