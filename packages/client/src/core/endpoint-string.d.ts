@@ -21,9 +21,9 @@ export interface ResourcePathPart<T extends string> {
   name: T;
 }
 
-type RemoveLeadingSlash<T extends string> = T extends `/${infer S}` ? S : T;
+export type PathPart = ResourcePathPart<string> | ParamPathPart<string>;
 
-export type PathPart = ResourcePathPart | ParamPathPart;
+type RemoveLeadingSlash<T extends string> = T extends `/${infer S}` ? S : T;
 
 type InferPathPart<T extends string> = T extends `{${infer Part}}`
   ? ParamPathPart<Part>
@@ -41,6 +41,6 @@ export type SplitPathIntoParts<
   : [InferPathPart<S>];
 
 export type FilterPathParts<
-  Path extends readonly InferPathPart[],
+  Path extends readonly InferPathPart<string>[],
   Filter extends string
 > = Tuple.Filter<Path, ResourcePathPart<RemoveLeadingSlash<Filter>>>;
