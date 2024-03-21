@@ -3,7 +3,7 @@ import { cats } from "../test-util/cat-api";
 import { dogs } from "../test-util/dog-api";
 import { dogTreats } from "../test-util/dog-treat-api";
 import { Stl } from "stainless";
-import { makeClient } from "../core/api-client";
+import { makeClientWithInferredTypes } from "../core/api-client";
 import { ClientConfig } from "../core/api-client-types";
 import { Config } from "./react-query";
 
@@ -24,7 +24,9 @@ describe("Client extensions", () => {
       basePath: "/api" as const,
       extensions: { reactQuery: {} as Config },
     } satisfies ClientConfig;
-    const client = makeClient<typeof api, typeof config>(config);
+    const client = makeClientWithInferredTypes<typeof api, typeof config>(
+      config
+    );
 
     test("adds useQuery method", () => {
       const cats = client.cats.list.useQuery();

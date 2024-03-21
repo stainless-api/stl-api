@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeClient } from "./api-client";
+import { makeClientWithInferredTypes } from "./api-client";
 import { Client } from "./api-client-types";
 import * as MockAPI from "../test-util/api-server";
 
@@ -15,7 +15,7 @@ describe("API Client", () => {
         basePath: "/api" as const,
         urlCase: "camel",
       };
-      client = makeClient<MockAPI.API, MockAPI.Config>(config);
+      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.Config>(config);
     });
 
     afterEach(() => {
@@ -38,7 +38,7 @@ describe("API Client", () => {
     beforeEach(() => {
       mockFetch = vi.fn(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeClient<MockAPI.API, MockAPI.Config>(config);
+      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.Config>(config);
     });
 
     afterEach(() => {
@@ -58,6 +58,9 @@ describe("API Client", () => {
       expect(update).toStrictEqual({ name: "Shiro!", color: "black" });
       expect(mockFetch).toHaveBeenCalledWith("/api/cats/shiro", {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ name: "Shiro!" }),
       });
     });
@@ -86,7 +89,7 @@ describe("API Client", () => {
         .fn(fetch)
         .mockImplementation(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeClient<MockAPI.API, MockAPI.Config>(config);
+      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.Config>(config);
     });
 
     afterEach(() => {
@@ -115,6 +118,9 @@ describe("API Client", () => {
       const update = await queryFn();
       expect(mockFetch).toHaveBeenCalledWith("/api/cats/shiro", {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ name: "Shiro!" }),
       });
       expect(update).toStrictEqual({ name: "Shiro!", color: "black" });

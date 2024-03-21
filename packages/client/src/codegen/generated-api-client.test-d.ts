@@ -1,14 +1,17 @@
-import { describe, expectTypeOf, test } from "vitest";
-import { makeClient, makeFastClient } from "./api-client";
+import { beforeAll, describe, expectTypeOf, test } from "vitest";
+import {
+  makeClientWithInferredTypes,
+  makeClientWithExplicitTypes,
+} from "../core/api-client";
 import { cats } from "../test-util/cat-api";
 import { dogs } from "../test-util/dog-api";
-import { Client } from "../test-util/generated-output";
+import { Client } from "../test-util/generated-api-types";
 import { dogTreats } from "../test-util/dog-treat-api";
 import { Stl } from "stainless";
 
 const stl = new Stl({ plugins: {} });
 
-describe("API Client", () => {
+describe("Generated API Client", () => {
   describe("single resource", () => {
     const api = stl.api({
       basePath: "/api",
@@ -18,7 +21,7 @@ describe("API Client", () => {
     });
 
     const config = { basePath: "/api" as const };
-    const client = makeFastClient<Client>(config);
+    const client = makeClientWithExplicitTypes<Client>(config);
 
     test("adds methods for each verb", () => {
       let listOutput = client.cats.list();
@@ -91,7 +94,9 @@ describe("API Client", () => {
     });
 
     const config = { basePath: "/api" as const };
-    const client = makeClient<typeof api, typeof config>(config);
+    const client = makeClientWithInferredTypes<typeof api, typeof config>(
+      config
+    );
 
     test("Allows discriminating between functions using generics", () => {
       let retrieveLitterOutput = client
@@ -125,7 +130,9 @@ describe("API Client", () => {
     });
 
     const config = { basePath: "/api" as const };
-    const client = makeClient<typeof api, typeof config>(config);
+    const client = makeClientWithInferredTypes<typeof api, typeof config>(
+      config
+    );
 
     test("has a methods for sibling resources", () => {
       let catListOutput = client.cats.list();

@@ -5,6 +5,7 @@ import { splitPathIntoParts } from "../core/endpoint";
 import { camelCase, capitalize } from "../util/strings";
 import { ZodTypeAny } from "stainless/dist/z";
 import dedent from "dedent-js";
+import prettier from "prettier";
 
 type GenericResourceConfi = ResourceConfig<AnyActionsConfig, any, any>;
 
@@ -142,18 +143,16 @@ function makeParameterType(
   value: ApiMap[],
   api: APIConfig,
   config: ClientConfig
-): [string[], string[]] {
-  const supportingTypes: string[] = [];
-  const mainTypes: string[] = [`(${camelCase(name)}: string | number): {`];
+): string[] {
+  const types: string[] = [`(${camelCase(name)}: string | number): {`];
   value
     .map((v) => makeTypesFromApiMap(v, api, config))
     .forEach((subTypes) => {
-      supportingTypes.push(...subTypes[0]);
-      mainTypes.push(...subTypes[1]);
+      types.push(...subTypes);
     });
-  mainTypes.push("}");
+  types.push("};");
 
-  return [supportingTypes, mainTypes];
+  return types;
 }
 
 function makeResourceType(
@@ -161,8 +160,8 @@ function makeResourceType(
   value: Record<string, ApiMap>,
   api: APIConfig,
   config: ClientConfig
-): [string[], string[]] {
-  const subTypes: string[][] = [[], []];
+): string[] {
+  const subTypes: string[] = [];
 
   Object.entries(value).forEach(([k, v]) => {
     const entryTypes = makeTypesFromApiMap(
@@ -170,13 +169,10 @@ function makeResourceType(
       api,
       config
     );
-    subTypes[0].push(...entryTypes[0]);
-    subTypes[1].push(...entryTypes[1]);
+    subTypes.push(...entryTypes);
   });
 
-  const mainTypes: string[] = [`${camelCase(name)}: {`, ...subTypes[1], "}"];
-
-  return [subTypes[0], mainTypes];
+  return [`${camelCase(name)}: {`, ...subTypes, "};"];
 }
 
 function makeActionType(
@@ -184,25 +180,24 @@ function makeActionType(
   actionPath: string,
   api: APIConfig,
   config: ClientConfig
-): [string[], string[]] {
-  const supportingTypes: string[] = [];
+): string[] {
   const resources = actionPath.split(".");
   const action = api.resources[resources[0]].actions[resources[1]];
-  const mainTypes: string[] = [];
+  const types: string[] = [];
   const body = action.body ? `body: ${zodToString(action.body)}` : "";
   const returnType = action.response ? zodToString(action.response) : "void";
 
-  mainTypes.push(dedent`
+  types.push(dedent`
     use${capitalize(camelCase(name))}(${body}): {
-      queryFn(): Promise<${returnType}>
+      queryFn(): Promise<${returnType}>;
       queryKey: string[];
-    }`);
+    };`);
 
   if (config.extensions) {
     if (action.body) {
       const input = zodToString(action.body);
 
-      mainTypes.push(dedent`
+      types.push(dedent`
         ${camelCase(name)}: {
           (${body}): Promise<${returnType}>;
           useQuery(
@@ -219,7 +214,7 @@ function makeActionType(
           getQueryKey(): string[];
           };`);
     } else {
-      mainTypes.push(dedent`
+      types.push(dedent`
         ${camelCase(name)}: {
           (${body}): Promise<${returnType}>;
           useQuery(
@@ -235,12 +230,12 @@ function makeActionType(
           };`);
     }
   } else {
-    mainTypes.push(`${camelCase(name)}(${body}): Promise<`);
-    mainTypes.push(`${returnType}`);
-    mainTypes.push(">;");
+    types.push(`${camelCase(name)}(${body}): Promise<`);
+    types.push(`${returnType}`);
+    types.push(">;");
   }
 
-  return [supportingTypes, mainTypes];
+  return types;
 }
 
 function makeTypesFromApiMap(
@@ -248,68 +243,75 @@ function makeTypesFromApiMap(
   api: APIConfig,
   config: ClientConfig
 ) {
-  const supportingTypes: string[] = [];
-  const mainTypes: string[] = [];
+  const types: string[] = [];
 
   Object.entries(apiMap).forEach(([k, v]) => {
     if (v.asParam) {
       const subTypes = makeParameterType(k, v.asParam, api, config);
-      supportingTypes.push(...subTypes[0]);
-      mainTypes.push(...subTypes[1]);
+      types.push(...subTypes);
     }
 
     if (v.asResource) {
       const subTypes = makeResourceType(k, v.asResource, api, config);
-      supportingTypes.push(...subTypes[0]);
-      mainTypes.push(...subTypes[1]);
+      types.push(...subTypes);
     }
 
     if (v.asAction) {
       const subTypes = makeActionType(k, v.actionPath, api, config);
-      supportingTypes.push(...subTypes[0]);
-      mainTypes.push(...subTypes[1]);
+      types.push(...subTypes);
     }
   });
 
-  return [supportingTypes, mainTypes];
+  return types;
 }
 
-function makeTypes(apiMap: ApiMap, api: APIConfig, config: ClientConfig) {
+function makeTypes(
+  apiMap: ApiMap,
+  api: APIConfig,
+  config: ClientConfig,
+  installLocation: string
+) {
   const output: string[] = [];
-  output.push(
-    "// This is an auto-generated file, any manual changes will be overwritten."
-  );
+  output.push(dedent`
+    // This is an auto-generated file, any manual changes will be overwritten.
+    import { ClientConfig, makeClientWithExplicitTypes } from "${installLocation}";
+  `);
+
   if (config.extensions) {
-    output.push('import * as ReactQuery from "@tanstack/react-query";');
-    output.push(
-      'type StlApiProvidedOpts = "queryFn" | "queryKey" | "mutationFn";'
-    );
-    output.push(
-      "type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts>;"
-    );
-    output.push(
-      "type UseMutationOptions = Omit<ReactQuery.UseMutationOptions, StlApiProvidedOpts>;"
-    );
+    output.push(dedent`
+      // React-query extension related types
+      import * as ReactQuery from "@tanstack/react-query";
+
+      type StlApiProvidedOpts = "queryFn" | "queryKey" | "mutationFn";
+      type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts>;
+      type UseMutationOptions = Omit<ReactQuery.UseMutationOptions, StlApiProvidedOpts>;
+
+    `);
   }
-  output.push("export interface Client {");
 
-  const [supportingTypes, mainTypes] = makeTypesFromApiMap(apiMap, api, config);
-  output.unshift(...supportingTypes);
-  output.push(...mainTypes);
+  output.push(dedent`
+    export interface Client {
+      ${makeTypesFromApiMap(apiMap, api, config).join("\n")}
+    }
+    
+    export function makeClient(config: ClientConfig) {
+      // prettier-ignore
+      return makeClientWithExplicitTypes<Client>(config);
+    }    
+  `);
 
-  output.push("}");
-  output.push("export const client = {} as Client;");
   return output;
 }
 
-export function generateOutput<API extends APIConfig>(
+export async function generateOutput<API extends APIConfig>(
   api: API,
-  config: ClientConfig<API["basePath"]>
+  config: ClientConfig<API["basePath"]>,
+  installLocation: string = "@stl-api/client"
 ) {
   const resources = getResources(api.resources);
   const endpoints = getEndpoints(resources);
   const apiMap = nestEndpoints(endpoints, config.basePath);
-  const output = makeTypes(apiMap, api, config);
+  const output = makeTypes(apiMap, api, config, installLocation);
 
-  return output.flat().join("\n");
+  return await prettier.format(output.flat().join("\n"));
 }

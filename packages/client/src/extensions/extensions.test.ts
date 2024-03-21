@@ -8,7 +8,7 @@ import {
   vi,
 } from "vitest";
 import { Client } from "../core/api-client-types";
-import { makeClient } from "../core/api-client";
+import { makeClientWithInferredTypes } from "../core/api-client";
 import * as ReactQuery from "@tanstack/react-query";
 import * as MockAPI from "../test-util/api-server";
 
@@ -32,7 +32,7 @@ describe("react-query extension runtime", () => {
         basePath: "/api" as const,
         extensions: { reactQuery: { ...ReactQuery, useQuery: mockUseQuery } },
       };
-      client = makeClient<MockAPI.API, Config>(config);
+      client = makeClientWithInferredTypes<MockAPI.API, Config>(config);
     });
 
     afterEach(() => {

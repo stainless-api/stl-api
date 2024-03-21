@@ -164,7 +164,7 @@ function createClientProxy(
  * @param config
  * @returns Client API
  */
-export function makeClient<
+export function makeClientWithInferredTypes<
   API extends APIConfig,
   /** Unfortunately this cannot be infered from the parameter since the API generic needs to be specified */
   Config extends ClientConfig<API["basePath"]>
@@ -178,6 +178,6 @@ export function makeClient<
  * @param config
  * @returns Client API
  */
-export function makeFastClient<T>(config: ClientConfig): T {
+export function makeClientWithExplicitTypes<T>(config: ClientConfig): T {
   return createClientProxy(config, [config.basePath]) as T;
 }

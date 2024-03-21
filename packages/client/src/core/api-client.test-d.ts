@@ -1,5 +1,5 @@
 import { describe, expectTypeOf, test } from "vitest";
-import { makeClient } from "./api-client";
+import { makeClientWithInferredTypes } from "./api-client";
 import { cats } from "../test-util/cat-api";
 import { dogs } from "../test-util/dog-api";
 import { dogTreats } from "../test-util/dog-treat-api";
@@ -17,7 +17,9 @@ describe("API Client", () => {
     });
 
     const config = { basePath: "/api" as const };
-    const client = makeClient<typeof api, typeof config>(config);
+    const client = makeClientWithInferredTypes<typeof api, typeof config>(
+      config
+    );
 
     test("adds methods for each verb", () => {
       let listOutput = client.cats.list();
@@ -96,7 +98,9 @@ describe("API Client", () => {
     });
 
     const config = { basePath: "/api" as const };
-    const client = makeClient<typeof api, typeof config>(config);
+    const client = makeClientWithInferredTypes<typeof api, typeof config>(
+      config
+    );
 
     test("Allows discriminating between functions using generics", () => {
       let retrieveLitterOutput = client
@@ -130,7 +134,9 @@ describe("API Client", () => {
     });
 
     const config = { basePath: "/api" as const };
-    const client = makeClient<typeof api, typeof config>(config);
+    const client = makeClientWithInferredTypes<typeof api, typeof config>(
+      config
+    );
 
     test("has a methods for sibling resources", () => {
       let catListOutput = client.cats.list();

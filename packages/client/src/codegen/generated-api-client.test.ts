@@ -1,7 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { makeFastClient } from "./api-client";
+import { makeClientWithExplicitTypes } from "../core/api-client";
 import * as MockAPI from "../test-util/api-server";
-import { Client } from "../test-util/generated-output";
+import { Client } from "../test-util/generated-api-types";
 
 describe("Generated API Client", () => {
   describe("configuration options", () => {
@@ -15,7 +15,7 @@ describe("Generated API Client", () => {
         basePath: "/api" as const,
         urlCase: "camel" as const,
       };
-      client = makeFastClient<Client>(config);
+      client = makeClientWithExplicitTypes<Client>(config);
     });
 
     afterEach(() => {
@@ -38,7 +38,7 @@ describe("Generated API Client", () => {
     beforeEach(() => {
       mockFetch = vi.fn(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeFastClient<Client>(config);
+      client = makeClientWithExplicitTypes<Client>(config);
     });
 
     afterEach(() => {
@@ -56,6 +56,9 @@ describe("Generated API Client", () => {
       expect(update).toStrictEqual({ name: "Shiro!", color: "black" });
       expect(mockFetch).toHaveBeenCalledWith("/api/cats/shiro", {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ name: "Shiro!" }),
       });
     });
@@ -84,7 +87,7 @@ describe("Generated API Client", () => {
         .fn(fetch)
         .mockImplementation(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeFastClient<Client>(config);
+      client = makeClientWithExplicitTypes<Client>(config);
     });
 
     afterEach(() => {
@@ -113,6 +116,9 @@ describe("Generated API Client", () => {
       const update = await queryFn();
       expect(mockFetch).toHaveBeenCalledWith("/api/cats/shiro", {
         method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+        },
         body: JSON.stringify({ name: "Shiro!" }),
       });
       expect(update).toStrictEqual({ name: "Shiro!", color: "black" });

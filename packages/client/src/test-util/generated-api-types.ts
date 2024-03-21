@@ -1,11 +1,15 @@
 // This is an auto-generated file, any manual changes will be overwritten.
+import { ClientConfig, makeClientWithExplicitTypes } from "../index";
+// React-query extension related types
 import * as ReactQuery from "@tanstack/react-query";
+
 type StlApiProvidedOpts = "queryFn" | "queryKey" | "mutationFn";
 type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts>;
 type UseMutationOptions = Omit<
   ReactQuery.UseMutationOptions,
   StlApiProvidedOpts
 >;
+
 export interface Client {
   cats: {
     useList(): {
@@ -465,4 +469,8 @@ export interface Client {
     };
   };
 }
-export const client = {} as Client;
+
+export function makeClient(config: ClientConfig) {
+  // prettier-ignore
+  return makeClientWithExplicitTypes<Client>(config);
+}
