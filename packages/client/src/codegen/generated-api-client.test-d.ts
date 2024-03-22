@@ -1,25 +1,9 @@
-import { beforeAll, describe, expectTypeOf, test } from "vitest";
-import {
-  makeClientWithInferredTypes,
-  makeClientWithExplicitTypes,
-} from "../core/api-client";
-import { cats } from "../test-util/cat-api";
-import { dogs } from "../test-util/dog-api";
+import { describe, expectTypeOf, test } from "vitest";
+import { makeClientWithExplicitTypes } from "../core/api-client";
 import { Client } from "../test-util/generated-api-types";
-import { dogTreats } from "../test-util/dog-treat-api";
-import { Stl } from "stainless";
-
-const stl = new Stl({ plugins: {} });
 
 describe("Generated API Client", () => {
   describe("single resource", () => {
-    const api = stl.api({
-      basePath: "/api",
-      resources: {
-        cats,
-      },
-    });
-
     const config = { basePath: "/api" as const };
     const client = makeClientWithExplicitTypes<Client>(config);
 
@@ -85,54 +69,9 @@ describe("Generated API Client", () => {
     });
   });
 
-  describe("Type Hacks and Boilerplate", () => {
-    const api = stl.api({
-      basePath: "/api",
-      resources: {
-        cats,
-      },
-    });
-
-    const config = { basePath: "/api" as const };
-    const client = makeClientWithInferredTypes<typeof api, typeof config>(
-      config
-    );
-
-    test("Allows discriminating between functions using generics", () => {
-      let retrieveLitterOutput = client
-        .cats<"retrieveLitter">("shiro")
-        .litter.retrieveLitter();
-
-      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<
-        Promise<{ name: string; color: string }[]>
-      >();
-    });
-
-    test("Allows discriminating between functions using object parameter", () => {
-      let retrieveOutput = client
-        .cats({ catName: "shiro", discriminator: "retrieve" })
-        .retrieve();
-
-      expectTypeOf(retrieveOutput).toEqualTypeOf<
-        Promise<{ name: string; color: string }>
-      >();
-    });
-  });
-
   describe("multiple resource", () => {
-    const api = stl.api({
-      basePath: "/api",
-      resources: {
-        cats,
-        dogs,
-        dogTreats,
-      },
-    });
-
     const config = { basePath: "/api" as const };
-    const client = makeClientWithInferredTypes<typeof api, typeof config>(
-      config
-    );
+    const client = makeClientWithExplicitTypes<Client>(config);
 
     test("has a methods for sibling resources", () => {
       let catListOutput = client.cats.list();
@@ -147,10 +86,21 @@ describe("Generated API Client", () => {
     });
 
     test("has a methods for sub resources", () => {
-      let dogTreatOutput = client.dogs<"list">("fido").dogTreats.list();
+      let dogTreatOutput = client.dogs("fido").dogTreats.list();
       expectTypeOf(dogTreatOutput).toEqualTypeOf<
         Promise<{ yummy: boolean }[]>
       >();
+    });
+  });
+
+  describe("zod edge cases", () => {
+    const config = { basePath: "/api" as const };
+    const client = makeClientWithExplicitTypes<Client>(config);
+
+    test("can handle native enums", () => {
+      expectTypeOf(
+        client.users("foo").update.useSuspenseQuery({}).data.accountType
+      ).toEqualTypeOf<"admin" | "free" | "paid">();
     });
   });
 });

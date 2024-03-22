@@ -552,12 +552,14 @@ export interface Client {
       useUpdate(body: {
         name?: string | undefined;
         email?: string | undefined;
+        accountType?: ("admin" | "free" | "paid") | undefined;
       }): {
         queryFn(): Promise<{
           id: string;
           name?: (string | null) | undefined;
           email?: (string | null) | undefined;
           siteWideRole: "admin" | "user";
+          accountType: "admin" | "free" | "paid";
           githubUsername?: (string | null) | undefined;
           createAt: string;
           updatedAt: string;
@@ -568,11 +570,13 @@ export interface Client {
         (body: {
           name?: string | undefined;
           email?: string | undefined;
+          accountType?: ("admin" | "free" | "paid") | undefined;
         }): Promise<{
           id: string;
           name?: (string | null) | undefined;
           email?: (string | null) | undefined;
           siteWideRole: "admin" | "user";
+          accountType: "admin" | "free" | "paid";
           githubUsername?: (string | null) | undefined;
           createAt: string;
           updatedAt: string;
@@ -581,6 +585,7 @@ export interface Client {
           body: {
             name?: string | undefined;
             email?: string | undefined;
+            accountType?: ("admin" | "free" | "paid") | undefined;
           },
           opts?: UseQueryOptions
         ): ReactQuery.UseQueryResult<{
@@ -588,6 +593,7 @@ export interface Client {
           name?: (string | null) | undefined;
           email?: (string | null) | undefined;
           siteWideRole: "admin" | "user";
+          accountType: "admin" | "free" | "paid";
           githubUsername?: (string | null) | undefined;
           createAt: string;
           updatedAt: string;
@@ -596,6 +602,7 @@ export interface Client {
           body: {
             name?: string | undefined;
             email?: string | undefined;
+            accountType?: ("admin" | "free" | "paid") | undefined;
           },
           opts?: UseQueryOptions
         ): ReactQuery.UseSuspenseQueryResult<{
@@ -603,6 +610,7 @@ export interface Client {
           name?: (string | null) | undefined;
           email?: (string | null) | undefined;
           siteWideRole: "admin" | "user";
+          accountType: "admin" | "free" | "paid";
           githubUsername?: (string | null) | undefined;
           createAt: string;
           updatedAt: string;
@@ -613,6 +621,7 @@ export interface Client {
             name?: (string | null) | undefined;
             email?: (string | null) | undefined;
             siteWideRole: "admin" | "user";
+            accountType: "admin" | "free" | "paid";
             githubUsername?: (string | null) | undefined;
             createAt: string;
             updatedAt: string;
@@ -621,6 +630,7 @@ export interface Client {
           {
             name?: string | undefined;
             email?: string | undefined;
+            accountType?: ("admin" | "free" | "paid") | undefined;
           }
         >;
         getQueryKey(): string[];
