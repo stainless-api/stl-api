@@ -49,7 +49,7 @@ export interface Client {
           color: string;
         }[],
         unknown,
-        undefined
+        void
       >;
       getQueryKey(): string[];
     };
@@ -178,7 +178,7 @@ export interface Client {
             color: string;
           },
           unknown,
-          undefined
+          void
         >;
         getQueryKey(): string[];
       };
@@ -219,7 +219,7 @@ export interface Client {
               color: string;
             }[],
             unknown,
-            undefined
+            void
           >;
           getQueryKey(): string[];
         };
@@ -263,7 +263,7 @@ export interface Client {
           color: string;
         }[],
         unknown,
-        undefined
+        void
       >;
       getQueryKey(): string[];
     };
@@ -341,7 +341,7 @@ export interface Client {
             color: string;
           },
           unknown,
-          undefined
+          void
         >;
         getQueryKey(): string[];
       };
@@ -433,7 +433,7 @@ export interface Client {
               color: string;
             }[],
             unknown,
-            undefined
+            void
           >;
           getQueryKey(): string[];
         };
@@ -470,7 +470,7 @@ export interface Client {
               yummy: boolean;
             }[],
             unknown,
-            undefined
+            void
           >;
           getQueryKey(): string[];
         };
@@ -500,7 +500,7 @@ export interface Client {
                 yummy: boolean;
               },
               unknown,
-              undefined
+              void
             >;
             getQueryKey(): string[];
           };
@@ -544,6 +544,86 @@ export interface Client {
             getQueryKey(): string[];
           };
         };
+      };
+    };
+  };
+  users: {
+    (id: string | number): {
+      useUpdate(body: {
+        name?: string | undefined;
+        email?: string | undefined;
+      }): {
+        queryFn(): Promise<{
+          id: string;
+          name?: (string | null) | undefined;
+          email?: (string | null) | undefined;
+          siteWideRole: "admin" | "user";
+          githubUsername?: (string | null) | undefined;
+          createAt: string;
+          updatedAt: string;
+        }>;
+        queryKey: string[];
+      };
+      update: {
+        (body: {
+          name?: string | undefined;
+          email?: string | undefined;
+        }): Promise<{
+          id: string;
+          name?: (string | null) | undefined;
+          email?: (string | null) | undefined;
+          siteWideRole: "admin" | "user";
+          githubUsername?: (string | null) | undefined;
+          createAt: string;
+          updatedAt: string;
+        }>;
+        useQuery(
+          body: {
+            name?: string | undefined;
+            email?: string | undefined;
+          },
+          opts?: UseQueryOptions
+        ): ReactQuery.UseQueryResult<{
+          id: string;
+          name?: (string | null) | undefined;
+          email?: (string | null) | undefined;
+          siteWideRole: "admin" | "user";
+          githubUsername?: (string | null) | undefined;
+          createAt: string;
+          updatedAt: string;
+        }>;
+        useSuspenseQuery(
+          body: {
+            name?: string | undefined;
+            email?: string | undefined;
+          },
+          opts?: UseQueryOptions
+        ): ReactQuery.UseSuspenseQueryResult<{
+          id: string;
+          name?: (string | null) | undefined;
+          email?: (string | null) | undefined;
+          siteWideRole: "admin" | "user";
+          githubUsername?: (string | null) | undefined;
+          createAt: string;
+          updatedAt: string;
+        }>;
+        useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+          {
+            id: string;
+            name?: (string | null) | undefined;
+            email?: (string | null) | undefined;
+            siteWideRole: "admin" | "user";
+            githubUsername?: (string | null) | undefined;
+            createAt: string;
+            updatedAt: string;
+          },
+          unknown,
+          {
+            name?: string | undefined;
+            email?: string | undefined;
+          }
+        >;
+        getQueryKey(): string[];
       };
     };
   };

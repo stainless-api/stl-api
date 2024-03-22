@@ -156,7 +156,11 @@ describe("Generated API Client", () => {
       expect(mockFetch).toHaveBeenCalledWith(
         "/api/dogs/fido/dog-treats/treatId",
         {
+          body: '{"yummy":false}',
           method: "PATCH",
+          headers: {
+            "Content-Type": "application/json",
+          },
         }
       );
       expect(update).toStrictEqual({ yummy: false });

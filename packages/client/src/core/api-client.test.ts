@@ -27,7 +27,7 @@ describe("API Client", () => {
       expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dogTreats", {
         method: "GET",
       });
-      expect(treat).toStrictEqual({ yummy: true });
+      expect(treat).toStrictEqual([{ yummy: true }]);
     });
   });
 
@@ -76,7 +76,7 @@ describe("API Client", () => {
       expect(mockFetch).toHaveBeenCalledWith("/api/dogs/fido/dog-treats", {
         method: "GET",
       });
-      expect(treat).toStrictEqual({ yummy: true });
+      expect(treat).toStrictEqual([{ yummy: true }]);
     });
   });
 
@@ -124,6 +124,13 @@ describe("API Client", () => {
         body: JSON.stringify({ name: "Shiro!" }),
       });
       expect(update).toStrictEqual({ name: "Shiro!", color: "black" });
+    });
+
+    it("Can tell user apart from useX", async () => {
+      const { queryFn, queryKey } = client.users("asdf").useUpdate({});
+
+      expect(queryKey).toEqual(["/api/users/asdf"]);
+      expect(queryFn).toBeTypeOf("function");
     });
   });
 });

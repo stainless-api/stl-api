@@ -1,6 +1,6 @@
 import { HttpMethod } from "stainless";
 import { APIConfig, Client, ClientConfig } from "./api-client-types";
-import { kebabCase } from "../util/strings";
+import { camelCase, kebabCase } from "../util/strings";
 import { getExtensionHandler } from "../extensions";
 
 const methodSynonyms = {
@@ -35,7 +35,8 @@ function isAwaitingPromise(callSite: string) {
 }
 
 function isCallingHook(callSite: string) {
-  const isHook = callSite.startsWith("use");
+  const hookRegex = /use[A-Z]\w+/;
+  const isHook = callSite.match(hookRegex);
   return isHook;
 }
 
@@ -45,8 +46,12 @@ function isValidPathParam(arg: unknown): arg is string | number {
 
 function makeUrl(callPath: string[], outputCase: "camel" | "kebab" = "kebab") {
   return outputCase === "kebab"
-    ? callPath.map(kebabCase).join("/")
-    : callPath.join("/");
+    ? callPath
+        .map((str) =>
+          str.startsWith(":") ? str.replace(":", "") : kebabCase(str)
+        )
+        .join("/")
+    : callPath.map((str) => str.replace(":", "")).join("/");
 }
 
 /**
@@ -77,7 +82,6 @@ async function makeRequest(
         }
       : { method };
 
-  console.log(`@stl-api/client is fetching: ${method} ${url}`);
   const response = await fetchFn(url, options);
 
   return await response.json();
@@ -103,7 +107,7 @@ function createClientProxy(
       }
 
       if (isValidPathParam(pendingArgs[0])) {
-        callPath.push(pendingArgs[0].toString());
+        callPath.push(":" + pendingArgs[0].toString());
       }
 
       return createClientProxy(config, [...callPath, key], undefined);

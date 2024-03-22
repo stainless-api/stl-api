@@ -1,6 +1,7 @@
 import { Stl } from "stainless";
 import { cats } from "../test-util/cat-api";
 import { dogs } from "../test-util/dog-api";
+import { users } from "../test-util/user-api";
 import { dogTreats } from "../test-util/dog-treat-api";
 
 export async function mockFetchImplementation(
@@ -9,13 +10,14 @@ export async function mockFetchImplementation(
 ) {
   const mockCat = { name: "Shiro", color: "black" };
   let payload;
+  let update;
 
   switch (`${options?.method} ${input}`) {
     case "GET /api/cats":
       payload = [mockCat];
       break;
     case "PATCH /api/cats/shiro":
-      const update = options?.body ? JSON.parse(options.body as any) : {};
+      update = options?.body ? JSON.parse(options.body as any) : {};
       payload = {
         ...mockCat,
         ...update,
@@ -23,10 +25,19 @@ export async function mockFetchImplementation(
       break;
     case "GET /api/dogs/fido/dogTreats":
     case "GET /api/dogs/fido/dog-treats":
-      payload = { yummy: true };
+      payload = [{ yummy: true }];
       break;
     case "GET /api/dogs":
       throw new Error("Expected to throw");
+    case "PATCH /api/dogs/fido/dog-treats/treatId":
+      update = options?.body ? JSON.parse(options.body as any) : {};
+      payload = { ...update };
+      break;
+    case "GET /api/dogs/fido/dog-treats/treatId":
+    case "GET /api/dogs/fido/dogTreats/treatId":
+      payload = { yummy: true };
+      break;
+
     default:
       throw new Error(`Unmocked endpoint: ${options?.method} ${input}`);
   }
@@ -41,6 +52,7 @@ export const api = stl.api({
     cats,
     dogs,
     dogTreats,
+    users,
   },
 });
 
