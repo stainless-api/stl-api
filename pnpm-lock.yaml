@@ -504,7 +504,7 @@ importers:
         specifier: ^3.22.4
         version: 3.22.4
       zod-openapi:
-        specifier: github:stainless-api/zod-openapi#2.8.0
+        specifier: git+ssh://github.com/stainless-api/zod-openapi#2.8.0
         version: github.com/stainless-api/zod-openapi/550978836406882613e9547b2e9486fa7448a37b(zod@3.22.4)
     devDependencies:
       '@types/jest':
