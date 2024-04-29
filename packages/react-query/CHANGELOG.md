@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.0.5](https://github.com/stainless-api/stl-api/compare/react-query-v0.0.4...react-query-v0.0.5) (2024-04-29)
+
+
+### Features
+
+* **react-query:** fix multiple argument query key behavior ([e8f3ffc](https://github.com/stainless-api/stl-api/commit/e8f3ffc9a60fc6edf3344a39b7341717e9fc5dbe))
+
 ## [0.0.4](https://github.com/stainless-api/stl-api/compare/react-query-v0.0.3...react-query-v0.0.4) (2023-12-06)
 
 ### Features
