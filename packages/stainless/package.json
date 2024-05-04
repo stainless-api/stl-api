@@ -32,7 +32,8 @@
   "scripts": {
     "clean": "rimraf dist *.tsbuildinfo",
     "prebuild": "mkdir -p dist/esm && echo '{\"type\": \"module\"}' > dist/esm/package.json",
-    "test": "jest"
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
     "@types/jest": "^29.5.10",

@@ -59,6 +59,41 @@ const api = stl.api({
         }),
       },
     }),
+    multiplePathParams: stl.resource({
+      summary: "multiParam",
+      actions: {
+        retrieve: stl.endpoint({
+          endpoint: "GET /multiplePathParams/{foo}/{bar}",
+          path: z.object({ foo: z.string(), bar: z.number() }),
+          response: z.any(),
+          async handler() {},
+        }),
+      },
+    }),
+    nestedResource: stl.resource({
+      summary: "parent",
+      actions: {
+        retrieve: stl.endpoint({
+          endpoint: "GET /resource/{parentId}",
+          path: z.object({ parentId: z.string() }),
+          response: z.any(),
+          async handler() {},
+        }),
+      },
+      namespacedResources: {
+        subResource: stl.resource({
+          summary: "subResource",
+          actions: {
+            retrieve: stl.endpoint({
+              endpoint: "GET /resource/{parentId}/subResource/{childId}",
+              path: z.object({ parentId: z.string(), childId: z.string() }),
+              response: z.any(),
+              async handler() {},
+            }),
+          },
+        }),
+      },
+    }),
   },
 });
 
@@ -109,6 +144,22 @@ describe("useQuery methods", () => {
       "get with path and omitted optional query",
       (client) => client.pathOptionalQuery.useRetrieve("a"),
       "/pathOptionalQuery/a",
+    ],
+    [
+      "get with multiple path params",
+      (client) => client.multiplePathParams.useRetrieve("foo", "bar"),
+      "/multiplePathParams/foo/bar",
+    ],
+    [
+      "get nested namespaced resource parent",
+      (client) => client.nestedResource.useRetrieve("parent"),
+      "/resource/parent",
+    ],
+    [
+      "get nested namespaced resource child",
+      (client) =>
+        client.nestedResource.subResource.useRetrieve("parent", "child"),
+      "/resource/parent/subResource/child",
     ],
   ] as [
     string,
