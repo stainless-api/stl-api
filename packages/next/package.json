@@ -34,7 +34,7 @@
     "hono": "^3.11.7",
     "lodash": "^4.17.21",
     "qs": "^6.11.2",
-    "stainless": "workspace:*"
+    "stainless": "github:stainless-api/stl-api#stainless-0.1.3"
   },
   "peerDependency": {
     "next": "^13.5.6"

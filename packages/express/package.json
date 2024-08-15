@@ -38,6 +38,6 @@
   "dependencies": {
     "express": "^4.18.2",
     "lodash": "^4.17.21",
-    "stainless": "workspace:*"
+    "stainless": "github:stainless-api/stl-api#stainless-0.1.3"
   }
 }
