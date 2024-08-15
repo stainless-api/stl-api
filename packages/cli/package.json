@@ -39,10 +39,9 @@
     "@types/debug": "^4.1.12",
     "@types/lodash": "^4.14.202",
     "@types/node": "^20.10.3",
-    "@types/prettier": "^2.0.0",
     "@types/resolve": "^1.20.6",
     "nodemon": "^2.0.22",
-    "prettier": "^2.8.8",
+    "prettier": "^3.3.3",
     "rimraf": "^5.0.5",
     "typescript": "^5.3.2"
   }
