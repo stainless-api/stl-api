@@ -9,7 +9,7 @@ import { isMainModule } from "./isMainModule.mjs";
 
 /**
  * This updates monorepo packages like "@stl-api/next": "workspace:*" to
- * "@stl-api/next": "github:stainless-api/stl-api#next-0.0.3". Once we're
+ * "@stl-api/next": "git+ssh://github.com/stainless-api/stl-api#next-0.0.3". Once we're
  * ready to publish to npm, we can get rid of this and use `pnpm publish`
  * instead.
  */
@@ -45,7 +45,9 @@ export async function setDependencyVersions() {
     for (const pkg in dependencies) {
       const depPackageJson = packageJsonsByName[pkg];
       if (depPackageJson) {
-        dependencies[pkg] = `github:${owner}/${repo}#${pkg.replace(
+        dependencies[
+          pkg
+        ] = `git+ssh://github.com/${owner}/${repo}#${pkg.replace(
           /^@stl-api\//,
           ""
         )}-${depPackageJson.version}`;
