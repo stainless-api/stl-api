@@ -20,7 +20,7 @@
     "@stl-api/cli": "workspace:*",
     "@types/express": "^4.17.21",
     "@types/node": "^20.10.3",
-    "nodemon": "^2.0.22",
+    "nodemon": "^3.1.4",
     "ts-node": "^10.9.1",
     "typescript": "^5.3.2"
   }
