@@ -73,7 +73,7 @@ importers:
         version: 4.36.1(react-dom@18.2.0)(react@18.2.0)
       axios:
         specifier: ^1.6.2
-        version: 1.7.4
+        version: 1.7.7(debug@4.3.6)
       bcrypt:
         specifier: ^5.1.1
         version: 5.1.1
@@ -4857,25 +4857,14 @@ packages:
     engines: {node: '>= 0.4'}
     dev: true
 
-  /axios@1.7.4:
-    resolution: {integrity: sha512-DukmaFRnY6AzAALSH4J2M3k6PkaC+MfaAGdEERRWcC9q3/TWQwLpHR8ZRLKTdQ3aBDL64EdluRDjJqKw+BPZEw==}
-    dependencies:
-      follow-redirects: 1.15.7
-      form-data: 4.0.0
-      proxy-from-env: 1.1.0
-    transitivePeerDependencies:
-      - debug
-    dev: false
-
   /axios@1.7.7(debug@4.3.6):
     resolution: {integrity: sha512-S4kL7XrjgBmvdGut0sN3yJxqYzrDOnivkBiN0OFs6hLiUam3UPvswUo0kqGyhqUZGEOytHyumEdXsAkgCOUf3Q==}
     dependencies:
-      follow-redirects: 1.15.8(debug@4.3.6)
+      follow-redirects: 1.15.9(debug@4.3.6)
       form-data: 4.0.0
       proxy-from-env: 1.1.0
     transitivePeerDependencies:
       - debug
-    dev: true
 
   /babel-jest@29.7.0(@babel/core@7.23.5):
     resolution: {integrity: sha512-BrvGY3xZSwEcCzKvKsCi2GgHqDqsYkOP4/by5xCgIwGXQxIEh+8ew3gmrE1y7XRR6LHZIj6yLYnUi/mm2KXKBg==}
@@ -6877,18 +6866,8 @@ packages:
     resolution: {integrity: sha512-b6suED+5/3rTpUBdG1gupIl8MPFCAMA0QXwmljLhvCUKcUvdE4gWky9zpuGCcXHOsz4J9wPGNWq6OKpmIzz3hQ==}
     hasBin: true
 
-  /follow-redirects@1.15.7:
-    resolution: {integrity: sha512-aAW9al/NMw4COcZnwgUaG8kAjBUXq/El+1R11e9RDHAIlxa1fb1b5SP0K6BbMoNgWdmJ/kXAwoTlVDlUN3OTDw==}
-    engines: {node: '>=4.0'}
-    peerDependencies:
-      debug: '*'
-    peerDependenciesMeta:
-      debug:
-        optional: true
-    dev: false
-
-  /follow-redirects@1.15.8(debug@4.3.6):
-    resolution: {integrity: sha512-xgrmBhBToVKay1q2Tao5LI26B83UhrB/vM1avwVSDzt8rx3rO6AizBAaF46EgksTVr+rFTQaqZZ9MVBfUe4nig==}
+  /follow-redirects@1.15.9(debug@4.3.6):
+    resolution: {integrity: sha512-gew4GsXizNgdoRyqmyfMHyAmXsZDk6mHkSxZFCzW9gwlbtOW44CDtYavM+y+72qD/Vq2l550kMF52DT8fOLJqQ==}
     engines: {node: '>=4.0'}
     peerDependencies:
       debug: '*'
@@ -7628,7 +7607,7 @@ packages:
     engines: {node: '>=8.0.0'}
     dependencies:
       eventemitter3: 4.0.7
-      follow-redirects: 1.15.8(debug@4.3.6)
+      follow-redirects: 1.15.9(debug@4.3.6)
       requires-port: 1.0.0
     transitivePeerDependencies:
       - debug
