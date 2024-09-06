@@ -27,7 +27,7 @@
   },
   "devDependencies": {
     "@types/node": "^20.10.3",
-    "next": "^13.5.6",
+    "next": "^14.2.8",
     "next-auth": "^4.24.5",
     "typescript": "^5.3.2"
   },
