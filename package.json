@@ -4,7 +4,7 @@
   "version": "0.0.3",
   "description": "stainless api monorepo",
   "author": "dev@stainlessapi.com",
-  "packageManager": "pnpm@8.6.7",
+  "packageManager": "pnpm@9.9.0",
   "repository": {
     "type": "git",
     "url": "https://github.com/stainless-api/stl-api.git"
@@ -48,7 +48,7 @@
     "@types/node-fetch": "^2.6.9",
     "execa": "^7.2.0",
     "ghooks": "^2.0.4",
-    "lint-staged": "^13.3.0",
+    "lint-staged": "^15.2.10",
     "lodash": "^4.17.21",
     "node-fetch": "^2.7.0",
     "prettier": "^2.8.8",
