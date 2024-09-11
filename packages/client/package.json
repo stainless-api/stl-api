@@ -16,7 +16,7 @@
   "scripts": {
     "build": "tsc -p tsconfig.json",
     "clean": "rimraf dist *.tsbuildinfo package",
-    "test": "VITE_CJS_TRACE=true vitest watch",
+    "test": "VITE_CJS_TRACE=true vitest run",
     "prebuild": "mkdir -p dist/esm && echo '{\"type\": \"module\"}' > dist/esm/package.json",
     "prepublishOnly": "npm run clean && npm run build && npm test",
     "generate-types": "node dist/scripts/run-codegen.js src/test-util generated-api-types.ts ../index"

@@ -336,5 +336,8 @@ export async function generateOutput<API extends APIConfig>(
     reactQueryAlias
   );
 
-  return await prettier.format(output.flat().join("\n"));
+  return await prettier.format(output.flat().join("\n"), {
+    semi: false,
+    parser: "typescript",
+  });
 }
