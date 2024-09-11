@@ -7,7 +7,7 @@ it(`imported enum`, async () =>
   expect(
     await multiFileTestCase({
       __filename,
-    }),
+    })
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/common.codegen.ts": "import { z } from "zod";

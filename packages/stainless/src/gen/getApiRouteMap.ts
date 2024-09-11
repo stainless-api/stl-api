@@ -24,7 +24,7 @@ export function getApiRouteMap({
   function isRegular(
     resourcePath: string[],
     action: string,
-    endpoint: AnyEndpoint,
+    endpoint: AnyEndpoint
   ): boolean {
     const guessed = guessRequestEndpoint(basePath, resourcePath, action);
     return (
@@ -38,7 +38,7 @@ export function getApiRouteMap({
 
   function getResourceMetadata(
     { actions, namespacedResources }: ResourceForGetRouteMap,
-    path: string[] = [],
+    path: string[] = []
   ): APIRouteMap {
     const result: APIRouteMap = {};
     if (actions) {

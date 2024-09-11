@@ -11,7 +11,7 @@ import prisma from "./prismadb";
 export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
   async middleware<EC extends AnyEndpoint>(
     params: Params,
-    context: StlContext<EC>,
+    context: StlContext<EC>
   ) {
     const { session } = context;
 

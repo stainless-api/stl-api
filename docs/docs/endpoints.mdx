@@ -281,7 +281,7 @@ class DateParam extends z.Schema<Date, unknown> {
 
 ```ts
 const DateParam = z.unknown().transform(
-  (value) => new Date(String(value)), // or your custom date parsing logic
+  (value) => new Date(String(value)) // or your custom date parsing logic
 );
 ```
 

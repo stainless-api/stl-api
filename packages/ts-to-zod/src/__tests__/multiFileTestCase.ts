@@ -64,7 +64,7 @@ export const multiFileTestCase = async (options: {
     const sourceFile = factory.createSourceFile(
       statements,
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0,
+      0
     );
     result[relativeFile] = ts.createPrinter().printFile(sourceFile);
   }

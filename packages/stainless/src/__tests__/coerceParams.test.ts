@@ -10,7 +10,7 @@ import coerceParams, {
 
 function defaultCoerceTests<T extends z.ZodTypeAny>(
   schema: T,
-  cases: [any, z.output<T> | Error][],
+  cases: [any, z.output<T> | Error][]
 ) {
   describe(schema.description || String(schema), () => {
     for (const [input, expected] of cases) {
@@ -140,7 +140,7 @@ defaultCoerceTests(defaultCoerceDate, [
 describe("coerceParams", () => {
   it("ZodDate with ZodMetadata", () => {
     expect(
-      coerceParams(z.date().withMetadata({ foo: "bar" })).parse("2021-03-03"),
+      coerceParams(z.date().withMetadata({ foo: "bar" })).parse("2021-03-03")
     ).toEqual(new Date("2021-03-03"));
   });
   it("ZodNumber in ZodArray", function () {
@@ -156,8 +156,8 @@ describe("coerceParams", () => {
       coerceParams(
         z
           .object({ a: z.string(), b: z.number(), c: z.boolean() })
-          .catchall(z.number()),
-      ).parse({ a: "123", b: "456", c: "true", d: "789" }),
+          .catchall(z.number())
+      ).parse({ a: "123", b: "456", c: "true", d: "789" })
     ).toEqual({ a: "123", b: 456, c: true, d: 789 });
   });
   it("ZodBoolean in ZodCatch", function () {
@@ -169,7 +169,7 @@ describe("coerceParams", () => {
   });
   it("ZodNumber in ZodSet", function () {
     expect(coerceParams(z.set(z.number())).parse(new Set(["123"]))).toEqual(
-      new Set([123]),
+      new Set([123])
     );
   });
   it("ZodNumber in ZodDefault", function () {
@@ -179,7 +179,7 @@ describe("coerceParams", () => {
   it("ZodNumber in ZodOptional", function () {
     expect(coerceParams(z.number().optional()).parse("123")).toEqual(123);
     expect(coerceParams(z.number().optional()).parse(undefined)).toEqual(
-      undefined,
+      undefined
     );
   });
   it("ZodNumber in ZodNullable", function () {
@@ -188,23 +188,23 @@ describe("coerceParams", () => {
   });
   it("ZodNumber in ZodEffects", function () {
     expect(
-      coerceParams(z.number().transform((x) => x * 2)).parse("123"),
+      coerceParams(z.number().transform((x) => x * 2)).parse("123")
     ).toEqual(246);
   });
   it("ZodPipeline", function () {
     expect(() =>
-      coerceParams(z.string().pipe(z.number())).parse(456),
+      coerceParams(z.string().pipe(z.number())).parse(456)
     ).toThrow();
     expect(coerceParams(z.number().pipe(z.number().max(5))).parse("5")).toEqual(
-      5,
+      5
     );
     expect(() =>
-      coerceParams(z.number().pipe(z.number().max(5))).parse("6"),
+      coerceParams(z.number().pipe(z.number().max(5))).parse("6")
     ).toThrow();
   });
   it("ZodMap", function () {
     expect(
-      coerceParams(z.map(z.number(), z.number())).parse(new Map([["1", "2"]])),
+      coerceParams(z.map(z.number(), z.number())).parse(new Map([["1", "2"]]))
     ).toEqual(new Map([[1, 2]]));
   });
   it("ZodDiscriminatedUnion", function () {
@@ -212,7 +212,7 @@ describe("coerceParams", () => {
       z.discriminatedUnion("type", [
         z.object({ type: z.literal("a"), a: z.number() }),
         z.object({ type: z.literal("b"), b: z.string() }),
-      ]),
+      ])
     );
     expect(schema.parse({ type: "a", a: "1" })).toEqual({ type: "a", a: 1 });
     expect(schema.parse({ type: "b", b: "2" })).toEqual({ type: "b", b: "2" });
@@ -222,14 +222,14 @@ describe("coerceParams", () => {
       z.union([
         z.object({ type: z.literal("a"), a: z.number() }),
         z.object({ type: z.literal("b"), b: z.string() }),
-      ]),
+      ])
     );
     expect(schema.parse({ type: "a", a: "1" })).toEqual({ type: "a", a: 1 });
     expect(schema.parse({ type: "b", b: "2" })).toEqual({ type: "b", b: "2" });
   });
   it("ZodUnion of ZodLiterals", function () {
     const schema = coerceParams(
-      z.union([z.literal(1), z.literal(2), z.literal(3), z.literal("123")]),
+      z.union([z.literal(1), z.literal(2), z.literal(3), z.literal("123")])
     );
     expect(schema.parse(1)).toEqual(1);
     expect(schema.parse("1")).toEqual(1);
@@ -242,8 +242,8 @@ describe("coerceParams", () => {
     const schema = coerceParams(
       z.intersection(
         z.object({ a: z.number() }),
-        z.object({ a: z.number(), b: z.string() }),
-      ),
+        z.object({ a: z.number(), b: z.string() })
+      )
     );
     expect(schema.parse({ a: "1", b: "5" })).toEqual({ a: 1, b: "5" });
     expect(() => schema.parse({ a: "1" })).toThrow();

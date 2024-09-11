@@ -44,7 +44,7 @@ it(`transform`, async () =>
   expect(
     await multiFileTestCase({
       __filename,
-    }),
+    })
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/transform-refine.test.codegen.ts": "import { z } from "zod";

@@ -67,7 +67,7 @@ describe("API Client", () => {
 
     it("can handle API errors", async () => {
       await expect(async () => await client.dogs.list()).rejects.toThrowError(
-        "Expected to throw",
+        "Expected to throw"
       );
     });
 

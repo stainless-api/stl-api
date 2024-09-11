@@ -44,7 +44,7 @@ class SelectParser {
   constructor(
     private input: string,
     private pos = 0,
-    private end = input.length,
+    private end = input.length
   ) {}
 
   get done() {
@@ -138,7 +138,7 @@ class SelectParser {
    */
   expect(
     regex: RegExp,
-    errorMessage: string = `expected ${regex}`,
+    errorMessage: string = `expected ${regex}`
   ): RegExpMatchArray {
     const match = this.match(regex);
     if (!match) throw new Error(`${errorMessage} (at ${this.pos})`);
@@ -155,7 +155,7 @@ class SelectParser {
 
 function mergeSelect(
   a: SelectTree | undefined,
-  b: SelectTree | undefined,
+  b: SelectTree | undefined
 ): SelectTree | undefined {
   if (a == null) return b;
   if (b == null) return a;

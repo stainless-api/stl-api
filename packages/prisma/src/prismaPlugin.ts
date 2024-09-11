@@ -21,25 +21,24 @@ declare module "zod" {
      * `z.pageResponse`.
      */
     prismaModelLoader<M extends PrismaHelpers>(
-      prismaModel: M | (() => M),
+      prismaModel: M | (() => M)
     ): z.ZodEffects<this, FindUniqueOrThrowResult<M>, z.input<this>>;
 
     prismaModel<M extends PrismaHelpers>(
-      prismaModel: M | (() => M),
+      prismaModel: M | (() => M)
     ): z.ZodMetadata<this, { stainless: { prismaModel: () => M } }>;
   }
 }
 
-export type extractPrismaModel<T extends z.ZodTypeAny> =
-  z.extractDeepMetadata<
-    T,
-    { stainless: { prismaModel: () => PrismaHelpers } }
-  > extends { stainless: { prismaModel: () => infer P extends PrismaHelpers } }
-    ? P
-    : never;
+export type extractPrismaModel<T extends z.ZodTypeAny> = z.extractDeepMetadata<
+  T,
+  { stainless: { prismaModel: () => PrismaHelpers } }
+> extends { stainless: { prismaModel: () => infer P extends PrismaHelpers } }
+  ? P
+  : never;
 
 export function extractPrismaModel<T extends z.ZodTypeAny>(
-  schema: T,
+  schema: T
 ): extractPrismaModel<T> {
   const metadata = z.extractDeepMetadata(schema, {
     stainless: { prismaModel: () => {} },
@@ -52,8 +51,9 @@ export function extractPrismaModel<T extends z.ZodTypeAny>(
 
 declare module "stainless" {
   interface StlContext<EC extends AnyBaseEndpoint> {
-    prisma: extractPrismaModel<EC["response"]> extends infer M extends
-      PrismaHelpers
+    prisma: extractPrismaModel<
+      EC["response"]
+    > extends infer M extends PrismaHelpers
       ? PrismaContext<M>
       : unknown;
   }
@@ -61,10 +61,10 @@ declare module "stainless" {
 
 z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
   T extends z.ZodTypeAny,
-  M extends PrismaHelpers,
+  M extends PrismaHelpers
 >(
   this: T,
-  prismaModel: M | (() => M),
+  prismaModel: M | (() => M)
 ): z.ZodEffects<T, FindUniqueOrThrowResult<M>, z.input<T>> {
   const result = this.stlTransform(
     async (id: z.output<T>, ctx: StlContext<any>, zodInput: z.ParseInput) => {
@@ -76,7 +76,7 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
         return await prisma.findUniqueOrThrow(query);
       }
       return await model.findUniqueOrThrow(query);
-    },
+    }
   );
   // tsc -b is generating spurious errors here...
   return (result as any).openapi({ effectType: "input" }) as typeof result;
@@ -84,10 +84,10 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
 
 z.ZodType.prototype.prismaModel = function prismaModel<
   T extends z.ZodTypeAny,
-  M extends PrismaHelpers,
+  M extends PrismaHelpers
 >(
   this: T,
-  prismaModel: M | (() => M),
+  prismaModel: M | (() => M)
 ): z.ZodMetadata<T, { stainless: { prismaModel: () => M } }> {
   return this.withMetadata({
     stainless: {
@@ -171,7 +171,7 @@ function wrapQuery<Q>(
     sortBy,
     sortDirection = "asc",
   }: z.PaginationParams,
-  query: Q,
+  query: Q
 ): Q {
   const cursorString = pageAfter ?? pageBefore;
   const cursor =
@@ -193,7 +193,7 @@ function wrapQuery<Q>(
 
 function makeResponse<I>(
   params: z.PaginationParams,
-  items: I[],
+  items: I[]
 ): z.PageData<I> {
   const { pageAfter, pageBefore, pageSize, sortBy } = params;
   const itemCount = items.length;
@@ -287,7 +287,7 @@ async function paginate<D extends PrismaHelpers>(
     sortBy,
     sortDirection,
     ...query
-  }: FindManyArgs<D> & z.PaginationParams,
+  }: FindManyArgs<D> & z.PaginationParams
 ): Promise<z.PageData<FindManyItem<D>>> {
   const params = {
     pageAfter,
@@ -298,13 +298,13 @@ async function paginate<D extends PrismaHelpers>(
   };
   return makeResponse(
     params,
-    await delegate.findMany(wrapQuery(params, query)),
+    await delegate.findMany(wrapQuery(params, query))
   );
 }
 
 function endpointWrapQuery<
   EC extends AnyBaseEndpoint,
-  Q extends { include?: any },
+  Q extends { include?: any }
 >(endpoint: EC, context: StlContext<EC>, prismaQuery: Q): Q {
   const { response } = endpoint;
   const includeSelect = createIncludeSelect(endpoint, context, prismaQuery);
@@ -334,11 +334,11 @@ type AnyInclude = Record<
 
 function createIncludeSelect<
   EC extends AnyBaseEndpoint,
-  Q extends { include?: any },
+  Q extends { include?: any }
 >(
   endpoint: EC,
   context: StlContext<EC>,
-  prismaQuery: Q,
+  prismaQuery: Q
 ): IncludeSelect | null | undefined {
   const callerInclude = prismaQuery?.include;
   let select: SelectTree | null | undefined = z.getSelects(context);
@@ -371,7 +371,7 @@ function createIncludeSelect<
 
 function mergeIncludeSelect(
   a: IncludeSelect | null | undefined,
-  b: IncludeSelect | null | undefined,
+  b: IncludeSelect | null | undefined
 ): IncludeSelect | null | undefined {
   const result = mergeIncludeSelectSub(a, b);
   return typeof result === "boolean" ? undefined : result;
@@ -379,7 +379,7 @@ function mergeIncludeSelect(
 
 function mergeIncludeSelectSub(
   a: IncludeSelect | null | undefined | boolean,
-  b: IncludeSelect | null | undefined | boolean,
+  b: IncludeSelect | null | undefined | boolean
 ): IncludeSelect | null | undefined | boolean {
   if (!a) return b;
   if (!b) return a;
@@ -439,7 +439,7 @@ export const makePrismaPlugin =
       },
       middleware<EC extends AnyEndpoint>(
         params: Params,
-        context: StlContext<EC>,
+        context: StlContext<EC>
       ) {
         const model = context.endpoint.response
           ? (extractPrismaModel(context.endpoint.response) as any)
@@ -481,7 +481,7 @@ export const makePrismaPlugin =
 type TopLevel<E extends string> = E extends `${infer A}.${string}` ? A : E;
 type NextLevel<
   E extends string,
-  Prefix extends string,
+  Prefix extends string
 > = E extends `${Prefix}.${infer B}` ? B : never;
 
 type includeFromQuery<T extends string> = {
@@ -502,7 +502,7 @@ type includeFromQuery<T extends string> = {
  * }
  */
 function includeFromQuery<T extends string[]>(
-  include: T,
+  include: T
 ): includeFromQuery<T[number]> {
   const result: any = {};
   for (const path of include) {
@@ -523,7 +523,7 @@ function includeFromQuery<T extends string[]>(
 type PrismaSelect = Record<string, boolean | { select: PrismaSelect }>;
 
 function convertSelect(
-  tree: SelectTree | undefined,
+  tree: SelectTree | undefined
 ): PrismaSelect | true | undefined {
   const select = tree?.select;
   if (!select) return tree instanceof Object ? true : undefined;

@@ -194,11 +194,11 @@ export default function coerceParams<T extends z.ZodTypeAny>(
     coerceNumber?: z.ZodType<number | null | undefined, any, unknown>;
     coerceBigInt?: z.ZodType<bigint | null | undefined, any, unknown>;
     coerceDate?: z.ZodType<Date | null | undefined, any, unknown>;
-  } = {},
+  } = {}
 ): T {
   function coerceParamsInner<T extends z.ZodTypeAny>(
     schema: T,
-    { discriminator }: { discriminator?: string } = {},
+    { discriminator }: { discriminator?: string } = {}
   ): T {
     if (schema instanceof z.ZodNumber) {
       return coerceNumber.pipe(schema) as any;
@@ -233,17 +233,17 @@ export default function coerceParams<T extends z.ZodTypeAny>(
     }
     if (schema instanceof z.ZodMetadata) {
       return coerceParamsInner(
-        (schema as z.ZodMetadata<z.ZodTypeAny, any>).innerType(),
+        (schema as z.ZodMetadata<z.ZodTypeAny, any>).innerType()
       ).withMetadata(schema.metadata) as any;
     }
     if (schema instanceof z.ZodArray) {
       return coerceParamsInner(
-        (schema as z.ZodArray<z.ZodTypeAny>).element,
+        (schema as z.ZodArray<z.ZodTypeAny>).element
       ).array() as any;
     }
     if (schema instanceof z.ZodLazy) {
       return coerceParamsInner(
-        (schema as z.ZodLazy<z.ZodTypeAny>).schema,
+        (schema as z.ZodLazy<z.ZodTypeAny>).schema
       ) as any;
     }
     if (schema instanceof z.ZodObject) {
@@ -256,14 +256,14 @@ export default function coerceParams<T extends z.ZodTypeAny>(
               key === discriminator
                 ? child
                 : coerceParamsInner(child as z.ZodTypeAny),
-            ]),
+            ])
           ),
         catchall: coerceParamsInner(schema._def.catchall),
       }) as any;
     }
     if (schema instanceof z.ZodPromise) {
       return coerceParamsInner(
-        (schema as z.ZodPromise<z.ZodTypeAny>).unwrap(),
+        (schema as z.ZodPromise<z.ZodTypeAny>).unwrap()
       ) as any;
     }
     if (schema instanceof z.ZodCatch) {
@@ -274,42 +274,42 @@ export default function coerceParams<T extends z.ZodTypeAny>(
     }
     if (schema instanceof z.ZodBranded) {
       return coerceParamsInner(
-        (schema as z.ZodBranded<z.ZodTypeAny, any>).unwrap(),
+        (schema as z.ZodBranded<z.ZodTypeAny, any>).unwrap()
       ) as any;
     }
     if (schema instanceof z.ZodSet) {
       return z.set(
-        coerceParamsInner((schema as z.ZodSet<z.ZodTypeAny>)._def.valueType),
+        coerceParamsInner((schema as z.ZodSet<z.ZodTypeAny>)._def.valueType)
       ) as any;
     }
     if (schema instanceof z.ZodDefault) {
       return coerceParamsInner(
-        (schema as z.ZodDefault<z.ZodTypeAny>).removeDefault(),
+        (schema as z.ZodDefault<z.ZodTypeAny>).removeDefault()
       ).default(schema._def.defaultValue()) as any;
     }
     if (schema instanceof z.ZodEffects) {
       return z.effect(
         coerceParamsInner((schema as z.ZodEffects<z.ZodTypeAny>).innerType()),
-        schema._def.effect,
+        schema._def.effect
       ) as any;
     }
     if (schema instanceof z.ZodPipeline) {
       return coerceParamsInner(
-        (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.in,
+        (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.in
       ).pipe(
         // probably shouldn't coerce in pipeline output...
         // pipeline input should have already taken care of coercion
-        (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.out,
+        (schema as z.ZodPipeline<z.ZodTypeAny, z.ZodTypeAny>)._def.out
       ) as any;
     }
     if (schema instanceof z.ZodMap) {
       return z.map(
         coerceParamsInner(
-          (schema as z.ZodMap<z.ZodTypeAny, z.ZodTypeAny>)._def.keyType,
+          (schema as z.ZodMap<z.ZodTypeAny, z.ZodTypeAny>)._def.keyType
         ),
         coerceParamsInner(
-          (schema as z.ZodMap<z.ZodTypeAny, z.ZodTypeAny>)._def.valueType,
-        ),
+          (schema as z.ZodMap<z.ZodTypeAny, z.ZodTypeAny>)._def.valueType
+        )
       ) as any;
     }
     if (schema instanceof z.ZodDiscriminatedUnion) {
@@ -317,8 +317,8 @@ export default function coerceParams<T extends z.ZodTypeAny>(
       return z.discriminatedUnion(
         discriminator,
         schema.options.map((opt: z.ZodTypeAny) =>
-          coerceParamsInner(opt, { discriminator }),
-        ),
+          coerceParamsInner(opt, { discriminator })
+        )
       ) as any;
     }
     if (schema instanceof z.ZodUnion) {
@@ -327,31 +327,31 @@ export default function coerceParams<T extends z.ZodTypeAny>(
     if (schema instanceof z.ZodIntersection) {
       return z.intersection(
         coerceParamsInner(
-          (schema as z.ZodIntersection<z.ZodTypeAny, z.ZodTypeAny>)._def.left,
+          (schema as z.ZodIntersection<z.ZodTypeAny, z.ZodTypeAny>)._def.left
         ),
         coerceParamsInner(
-          (schema as z.ZodIntersection<z.ZodTypeAny, z.ZodTypeAny>)._def.right,
-        ),
+          (schema as z.ZodIntersection<z.ZodTypeAny, z.ZodTypeAny>)._def.right
+        )
       ) as any;
     }
     if (schema instanceof z.ZodRecord) {
       return z.record(
         coerceParamsInner(
-          (schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).keySchema,
+          (schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).keySchema
         ),
         coerceParamsInner(
-          (schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).valueSchema,
-        ),
+          (schema as z.ZodRecord<z.ZodString, z.ZodTypeAny>).valueSchema
+        )
       ) as any;
     }
     if (schema instanceof z.ZodOptional) {
       return coerceParamsInner(
-        (schema as z.ZodOptional<z.ZodTypeAny>).unwrap(),
+        (schema as z.ZodOptional<z.ZodTypeAny>).unwrap()
       ).optional() as any;
     }
     if (schema instanceof z.ZodNullable) {
       return coerceParamsInner(
-        (schema as z.ZodNullable<z.ZodTypeAny>).unwrap(),
+        (schema as z.ZodNullable<z.ZodTypeAny>).unwrap()
       ).nullable() as any;
     }
     if (schema instanceof z.ZodTuple) {
@@ -364,8 +364,8 @@ export default function coerceParams<T extends z.ZodTypeAny>(
                 [z.ZodTypeAny, ...z.ZodTypeAny[]],
                 z.ZodTypeAny
               >
-            )._def.rest,
-          ),
+            )._def.rest
+          )
         ) as any;
     }
     return schema;

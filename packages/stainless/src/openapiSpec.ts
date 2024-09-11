@@ -10,21 +10,21 @@ import { snakeCase } from "lodash";
 function allModels(
   resource:
     | AnyResourceConfig
-    | Pick<AnyResourceConfig, "models" | "namespacedResources">,
+    | Pick<AnyResourceConfig, "models" | "namespacedResources">
 ): Record<string, z.ZodTypeAny> {
   return {
     ...resource.models,
     ...Object.assign(
       {},
       ...Object.keys(resource.namespacedResources || {}).map((k) =>
-        allModels(resource.namespacedResources[k]),
-      ),
+        allModels(resource.namespacedResources[k])
+      )
     ),
   };
 }
 
 export async function openapiSpec(
-  apiDescription: AnyAPIDescription,
+  apiDescription: AnyAPIDescription
 ): Promise<OpenAPIObject> {
   const models = allModels({
     models: apiDescription.topLevel?.models,

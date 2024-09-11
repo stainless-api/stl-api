@@ -6,7 +6,7 @@ describe("/api/posts/[postId]", function () {
       await testClient.posts.retrieve("0284c330-a9ef-4a09-ae97-d0e0afdf0a1d", {
         include: ["comments.user"],
         select: "user_fields{id,name}",
-      }),
+      })
     ).toMatchInlineSnapshot(`
       {
         "body": "Fugit doloremque voluptatum harum neque facere ducimus enim. Atque molestiae veritatis natus repellat. Non reiciendis asperiores exercitationem incidunt iure sint doloribus. Dicta eaque sequi mollitia at error iste fugit quae. Sit cum vitae veritatis incidunt quasi explicabo neque.",

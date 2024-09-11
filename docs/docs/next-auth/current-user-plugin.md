@@ -23,7 +23,7 @@ export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
   async middleware<EC extends AnyEndpoint>(
     endpoint: EC,
     params: Params,
-    context: PartialStlContext<EC>,
+    context: PartialStlContext<EC>
   ) {
     const { session } = context;
 

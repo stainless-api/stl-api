@@ -6,91 +6,91 @@ import { z } from "stainless";
 type anyType = any;
 it(`any`, () =>
   expect(testCase({ __filename, nodeName: "anyType" })).toMatchInlineSnapshot(
-    `"z.any()"`,
+    `"z.any()"`
   ));
 
 type unknownType = unknown;
 it(`unknown`, () =>
   expect(
-    testCase({ __filename, nodeName: "unknownType" }),
+    testCase({ __filename, nodeName: "unknownType" })
   ).toMatchInlineSnapshot(`"z.unknown()"`));
 
 type neverType = never;
 it(`never`, () =>
   expect(testCase({ __filename, nodeName: "neverType" })).toMatchInlineSnapshot(
-    `"z.never()"`,
+    `"z.never()"`
   ));
 
 type voidType = void;
 it(`void`, () =>
   expect(testCase({ __filename, nodeName: "voidType" })).toMatchInlineSnapshot(
-    `"z.void()"`,
+    `"z.void()"`
   ));
 
 type nullType = null;
 it(`null`, () =>
   expect(testCase({ __filename, nodeName: "nullType" })).toMatchInlineSnapshot(
-    `"z.null()"`,
+    `"z.null()"`
   ));
 
 type undefinedType = undefined;
 it(`undefined`, () =>
   expect(
-    testCase({ __filename, nodeName: "undefinedType" }),
+    testCase({ __filename, nodeName: "undefinedType" })
   ).toMatchInlineSnapshot(`"z.undefined()"`));
 
 type stringType = string;
 it(`string`, () =>
   expect(
-    testCase({ __filename, nodeName: "stringType" }),
+    testCase({ __filename, nodeName: "stringType" })
   ).toMatchInlineSnapshot(`"z.string()"`));
 
 type stringLiteralType = "a";
 it(`string literal`, () =>
   expect(
-    testCase({ __filename, nodeName: "stringLiteralType" }),
+    testCase({ __filename, nodeName: "stringLiteralType" })
   ).toMatchInlineSnapshot(`"z.literal("a")"`));
 
 type numberType = number;
 it(`number`, () =>
   expect(
-    testCase({ __filename, nodeName: "numberType" }),
+    testCase({ __filename, nodeName: "numberType" })
   ).toMatchInlineSnapshot(`"z.number()"`));
 
 type numberLiteralType = "5";
 it(`number literal`, () =>
   expect(
-    testCase({ __filename, nodeName: "numberLiteralType" }),
+    testCase({ __filename, nodeName: "numberLiteralType" })
   ).toMatchInlineSnapshot(`"z.literal("5")"`));
 
 type booleanType = boolean;
 it(`boolean`, () =>
   expect(
-    testCase({ __filename, nodeName: "booleanType" }),
+    testCase({ __filename, nodeName: "booleanType" })
   ).toMatchInlineSnapshot(`"z.boolean()"`));
 
 type trueType = true;
 it(`true`, () =>
   expect(testCase({ __filename, nodeName: "trueType" })).toMatchInlineSnapshot(
-    `"z.literal(true)"`,
+    `"z.literal(true)"`
   ));
 
 type falseType = false;
 it(`false`, () =>
   expect(testCase({ __filename, nodeName: "falseType" })).toMatchInlineSnapshot(
-    `"z.literal(false)"`,
+    `"z.literal(false)"`
   ));
 
 type bigintType = bigint;
 it(`bigint`, () =>
   expect(
-    testCase({ __filename, nodeName: "bigintType" }),
+    testCase({ __filename, nodeName: "bigintType" })
   ).toMatchInlineSnapshot(`"z.bigint()"`));
 
 type bigintLiteralType = "5n";
 it(`bigint literal`, () =>
   expect(
-    testCase({ __filename, nodeName: "bigintLiteralType" }),
+    testCase({ __filename, nodeName: "bigintLiteralType" })
   ).toMatchInlineSnapshot(`"z.literal("5n")"`));
 
 type arrayNumberType = Array<number>;
@@ -100,7 +100,7 @@ it(`Array<number>`, () =>
     testCase({
       __filename,
       nodeName: "arrayNumberType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.array(z.number())"`));
 
 type basicObjectType = { a: number; b?: string };
@@ -110,9 +110,9 @@ it(`{a: number, b?: string}`, () =>
     testCase({
       __filename,
       nodeName: "basicObjectType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.object({ a: z.number(), b: z.string().optional() })"`,
+    `"z.object({ a: z.number(), b: z.string().optional() })"`
   ));
 
 type dateType = Date;
@@ -122,7 +122,7 @@ it(`Date`, () =>
     testCase({
       __filename,
       nodeName: "dateType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.date()"`));
 
 type discriminatedUnionType =
@@ -134,9 +134,9 @@ it(`discriminated union`, () =>
     testCase({
       __filename,
       nodeName: "discriminatedUnionType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.discriminatedUnion("type", [z.object({ type: z.literal("a"), summary: z.literal("b") }), z.object({ type: z.enum(["b", "c"]), summary: z.string() })])"`,
+    `"z.discriminatedUnion("type", [z.object({ type: z.literal("a"), summary: z.literal("b") }), z.object({ type: z.enum(["b", "c"]), summary: z.string() })])"`
   ));
 
 interface interfaceType {
@@ -149,9 +149,9 @@ it(`interface T { a: number, b?: string }`, () =>
     testCase({
       __filename,
       nodeName: "interfaceType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.object({ a: z.number(), b: z.string().optional() })"`,
+    `"z.object({ a: z.number(), b: z.string().optional() })"`
   ));
 
 type mapType = Map<string, number>;
@@ -161,7 +161,7 @@ it(`Map<string, number>`, () =>
     testCase({
       __filename,
       nodeName: "mapType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.map(z.string(), z.number())"`));
 
 type mixedRecordType = {
@@ -174,9 +174,9 @@ it(`{ [k: string]: number; [z: symbol]: string }`, () =>
     testCase({
       __filename,
       nodeName: "mixedRecordType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.union([z.record(z.symbol(), z.string()), z.record(z.string(), z.number())])"`,
+    `"z.union([z.record(z.symbol(), z.string()), z.record(z.string(), z.number())])"`
   ));
 
 type objIntersectionType = { a: number } & { b: string };
@@ -186,9 +186,9 @@ it(`{a: number} & {b: string}`, () =>
     testCase({
       __filename,
       nodeName: "objIntersectionType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.object({ a: z.number() }).and(z.object({ b: z.string() }))"`,
+    `"z.object({ a: z.number() }).and(z.object({ b: z.string() }))"`
   ));
 
 type promiseStringType = Promise<string>;
@@ -198,7 +198,7 @@ it(`Promise<string>`, () =>
     testCase({
       __filename,
       nodeName: "promiseStringType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.promise(z.string())"`));
 
 type readonlyNumberArrayType1 = readonly number[];
@@ -208,7 +208,7 @@ it(`readonly number[]`, () =>
     testCase({
       __filename,
       nodeName: "readonlyNumberArrayType1",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.array(z.number())"`));
 
 type readonlyNumberArrayType2 = ReadonlyArray<number>;
@@ -218,7 +218,7 @@ it(`ReadonlyArray<number>`, () =>
     testCase({
       __filename,
       nodeName: "readonlyNumberArrayType2",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.array(z.number())"`));
 
 type record1 = { [k: string | number]: number };
@@ -228,9 +228,9 @@ it(`{[k: string | number]: number}`, () =>
     testCase({
       __filename,
       nodeName: "record1",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.record(z.union([z.string(), z.number()]), z.number())"`,
+    `"z.record(z.union([z.string(), z.number()]), z.number())"`
   ));
 
 type record2 = { [k: string]: number };
@@ -240,7 +240,7 @@ it(`{[k: string]: number}`, () =>
     testCase({
       __filename,
       nodeName: "record2",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.record(z.string(), z.number())"`));
 
 type recursiveType = number | [recursiveType];
@@ -250,9 +250,9 @@ it(`number | [T]`, () =>
     testCase({
       __filename,
       nodeName: "recursiveType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.union([z.number(), z.tuple([z.lazy(() => recursiveType)])])"`,
+    `"z.union([z.number(), z.tuple([z.lazy(() => recursiveType)])])"`
   ));
 
 type enumType = "a" | "b";
@@ -262,7 +262,7 @@ it(`'a' | 'b'`, () =>
     testCase({
       __filename,
       nodeName: "enumType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.enum(["a", "b"])"`));
 
 type setStringType = Set<string>;
@@ -272,7 +272,7 @@ it(`Set<string>`, () =>
     testCase({
       __filename,
       nodeName: "setStringType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.set(z.string())"`));
 
 type tupleType = [string, number];
@@ -282,7 +282,7 @@ it(`[string, number]`, () =>
     testCase({
       __filename,
       nodeName: "tupleType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.tuple([z.string(), z.number()])"`));
 
 type variadicTupleType = [number, ...string[]];
@@ -292,7 +292,7 @@ it(`[number, ...string[]]`, () =>
     testCase({
       __filename,
       nodeName: "variadicTupleType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.tuple([z.number()]).rest(z.string())"`));
 
 type Foo = "a" | "b";
@@ -305,9 +305,9 @@ it(`Foo | Bar | null`, () =>
     testCase({
       __filename,
       nodeName: "unionNestedTypeAliasesType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.union([z.lazy(() => Foo), z.lazy(() => Bar)]).nullable()"`,
+    `"z.union([z.lazy(() => Foo), z.lazy(() => Bar)]).nullable()"`
   ));
 
 type unionStringNumberNullType = string | number | null;
@@ -317,7 +317,7 @@ it(`string | number | null`, () =>
     testCase({
       __filename,
       nodeName: "unionStringNumberNullType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.union([z.string(), z.number()]).nullable()"`));
 
 type unionStringNumberNullUndefinedType = string | number | null | undefined;
@@ -327,9 +327,9 @@ it(`string | number | null | undefined`, () =>
     testCase({
       __filename,
       nodeName: "unionStringNumberNullUndefinedType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.union([z.string(), z.number()]).nullable().optional()"`,
+    `"z.union([z.string(), z.number()]).nullable().optional()"`
   ));
 
 type unionStringNumberUndefinedType = string | number | undefined;
@@ -339,7 +339,7 @@ it(`string | number | undefined`, () =>
     testCase({
       __filename,
       nodeName: "unionStringNumberUndefinedType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.union([z.string(), z.number()]).optional()"`));
 
 type unionStringNumberType = string | number;
@@ -349,7 +349,7 @@ it(`string | number`, () =>
     testCase({
       __filename,
       nodeName: "unionStringNumberType",
-    }),
+    })
   ).toMatchInlineSnapshot(`"z.union([z.string(), z.number()])"`));
 
 type Obj<X> = {
@@ -367,9 +367,9 @@ it(`mapped type`, () =>
     testCase({
       __filename,
       nodeName: "mappedType",
-    }),
+    })
   ).toMatchInlineSnapshot(
-    `"z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })"`,
+    `"z.object({ a: z.object({ other: z.number() }), b: z.object({ string: z.literal("x") }).optional() })"`
   ));
 
 export const objectSchema = z.object({ a: z.string() });
@@ -383,7 +383,7 @@ it(`zod schema property`, async () =>
     await multiFileTestCase({
       __filename,
       getNode: (sourceFile) => sourceFile.getTypeAlias("zodSchemaProperty"),
-    }),
+    })
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
@@ -404,7 +404,7 @@ it(`schema with transform`, async () =>
     await multiFileTestCase({
       __filename,
       getNode: (sourceFile) => sourceFile.getClass("TransformSchema"),
-    }),
+    })
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
@@ -425,7 +425,7 @@ it(`schema with transform`, async () =>
     await multiFileTestCase({
       __filename,
       getNode: (sourceFile) => sourceFile.getClass("ValidateSchema"),
-    }),
+    })
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
@@ -450,7 +450,7 @@ it(`schema with validate, transform`, async () =>
     await multiFileTestCase({
       __filename,
       getNode: (sourceFile) => sourceFile.getClass("ValidateTransformSchema"),
-    }),
+    })
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";
@@ -478,7 +478,7 @@ it(`schema with validate, transform, default`, async () =>
       __filename,
       getNode: (sourceFile) =>
         sourceFile.getClass("ValidateTransformDefaultSchema"),
-    }),
+    })
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/basics.test.codegen.ts": "import { z } from "zod";

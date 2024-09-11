@@ -19,7 +19,7 @@ export async function writeGeneratedTypes({
       ...config,
       extensions: { reactQuery: ReactQuery },
     },
-    installLocation,
+    installLocation
   );
   const generatedDirPath = join(process.cwd(), generatedDirName);
   const outputFilePath = join(generatedDirPath, outputFileName);

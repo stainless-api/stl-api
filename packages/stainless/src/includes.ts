@@ -8,10 +8,10 @@ export const includesSymbol = Symbol("includes");
  */
 export function includes<
   T extends z.ZodTypeAny,
-  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
 >(
   schema: T,
-  depth: Depth = 3 as any,
+  depth: Depth = 3 as any
 ): z.ZodMetadata<
   z.ZodType<IncludablePaths<z.output<T>, Depth>[]>,
   { stainless: { includes: true } }
@@ -21,7 +21,7 @@ export function includes<
   function add<T extends z.AnyZodObject>(
     path: string,
     schema: T,
-    depth: number,
+    depth: number
   ) {
     if (depth < 0) return;
     const { shape } = schema;
@@ -98,7 +98,7 @@ type Decrement = [0, 0, 1, 2, 3, 4, 5];
 
 export type IncludablePaths<
   Model,
-  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
 > = Model extends object
   ?
       | IncludableKeys<Model>
@@ -110,12 +110,12 @@ export type IncludablePaths<
               > extends z.IncludableOutput<(infer T extends object)[]>
                 ? `${K}.${IncludablePaths<T, Decrement[Depth]>}`
                 : NonNullable<Model[K]> extends z.IncludableOutput<
-                      null | undefined | (infer T extends object)
-                    >
-                  ? `${K}.${IncludablePaths<NonNullable<T>, Decrement[Depth]>}`
-                  : NonNullable<Model[K]> extends Array<infer T>
-                    ? `${K}.${IncludablePaths<T, Decrement[Depth]>}`
-                    : never;
+                    null | undefined | infer T extends object
+                  >
+                ? `${K}.${IncludablePaths<NonNullable<T>, Decrement[Depth]>}`
+                : NonNullable<Model[K]> extends Array<infer T>
+                ? `${K}.${IncludablePaths<T, Decrement[Depth]>}`
+                : never;
             }[keyof Model & string])
   : never;
 

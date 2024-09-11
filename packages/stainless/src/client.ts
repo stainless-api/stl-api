@@ -99,50 +99,50 @@ type ClientFunction<E extends AnyEndpoint> = E["path"] extends z.ZodTypeAny
       ? (
           path: EndpointPathParam<E>,
           body: EndpointBodyInput<E>,
-          options: RequestOptions<EndpointQueryInput<E>>,
+          options: RequestOptions<EndpointQueryInput<E>>
         ) => ExtractClientResponse<E>
       : (
           path: EndpointPathParam<E>,
           body: EndpointBodyInput<E>,
-          options?: RequestOptions<EndpointQueryInput<E>>,
+          options?: RequestOptions<EndpointQueryInput<E>>
         ) => ExtractClientResponse<E>
     : E["query"] extends z.ZodTypeAny
-      ? EndpointHasRequiredQuery<E> extends true
-        ? (
-            path: EndpointPathParam<E>,
-            query: EndpointQueryInput<E>,
-            options?: RequestOptions,
-          ) => ExtractClientResponse<E>
-        : (
-            path: EndpointPathParam<E>,
-            query?: EndpointQueryInput<E>,
-            options?: RequestOptions,
-          ) => ExtractClientResponse<E>
-      : (
-          path: EndpointPathParam<E>,
-          options?: RequestOptions,
-        ) => ExtractClientResponse<E>
-  : E["body"] extends z.ZodTypeAny
     ? EndpointHasRequiredQuery<E> extends true
       ? (
-          body: EndpointBodyInput<E>,
-          options: RequestOptions<EndpointQueryInput<E>>,
+          path: EndpointPathParam<E>,
+          query: EndpointQueryInput<E>,
+          options?: RequestOptions
         ) => ExtractClientResponse<E>
       : (
-          body: EndpointBodyInput<E>,
-          options?: RequestOptions<EndpointQueryInput<E>>,
+          path: EndpointPathParam<E>,
+          query?: EndpointQueryInput<E>,
+          options?: RequestOptions
         ) => ExtractClientResponse<E>
-    : E["query"] extends z.ZodTypeAny
-      ? EndpointHasRequiredQuery<E> extends true
-        ? (
-            query: EndpointQueryInput<E>,
-            options?: RequestOptions,
-          ) => ExtractClientResponse<E>
-        : (
-            query?: EndpointQueryInput<E>,
-            options?: RequestOptions,
-          ) => ExtractClientResponse<E>
-      : (options?: RequestOptions) => ExtractClientResponse<E>;
+    : (
+        path: EndpointPathParam<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
+  : E["body"] extends z.ZodTypeAny
+  ? EndpointHasRequiredQuery<E> extends true
+    ? (
+        body: EndpointBodyInput<E>,
+        options: RequestOptions<EndpointQueryInput<E>>
+      ) => ExtractClientResponse<E>
+    : (
+        body: EndpointBodyInput<E>,
+        options?: RequestOptions<EndpointQueryInput<E>>
+      ) => ExtractClientResponse<E>
+  : E["query"] extends z.ZodTypeAny
+  ? EndpointHasRequiredQuery<E> extends true
+    ? (
+        query: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
+    : (
+        query?: EndpointQueryInput<E>,
+        options?: RequestOptions
+      ) => ExtractClientResponse<E>
+  : (options?: RequestOptions) => ExtractClientResponse<E>;
 
 function actionMethod(action: string): HttpMethod {
   if (/^(get|list|retrieve)([_A-Z]|$)/.test(action)) return "GET";
@@ -173,7 +173,7 @@ export type CreateClientOptions = {
 export function guessRequestEndpoint(
   baseUrl: HttpPath,
   callPath: string[],
-  action: string,
+  action: string
 ): HttpEndpoint {
   return `${actionMethod(action)} ${baseUrl}/${callPath.join("/")}`;
 }
@@ -204,7 +204,7 @@ export function guessRequestEndpoint(
  */
 export function createClient<Api extends AnyAPIDescription>(
   baseUrl: string,
-  options?: CreateClientOptions,
+  options?: CreateClientOptions
 ): StainlessClient<Api> {
   const routeMap = options?.routeMap;
   const basePathMap = options?.basePathMap;
@@ -231,7 +231,7 @@ export function createClient<Api extends AnyAPIDescription>(
   function getMethodAndUri(
     callPath: string[],
     action: string,
-    args: unknown[],
+    args: unknown[]
   ): {
     method: HttpMethod;
     pathname: string;
@@ -241,9 +241,9 @@ export function createClient<Api extends AnyAPIDescription>(
       const endpoint = callPath.reduce(
         (
           resource: APIRouteMap | undefined,
-          name: string,
+          name: string
         ): APIRouteMap | undefined => resource?.namespacedResources?.[name],
-        routeMap,
+        routeMap
       )?.actions?.[action]?.endpoint;
 
       const match = endpoint ? /^([a-z]+)\s+(.+)/i.exec(endpoint) : null;
@@ -255,9 +255,9 @@ export function createClient<Api extends AnyAPIDescription>(
             .map((part) =>
               part.startsWith("{") && part.endsWith("}")
                 ? encodeURIComponent(args.shift() as string | number)
-                : part,
+                : part
             )
-            .join("/"),
+            .join("/")
         );
         return { method: method as HttpMethod, pathname, uri: pathname };
       }
@@ -334,7 +334,7 @@ export function createClient<Api extends AnyAPIDescription>(
           opts.path,
           pathname,
           query as any,
-          parsed.data,
+          parsed.data
         );
       }
       return json;
@@ -425,7 +425,7 @@ export class PageImpl<D extends z.PageData<any>> {
     private clientPath: string[],
     private pathname: string,
     private params: z.infer<typeof z.PaginationParams>,
-    public data: D,
+    public data: D
   ) {
     Object.assign(this, data);
   }
@@ -452,7 +452,7 @@ export class PageImpl<D extends z.PageData<any>> {
     const { startCursor } = this.data;
     if (startCursor == null) {
       throw new Error(
-        `response doesn't have startCursor, can't get previous page`,
+        `response doesn't have startCursor, can't get previous page`
       );
     }
     const {
@@ -494,7 +494,7 @@ export class PageImpl<D extends z.PageData<any>> {
   async getPreviousPage(): Promise<Page<D>> {
     return await this.clientPath.reduce(
       (client: any, path) => client[path],
-      this.client,
+      this.client
     )(this.getPreviousPageParams());
   }
 
@@ -546,7 +546,7 @@ export class PageImpl<D extends z.PageData<any>> {
   async getNextPage(): Promise<Page<D>> {
     return await this.clientPath.reduce(
       (client: any, path) => client[path],
-      this.client,
+      this.client
     )(this.getNextPageParams());
   }
 }
@@ -585,7 +585,7 @@ export class ClientPromise<R> implements Promise<R> {
     onrejected?:
       | ((reason: any) => TResult2 | PromiseLike<TResult2>)
       | undefined
-      | null,
+      | null
   ): Promise<TResult1 | TResult2> {
     return this.fetch().then(onfulfilled, onrejected);
   }
@@ -594,7 +594,7 @@ export class ClientPromise<R> implements Promise<R> {
     onrejected?:
       | ((reason: any) => TResult | PromiseLike<TResult>)
       | undefined
-      | null,
+      | null
   ): Promise<R | TResult> {
     return this.fetch().catch(onrejected);
   }

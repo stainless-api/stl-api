@@ -17,7 +17,7 @@ export function convertSchema(
   ctx: ConvertTypeContext,
   type: tm.Type,
   symbol: tm.Symbol,
-  diagnosticItem: DiagnosticItem,
+  diagnosticItem: DiagnosticItem
 ): ts.Expression {
   const declaration = getDeclaration(symbol) as tm.ClassDeclaration | undefined;
   if (
@@ -29,7 +29,7 @@ export function convertSchema(
       {
         message: `Subclass ${symbol.getName()} must be exported from its declaring module.`,
       },
-      true,
+      true
     );
   }
 
@@ -51,12 +51,12 @@ export function convertSchema(
     symbol.getName(),
     ctx.currentFilePath,
     typeFilePath,
-    true,
+    true
   );
   const newClassExpression = factory.createNewExpression(
     classExpression,
     undefined,
-    [],
+    []
   );
 
   let schemaExpression = convertType(ctx, inputType, diagnosticItem);
@@ -65,7 +65,7 @@ export function convertSchema(
     schemaExpression = methodCall(schemaExpression, "refine", [
       factory.createPropertyAccessExpression(
         newClassExpression,
-        factory.createIdentifier("validate"),
+        factory.createIdentifier("validate")
       ),
     ]);
   }
@@ -73,7 +73,7 @@ export function convertSchema(
     schemaExpression = methodCall(schemaExpression, "stlTransform", [
       factory.createPropertyAccessExpression(
         newClassExpression,
-        factory.createIdentifier("transform"),
+        factory.createIdentifier("transform")
       ),
     ]);
   }
@@ -82,7 +82,7 @@ export function convertSchema(
     schemaExpression = methodCall(schemaExpression, "default", [
       factory.createPropertyAccessExpression(
         newClassExpression,
-        factory.createIdentifier("default"),
+        factory.createIdentifier("default")
       ),
     ]);
   }

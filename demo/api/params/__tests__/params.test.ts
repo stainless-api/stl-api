@@ -14,8 +14,8 @@ describe("/api/params/[id]", function () {
         JSON.stringify({
           id,
           ...query,
-        }),
-      ),
+        })
+      )
     );
   });
   it("without optional params", async function () {

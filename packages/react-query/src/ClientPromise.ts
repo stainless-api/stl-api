@@ -15,7 +15,7 @@ export class ClientPromise<R> extends BaseClientPromise<R> {
 
   constructor(
     fetch: () => Promise<R>,
-    { queryKey, ...props }: ClientPromiseProps,
+    { queryKey, ...props }: ClientPromiseProps
   ) {
     super(fetch, props);
     this.queryKey = queryKey;
@@ -23,7 +23,7 @@ export class ClientPromise<R> extends BaseClientPromise<R> {
 
   static from<R>(
     { fetch, method, uri, pathname, search, query }: BaseClientPromise<R>,
-    { queryKey }: ExtractClientPromiseProps,
+    { queryKey }: ExtractClientPromiseProps
   ): ClientPromise<R> {
     return new ClientPromise(fetch, {
       method,

@@ -9,7 +9,7 @@ const usePost = (postId: string) => {
           include: ["user", "comments.user"],
         })}`
       : null,
-    fetcher,
+    fetcher
   );
 
   return {

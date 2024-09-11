@@ -31,7 +31,7 @@ describe("Generated API Client", () => {
         "/api/dogs/fido/dogTreats/treatId",
         {
           method: "GET",
-        },
+        }
       );
       expect(treat).toStrictEqual({ yummy: true });
     });
@@ -71,7 +71,7 @@ describe("Generated API Client", () => {
 
     it("can handle API errors", async () => {
       await expect(async () => await client.dogs.list()).rejects.toThrowError(
-        "Expected to throw",
+        "Expected to throw"
       );
     });
 
@@ -139,7 +139,7 @@ describe("Generated API Client", () => {
         "/api/dogs/fido/dog-treats/treatId",
         {
           method: "GET",
-        },
+        }
       );
       expect(treat).toStrictEqual({ yummy: true });
 
@@ -161,7 +161,7 @@ describe("Generated API Client", () => {
           headers: {
             "Content-Type": "application/json",
           },
-        },
+        }
       );
       expect(update).toStrictEqual({ yummy: false });
     });

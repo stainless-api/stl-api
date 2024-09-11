@@ -26,7 +26,7 @@ export function createRecursiveProxy(callback: ProxyCallback, path: string[]) {
           args,
         });
       },
-    },
+    }
   );
 
   return proxy;

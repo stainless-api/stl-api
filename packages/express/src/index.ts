@@ -57,7 +57,7 @@ export type AddToExpressOptions = CreateExpressHandlerOptions & {
 export async function parseParams<EC extends AnyEndpoint>(
   endpoint: EC,
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<RequestData<EC["path"], EC["query"], EC["body"]>> {
   return (await parseParamsWithContext(endpoint, req, res))[0];
 }
@@ -74,7 +74,7 @@ export async function parseParams<EC extends AnyEndpoint>(
 export async function parseParamsWithContext<EC extends AnyEndpoint>(
   endpoint: EC,
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<[RequestData<EC["path"], EC["query"], EC["body"]>, StlContext<EC>]> {
   const { params: path, headers, body, query } = req;
 
@@ -110,7 +110,7 @@ export async function parseParamsWithContext<EC extends AnyEndpoint>(
  */
 export async function makeResponse<EC extends AnyEndpoint>(
   endpoint: EC,
-  response: EndpointResponseInput<EC>,
+  response: EndpointResponseInput<EC>
 ): Promise<EndpointResponseOutput<EC>> {
   if (!endpoint.response) {
     throw new Error("endpoint has no response schema");
@@ -131,7 +131,7 @@ export async function makeResponse<EC extends AnyEndpoint>(
 export async function executeRequest<EC extends AnyEndpoint>(
   endpoint: AnyEndpoint,
   req: Request,
-  res: Response,
+  res: Response
 ): Promise<EndpointResponseOutput<EC>> {
   const { params: path, headers, body, query } = req;
 
@@ -163,12 +163,12 @@ export async function executeRequest<EC extends AnyEndpoint>(
  */
 function expressHandler(
   endpoint: AnyEndpoint,
-  options: CreateExpressHandlerOptions,
+  options: CreateExpressHandlerOptions
 ): RequestHandler {
   return async (
     req: Request,
     res: Response,
-    next: NextFunction,
+    next: NextFunction
   ): Promise<void> => {
     try {
       const result = await executeRequest(endpoint, req, res);
@@ -188,7 +188,7 @@ function expressHandler(
 
 const methodNotAllowedHandler: RequestHandler = (
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   res.status(405).send();
 };
@@ -200,7 +200,7 @@ const methodNotAllowedHandler: RequestHandler = (
 const errorHandler: ErrorRequestHandler = (
   error: any,
   req: Request,
-  res: Response,
+  res: Response
 ) => {
   if (isStlError(error)) {
     res.status(error.statusCode).json(error.response);
@@ -208,14 +208,14 @@ const errorHandler: ErrorRequestHandler = (
   }
   console.error(
     `ERROR in ${req.method} ${req.url}:`,
-    error instanceof Error ? error.stack : error,
+    error instanceof Error ? error.stack : error
   );
   res.status(500).json({ error, details: "Failed to handle the request." });
 };
 
 function applyBasePathMap(
   path: string,
-  basePathMap: BasePathMap | undefined,
+  basePathMap: BasePathMap | undefined
 ): string {
   if (basePathMap) {
     for (const k in basePathMap) {
@@ -229,7 +229,7 @@ function applyBasePathMap(
 
 function convertExpressPath(
   path: string,
-  basePathMap: BasePathMap | undefined,
+  basePathMap: BasePathMap | undefined
 ): string {
   return applyBasePathMap(path, basePathMap)
     .split("/")
@@ -243,7 +243,7 @@ function convertExpressPath(
 export function addEndpointRoute(
   router: Application | Router,
   endpoint: AnyEndpoint,
-  options?: AddToExpressOptions,
+  options?: AddToExpressOptions
 ) {
   const [method, path] = parseEndpoint(endpoint.endpoint);
   const expressPath = convertExpressPath(path, options?.basePathMap);
@@ -260,7 +260,7 @@ export function addEndpointRoute(
   router[loweredMethod](
     expressPath,
     // @ts-expect-error this is valid
-    expressHandler(endpoint, options),
+    expressHandler(endpoint, options)
   );
 }
 
@@ -273,7 +273,7 @@ function addMethodNotAllowedHandlers(
   router: Application | Router,
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
   options?: AddToExpressOptions,
-  visited: Set<string> = new Set(),
+  visited: Set<string> = new Set()
 ) {
   const { actions, namespacedResources } = resource;
   if (actions) {
@@ -286,7 +286,7 @@ function addMethodNotAllowedHandlers(
       router.all(
         convertExpressPath(path, options?.basePathMap),
         // @ts-expect-error
-        methodNotAllowedHandler,
+        methodNotAllowedHandler
       );
     }
   }
@@ -296,7 +296,7 @@ function addMethodNotAllowedHandlers(
         router,
         namespacedResources[name],
         options,
-        visited,
+        visited
       );
     }
   }
@@ -316,7 +316,7 @@ type AddEndpointsToExpressOptions = AddToExpressOptions & {
 function addResourceRoutes(
   router: Application | Router,
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
-  options?: AddEndpointsToExpressOptions,
+  options?: AddEndpointsToExpressOptions
 ) {
   const { actions, namespacedResources } = resource;
   if (actions) {
@@ -341,7 +341,7 @@ function addResourceRoutes(
  */
 export function resourceRouter(
   resource: Pick<AnyResourceConfig, "actions" | "namespacedResources">,
-  options?: AddEndpointsToExpressOptions & RouterOptions,
+  options?: AddEndpointsToExpressOptions & RouterOptions
 ): Router {
   const router = makeRouter(options);
   router.use(express.json());
@@ -357,7 +357,7 @@ export function resourceRouter(
 function addAPIRoutes(
   router: Application | Router,
   api: AnyAPIDescription,
-  options?: AddEndpointsToExpressOptions,
+  options?: AddEndpointsToExpressOptions
 ) {
   const { topLevel, resources } = api;
   addResourceRoutes(
@@ -366,7 +366,7 @@ function addAPIRoutes(
       actions: topLevel.actions,
       namespacedResources: resources,
     },
-    options,
+    options
   );
 }
 
@@ -375,7 +375,7 @@ function addAPIRoutes(
  */
 export function apiRouter(
   api: AnyAPIDescription,
-  options?: AddEndpointsToExpressOptions,
+  options?: AddEndpointsToExpressOptions
 ): Router {
   const router = makeRouter();
   router.use(express.json());

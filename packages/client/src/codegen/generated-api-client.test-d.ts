@@ -99,7 +99,7 @@ describe("Generated API Client", () => {
 
     test("can handle native enums", () => {
       expectTypeOf(
-        client.users("foo").update.useSuspenseQuery({}).data.accountType,
+        client.users("foo").update.useSuspenseQuery({}).data.accountType
       ).toEqualTypeOf<"admin" | "free" | "paid">();
     });
   });

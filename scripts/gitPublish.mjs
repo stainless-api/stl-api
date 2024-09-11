@@ -34,7 +34,7 @@ const setupGitIdentity = _.once(async () => {
       ["config", "--global", "user.email", "dev@stainlessapi.com"],
       {
         stdio: "inherit",
-      },
+      }
     );
     await execa("git", ["config", "--global", "user.name", "Stainless Bot"], {
       stdio: "inherit",
@@ -52,7 +52,7 @@ export async function gitPublish(packageDir, options) {
 
   if (packageJson.private) {
     throw new Error(
-      `package ${packageJson.name} marked private, refusing to publish`,
+      `package ${packageJson.name} marked private, refusing to publish`
     );
   }
 
@@ -85,7 +85,7 @@ export async function gitPublish(packageDir, options) {
 
   if (dryRun) {
     console.error(
-      `dry run; would git push --set-upstream ${origin} ${branch} -f`,
+      `dry run; would git push --set-upstream ${origin} ${branch} -f`
     );
   } else {
     await execa("git", ["push", "--set-upstream", origin, branch, "-f"], {

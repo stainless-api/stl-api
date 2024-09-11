@@ -65,7 +65,7 @@ const api = stl.api({
 // fetch mock that just echoes back its arguments
 const fetch = async (
   req: RequestInfo | URL,
-  init?: RequestInit,
+  init?: RequestInit
 ): Promise<Response> => {
   return new Response(JSON.stringify({ req, init }));
 };
@@ -113,7 +113,7 @@ describe("useQuery methods", () => {
   ] as [
     string,
     (client: StainlessReactQueryClient<typeof api>) => UseQueryResult<any>,
-    string,
+    string
   ][]) {
     it(
       description,
@@ -126,7 +126,7 @@ describe("useQuery methods", () => {
         render(
           <QueryClientProvider client={queryClient}>
             <Comp />
-          </QueryClientProvider>,
+          </QueryClientProvider>
         );
         await waitFor(() => expect(hookResult?.isSuccess).toEqual(true), {
           interval: 500,
@@ -134,7 +134,7 @@ describe("useQuery methods", () => {
         });
         expect(hookResult?.data?.req).toEqual(`${baseUrl}${expectedUrl}`);
       },
-      15000,
+      15000
     );
   }
 });

@@ -14,6 +14,6 @@ export function splitPathIntoParts<P extends Endpoint>(path: P) {
         : {
             type: "resource",
             name: p,
-          },
+          }
     ) as SplitPathIntoParts<P>;
 }

@@ -41,12 +41,12 @@ const methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
 
 type PagesHandler = (
   req: NextApiRequest,
-  res: NextApiResponse,
+  res: NextApiResponse
 ) => Promise<void>;
 
 type AppHandler = (
   req: NextRequest,
-  ctx: { params: Record<string, any> },
+  ctx: { params: Record<string, any> }
 ) => Promise<NextResponse>;
 
 type AppHandlers = {
@@ -71,7 +71,7 @@ const makeAppHandlers = (handler: AppHandler): AppHandlers => ({
 
 function makeRouter(
   endpoints: AnyEndpoint[],
-  options?: RouterOptions,
+  options?: RouterOptions
 ): { appHandler: AppHandler; pagesHandler: PagesHandler } {
   const stl = endpoints[0]?.stl;
   if (!stl) {
@@ -100,7 +100,7 @@ function makeRouter(
 
   const appHandler = async (
     req: NextRequest,
-    ctx: { params: Record<string, any> },
+    ctx: { params: Record<string, any> }
   ): Promise<NextResponse> => {
     try {
       const { method, url } = req;
@@ -110,7 +110,7 @@ function makeRouter(
 
       if (!isValidRouteMatch(match)) {
         const enabledMethods = methods.filter((method) =>
-          isValidRouteMatch(routeMatcher.match(method, pathname)),
+          isValidRouteMatch(routeMatcher.match(method, pathname))
         );
         if (enabledMethods.length) {
           return NextResponse.json(
@@ -119,7 +119,7 @@ function makeRouter(
                 .map((x) => x.toUpperCase())
                 .join(", ")}.`,
             },
-            { status: 405 },
+            { status: 405 }
           );
         }
         throw new NotFoundError();
@@ -167,11 +167,11 @@ function makeRouter(
 
       console.error(
         `ERROR in ${req.method} ${req.url}:`,
-        error instanceof Error ? error.stack : error,
+        error instanceof Error ? error.stack : error
       );
       return NextResponse.json(
         { error, details: "Failed to handle the request." },
-        { status: 500 },
+        { status: 500 }
       );
     }
   };
@@ -190,7 +190,7 @@ function makeRouter(
 
       if (!isValidRouteMatch(match)) {
         const enabledMethods = methods.filter((method) =>
-          isValidRouteMatch(routeMatcher.match(method, pathname)),
+          isValidRouteMatch(routeMatcher.match(method, pathname))
         );
         if (enabledMethods.length) {
           res.status(405).json({
@@ -240,7 +240,7 @@ function makeRouter(
 
       console.error(
         `ERROR in ${req.method} ${req.url}:`,
-        error instanceof Error ? error.stack : error,
+        error instanceof Error ? error.stack : error
       );
       res.status(500).json({ error, details: "Failed to handle the request." });
       return;
@@ -263,24 +263,24 @@ export const stlNextPageRoute = <Endpoints extends AnyEndpoint[]>(
 
 export const stlNextPageCatchAllRouter = <API extends AnyAPIDescription>(
   { topLevel, resources }: API,
-  options?: RouterOptions,
+  options?: RouterOptions
 ) =>
   makeRouter(
     allEndpoints({
       actions: topLevel?.actions,
       namespacedResources: resources,
     }),
-    options,
+    options
   ).pagesHandler;
 
 export const stlNextAppRoute = (
   endpoint: AnyEndpoint,
-  options?: RouterOptions,
+  options?: RouterOptions
 ) => makeRouter([endpoint], options).appHandler;
 
 export const stlNextAppCatchAllRouter = <API extends AnyAPIDescription>(
   { topLevel, resources }: API,
-  options?: RouterOptions,
+  options?: RouterOptions
 ) =>
   makeAppHandlers(
     makeRouter(
@@ -288,6 +288,6 @@ export const stlNextAppCatchAllRouter = <API extends AnyAPIDescription>(
         actions: topLevel?.actions,
         namespacedResources: resources,
       }),
-      options,
-    ).appHandler,
+      options
+    ).appHandler
   );

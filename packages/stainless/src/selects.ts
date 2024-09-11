@@ -10,10 +10,10 @@ export const selectsSymbol = Symbol("selects");
  */
 export function selects<
   T extends z.ZodType<object>,
-  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3,
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
 >(
   schema: T,
-  depth: Depth = 3 as any,
+  depth: Depth = 3 as any
 ): z.ZodMetadata<
   z.ZodType<SelectTree | null | undefined, z.ZodEffectsDef, string>,
   { stainless: { selects: true } }
@@ -45,7 +45,7 @@ function validateSelectTree(
   selectTree: SelectTree,
   schema: z.ZodTypeAny,
   depth: number,
-  path: string[] = [],
+  path: string[] = []
 ): SelectTree {
   if (depth < 0) {
     throw new Error(`selected path is too deep: ${path.join(".")}`);
@@ -66,7 +66,7 @@ function validateSelectTree(
       const subschema = schema.shape[key];
       if (!subschema) {
         throw new Error(
-          `selected path doesn't exist: ${[...path, key].join(".")}`,
+          `selected path doesn't exist: ${[...path, key].join(".")}`
         );
       }
       // TODO: error if a terminal field on a non-selectable object is selected,
@@ -106,7 +106,7 @@ function validateSelectTree(
 }
 
 export function getSelects(
-  ctx: StlContext<any>,
+  ctx: StlContext<any>
 ): SelectTree | null | undefined {
   const query = ctx.parsedParams?.query;
   if (!query) return undefined;

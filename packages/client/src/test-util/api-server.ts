@@ -6,7 +6,7 @@ import { dogTreats } from "../test-util/dog-treat-api";
 
 export async function mockFetchImplementation(
   input: string | URL | Request,
-  options?: RequestInit,
+  options?: RequestInit
 ) {
   const mockCat = { name: "Shiro", color: "black" };
   let payload;

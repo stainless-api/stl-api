@@ -33,7 +33,7 @@ export function DynamicSizeList<T>({
       state: State,
       action:
         | { type: "setItemSize"; index: number; size: number }
-        | { type: "clearLastIndex" },
+        | { type: "clearLastIndex" }
     ): State => {
       switch (action.type) {
         case "clearLastIndex":
@@ -57,20 +57,20 @@ export function DynamicSizeList<T>({
           return state;
       }
     },
-    { itemSizes: [], lastIndex: null },
+    { itemSizes: [], lastIndex: null }
   );
   const { itemSizes, lastIndex } = state;
   const itemSizesRef = React.useRef(itemSizes);
   itemSizesRef.current = itemSizes;
   const itemSize = React.useCallback(
     (index: number) => itemSizesRef.current[index] || minItemSize || 0,
-    [minItemSize],
+    [minItemSize]
   );
   const totalSize = React.useMemo((): number => {
     return (
       itemSizes.reduce(
         (total, next) => total + Math.max(next || 0, minItemSize),
-        0,
+        0
       ) +
       minItemSize * Math.max(0, itemCount - itemSizes.length)
     );
@@ -81,7 +81,7 @@ export function DynamicSizeList<T>({
 
   const Row = React.useCallback(
     function MeasuredRow(
-      rowProps: ListChildComponentProps<any>,
+      rowProps: ListChildComponentProps<any>
     ): React.ReactElement {
       const [ref, bounds] = useMeasure();
       const size = layout === "horizontal" ? bounds?.width : bounds?.height;
@@ -102,7 +102,7 @@ export function DynamicSizeList<T>({
         </div>
       );
     },
-    [Children, layout],
+    [Children, layout]
   );
 
   const listRef = React.useRef<VariableSizeList<any> | null>(null);

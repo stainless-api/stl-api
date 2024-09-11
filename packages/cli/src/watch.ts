@@ -70,7 +70,7 @@ export class Watcher {
       path.join(
         rootPath,
         "**",
-        "*.{json,js,jsx,cjs,cjsx,mjs,mjsx,ts,tsx,cts,ctsx,mts,mtsx}",
+        "*.{json,js,jsx,cjs,cjsx,mjs,mjsx,ts,tsx,cts,ctsx,mts,mtsx}"
       ),
       {
         ignored: [
@@ -83,14 +83,14 @@ export class Watcher {
             return gitignored;
           },
         ],
-      },
+      }
     );
     this.watcher.on("ready", () => {
       debug(debugEvent("ready"));
       console.log(
         `Found ${this.fileCount} source ${
           this.fileCount === 1 ? "file" : "files"
-        }`,
+        }`
       );
       this.ready = true;
     });
