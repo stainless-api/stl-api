@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/next",
-  "version": "0.1.5",
+  "version": "0.1.6",
   "license": "ISC",
   "description": "next.js plugin for stainless api",
   "author": "dev@stainlessapi.com",
@@ -31,7 +31,7 @@
     "next": "^14.2.8"
   },
   "dependencies": {
-    "hono": "^3.11.7",
+    "hono": "^4.0.0",
     "lodash": "^4.17.21",
     "qs": "^6.11.2",
     "stainless": "github:stainless-api/stl-api#stainless-0.1.3"
