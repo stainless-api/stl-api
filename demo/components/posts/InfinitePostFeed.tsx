@@ -11,6 +11,7 @@ const InfinitePostFeed: React.FC<PostFeedProps> = ({ userId }) => {
   const client = useClient();
   const { itemAndPlaceholderCount, useItem } = client.posts.useInfiniteList({
     userId,
+    // @ts-ignore
     include: ["items.user", "items.comments"],
   });
 
