@@ -6,7 +6,7 @@ export type SplitHeadAndTail<T extends any[]> = T extends [T[0], ...infer R]
 
 export type Filter<T extends readonly any[], E> = T extends [
   infer F,
-  ...infer R
+  ...infer R,
 ]
   ? [F] extends [E]
     ? Filter<R, E>

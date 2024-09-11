@@ -25,32 +25,34 @@ export abstract class Refine<I, O> extends Transform<O, I> {
   abstract refine(arg: output<I>): boolean;
 }
 
-export type input<T> = T extends SchemaType<any, infer I>
-  ? input<I>
-  : T extends Date
-  ? Date
-  : T extends object
-  ? { [k in keyof T]: input<T[k]> }
-  : T extends Array<infer E>
-  ? Array<input<E>>
-  : T extends Set<infer E>
-  ? Set<input<E>>
-  : T extends PromiseLike<infer E>
-  ? PromiseLike<input<E>>
-  : T;
-export type output<T> = T extends SchemaType<infer O, any>
-  ? output<O>
-  : T extends Date
-  ? Date
-  : T extends object
-  ? { [k in keyof T]: output<T[k]> }
-  : T extends Array<infer E>
-  ? Array<output<E>>
-  : T extends Set<infer E>
-  ? Set<output<E>>
-  : T extends PromiseLike<infer E>
-  ? PromiseLike<output<E>>
-  : T;
+export type input<T> =
+  T extends SchemaType<any, infer I>
+    ? input<I>
+    : T extends Date
+      ? Date
+      : T extends object
+        ? { [k in keyof T]: input<T[k]> }
+        : T extends Array<infer E>
+          ? Array<input<E>>
+          : T extends Set<infer E>
+            ? Set<input<E>>
+            : T extends PromiseLike<infer E>
+              ? PromiseLike<input<E>>
+              : T;
+export type output<T> =
+  T extends SchemaType<infer O, any>
+    ? output<O>
+    : T extends Date
+      ? Date
+      : T extends object
+        ? { [k in keyof T]: output<T[k]> }
+        : T extends Array<infer E>
+          ? Array<output<E>>
+          : T extends Set<infer E>
+            ? Set<output<E>>
+            : T extends PromiseLike<infer E>
+              ? PromiseLike<output<E>>
+              : T;
 
 export type TypeSchema<Output, Input = any> =
   | Output
@@ -94,7 +96,7 @@ class ToDate<I extends TypeSchema<string | number | Date>> extends Transform<
 }
 
 class ToBigInt<
-  I extends TypeSchema<string | number | bigint | boolean>
+  I extends TypeSchema<string | number | bigint | boolean>,
 > extends Transform<bigint, I> {
   async transform(value: output<I>): Promise<bigint> {
     return BigInt(value);

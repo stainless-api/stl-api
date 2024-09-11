@@ -14,7 +14,7 @@ type FlatResource = Omit<GenericResourceConfi, "namespacedResources">;
 
 function getResources(
   resources: Record<string, GenericResourceConfi>,
-  path?: string
+  path?: string,
 ): { resourceName: string; resourcePath: string; resource: FlatResource }[] {
   return Object.entries(resources).flatMap(
     ([resourceName, { namespacedResources, ...resource }]) => {
@@ -28,7 +28,7 @@ function getResources(
       }
 
       return [{ resourceName, resourcePath, resource }];
-    }
+    },
   );
 }
 
@@ -37,7 +37,7 @@ function getEndpoints(
     resourceName: string;
     resourcePath: string;
     resource: FlatResource;
-  }[]
+  }[],
 ) {
   return resources.flatMap(({ resourcePath, resource }) =>
     Object.entries(resource.actions).map(([actionName, action]) => {
@@ -59,7 +59,7 @@ function getEndpoints(
         handler: action?.handler,
         response: action?.response,
       };
-    })
+    }),
   );
 }
 
@@ -79,7 +79,7 @@ type PathPartWithActions =
 
 function recursiveSet(
   obj: Record<string, any> = {},
-  items: PathPartWithActions[]
+  items: PathPartWithActions[],
 ) {
   const [current, ...rest] = items;
 
@@ -120,7 +120,7 @@ function recursiveSet(
     if (existingIndex > -1) {
       obj[current.name].asParam[existingIndex] = _.merge(
         obj[current.name].asParam[existingIndex],
-        returnValue
+        returnValue,
       );
     } else {
       obj[current.name].asParam = [...obj[current.name].asParam, returnValue];
@@ -131,13 +131,13 @@ function recursiveSet(
 
 function nestEndpoints(
   endpoints: ReturnType<typeof getEndpoints>,
-  basePath: string = ""
+  basePath: string = "",
 ) {
   const api: ApiMap = {};
 
   endpoints.forEach((endpoint) => {
     const filterdPathParts = endpoint.pathParts.filter(
-      (pathPart) => pathPart.name !== basePath.replace("/", "")
+      (pathPart) => pathPart.name !== basePath.replace("/", ""),
     );
     recursiveSet(api, filterdPathParts);
   });
@@ -156,7 +156,7 @@ function makeParameterType(
   name: string,
   value: ApiMap[],
   api: APIConfig,
-  config: ClientConfig
+  config: ClientConfig,
 ): string[] {
   const types: string[] = [`(${camelCase(name)}: string | number): {`];
   value
@@ -173,7 +173,7 @@ function makeResourceType(
   name: string,
   value: Record<string, ApiMap>,
   api: APIConfig,
-  config: ClientConfig
+  config: ClientConfig,
 ): string[] {
   const subTypes: string[] = [];
 
@@ -181,7 +181,7 @@ function makeResourceType(
     const entryTypes = makeTypesFromApiMap(
       { [k]: v } as unknown as ApiMap,
       api,
-      config
+      config,
     );
     subTypes.push(...entryTypes);
   });
@@ -193,7 +193,7 @@ function makeActionType(
   name: string,
   actionPath: string,
   api: APIConfig,
-  config: ClientConfig
+  config: ClientConfig,
 ): string[] {
   const resources = actionPath.split(".");
   const action = api.resources[resources[0]].actions[resources[1]];
@@ -255,7 +255,7 @@ function makeActionType(
 function makeTypesFromApiMap(
   apiMap: ApiMap,
   api: APIConfig,
-  config: ClientConfig
+  config: ClientConfig,
 ) {
   const types: string[] = [];
 
@@ -284,7 +284,7 @@ function makeTypes(
   api: APIConfig,
   config: ClientConfig,
   installLocation: string,
-  reactQueryAlias: string
+  reactQueryAlias: string,
 ) {
   const output: string[] = [];
   output.push(dedent`
@@ -323,7 +323,7 @@ export async function generateOutput<API extends APIConfig>(
   api: API,
   config: ClientConfig<API["basePath"]>,
   installLocation: string = "@stl-api/client",
-  reactQueryAlias: string = "@tanstack/react-query"
+  reactQueryAlias: string = "@tanstack/react-query",
 ) {
   const resources = getResources(api.resources);
   const endpoints = getEndpoints(resources);
@@ -333,7 +333,7 @@ export async function generateOutput<API extends APIConfig>(
     api,
     config,
     installLocation,
-    reactQueryAlias
+    reactQueryAlias,
   );
 
   return await prettier.format(output.flat().join("\n"));

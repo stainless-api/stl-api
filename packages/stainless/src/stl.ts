@@ -54,7 +54,7 @@ export type GetHttpEndpointUrl<E extends HttpEndpoint> =
   E extends `${HttpMethod} ${infer Url}` ? Url : never;
 
 export function parseEndpoint<E extends HttpEndpoint>(
-  endpoint: E
+  endpoint: E,
 ): [GetHttpEndpointMethod<E>, GetHttpEndpointUrl<E>] {
   const [method, path] = endpoint.split(/\s+/, 2);
   switch (method) {
@@ -71,7 +71,7 @@ export function parseEndpoint<E extends HttpEndpoint>(
   }
   if (!path.startsWith("/")) {
     throw new Error(
-      `Invalid path must start with a slash (/); got: "${endpoint}"`
+      `Invalid path must start with a slash (/); got: "${endpoint}"`,
     );
   }
   return [method as GetHttpEndpointMethod<E>, path as GetHttpEndpointUrl<E>];
@@ -92,12 +92,12 @@ export type Handler<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
-  Response
+  Response,
 > = (
   /** request object with parsed params */
   request: RequestData<Path, Query, Body>,
   /** context with stainless, plugin, and user-provided data */
-  ctx: Ctx
+  ctx: Ctx,
 ) => Response | Promise<Response>;
 
 /**
@@ -106,7 +106,7 @@ export type Handler<
 export type RequestData<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
-  Body extends ZodObjectSchema | undefined
+  Body extends ZodObjectSchema | undefined,
 > = (Path extends z.ZodTypeAny ? z.infer<Path> : {}) &
   (Query extends z.ZodTypeAny ? z.infer<Query> : {}) &
   (Body extends z.ZodTypeAny ? z.infer<Body> : {});
@@ -153,7 +153,7 @@ export interface BaseEndpoint<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
-  Response extends z.ZodTypeAny | undefined
+  Response extends z.ZodTypeAny | undefined,
 > {
   stl: Stl<any>;
   endpoint: MethodAndUrl;
@@ -178,7 +178,7 @@ export interface Endpoint<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
-  Response extends z.ZodTypeAny | undefined
+  Response extends z.ZodTypeAny | undefined,
 > extends BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
   handler?: Handler<
     StlContext<BaseEndpoint<Config, MethodAndUrl, Path, Query, Body, Response>>,
@@ -223,14 +223,14 @@ export type EndpointResponseOutput<E extends AnyEndpoint> =
 export function allEndpoints(
   resource:
     | AnyResourceConfig
-    | Pick<AnyResourceConfig, "actions" | "namespacedResources">
+    | Pick<AnyResourceConfig, "actions" | "namespacedResources">,
 ): AnyEndpoint[] {
   return [
     ...Object.keys(resource.actions || {})
       .map((k) => resource.actions[k])
       .filter(Boolean),
     ...Object.keys(resource.namespacedResources || {}).flatMap((k) =>
-      allEndpoints(resource.namespacedResources[k])
+      allEndpoints(resource.namespacedResources[k]),
     ),
   ];
 }
@@ -245,7 +245,7 @@ export type ResourceConfig<
   NamespacedResources extends
     | Record<string, ResourceConfig<any, any, any>>
     | undefined,
-  Models extends Record<string, z.ZodTypeAny> | undefined
+  Models extends Record<string, z.ZodTypeAny> | undefined,
 > = {
   summary: string;
   internal?: boolean;
@@ -275,7 +275,7 @@ export function isAPIDescription(value: unknown): value is AnyAPIDescription {
 export type APIDescription<
   BasePath extends HttpPath,
   TopLevel extends ResourceConfig<AnyActionsConfig, undefined, any> | undefined,
-  Resources extends Record<string, AnyResourceConfig> | undefined
+  Resources extends Record<string, AnyResourceConfig> | undefined,
 > = {
   [apiSymbol]: true;
   basePath: BasePath;
@@ -316,7 +316,7 @@ export class StlError extends Error {
    */
   constructor(
     public statusCode: number,
-    public response?: Record<string, any>
+    public response?: Record<string, any>,
   ) {
     super(JSON.stringify(response));
   }
@@ -369,7 +369,7 @@ export class NotFoundError extends StlError {
 type AnyStatics = Record<string, any>; // TODO?
 
 export type StainlessPlugin<
-  Statics extends AnyStatics | undefined = undefined
+  Statics extends AnyStatics | undefined = undefined,
 > = {
   /**
    * Optionally provide data to every endpoint handler.
@@ -386,7 +386,7 @@ export type StainlessPlugin<
    */
   middleware?: <EC extends AnyEndpoint>(
     params: Params,
-    context: StlContext<EC>
+    context: StlContext<EC>,
   ) => void | Promise<void>;
 };
 
@@ -396,7 +396,7 @@ export type StainlessPlugin<
  */
 export type MakeStainlessPlugin<
   Statics extends AnyStatics | undefined = undefined,
-  Plugins extends AnyPlugins = {}
+  Plugins extends AnyPlugins = {},
 > = (stl: Stl<Plugins>) => StainlessPlugin<Statics>;
 
 type AnyPlugins = Record<string, MakeStainlessPlugin<any, any>>;
@@ -525,7 +525,7 @@ type OpenAPITopLevel<
     | {
         endpoint?: HttpEndpoint | false;
       }
-    | undefined
+    | undefined,
 > = openapi extends {
   endpoint: false;
 }
@@ -539,7 +539,7 @@ interface CreateEndpointOptions<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
-  Response extends z.ZodTypeAny = z.ZodVoid
+  Response extends z.ZodTypeAny = z.ZodVoid,
 > {
   /**
    * a string declaring the HTTP method
@@ -575,7 +575,7 @@ interface CreateEndpointOptions<
 interface CreateResourceOptions<
   Actions extends AnyActionsConfig | undefined,
   Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
-  Models extends Record<string, z.ZodTypeAny> | undefined
+  Models extends Record<string, z.ZodTypeAny> | undefined,
 > {
   /**
    * A summary describing the resource;
@@ -598,7 +598,7 @@ interface CreateApiOptions<
   TopLevel extends
     | ResourceConfig<AnyActionsConfig, undefined, any>
     | undefined = undefined,
-  Resources extends Record<string, AnyResourceConfig> | undefined = undefined
+  Resources extends Record<string, AnyResourceConfig> | undefined = undefined,
 > {
   basePath: BasePath;
   /**
@@ -695,7 +695,7 @@ export class Stl<Plugins extends AnyPlugins> {
     ) {
       if (!this.typeSchemas) {
         throw new Error(
-          "Failed to provide `typeSchemas` to stl instance while using codegen schemas"
+          "Failed to provide `typeSchemas` to stl instance while using codegen schemas",
         );
       }
       try {
@@ -709,7 +709,7 @@ export class Stl<Plugins extends AnyPlugins> {
           throw new Error(
             "error encountered while handling endpoint " +
               endpoint.endpoint +
-              ": no schema found. run the `stl` cli on the project to generate the schema for the endpoint."
+              ": no schema found. run the `stl` cli on the project to generate the schema for the endpoint.",
           );
         }
       } catch (e) {
@@ -730,7 +730,7 @@ export class Stl<Plugins extends AnyPlugins> {
    */
   async parseParams<EC extends AnyEndpoint>(
     params: Params,
-    context: StlContext<EC>
+    context: StlContext<EC>,
   ): Promise<RequestData<EC["path"], EC["query"], EC["body"]>> {
     return (await this.parseParamsWithContext(params, context))[0];
   }
@@ -748,7 +748,7 @@ export class Stl<Plugins extends AnyPlugins> {
    */
   async parseParamsWithContext<EC extends AnyEndpoint>(
     params: Params,
-    context: StlContext<EC>
+    context: StlContext<EC>,
   ): Promise<
     [RequestData<EC["path"], EC["query"], EC["body"]>, StlContext<EC>]
   > {
@@ -809,7 +809,7 @@ export class Stl<Plugins extends AnyPlugins> {
    */
   async execute<EC extends AnyEndpoint>(
     params: Params,
-    context: StlContext<EC>
+    context: StlContext<EC>,
   ): Promise<ExtractExecuteResponse<EC>> {
     const { endpoint } = context;
     if (!endpoint.handler) {
@@ -871,7 +871,7 @@ export class Stl<Plugins extends AnyPlugins> {
     Path extends ZodObjectSchema | undefined,
     Query extends ZodObjectSchema | undefined,
     Body extends ZodObjectSchema | undefined,
-    Response extends z.ZodTypeAny = z.ZodVoid
+    Response extends z.ZodTypeAny = z.ZodVoid,
   >(
     params: CreateEndpointOptions<
       MethodAndUrl,
@@ -880,7 +880,7 @@ export class Stl<Plugins extends AnyPlugins> {
       Query,
       Body,
       Response
-    >
+    >,
   ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response> {
     const { config, response, path, query, body, ...rest } = params;
     return {
@@ -927,7 +927,7 @@ export class Stl<Plugins extends AnyPlugins> {
   resource<
     Actions extends AnyActionsConfig | undefined,
     Resources extends Record<string, ResourceConfig<any, any, any>> | undefined,
-    Models extends Record<string, z.ZodTypeAny> | undefined
+    Models extends Record<string, z.ZodTypeAny> | undefined,
   >({
     actions,
     namespacedResources,
@@ -978,7 +978,7 @@ export class Stl<Plugins extends AnyPlugins> {
     TopLevel extends
       | ResourceConfig<AnyActionsConfig, undefined, any>
       | undefined = undefined,
-    Resources extends Record<string, AnyResourceConfig> | undefined = undefined
+    Resources extends Record<string, AnyResourceConfig> | undefined = undefined,
   >({
     basePath,
     openapi,
@@ -1123,7 +1123,7 @@ export class Stl<Plugins extends AnyPlugins> {
     return {
       endpoint: <
         MethodAndUrl extends HttpEndpoint,
-        Config extends EndpointConfig | undefined
+        Config extends EndpointConfig | undefined,
       >({
         endpoint,
         config,
@@ -1157,7 +1157,7 @@ type TypeArgToZod<T extends Types, K extends keyof Types> = K extends keyof T
 
 type TypeArgToZodObject<
   T extends Types,
-  K extends keyof Types
+  K extends keyof Types,
 > = K extends keyof T
   ? z.toZod<T[K]> extends infer U extends ZodObjectSchema
     ? U
@@ -1177,7 +1177,7 @@ interface TypeEndpointParams<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
-  Response extends z.ZodTypeAny = z.ZodVoid
+  Response extends z.ZodTypeAny = z.ZodVoid,
 > {
   endpoint: MethodAndUrl;
   config?: Config;
@@ -1194,11 +1194,11 @@ interface TypeEndpointBuilder<
   Path extends ZodObjectSchema | undefined,
   Query extends ZodObjectSchema | undefined,
   Body extends ZodObjectSchema | undefined,
-  Response extends z.ZodTypeAny = z.ZodVoid
+  Response extends z.ZodTypeAny = z.ZodVoid,
 > {
   endpoint<
     MethodAndUrl extends HttpEndpoint,
-    Config extends EndpointConfig | undefined
+    Config extends EndpointConfig | undefined,
   >(
     params: TypeEndpointParams<
       MethodAndUrl,
@@ -1207,7 +1207,7 @@ interface TypeEndpointBuilder<
       Query,
       Body,
       Response
-    >
+    >,
   ): Endpoint<Config, MethodAndUrl, Path, Query, Body, Response>;
 }
 

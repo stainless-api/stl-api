@@ -4,7 +4,7 @@ import { resolve } from "./utils";
 
 export async function format(
   source: string,
-  filepath: string
+  filepath: string,
 ): Promise<string> {
   let prettier = defaultPrettier;
 
@@ -25,7 +25,7 @@ export async function format(
       console.error(
         `failed to format code for ${path.relative(process.cwd(), filepath)} ${
           error instanceof Error ? error.message : String(error)
-        }`
+        }`,
       );
       return source;
     }

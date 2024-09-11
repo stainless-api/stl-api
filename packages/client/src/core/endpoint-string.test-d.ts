@@ -75,7 +75,7 @@ describe("Endpoint string", () => {
           {
             type: "param";
             name: "baz";
-          }
+          },
         ]
       >;
     });
@@ -86,7 +86,7 @@ describe("Endpoint string", () => {
           {
             type: "resource";
             name: "foo";
-          }
+          },
         ]
       >;
     });
@@ -97,7 +97,7 @@ describe("Endpoint string", () => {
           {
             type: "resource";
             name: "foo";
-          }
+          },
         ]
       >;
     });
@@ -108,7 +108,7 @@ describe("Endpoint string", () => {
           {
             type: "param";
             name: "foo";
-          }
+          },
         ]
       >;
     });
@@ -127,7 +127,7 @@ describe("Endpoint string", () => {
           {
             type: "param";
             name: "baz";
-          }
+          },
         ]
       >;
     });
@@ -147,7 +147,7 @@ describe("Endpoint string", () => {
           {
             type: "resource";
             name: "bar";
-          }
+          },
         ]
       >;
     });

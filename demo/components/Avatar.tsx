@@ -23,7 +23,7 @@ const Avatar: React.FC<AvatarProps> = ({ userId, isLarge, hasBorder }) => {
 
       router.push(url);
     },
-    [router, userId]
+    [router, userId],
   );
 
   return (

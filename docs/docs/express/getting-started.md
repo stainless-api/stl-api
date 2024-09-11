@@ -114,7 +114,7 @@ export const app = express();
 app.get(
   "/api/posts/:postId",
   express.json(),
-  stlExpressRouteHandler(retrievePosts)
+  stlExpressRouteHandler(retrievePosts),
 );
 ```
 
@@ -173,7 +173,7 @@ app.get("/api/posts/:postId", express.json(), (req: Request, res: Response) => {
   const [{ postId }, stlContext] = await stlPrepareExpressRequest(
     retrievePosts,
     req,
-    res
+    res,
   );
   const post = await prisma.posts.findUniqueOrThrow({ where: { id: postId } });
   const repsonse = await retrievePosts.response.parseAsync(responseInput, {

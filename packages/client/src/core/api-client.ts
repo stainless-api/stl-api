@@ -48,7 +48,7 @@ function makeUrl(callPath: string[], outputCase: "camel" | "kebab" = "kebab") {
   return outputCase === "kebab"
     ? callPath
         .map((str) =>
-          str.startsWith(":") ? str.replace(":", "") : kebabCase(str)
+          str.startsWith(":") ? str.replace(":", "") : kebabCase(str),
         )
         .join("/")
     : callPath.map((str) => str.replace(":", "")).join("/");
@@ -66,7 +66,7 @@ async function makeRequest(
   config: ClientConfig<string>,
   action: string,
   callPath: string[],
-  body?: unknown
+  body?: unknown,
 ) {
   const method = inferHTTPMethod(action, body);
   const url = makeUrl(callPath, config.urlCase);
@@ -90,7 +90,7 @@ async function makeRequest(
 function createClientProxy(
   config: ClientConfig<string>,
   callPath: string[],
-  pendingArgs: unknown[] = []
+  pendingArgs: unknown[] = [],
 ): unknown {
   const proxyClient = function () {};
 
@@ -138,7 +138,7 @@ function createClientProxy(
           config.extensions,
           extensionMethod,
           queryFn,
-          queryKey
+          queryKey,
         );
 
         if (handler) {
@@ -171,7 +171,7 @@ function createClientProxy(
 export function makeClientWithInferredTypes<
   API extends APIConfig,
   /** Unfortunately this cannot be infered from the parameter since the API generic needs to be specified */
-  Config extends ClientConfig<API["basePath"]>
+  Config extends ClientConfig<API["basePath"]>,
 >(config: Config): Client<API, Config> {
   return createClientProxy(config, [config.basePath]) as Client<API, Config>;
 }

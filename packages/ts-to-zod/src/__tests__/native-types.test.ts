@@ -9,7 +9,7 @@ it(`native types`, async () =>
   expect(
     await multiFileTestCase({
       __filename,
-    })
+    }),
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/native-types.test.codegen.ts": "import { z } from "zod";

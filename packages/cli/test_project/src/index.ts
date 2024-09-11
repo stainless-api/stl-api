@@ -39,7 +39,7 @@ stl.codegenSchema<{ nested: EnumTest; nested2: TestEnumAdditional }>(
   z.object({
     nested: z.lazy(() => EnumTestSchema),
     nested2: z.lazy(() => TestEnumAdditionalSchema),
-  })
+  }),
 );
 
 // stl.endpoint({

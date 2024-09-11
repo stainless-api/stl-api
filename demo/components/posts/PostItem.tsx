@@ -16,7 +16,7 @@ interface PostItemProps {
 
 const PostItem = forwardRef<HTMLDivElement, PostItemProps>(function PostItem(
   { item = {}, userId, style },
-  ref
+  ref,
 ) {
   const router = useRouter();
   const loginModal = useLoginModal();
@@ -29,7 +29,7 @@ const PostItem = forwardRef<HTMLDivElement, PostItemProps>(function PostItem(
       ev.stopPropagation();
       router.push(`/users/${item.user.id}`);
     },
-    [router, item.user.id]
+    [router, item.user.id],
   );
 
   const goToPost = useCallback(() => {
@@ -46,7 +46,7 @@ const PostItem = forwardRef<HTMLDivElement, PostItemProps>(function PostItem(
 
       toggleLike();
     },
-    [loginModal, currentUser, toggleLike]
+    [loginModal, currentUser, toggleLike],
   );
 
   const LikeIcon = hasLiked ? AiFillHeart : AiOutlineHeart;

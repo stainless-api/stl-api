@@ -57,17 +57,17 @@ argParser.option("-w, --watch", "enables watch mode");
 argParser.option(
   "-d, --directory <path>",
   "the directory to generate schemas for",
-  "."
+  ".",
 );
 argParser.option(
   "-o, --outdir <path>",
   "the directory in which to generate schemas",
-  ".stl-codegen"
+  ".stl-codegen",
 );
 argParser.addOption(
   new Option("-m, --module-type")
     .choices(["module", "commonjs"])
-    .default("commonjs")
+    .default("commonjs"),
 );
 argParser.allowExcessArguments(false);
 
@@ -100,8 +100,8 @@ async function main() {
     console.error(
       `Folder ${Path.relative(
         ".",
-        options.directory
-      )} and its parent directories do not contain a package.json.`
+        options.directory,
+      )} and its parent directories do not contain a package.json.`,
     );
     process.exit(1);
   }
@@ -109,7 +109,7 @@ async function main() {
 
   const tsConfigFilePath = Path.relative(
     ".",
-    Path.join(rootPath, "tsconfig.json")
+    Path.join(rootPath, "tsconfig.json"),
   );
   const tsConfigStat = await statOrExit(tsConfigFilePath);
   if (!tsConfigStat.isFile()) {
@@ -185,7 +185,7 @@ async function main() {
               options.outdir,
               {
                 isDirty: () => evaluateRequested,
-              }
+              },
             );
             if (succeeded) {
               if (!debug.enabled) console.clear();
@@ -215,7 +215,7 @@ async function main() {
       baseCtx,
       generationConfig,
       printer,
-      options.outdir
+      options.outdir,
     );
     if (!succeeded) {
       process.exit(1);
@@ -231,7 +231,7 @@ async function main() {
 
 function generateIncidentLocation(
   filePath: string,
-  incident: Incident
+  incident: Incident,
 ): string {
   const position = incident.position
     ? `${incident.position.startLine}:${incident.position.startColumn}:`
@@ -246,7 +246,7 @@ async function evaluate(
   generationConfig: GenerationConfig,
   printer: ts.Printer,
   outdir: string,
-  { isDirty = () => false }: { isDirty?: () => boolean } = {}
+  { isDirty = () => false }: { isDirty?: () => boolean } = {},
 ): Promise<boolean> {
   // accumulated diagnostics to emit
   const callDiagnostics: CallDiagnostics[] = [];
@@ -267,7 +267,7 @@ async function evaluate(
     let hasCodegenSchemaCall = false;
 
     for (const callExpression of file.getDescendantsOfKind(
-      ts.SyntaxKind.CallExpression
+      ts.SyntaxKind.CallExpression,
     )) {
       ctx.generateInUserFile = false;
 
@@ -291,7 +291,7 @@ async function evaluate(
             ctx,
             call,
             file,
-            callDiagnostics
+            callDiagnostics,
           );
         } catch (e) {
           if (e instanceof ErrorAbort) {
@@ -382,7 +382,7 @@ async function evaluate(
         argumentLength--
       ) {
         fileOperations.push(() =>
-          callExpression.removeArgument(argumentLength - 1)
+          callExpression.removeArgument(argumentLength - 1),
         );
       }
 
@@ -392,9 +392,9 @@ async function evaluate(
           printer.printNode(
             ts.EmitHint.Unspecified,
             schemaExpression,
-            file.compilerNode
-          )
-        )
+            file.compilerNode,
+          ),
+        ),
       );
     }
 
@@ -426,7 +426,7 @@ async function evaluate(
       generationConfig,
       file.getFilePath(),
       imports,
-      namespacedImports
+      namespacedImports,
     );
 
     let hasZImport = false;
@@ -473,7 +473,7 @@ async function evaluate(
       const importString = printer.printNode(
         ts.EmitHint.Unspecified,
         declaration,
-        file.compilerNode
+        file.compilerNode,
       );
       // if the file already contains an import declaration with the given module specifier,
       // replace it with the new declaration
@@ -515,9 +515,9 @@ async function evaluate(
         chalk.magenta(
           `While processing codegenSchema call at ${Path.relative(
             ".",
-            filePath
-          )}:${line}:${column}:`
-        )
+            filePath,
+          )}:${line}:${column}:`,
+        ),
       );
       for (const [filePath, fileDiagnostics] of diagnostics) {
         errorCount += fileDiagnostics.errors.length;
@@ -525,23 +525,23 @@ async function evaluate(
 
         for (const warning of fileDiagnostics.warnings) {
           output.push(
-            generateIncidentLocation(Path.relative(".", filePath), warning)
+            generateIncidentLocation(Path.relative(".", filePath), warning),
           );
           output.push(
             chalk.yellow("warning: ") +
               warning.message +
-              generateDiagnosticDetails(warning)
+              generateDiagnosticDetails(warning),
           );
         }
 
         for (const error of fileDiagnostics.errors) {
           output.push(
-            generateIncidentLocation(Path.relative(".", filePath), error)
+            generateIncidentLocation(Path.relative(".", filePath), error),
           );
           output.push(
             chalk.red("error: ") +
               error.message +
-              generateDiagnosticDetails(error)
+              generateDiagnosticDetails(error),
           );
         }
       }
@@ -555,7 +555,7 @@ async function evaluate(
         chalk.red(`${errorCount} error${errorCount === 1 ? "" : "s"} `) +
         "and " +
         chalk.yellow(
-          `${warningCount} warning${warningCount === 1 ? "" : "s"}`
+          `${warningCount} warning${warningCount === 1 ? "" : "s"}`,
         ) +
         ".";
     } else if (errorCount > 0) {
@@ -567,7 +567,7 @@ async function evaluate(
       diagnosticSummary =
         "Encountered " +
         chalk.yellow(
-          `${warningCount} warning${warningCount === 1 ? "" : "s"}`
+          `${warningCount} warning${warningCount === 1 ? "" : "s"}`,
         ) +
         ".";
     }
@@ -608,11 +608,11 @@ async function evaluate(
               `${relativeImportPath(
                 endpointMapGenPath,
                 convertPathToImport(
-                  generatePath(file.getFilePath(), generationConfig)
-                )
-              )}${generationConfig.moduleType === "module" ? ".js" : ""}`
+                  generatePath(file.getFilePath(), generationConfig),
+                ),
+              )}${generationConfig.moduleType === "module" ? ".js" : ""}`,
             ),
-          ]
+          ],
         );
         const callExpression = factory.createCallExpression(
           factory.createPropertyAccessExpression(importExpression, "then"),
@@ -626,14 +626,14 @@ async function evaluate(
               undefined,
               factory.createPropertyAccessExpression(
                 factory.createIdentifier("mod"),
-                mangledName
-              )
+                mangledName,
+              ),
             ),
-          ]
+          ],
         );
         const entry = factory.createPropertyAssignment(
           factory.createStringLiteral(call.endpointPath),
-          createThunk(callExpression)
+          createThunk(callExpression),
         );
         mapEntries.push(entry);
       }
@@ -645,27 +645,27 @@ async function evaluate(
           "typeSchemas",
           undefined,
           undefined,
-          factory.createObjectLiteralExpression(mapEntries)
+          factory.createObjectLiteralExpression(mapEntries),
         ),
       ],
-      ts.NodeFlags.Const
+      ts.NodeFlags.Const,
     );
     const mapStatement = factory.createVariableStatement(
       [factory.createToken(ts.SyntaxKind.ExportKeyword)],
-      mapDeclaration
+      mapDeclaration,
     );
 
     const mapSourceFile = factory.createSourceFile(
       [mapStatement],
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
+      0,
     );
 
     await fs.promises.mkdir(generationConfig.basePath, { recursive: true });
 
     await fs.promises.writeFile(
       endpointMapGenPath,
-      await format(printer.printFile(mapSourceFile), endpointMapGenPath)
+      await format(printer.printFile(mapSourceFile), endpointMapGenPath),
     );
   }
 
@@ -679,13 +679,13 @@ async function evaluate(
     const sourceFile = factory.createSourceFile(
       fileStatments,
       factory.createToken(ts.SyntaxKind.EndOfFileToken),
-      0
+      0,
     );
 
     // write sourceFile to file
     await fs.promises.writeFile(
       file,
-      await format(printer.printFile(sourceFile), file)
+      await format(printer.printFile(sourceFile), file),
     );
   }
 
@@ -716,11 +716,11 @@ function addDiagnostics(
   ctx: SchemaGenContext,
   file: tm.SourceFile,
   callExpression: tm.Node,
-  callDiagnostics: CallDiagnostics[]
+  callDiagnostics: CallDiagnostics[],
 ) {
   if (ctx.diagnostics.size) {
     const { line, column } = file.getLineAndColumnAtPos(
-      callExpression.getStart()
+      callExpression.getStart(),
     );
     callDiagnostics.push({
       diagnostics: ctx.diagnostics,
@@ -737,7 +737,7 @@ function convertEndpointType(
   callDiagnostics: CallDiagnostics[],
   diagnosticsFile: tm.SourceFile,
   typeArgument: tm.Node,
-  type: tm.Type
+  type: tm.Type,
 ): ts.Expression {
   const diagnosticItem = {
     variant: "node",
@@ -762,7 +762,7 @@ function convertEndpointCall(
   ctx: ConvertTypeContext,
   call: EndpointTypeInstance,
   file: tm.SourceFile,
-  callDiagnostics: CallDiagnostics[]
+  callDiagnostics: CallDiagnostics[],
 ): ts.Expression {
   const objectProperties = [];
   const requestTypes = [
@@ -777,10 +777,10 @@ function convertEndpointCall(
       callDiagnostics,
       file,
       nodeType[0],
-      nodeType[1]
+      nodeType[1],
     );
     objectProperties.push(
-      factory.createPropertyAssignment(name, schemaExpression)
+      factory.createPropertyAssignment(name, schemaExpression),
     );
   }
 
@@ -792,21 +792,21 @@ function convertEndpointCall(
       callDiagnostics,
       file,
       call.response[0],
-      call.response[1]
+      call.response[1],
     );
   } else {
     // if no response type is provided, use the default schema z.void() to indicate no response
     schemaExpression = factory.createCallExpression(
       factory.createPropertyAccessExpression(
         factory.createIdentifier("z"),
-        "void"
+        "void",
       ),
       [],
-      []
+      [],
     );
   }
   objectProperties.push(
-    factory.createPropertyAssignment("response", schemaExpression)
+    factory.createPropertyAssignment("response", schemaExpression),
   );
   return factory.createObjectLiteralExpression(objectProperties);
 }
@@ -827,6 +827,6 @@ function createThunk(expression: ts.Expression): ts.Expression {
     [],
     undefined,
     undefined,
-    expression
+    expression,
   );
 }

@@ -9,5 +9,5 @@ it(`enum T { a = 'a', b = 'b' }`, () =>
   expect(
     testCase({
       __filename,
-    })
+    }),
   ).toMatchInlineSnapshot(`"z.nativeEnum(modulePlaceholder.T)"`));

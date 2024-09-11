@@ -21,7 +21,7 @@ const ImageUpload: React.FC<DropzoneProps> = ({
     (base64: string) => {
       onChange(base64);
     },
-    [onChange]
+    [onChange],
   );
 
   const handleDrop = useCallback(
@@ -34,7 +34,7 @@ const ImageUpload: React.FC<DropzoneProps> = ({
       };
       reader.readAsDataURL(file);
     },
-    [handleChange]
+    [handleChange],
   );
 
   const { getRootProps, getInputProps } = useDropzone({

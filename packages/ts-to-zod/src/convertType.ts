@@ -57,7 +57,7 @@ export class SchemaGenContext {
     public symbols: Set<tm.Symbol> = new Set(),
     /* map from file names to any diagnostics associated with them */
     public diagnostics: Map<string, Diagnostics> = new Map(),
-    public generateInUserFile?: boolean
+    public generateInUserFile?: boolean,
   ) {}
 
   getFileInfo(filePath: string): FileInfo {
@@ -84,7 +84,7 @@ export class SchemaGenContext {
    */
   private processIncident(
     item: DiagnosticItem,
-    incident: Incident
+    incident: Incident,
   ): { filePath: string } {
     let filePath = "unknown";
     switch (item.variant) {
@@ -110,7 +110,7 @@ export class SchemaGenContext {
         if (!declaration) return { filePath: "<unknown file>" };
         const { filePath: typeFilePath } = this.processIncident(
           { variant: "node", node: declaration },
-          incident
+          incident,
         );
         filePath = typeFilePath;
         incident.name ||= symbol.getName();
@@ -125,14 +125,14 @@ export class SchemaGenContext {
           ) {
             this.processIncident(
               { variant: "node", node: declaration },
-              incident
+              incident,
             );
             break;
           }
         }
         return this.processIncident(
           { variant: "type", type: item.enclosingType },
-          incident
+          incident,
         );
       }
     }
@@ -163,13 +163,16 @@ export class SchemaGenContext {
 }
 
 export class ConvertTypeContext extends SchemaGenContext {
-  constructor(ctx: SchemaGenContext, public node: tm.Node) {
+  constructor(
+    ctx: SchemaGenContext,
+    public node: tm.Node,
+  ) {
     super(
       ctx.project,
       ctx.typeChecker,
       ctx.files,
       ctx.symbols,
-      ctx.diagnostics
+      ctx.diagnostics,
     );
     this.isRoot = true;
     this.currentFilePath = this.node.getSourceFile().getFilePath();
@@ -245,7 +248,7 @@ function buildImportTypeMap(sourceFile: tm.SourceFile): Map<number, string> {
 function getModuleIdentifier(
   fileInfo: FileInfo,
   modulePath: string,
-  importFromUserFile: boolean | undefined
+  importFromUserFile: boolean | undefined,
 ): ts.Identifier {
   const moduleIdentifiers = fileInfo.moduleIdentifiers;
   return mapGetOrCreate(
@@ -253,7 +256,7 @@ function getModuleIdentifier(
       ? moduleIdentifiers.userModules
       : moduleIdentifiers.generatedModules,
     modulePath,
-    () => factory.createIdentifier("modulePlaceholder")
+    () => factory.createIdentifier("modulePlaceholder"),
   );
 }
 
@@ -308,7 +311,7 @@ export function prefixValueWithModule(
   currentFilePath: string,
   valueFilePath: string,
   importFromUserFile: boolean,
-  escapedName?: string
+  escapedName?: string,
 ): ts.Expression {
   const currentFileInfo = ctx.getFileInfo(currentFilePath);
   if (ctx.generateInUserFile) {
@@ -318,7 +321,7 @@ export function prefixValueWithModule(
   } else {
     return factory.createPropertyAccessExpression(
       getModuleIdentifier(currentFileInfo, valueFilePath, importFromUserFile),
-      name
+      name,
     );
   }
 }
@@ -341,7 +344,7 @@ export function convertSymbol(
   symbol: tm.Symbol,
   diagnosticItem: DiagnosticItem,
   /** use the type for schema generation instead of attempting to resolve it */
-  ty?: tm.Type
+  ty?: tm.Type,
 ) {
   let isRoot = false;
 
@@ -350,7 +353,7 @@ export function convertSymbol(
     ctx.addError(
       diagnosticItem,
       { message: `Could not find type of name \`${symbol.getName()}\`` },
-      true
+      true,
     );
   }
   let currentFilePath: string = declaration.getSourceFile().getFilePath();
@@ -370,7 +373,7 @@ export function convertSymbol(
       const importTypeNameMap = (fileInfo.importTypeNameMap ||=
         buildImportTypeMap(ctx.node.getSourceFile()));
       const importAs = importTypeNameMap.get(
-        getTypeId(symbol.getTypeAtLocation(ctx.node))
+        getTypeId(symbol.getTypeAtLocation(ctx.node)),
       );
 
       as = `${importAs || symbol.getName()}Schema`;
@@ -404,8 +407,8 @@ export function convertSymbol(
       currentFilePath,
       fileName,
       false,
-      as
-    )
+      as,
+    ),
   );
 }
 
@@ -433,20 +436,20 @@ function baseIdentifier(entityName: tm.EntityName): tm.Identifier {
  */
 function convertEntityNameToExpression(
   entityName: tm.EntityName,
-  baseIdentifier?: ts.Identifier
+  baseIdentifier?: ts.Identifier,
 ): ts.Expression {
   if (entityName instanceof tm.Identifier) {
     if (baseIdentifier) {
       return factory.createPropertyAccessExpression(
         baseIdentifier,
-        entityName.getText()
+        entityName.getText(),
       );
     }
     return entityName.compilerNode;
   } else
     return factory.createPropertyAccessExpression(
       convertEntityNameToExpression(entityName.getLeft(), baseIdentifier),
-      entityName.getRight().compilerNode
+      entityName.getRight().compilerNode,
     );
 }
 
@@ -457,7 +460,7 @@ export function convertType(
   /**
    * If true, forces generation for the current type instead of using `z.lazy()`.
    */
-  generateInline?: boolean
+  generateInline?: boolean,
 ): ts.Expression {
   const typeSymbol = ty.getSymbol();
   const declaration = typeSymbol ? getDeclaration(typeSymbol) : undefined;
@@ -502,7 +505,7 @@ export function convertType(
         typeSymbol!,
         "prismaModel",
         superclassTypeName,
-        diagnosticItem
+        diagnosticItem,
       );
     case "PrismaModelLoader":
       return convertPrismaModelType(
@@ -511,7 +514,7 @@ export function convertType(
         typeSymbol!,
         "prismaModelLoader",
         superclassTypeName,
-        diagnosticItem
+        diagnosticItem,
       );
   }
 
@@ -523,7 +526,7 @@ export function convertType(
         "number",
         packageTypeName,
         numberSchemaProperties,
-        diagnosticItem
+        diagnosticItem,
       );
     case "StringSchema":
       return convertPrimitiveSchemaType(
@@ -532,7 +535,7 @@ export function convertType(
         "string",
         packageTypeName,
         stringSchemaProperties,
-        diagnosticItem
+        diagnosticItem,
       );
     case "BigIntSchema":
       return convertPrimitiveSchemaType(
@@ -541,7 +544,7 @@ export function convertType(
         "bigint",
         packageTypeName,
         bigIntSchemaProperties,
-        diagnosticItem
+        diagnosticItem,
       );
     case "DateSchema":
       return convertPrimitiveSchemaType(
@@ -550,7 +553,7 @@ export function convertType(
         "date",
         packageTypeName,
         dateSchemaProperties,
-        diagnosticItem
+        diagnosticItem,
       );
     case "ObjectSchema": {
       const [objectType, typeArgs] = extractGenericSchemaTypeArguments(ctx, ty);
@@ -560,13 +563,13 @@ export function convertType(
         objectSchemaProperties,
         typeArgs,
         convertType(ctx, objectType, diagnosticItem, true),
-        diagnosticItem
+        diagnosticItem,
       );
     }
     case "ArraySchema": {
       const [elementType, typeArgs] = extractGenericSchemaTypeArguments(
         ctx,
-        ty
+        ty,
       );
       const arrayConstructor = zodConstructor("array", [
         convertType(ctx, elementType, diagnosticItem),
@@ -577,13 +580,13 @@ export function convertType(
         arraySetSchemaProperties,
         typeArgs,
         arrayConstructor,
-        diagnosticItem
+        diagnosticItem,
       );
     }
     case "SetSchema": {
       const [elementType, typeArgs] = extractGenericSchemaTypeArguments(
         ctx,
-        ty
+        ty,
       );
       const setConstructor = zodConstructor("set", [
         convertType(ctx, elementType, diagnosticItem),
@@ -594,7 +597,7 @@ export function convertType(
         arraySetSchemaProperties,
         typeArgs,
         setConstructor,
-        diagnosticItem
+        diagnosticItem,
       );
     }
     case "ZodSchema": {
@@ -603,7 +606,7 @@ export function convertType(
         ctx.addError(
           diagnosticItem,
           { message: "ZodSchema takes one type argument." },
-          true
+          true,
         );
       }
       const schemaContainer = typeArguments[0];
@@ -615,14 +618,14 @@ export function convertType(
             message:
               "ZodSchema takes in {schema: typeof schemaValue} as a type argument",
           },
-          true
+          true,
         );
       }
 
       const property = getPropertyDeclaration(schemaProperty);
       if (!property)
         throw new Error(
-          "internal error: could not get declaration for `schema` property"
+          "internal error: could not get declaration for `schema` property",
         );
       const typeNode = property.getTypeNode();
 
@@ -633,7 +636,7 @@ export function convertType(
             message:
               "the `schema` property must have type `typeof schemaValue`.",
           },
-          true
+          true,
         );
       }
 
@@ -654,7 +657,7 @@ export function convertType(
         schemaEntityName,
         ctx.generateInUserFile
           ? undefined
-          : getModuleIdentifier(currentFile, importPath, true)
+          : getModuleIdentifier(currentFile, importPath, true),
       );
       return lazy(baseSchema);
     }
@@ -666,21 +669,21 @@ export function convertType(
           ctx,
           ty,
           "includable",
-          diagnosticItem
+          diagnosticItem,
         );
       case "Selectable":
         return convertSimpleSchemaClassSuffix(
           ctx,
           ty,
           "selectable",
-          diagnosticItem
+          diagnosticItem,
         );
       case "Selection":
         return convertSimpleSchemaClassSuffix(
           ctx,
           ty,
           "selection",
-          diagnosticItem
+          diagnosticItem,
         );
       case "Includes":
         return convertIncludesSelects(ctx, ty, "includes", diagnosticItem);
@@ -691,7 +694,7 @@ export function convertType(
           ctx,
           ty,
           "pageResponse",
-          diagnosticItem
+          diagnosticItem,
         );
     }
   }
@@ -705,7 +708,7 @@ export function convertType(
         ty,
         typeSymbol,
         "transform",
-        diagnosticItem
+        diagnosticItem,
       );
     case "Refine":
       return convertTransformRefineType(
@@ -713,7 +716,7 @@ export function convertType(
         ty,
         typeSymbol,
         "refine",
-        diagnosticItem
+        diagnosticItem,
       );
     case "SuperRefine":
       return convertTransformRefineType(
@@ -721,7 +724,7 @@ export function convertType(
         ty,
         typeSymbol,
         "superRefine",
-        diagnosticItem
+        diagnosticItem,
       );
   }
 
@@ -733,7 +736,7 @@ export function convertType(
           "Zod schema types are not valid input types, except as `typeof schemaValue` " +
           "within a top-level type argument or object property",
       },
-      true
+      true,
     );
   }
 
@@ -748,7 +751,7 @@ export function convertType(
       ctx.addError(
         diagnosticItem,
         { message: `Could not find class ${ty.getText()}` },
-        true
+        true,
       );
     }
     const declaration = getDeclarationOrThrow(typeSymbol);
@@ -758,7 +761,7 @@ export function convertType(
         {
           message:
             "Classes used in Zod schemas must be exported from their modules.",
-        }
+        },
       );
     }
     const escapedName = `${typeSymbol.getName()}Schema`;
@@ -775,7 +778,7 @@ export function convertType(
         ctx.currentFilePath,
         sourceFile,
         true,
-        escapedName
+        escapedName,
       ),
     ]);
   }
@@ -784,7 +787,7 @@ export function convertType(
       ctx.addError(
         diagnosticItem,
         { message: `Could not find enum ${ty.getText()}` },
-        true
+        true,
       );
     }
     const declaration = getDeclarationOrThrow(typeSymbol);
@@ -794,7 +797,7 @@ export function convertType(
         {
           message:
             "Enums used in Zod schemas must be exported from their modules.",
-        }
+        },
       );
     }
     const escapedName = `${typeSymbol.getEscapedName()}Schema`;
@@ -811,7 +814,7 @@ export function convertType(
         ctx.currentFilePath,
         sourceFile,
         true,
-        escapedName
+        escapedName,
       ),
     ]);
   }
@@ -838,7 +841,7 @@ export function convertType(
     return rest.reduce(
       (prev, next) =>
         methodCall(prev, "and", [convertType(ctx, next, diagnosticItem)]),
-      convertType(ctx, first, diagnosticItem)
+      convertType(ctx, first, diagnosticItem),
     );
   }
   if (ty.isArray()) {
@@ -852,7 +855,7 @@ export function convertType(
     // check for tuple rest element
     // @ts-expect-error compilerType.target is untyped
     const restIndex = ty.compilerType.target.elementFlags.findIndex(
-      (flag: ts.ElementFlags) => flag === ts.ElementFlags.Rest
+      (flag: ts.ElementFlags) => flag === ts.ElementFlags.Rest,
     );
 
     let restType: tm.Type<ts.Type> | undefined;
@@ -872,7 +875,7 @@ export function convertType(
 
     let schema = zodConstructor("tuple", [
       factory.createArrayLiteralExpression(
-        tupleTypes.map((ty) => convertType(ctx, ty, diagnosticItem))
+        tupleTypes.map((ty) => convertType(ctx, ty, diagnosticItem)),
       ),
     ]);
 
@@ -888,7 +891,7 @@ export function convertType(
     if (callSignatures.length !== 0) {
       if (
         callSignatures.some(
-          (signature) => signature.getTypeParameters().length > 0
+          (signature) => signature.getTypeParameters().length > 0,
         )
       ) {
         // TODO: should this be a warning or error?
@@ -901,7 +904,7 @@ export function convertType(
           methodCall(prev, "and", [
             convertCallSignature(ctx, curr, diagnosticItem),
           ]),
-        convertCallSignature(ctx, first, diagnosticItem)
+        convertCallSignature(ctx, first, diagnosticItem),
       );
     }
     if (isNativeSymbol(typeSymbol)) {
@@ -924,7 +927,7 @@ export function convertType(
             throw new Error(`expected two Map<> type arguments`);
           return zodConstructor(
             "map",
-            args.map((arg) => convertType(ctx, arg, diagnosticItem))
+            args.map((arg) => convertType(ctx, arg, diagnosticItem)),
           );
         }
         case "Promise": {
@@ -939,7 +942,7 @@ export function convertType(
     }
     // if the object is an indexed access type
     const indexInfos = ctx.typeChecker.compilerObject.getIndexInfosOfType(
-      ty.compilerType
+      ty.compilerType,
     );
     if (indexInfos.length) {
       const valueGroups = Object.values(
@@ -947,19 +950,19 @@ export function convertType(
           indexInfos,
           (info) =>
             // @ts-expect-error why would they not expose id property...
-            info.type.id
-        )
+            info.type.id,
+        ),
       );
       const recordTypes = valueGroups.map((indexInfos) => {
         const keyTypes = indexInfos.map((indexInfo) =>
-          getTypeWrapper(ty, indexInfo.keyType)
+          getTypeWrapper(ty, indexInfo.keyType),
         );
         const keyType = convertUnionTypes(ctx, keyTypes, diagnosticItem);
         // TODO: should we set this to property where possible?
         const valueType = convertType(
           ctx,
           getTypeWrapper(ty, indexInfos[0].type),
-          diagnosticItem
+          diagnosticItem,
         );
 
         return zodConstructor("record", [keyType, valueType]);
@@ -1027,36 +1030,36 @@ export function convertType(
   ctx.addError(
     diagnosticItem,
     { message: `unsupported type: ${ty.getText()}` },
-    true
+    true,
   );
 }
 
 function zodConstructor(
   ty: string,
-  args: readonly ts.Expression[] = []
+  args: readonly ts.Expression[] = [],
 ): ts.Expression {
   return factory.createCallExpression(
     factory.createPropertyAccessExpression(
       factory.createIdentifier("z"),
-      factory.createIdentifier(ty)
+      factory.createIdentifier(ty),
     ),
     undefined,
-    args
+    args,
   );
 }
 
 export function methodCall(
   target: ts.Expression,
   name: string,
-  args: readonly ts.Expression[] = []
+  args: readonly ts.Expression[] = [],
 ): ts.Expression {
   return factory.createCallExpression(
     factory.createPropertyAccessExpression(
       target,
-      factory.createIdentifier(name)
+      factory.createIdentifier(name),
     ),
     undefined,
-    args
+    args,
   );
 }
 
@@ -1067,7 +1070,7 @@ function thunk(expression: ts.Expression): ts.Expression {
     [],
     undefined,
     undefined,
-    expression
+    expression,
   );
 }
 
@@ -1093,7 +1096,7 @@ function getTypeWrapper(ctxProvider: tm.Type, type: ts.Type): tm.Type {
 
 function isSymbolInFile(
   symbol: tm.Symbol | undefined,
-  filePattern: RegExp
+  filePattern: RegExp,
 ): boolean {
   if (!symbol) return false;
   const declaration = getDeclaration(symbol);
@@ -1126,13 +1129,13 @@ function isStainlessPrismaSymbol(symbol: tm.Symbol | undefined): boolean {
 
 function createZodShape(
   ctx: ConvertTypeContext,
-  type: tm.Type<ts.Type>
+  type: tm.Type<ts.Type>,
 ): ts.Expression {
   return factory.createObjectLiteralExpression(
     type.getProperties().map((property) => {
       const propertyType = ctx.typeChecker.getTypeOfSymbolAtLocation(
         property,
-        ctx.node
+        ctx.node,
       );
 
       // If the current property has a parent type associated with it, use that
@@ -1157,9 +1160,9 @@ function createZodShape(
 
       return factory.createPropertyAssignment(
         property.getName(),
-        propertySchema
+        propertySchema,
       );
-    })
+    }),
   );
 }
 
@@ -1182,7 +1185,7 @@ function isFalseLiteral(type: tm.Type): boolean {
 function convertCallSignature(
   ctx: ConvertTypeContext,
   callSignature: tm.Signature,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   const argumentTypes = callSignature.getParameters().map((param) => {
     const paramType = param.getTypeAtLocation(ctx.node);
@@ -1191,7 +1194,7 @@ function convertCallSignature(
   const returnType = convertType(
     ctx,
     callSignature.getReturnType(),
-    diagnosticItem
+    diagnosticItem,
   );
   return zodConstructor("function", [
     zodConstructor("tuple", [
@@ -1204,14 +1207,14 @@ function convertCallSignature(
 function convertUnionTypes(
   ctx: ConvertTypeContext,
   unionTypes: tm.Type[],
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   const isOptional = unionTypes.some((unionType) => unionType.isUndefined());
   const isNullable = unionTypes.some((unionType) => unionType.isNull());
 
   if (isOptional || isNullable) {
     unionTypes = unionTypes.filter(
-      (unionType) => !unionType.isUndefined() && !unionType.isNull()
+      (unionType) => !unionType.isUndefined() && !unionType.isNull(),
     );
   }
 
@@ -1240,8 +1243,8 @@ function convertUnionTypes(
         getLiteralValues(
           unionType
             .getPropertyOrThrow(property.getName())
-            .getTypeAtLocation(ctx.node)
-        )
+            .getTypeAtLocation(ctx.node),
+        ),
       );
       return new Set(literalValues).size === literalValues.length;
     });
@@ -1251,8 +1254,8 @@ function convertUnionTypes(
         factory.createStringLiteral(discriminator.getName()),
         factory.createArrayLiteralExpression(
           unionTypes.map((unionType) =>
-            convertType(ctx, unionType, diagnosticItem)
-          )
+            convertType(ctx, unionType, diagnosticItem),
+          ),
         ),
       ]);
     }
@@ -1267,9 +1270,9 @@ function convertUnionTypes(
         factory.createArrayLiteralExpression(
           unionTypes.map((unionType) =>
             factory.createStringLiteral(
-              unionType.getLiteralValueOrThrow() as string
-            )
-          )
+              unionType.getLiteralValueOrThrow() as string,
+            ),
+          ),
         ),
       ]);
     }
@@ -1290,11 +1293,11 @@ function convertUnionTypes(
       factory.createArrayLiteralExpression(
         [
           ...nonSynthBooleanTypes.map((t) =>
-            convertType(ctx, t, diagnosticItem)
+            convertType(ctx, t, diagnosticItem),
           ),
           ...(hasSyntheticBoolean ? [zodConstructor("boolean")] : []),
         ],
-        false
+        false,
       ),
     ]);
   })();
@@ -1309,13 +1312,13 @@ function convertTransformRefineType(
   ty: tm.Type,
   symbol: tm.Symbol | undefined,
   variant: "transform" | "refine" | "superRefine",
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   if (!symbol) {
     ctx.addError(
       diagnosticItem,
       { message: `failed to get symbol for ${variant}: ${ty.getText()}` },
-      true
+      true,
     );
   }
 
@@ -1347,13 +1350,13 @@ function convertTransformRefineType(
     symbol.getName(),
     ctx.currentFilePath,
     typeFilePath,
-    true
+    true,
   );
 
   const callArgs = [
     factory.createPropertyAccessExpression(
       factory.createNewExpression(classExpression, undefined, []),
-      factory.createIdentifier(variant)
+      factory.createIdentifier(variant),
     ),
   ];
 
@@ -1361,15 +1364,15 @@ function convertTransformRefineType(
     callArgs.push(
       factory.createPropertyAccessExpression(
         factory.createNewExpression(classExpression, undefined, []),
-        factory.createIdentifier("message")
-      )
+        factory.createIdentifier("message"),
+      ),
     );
   }
 
   return methodCall(
     convertType(ctx, inputType, diagnosticItem),
     variant,
-    callArgs
+    callArgs,
   );
 }
 
@@ -1379,7 +1382,7 @@ function convertPrismaModelType(
   symbol: tm.Symbol,
   method: "prismaModel" | "prismaModelLoader",
   baseTypeName: string,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   const declaration = getDeclaration(symbol);
   if (
@@ -1399,7 +1402,7 @@ function convertPrismaModelType(
       {
         message: `A class extending \`${baseTypeName}\` must have a property called \`input\` specifying the schema with which the prisma model will be associated.`,
       },
-      true
+      true,
     );
   }
 
@@ -1423,13 +1426,13 @@ function convertPrismaModelType(
             symbol.getName(),
             ctx.currentFilePath,
             typeFilePath,
-            true
+            true,
           ),
           undefined,
-          undefined
+          undefined,
         ),
-        "model"
-      )
+        "model",
+      ),
     ),
   ]);
 }
@@ -1442,7 +1445,7 @@ function convertPrimitiveSchemaType(
   zodConstructorName: string,
   schemaTypeName: string,
   allowedParameters: Set<string>,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   const args = type.getTypeArguments();
   if (args.length === 0 || !args[0].isObject()) {
@@ -1452,7 +1455,7 @@ function convertPrimitiveSchemaType(
         message:
           "ts-to-zod schema types take object literals as validation properties",
       },
-      true
+      true,
     );
   }
   const [typeArgs] = args;
@@ -1462,18 +1465,18 @@ function convertPrimitiveSchemaType(
     allowedParameters,
     typeArgs,
     zodConstructor(zodConstructorName),
-    diagnosticItem
+    diagnosticItem,
   );
 }
 
 function extractGenericSchemaTypeArguments(
   ctx: ConvertTypeContext,
-  type: tm.Type
+  type: tm.Type,
 ): [tm.Type, tm.Type] {
   const args = type.getTypeArguments();
   if (args.length != 2 || !args[1].isObject()) {
     throw new Error(
-      "ts-to-zod Object, Array, and Set schema types take two type arguments"
+      "ts-to-zod Object, Array, and Set schema types take two type arguments",
     );
   }
   return args as [tm.Type, tm.Type];
@@ -1483,7 +1486,7 @@ function convertIncludesSelects(
   ctx: ConvertTypeContext,
   type: tm.Type,
   name: string,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   const args = type.getTypeArguments();
   if (args.length < 1 || args.length > 2) {
@@ -1507,7 +1510,7 @@ function convertSimpleSchemaClassZ(
   ctx: ConvertTypeContext,
   type: tm.Type,
   name: string,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   const args = type.getTypeArguments();
   if (args.length !== 1) {
@@ -1521,7 +1524,7 @@ function convertSimpleSchemaClassSuffix(
   ctx: ConvertTypeContext,
   type: tm.Type,
   name: string,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   const args = type.getTypeArguments();
   if (args.length != 1) {
@@ -1538,7 +1541,7 @@ function convertSchemaType(
   allowedParameters: Set<string>,
   typeArgs: tm.Type,
   baseExpression: ts.Expression,
-  diagnosticItem: DiagnosticItem
+  diagnosticItem: DiagnosticItem,
 ): ts.Expression {
   let expression = baseExpression;
 
@@ -1555,15 +1558,15 @@ function convertSchemaType(
       ? factory.createNewExpression(
           factory.createIdentifier("Date"),
           [],
-          [stringLiteral]
+          [stringLiteral],
         )
       : schemaTypeName === "StringSchema" && property === "regex"
-      ? factory.createNewExpression(
-          factory.createIdentifier("RegExp"),
-          [],
-          [factory.createStringLiteral(s)]
-        )
-      : stringLiteral;
+        ? factory.createNewExpression(
+            factory.createIdentifier("RegExp"),
+            [],
+            [factory.createStringLiteral(s)],
+          )
+        : stringLiteral;
   };
 
   const typeArgsSymbol = typeArgs.getAliasSymbol() || typeArgs.getSymbol();
@@ -1618,9 +1621,9 @@ function convertSchemaType(
             factory.createStringLiteral(
               versionSymbol
                 .getTypeAtLocation(ctx.node)
-                .getLiteralValue() as string
-            )
-          )
+                .getLiteralValue() as string,
+            ),
+          ),
         );
       }
       if (precisionSymbol) {
@@ -1630,14 +1633,14 @@ function convertSchemaType(
             factory.createNumericLiteral(
               precisionSymbol
                 .getTypeAtLocation(ctx.node)
-                .getLiteralValue() as number
-            )
-          )
+                .getLiteralValue() as number,
+            ),
+          ),
         );
       }
       if (offsetSymbol) {
         properties.push(
-          factory.createPropertyAssignment("offset", factory.createTrue())
+          factory.createPropertyAssignment("offset", factory.createTrue()),
         );
       }
       if (messageSymbol) {
@@ -1647,9 +1650,9 @@ function convertSchemaType(
             factory.createStringLiteral(
               messageSymbol
                 .getTypeAtLocation(ctx.node)
-                .getLiteralValue() as string
-            )
-          )
+                .getLiteralValue() as string,
+            ),
+          ),
         );
       }
 
@@ -1769,7 +1772,7 @@ function getSuperclassName(type: tm.Type): string | undefined {
   )
     return undefined;
   const heritageClause = declaration.getHeritageClauseByKind(
-    ts.SyntaxKind.ExtendsKeyword
+    ts.SyntaxKind.ExtendsKeyword,
   );
   const extendsTypeNode = heritageClause?.getTypeNodes()[0];
   const superclassSymbol = extendsTypeNode?.getType().getSymbol();
@@ -1786,7 +1789,7 @@ function isLiteralish(ty: tm.Type): boolean {
 }
 
 function getLiteralValues(
-  type: tm.Type
+  type: tm.Type,
 ): (string | boolean | number | ts.PseudoBigInt | undefined)[] {
   if (type.isLiteral()) return [type.getLiteralValue()];
   else if (type.isUnion())
@@ -1842,7 +1845,7 @@ function getDeclarationOrThrow(symbol: tm.Symbol): tm.Node {
 
 // TODO: move to utils file
 export function getPropertyDeclaration(
-  symbol: tm.Symbol
+  symbol: tm.Symbol,
 ): tm.PropertyDeclaration | tm.PropertySignature | undefined {
   for (const declaration of symbol.getDeclarations()) {
     if (
@@ -1855,7 +1858,7 @@ export function getPropertyDeclaration(
 }
 
 function convertLiteralValueToExpression(
-  literal: string | number | ts.PseudoBigInt | undefined
+  literal: string | number | ts.PseudoBigInt | undefined,
 ) {
   switch (typeof literal) {
     case "string":

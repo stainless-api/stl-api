@@ -24,7 +24,7 @@ type CallableEndpoint<
   EPConfig extends AnyEndpoint,
   Extensions extends ExtensionConfig,
   Path extends PathPart[] = SplitPathIntoParts<EPConfig["endpoint"]>,
-  H extends PathPart = Path[0]
+  H extends PathPart = Path[0],
 > = Path extends [H, ...infer R]
   ? R extends PathPart[]
     ? H extends ResourcePathPart<string>
@@ -38,28 +38,28 @@ type CallableEndpoint<
           >;
         }
       : H extends ParamPathPart<string>
-      ? /** Add types for path parameter method */
-        {
-          <AN extends ActionName>(
-            /** Unfortunately, we can't name the parameter dynamically, at least not yet: https://github.com/microsoft/TypeScript/issues/56093 */
-            pathParam: /** The pathParam _should_ be EPConfig["path"][H["name"]], but the types from stl.api seem incomplete and so that was always unknown */
-            | (string | number)
-              | ({ [param in H["name"]]: string | number } & {
-                  /**
-                   * We can't name the parameter dynamically, at least not yet: https://github.com/microsoft/TypeScript/issues/56093
-                   * Right now the discriminator param is to allow the function overrides to be discriminated between.
-                   */
-                  discriminator: AN;
-                })
-          ): CallableEndpoint<ActionName, EPConfig, Extensions, R>;
-        }
-      : never
+        ? /** Add types for path parameter method */
+          {
+            <AN extends ActionName>(
+              /** Unfortunately, we can't name the parameter dynamically, at least not yet: https://github.com/microsoft/TypeScript/issues/56093 */
+              pathParam: /** The pathParam _should_ be EPConfig["path"][H["name"]], but the types from stl.api seem incomplete and so that was always unknown */
+              | (string | number)
+                | ({ [param in H["name"]]: string | number } & {
+                    /**
+                     * We can't name the parameter dynamically, at least not yet: https://github.com/microsoft/TypeScript/issues/56093
+                     * Right now the discriminator param is to allow the function overrides to be discriminated between.
+                     */
+                    discriminator: AN;
+                  }),
+            ): CallableEndpoint<ActionName, EPConfig, Extensions, R>;
+          }
+        : never
     : never
   : /** Add types for API call method */ {
       [key in ActionName]: EndpointBodyInput<EPConfig> extends undefined
         ? () => Promise<EndpointResponseOutput<EPConfig>>
         : (
-            body: EndpointBodyInput<EPConfig>
+            body: EndpointBodyInput<EPConfig>,
           ) => Promise<EndpointResponseOutput<EPConfig>>;
     } & {
       [key in ActionName as `use${Capitalize<key>}`]: EndpointBodyInput<EPConfig> extends undefined
@@ -83,7 +83,7 @@ type CallableEndpoint<
 
 type RemoveBasePath<
   BasePath extends `/${string}`,
-  EPConfig extends AnyEndpoint
+  EPConfig extends AnyEndpoint,
 > = Endpoint<
   EPConfig["config"],
   Replace<EPConfig["endpoint"], BasePath, "">,
@@ -96,7 +96,7 @@ type RemoveBasePath<
 type CallableResource<
   BasePath extends `/${string}`,
   Resource extends AnyResourceConfig,
-  Extensions extends ExtensionConfig
+  Extensions extends ExtensionConfig,
 > = UnionToIntersection<
   {
     [A in keyof Resource["actions"] & string]: CallableEndpoint<
@@ -126,7 +126,7 @@ export interface ClientConfig<BP extends string = string> {
 export type Client<
   API extends APIConfig,
   Config extends ClientConfig,
-  Resources = API["resources"]
+  Resources = API["resources"],
 > = UnionToIntersection<
   {
     [R in keyof Resources]: CallableResource<

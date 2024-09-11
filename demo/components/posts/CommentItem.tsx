@@ -17,7 +17,7 @@ const CommentItem: React.FC<CommentItemProps> = ({ data = {} }) => {
 
       router.push(`/users/${data.user.id}`);
     },
-    [router, data.user.id]
+    [router, data.user.id],
   );
 
   const createdAt = useMemo(() => {

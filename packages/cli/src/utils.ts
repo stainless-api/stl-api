@@ -17,7 +17,7 @@ export async function statOrExit(path: string): Promise<fs.Stats> {
 export function pathExists(path: string): Promise<boolean> {
   return fs.promises.stat(path).then(
     () => true,
-    () => false
+    () => false,
   );
 }
 
@@ -80,8 +80,9 @@ export const resolve = memoize(
     }
 
     return await promisify<string | undefined>((cb) =>
-      _resolve(specifier, { basedir }, cb)
+      _resolve(specifier, { basedir }, cb),
     )();
   },
-  (specifier: string, basedir: string) => JSON.stringify({ specifier, basedir })
+  (specifier: string, basedir: string) =>
+    JSON.stringify({ specifier, basedir }),
 );

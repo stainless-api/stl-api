@@ -30,7 +30,7 @@ it(`XOR type`, async () => {
   expect(
     await multiFileTestCase({
       __filename,
-    })
+    }),
   ).toMatchInlineSnapshot(`
 {
   "src/__tests__/xor.test.codegen.ts": "import { z } from "zod";
@@ -51,6 +51,6 @@ const T: z.ZodTypeAny = z.union([z.object({ language: z.undefined() }).and(z.laz
   T.parse({ name: "Thierry", language: "anglais" });
   T.parse({ name: "fifi", breed: "rottweiler" });
   expect(() =>
-    T.parse({ name: "Dogman", language: "woof", breed: "?" })
+    T.parse({ name: "Dogman", language: "woof", breed: "?" }),
   ).toThrow();
 });

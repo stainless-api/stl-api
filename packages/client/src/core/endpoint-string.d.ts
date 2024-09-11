@@ -33,7 +33,7 @@ type MaybeSpace = "" | " ";
 
 export type SplitPathIntoParts<
   T extends string,
-  S extends string = RemoveLeadingSlash<T>
+  S extends string = RemoveLeadingSlash<T>,
 > = S extends `${infer Part}/${infer Rest}`
   ? Part extends `${HttpMethod}${MaybeSpace}`
     ? [...SplitPathIntoParts<Rest>]
@@ -42,5 +42,5 @@ export type SplitPathIntoParts<
 
 export type FilterPathParts<
   Path extends readonly InferPathPart<string>[],
-  Filter extends string
+  Filter extends string,
 > = Tuple.Filter<Path, ResourcePathPart<RemoveLeadingSlash<Filter>>>;

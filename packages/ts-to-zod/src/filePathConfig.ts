@@ -38,7 +38,7 @@ export function createGenerationConfig(options: GenOptions): GenerationConfig {
       basePath = options.rootPath;
       baseDependenciesPath = Path.join(
         basePath,
-        options.genLocation.dependencyGenPath
+        options.genLocation.dependencyGenPath,
       );
       suffix = options.genLocation.suffix || DEFAULT_ALONGSIDE_SUFFIX;
       break;

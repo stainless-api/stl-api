@@ -5,7 +5,7 @@ import serverAuth from "../../libs/serverAuth";
 
 export default async function handler(
   req: NextApiRequest,
-  res: NextApiResponse
+  res: NextApiResponse,
 ) {
   if (req.method !== "POST" && req.method !== "DELETE") {
     return res.status(405).end();
@@ -16,8 +16,8 @@ export default async function handler(
       req.method === "POST"
         ? req.body
         : req.method === "DELETE"
-        ? req.query
-        : { postId: undefined };
+          ? req.query
+          : { postId: undefined };
 
     const { currentUser } = await serverAuth(req, res);
 
@@ -73,7 +73,7 @@ export default async function handler(
 
     if (req.method === "DELETE") {
       updatedLikedIds = updatedLikedIds.filter(
-        (likedId) => likedId !== currentUser?.id
+        (likedId) => likedId !== currentUser?.id,
       );
     }
 

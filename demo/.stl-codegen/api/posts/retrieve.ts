@@ -4,13 +4,13 @@ export const QueryParams: z.ZodTypeAny = z.object({
   include: z
     .includes(
       z.lazy(() => Models.PostResponse),
-      3
+      3,
     )
     .optional(),
   select: z
     .selects(
       z.lazy(() => Models.PostResponse),
-      3
+      3,
     )
     .optional(),
 });

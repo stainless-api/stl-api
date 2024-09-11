@@ -9,5 +9,5 @@ it(`Foo | Bar | null`, () =>
   expect(
     testCase({
       __filename,
-    })
+    }),
   ).toMatchInlineSnapshot(`"z.enum(["a", "b", "c"]).nullable()"`));

@@ -13,24 +13,24 @@ export type MakeExtension<Input, Output> = Input extends undefined
   ? {
       useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<Output>;
       useSuspenseQuery(
-        opts?: UseQueryOptions
+        opts?: UseQueryOptions,
       ): ReactQuery.UseSuspenseQueryResult<Output>;
       useMutation(
-        opts?: UseMutationOptions
+        opts?: UseMutationOptions,
       ): ReactQuery.UseMutationResult<Output, unknown, Input>;
       getQueryKey(): string[];
     }
   : {
       useQuery(
         body: Input,
-        opts?: UseQueryOptions
+        opts?: UseQueryOptions,
       ): ReactQuery.UseQueryResult<Output>;
       useSuspenseQuery(
         body: Input,
-        opts?: UseQueryOptions
+        opts?: UseQueryOptions,
       ): ReactQuery.UseSuspenseQueryResult<Output>;
       useMutation(
-        opts?: UseMutationOptions
+        opts?: UseMutationOptions,
       ): ReactQuery.UseMutationResult<Output, unknown, Input>;
       getQueryKey(): string[];
     };
@@ -38,7 +38,7 @@ export type MakeExtension<Input, Output> = Input extends undefined
 export function configureMethods(
   config: Config,
   queryFn: () => Promise<any>,
-  queryKey: string[]
+  queryKey: string[],
 ): MakeExtension<any, any> {
   return {
     useQuery(bodyOrOptions, options) {

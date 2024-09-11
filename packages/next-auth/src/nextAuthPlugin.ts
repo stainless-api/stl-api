@@ -38,7 +38,7 @@ export const makeNextAuthPlugin =
   (stl) => ({
     async middleware<EC extends AnyEndpoint>(
       params: Params,
-      context: StlContext<EC>
+      context: StlContext<EC>,
     ) {
       const {
         args: [req, res],

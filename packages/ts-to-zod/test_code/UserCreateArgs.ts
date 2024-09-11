@@ -884,7 +884,7 @@ export const NotificationUncheckedCreateNestedManyWithoutUserInput = z.object({
           body: z.undefined(),
         })
         .and(
-          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))
+          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)),
         ),
       z
         .record(z.number(), z.undefined())
@@ -902,7 +902,7 @@ export const NotificationUncheckedCreateNestedManyWithoutUserInput = z.object({
       z
         .object({})
         .and(
-          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))
+          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)),
         ),
       z
         .object({})
@@ -1135,7 +1135,7 @@ export const NotificationCreateNestedManyWithoutUserInput = z.object({
           body: z.undefined(),
         })
         .and(
-          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))
+          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)),
         ),
       z
         .record(z.number(), z.undefined())
@@ -1153,7 +1153,7 @@ export const NotificationCreateNestedManyWithoutUserInput = z.object({
       z
         .object({})
         .and(
-          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput))
+          z.array(z.lazy(() => NotificationUncheckedCreateWithoutUserInput)),
         ),
       z
         .object({})
@@ -1704,7 +1704,7 @@ console.log(
         },
       },
     },
-  })
+  }),
 );
 
 // doesn't work because the way XOR is implemented relies
@@ -1723,5 +1723,5 @@ console.log(
         ],
       },
     },
-  })
+  }),
 );

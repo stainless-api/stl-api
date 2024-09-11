@@ -19,7 +19,7 @@ export interface EndpointTypeInstance {
 
 // call expression is the expression (...endpoint())
 export function preprocessEndpoint(
-  callExpression: tm.CallExpression
+  callExpression: tm.CallExpression,
 ): EndpointTypeInstance | undefined {
   // lhs is the value on which .endpoint is being called
   const lhs = callExpression.getExpression();

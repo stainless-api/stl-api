@@ -58,9 +58,12 @@ export interface ZodMetadataDef<T extends z.ZodTypeAny, M extends object>
  */
 export class ZodMetadata<
   T extends z.ZodTypeAny,
-  M extends object
+  M extends object,
 > extends z.ZodEffects<T> {
-  constructor(def: z.ZodEffectsDef<T>, public metadata: M) {
+  constructor(
+    def: z.ZodEffectsDef<T>,
+    public metadata: M,
+  ) {
     super(def);
   }
 
@@ -71,7 +74,7 @@ export class ZodMetadata<
   static create = <T extends z.ZodTypeAny, M extends object>(
     innerType: T,
     metadata: M,
-    params?: z.RawCreateParams
+    params?: z.RawCreateParams,
   ): ZodMetadata<T, M> => {
     return new ZodMetadata(innerType.refine((x) => true)._def, metadata);
   };
@@ -79,7 +82,7 @@ export class ZodMetadata<
 
 z.ZodType.prototype.withMetadata = function withMetadata<
   T extends z.ZodTypeAny,
-  M extends object
+  M extends object,
 >(this: T, metadata: M): ZodMetadata<T, M> {
   return ZodMetadata.create(this, metadata, this._def);
 };
@@ -88,32 +91,33 @@ export const withMetadata = ZodMetadata.create;
 
 export type extractMetadata<
   T extends z.ZodTypeAny,
-  Satisfying extends object = object
-> = z.ZodType<any, z.ZodTypeDef, any> extends T
-  ? never // bail if T is too generic, to prevent combinatorial explosion
-  : T extends ZodMetadata<infer U, infer M>
-  ? M extends Satisfying
-    ? M
-    : extractMetadata<U, Satisfying>
-  : T extends z.ZodOptional<infer U>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodNullable<infer U>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodDefault<infer U>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodLazy<infer U>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodEffects<infer U, any, any>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodCatch<infer U>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodBranded<infer U, any>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodPipeline<any, infer U>
-  ? extractMetadata<U, Satisfying>
-  : T extends z.ZodPromise<infer U>
-  ? extractMetadata<U, Satisfying>
-  : never;
+  Satisfying extends object = object,
+> =
+  z.ZodType<any, z.ZodTypeDef, any> extends T
+    ? never // bail if T is too generic, to prevent combinatorial explosion
+    : T extends ZodMetadata<infer U, infer M>
+      ? M extends Satisfying
+        ? M
+        : extractMetadata<U, Satisfying>
+      : T extends z.ZodOptional<infer U>
+        ? extractMetadata<U, Satisfying>
+        : T extends z.ZodNullable<infer U>
+          ? extractMetadata<U, Satisfying>
+          : T extends z.ZodDefault<infer U>
+            ? extractMetadata<U, Satisfying>
+            : T extends z.ZodLazy<infer U>
+              ? extractMetadata<U, Satisfying>
+              : T extends z.ZodEffects<infer U, any, any>
+                ? extractMetadata<U, Satisfying>
+                : T extends z.ZodCatch<infer U>
+                  ? extractMetadata<U, Satisfying>
+                  : T extends z.ZodBranded<infer U, any>
+                    ? extractMetadata<U, Satisfying>
+                    : T extends z.ZodPipeline<any, infer U>
+                      ? extractMetadata<U, Satisfying>
+                      : T extends z.ZodPromise<infer U>
+                        ? extractMetadata<U, Satisfying>
+                        : never;
 
 function satisfies(a: unknown, b: unknown): boolean {
   if (Array.isArray(b)) {
@@ -128,7 +132,7 @@ function satisfies(a: unknown, b: unknown): boolean {
       a != null &&
       typeof a === "object" &&
       Object.entries(b).every(([key, value]) =>
-        satisfies((a as Record<string, unknown>)[key], value)
+        satisfies((a as Record<string, unknown>)[key], value),
       )
     );
   }
@@ -140,10 +144,10 @@ function satisfies(a: unknown, b: unknown): boolean {
 
 export function extractMetadata<
   T extends z.ZodTypeAny,
-  Satisfying extends object = object
+  Satisfying extends object = object,
 >(
   schema: T,
-  satisfying: Satisfying = {} as Satisfying
+  satisfying: Satisfying = {} as Satisfying,
 ): extractMetadata<T, Satisfying> {
   if (schema instanceof ZodMetadata) {
     if (satisfies(schema.metadata, satisfying)) {
@@ -174,43 +178,44 @@ export function extractMetadata<
 
 export type extractDeepMetadata<
   T extends z.ZodTypeAny,
-  Satisfying extends object = object
-> = z.ZodType<any, z.ZodTypeDef, any> extends T
-  ? never // bail if T is too generic, to prevent combinatorial explosion
-  : T extends ZodMetadata<infer U, infer M>
-  ? M extends Satisfying
-    ? M
-    : extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodOptional<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodNullable<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodDefault<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodLazy<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodEffects<infer U, any, any>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodCatch<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodBranded<infer U, any>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodPipeline<any, infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodPromise<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodArray<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : T extends z.ZodSet<infer U>
-  ? extractDeepMetadata<U, Satisfying>
-  : never;
+  Satisfying extends object = object,
+> =
+  z.ZodType<any, z.ZodTypeDef, any> extends T
+    ? never // bail if T is too generic, to prevent combinatorial explosion
+    : T extends ZodMetadata<infer U, infer M>
+      ? M extends Satisfying
+        ? M
+        : extractDeepMetadata<U, Satisfying>
+      : T extends z.ZodOptional<infer U>
+        ? extractDeepMetadata<U, Satisfying>
+        : T extends z.ZodNullable<infer U>
+          ? extractDeepMetadata<U, Satisfying>
+          : T extends z.ZodDefault<infer U>
+            ? extractDeepMetadata<U, Satisfying>
+            : T extends z.ZodLazy<infer U>
+              ? extractDeepMetadata<U, Satisfying>
+              : T extends z.ZodEffects<infer U, any, any>
+                ? extractDeepMetadata<U, Satisfying>
+                : T extends z.ZodCatch<infer U>
+                  ? extractDeepMetadata<U, Satisfying>
+                  : T extends z.ZodBranded<infer U, any>
+                    ? extractDeepMetadata<U, Satisfying>
+                    : T extends z.ZodPipeline<any, infer U>
+                      ? extractDeepMetadata<U, Satisfying>
+                      : T extends z.ZodPromise<infer U>
+                        ? extractDeepMetadata<U, Satisfying>
+                        : T extends z.ZodArray<infer U>
+                          ? extractDeepMetadata<U, Satisfying>
+                          : T extends z.ZodSet<infer U>
+                            ? extractDeepMetadata<U, Satisfying>
+                            : never;
 
 export function extractDeepMetadata<
   T extends z.ZodTypeAny,
-  Satisfying extends object = object
+  Satisfying extends object = object,
 >(
   schema: T,
-  satisfying: Satisfying = {} as Satisfying
+  satisfying: Satisfying = {} as Satisfying,
 ): extractDeepMetadata<T, Satisfying> {
   if (schema instanceof z.ZodArray)
     return extractDeepMetadata(schema.element, satisfying);
@@ -265,21 +270,21 @@ z.ZodType.prototype.includable = function includable(this: z.ZodTypeAny) {
       const include = getIncludes(stlContext);
       return include && zodPathIsIncluded(path, include) ? data : undefined;
     },
-    this.optional()
+    this.optional(),
   )
     .openapi({ effectType: "input" })
     .withMetadata({ stainless: { includable: true } });
 };
 
-export type isIncludable<T extends z.ZodTypeAny> = extractDeepMetadata<
-  T,
-  { stainless: { includable: true } }
-> extends { stainless: { includable: true } }
-  ? true
-  : false;
+export type isIncludable<T extends z.ZodTypeAny> =
+  extractDeepMetadata<T, { stainless: { includable: true } }> extends {
+    stainless: { includable: true };
+  }
+    ? true
+    : false;
 
 export function isIncludable<T extends z.ZodTypeAny>(
-  schema: T
+  schema: T,
 ): isIncludable<T> {
   return (extractDeepMetadata(schema, { stainless: { includable: true } }) !=
     null) as isIncludable<T>;
@@ -287,11 +292,11 @@ export function isIncludable<T extends z.ZodTypeAny>(
 
 function zodPathIsIncluded(
   zodPath: (string | number)[],
-  include: string[]
+  include: string[],
 ): boolean {
   const zodPathStr = zodPath.filter((p) => typeof p === "string").join(".");
   return include.some(
-    (e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`)
+    (e) => e === zodPathStr || e.startsWith(`${zodPathStr}.`),
   );
 }
 
@@ -307,7 +312,7 @@ declare module "zod" {
 
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     selection<T extends z.ZodTypeAny>(
-      this: T
+      this: T,
     ): z.ZodType<
       SelectionReturn<z.output<T>>,
       this["_def"],
@@ -329,8 +334,8 @@ export type SelectableOutput<T> =
   | ((NonNullable<T> extends Array<infer E>
       ? Partial<E>[]
       : NonNullable<T> extends object
-      ? Partial<NonNullable<T>>
-      : T) & {
+        ? Partial<NonNullable<T>>
+        : T) & {
       readonly [selectableSymbol]: true;
     })
   | null
@@ -341,8 +346,8 @@ export type SelectableInput<T> =
   | (NonNullable<T> extends Array<infer E extends object>
       ? Partial<E>[]
       : NonNullable<T> extends object
-      ? Partial<NonNullable<T>>
-      : T)
+        ? Partial<NonNullable<T>>
+        : T)
   | null
   | undefined;
 
@@ -352,11 +357,12 @@ export type SelectableZodType<T extends z.ZodTypeAny> = z.ZodType<
   SelectableInput<z.input<T>>
 >;
 
-type SelectionReturn<T> = T extends Array<infer E extends object>
-  ? Partial<E>[]
-  : T extends object
-  ? Partial<T>
-  : T;
+type SelectionReturn<T> =
+  T extends Array<infer E extends object>
+    ? Partial<E>[]
+    : T extends object
+      ? Partial<T>
+      : T;
 
 /**
  * A .selectable() property like `comments_fields`
@@ -377,7 +383,7 @@ class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
     const property = path[path.length - 1];
     if (typeof property !== "string" || !property.endsWith("_fields")) {
       throw new Error(
-        `.selectable() property must be a string ending with _fields`
+        `.selectable() property must be a string ending with _fields`,
       );
     }
     const parentData = parent.data || parent.parent?.data;
@@ -386,26 +392,26 @@ class StlSelectable<T extends z.ZodTypeAny> extends z.ZodOptional<T> {
     }
     const selectionHere = path.reduce<SelectTree | undefined>(
       (tree, elem) => (typeof elem === "number" ? tree : tree?.select?.[elem]),
-      select
+      select,
     )?.select;
     if (!selectionHere) return z.OK(undefined);
 
     const parsed = super._parse(
       Object.create(input, {
         data: { value: parentData[property.replace(/_fields$/, "")] },
-      })
+      }),
     );
 
     const pickSelected = pickBy((v, k) => selectionHere[k]);
 
     return convertParseReturn(parsed, (value) =>
-      Array.isArray(value) ? value.map(pickSelected) : pickSelected(value)
+      Array.isArray(value) ? value.map(pickSelected) : pickSelected(value),
     );
   }
 }
 
 z.ZodType.prototype.selection = function selection(
-  this: z.ZodTypeAny
+  this: z.ZodTypeAny,
 ): z.ZodTypeAny {
   if (this instanceof ZodMetadata) {
     return this.unwrap().selection();
@@ -415,7 +421,7 @@ z.ZodType.prototype.selection = function selection(
   }
   if (!(this instanceof z.ZodObject)) {
     throw new Error(
-      `.selection() must be called on a ZodObject, got ${this.constructor.name}`
+      `.selection() must be called on a ZodObject, got ${this.constructor.name}`,
     );
   }
   const { shape } = this;
@@ -423,7 +429,7 @@ z.ZodType.prototype.selection = function selection(
   // because they don't rely on the _field property
   // acually being present
   const mask = mapValues(shape, (value) =>
-    value instanceof StlSelectable ? undefined : (true as const)
+    value instanceof StlSelectable ? undefined : (true as const),
   );
   return this.partial(mask);
 };
@@ -442,20 +448,20 @@ declare module "zod" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     safeParseAsync(
       data: unknown,
-      params?: Partial<StlParseParams>
+      params?: Partial<StlParseParams>,
     ): Promise<SafeParseReturnType<Input, Output>>;
 
     parseAsync(
       data: unknown,
-      params?: Partial<StlParseParams>
+      params?: Partial<StlParseParams>,
     ): Promise<Output>;
 
     transform<T extends z.ZodTypeAny, NewOut>(
       this: T,
       transform: (
         arg: Output,
-        ctx: StlRefinementCtx
-      ) => NewOut | Promise<NewOut>
+        ctx: StlRefinementCtx,
+      ) => NewOut | Promise<NewOut>,
     ): z.ZodEffects<T, NewOut>;
 
     /**
@@ -466,7 +472,7 @@ declare module "zod" {
      */
     stlTransform<T extends z.ZodTypeAny, NewOut>(
       this: T,
-      transform: StlTransform<Output, NewOut>
+      transform: StlTransform<Output, NewOut>,
     ): z.ZodEffects<T, NewOut>;
   }
 }
@@ -474,7 +480,7 @@ declare module "zod" {
 export type StlTransform<Input, Output> = (
   input: Input,
   ctx: StlContext<any>,
-  zodInput: z.ParseInput
+  zodInput: z.ParseInput,
 ) => Output | Promise<Output>;
 
 export interface StlParseContext extends z.ParseContext {
@@ -494,21 +500,21 @@ export type StlParseInput = z.ParseInput & {
 };
 
 function getStlParseContext(
-  ctx: ParseContext
+  ctx: ParseContext,
 ): StlParseContext["stlContext"] | undefined {
   while (ctx.parent != null) ctx = ctx.parent;
   return (ctx as any).stlContext;
 }
 function handleParseReturn<I, O>(
   result: z.ParseReturnType<I>,
-  handle: (result: z.SyncParseReturnType<I>) => z.SyncParseReturnType<O>
+  handle: (result: z.SyncParseReturnType<I>) => z.SyncParseReturnType<O>,
 ): z.ParseReturnType<O> {
   return z.isAsync(result) ? result.then(handle) : handle(result);
 }
 
 function convertParseReturn<I, O>(
   result: z.ParseReturnType<I>,
-  convert: (result: I) => O
+  convert: (result: I) => O,
 ): z.ParseReturnType<O> {
   return handleParseReturn(
     result,
@@ -521,13 +527,13 @@ function convertParseReturn<I, O>(
         case "valid":
           return z.OK(convert(result.value));
       }
-    }
+    },
   );
 }
 
 z.ZodType.prototype.safeParseAsync = async function safeParseAsync(
   data: unknown,
-  params?: Partial<StlParseParams>
+  params?: Partial<StlParseParams>,
 ): Promise<z.SafeParseReturnType<any, any>> {
   const ctx: StlParseContext = {
     stlContext: params?.stlContext,
@@ -552,7 +558,7 @@ z.ZodType.prototype.safeParseAsync = async function safeParseAsync(
 
 const handleResult = <Input, Output>(
   ctx: z.ParseContext,
-  result: z.SyncParseReturnType<Output>
+  result: z.SyncParseReturnType<Output>,
 ):
   | { success: true; data: Output }
   | { success: false; error: z.ZodError<Input> } => {
@@ -577,7 +583,7 @@ const handleResult = <Input, Output>(
 
 const zodEffectsSuperParse = z.ZodEffects.prototype._parse;
 z.ZodEffects.prototype._parse = function _parse(
-  input: z.ParseInput
+  input: z.ParseInput,
 ): z.ParseReturnType<any> {
   const effect: any = this._def.effect || null;
   if (effect.stlPreprocess) {
@@ -630,7 +636,7 @@ z.ZodEffects.prototype._parse = function _parse(
             data: base.value,
             path: input.path,
             parent: input.parent,
-          })
+          }),
         ).then((result) => ({ status: status.value, value: result }));
       });
   }
@@ -639,7 +645,7 @@ z.ZodEffects.prototype._parse = function _parse(
 
 z.ZodType.prototype.stlTransform = function stlTransform(
   this: z.ZodTypeAny,
-  transform: StlTransform<any, any>
+  transform: StlTransform<any, any>,
 ) {
   return new z.ZodEffects({
     description: this._def.description,
@@ -656,12 +662,12 @@ z.ZodType.prototype.stlTransform = function stlTransform(
 export type StlPreprocess = (
   input: unknown,
   ctx: StlContext<any>,
-  zodInput: z.ParseInput
+  zodInput: z.ParseInput,
 ) => unknown;
 
 export function stlPreprocess<I extends z.ZodTypeAny>(
   preprocess: StlPreprocess,
-  schema: I
+  schema: I,
 ): z.ZodEffects<I, I["_output"], unknown> {
   return new z.ZodEffects({
     description: schema._def.description,
@@ -683,7 +689,7 @@ export function stlPreprocess<I extends z.ZodTypeAny>(
 
 export function path<T extends z.ZodRawShape>(
   shape: T,
-  params?: z.RawCreateParams
+  params?: z.RawCreateParams,
 ): z.ZodObject<T, "strip"> {
   return z.object(shape, params);
 }
@@ -694,26 +700,26 @@ export class StlParams<
   UnknownKeys extends z.UnknownKeysParam = z.UnknownKeysParam,
   Catchall extends z.ZodTypeAny = z.ZodTypeAny,
   Output = z.objectOutputType<T, Catchall, UnknownKeys>,
-  Input = z.objectInputType<T, Catchall, UnknownKeys>
+  Input = z.objectInputType<T, Catchall, UnknownKeys>,
 > extends z.ZodObject<T, UnknownKeys, Catchall, Output, Input> {}
 
 export function query<T extends z.ZodRawShape>(
   shape: T,
-  params?: z.RawCreateParams
+  params?: z.RawCreateParams,
 ): StlParams<T, "strip"> {
   return new StlParams(z.object(shape, params)._def) as any;
 }
 
 export function body<T extends z.ZodRawShape>(
   shape: T,
-  params?: z.RawCreateParams
+  params?: z.RawCreateParams,
 ): StlParams<T, "strip"> {
   return new StlParams(z.object(shape, params)._def) as any;
 }
 
 export function response<T extends z.ZodRawShape>(
   shape: T,
-  params?: z.RawCreateParams
+  params?: z.RawCreateParams,
 ): z.ZodObject<T, "strip"> {
   return z.object(shape, params);
 }
@@ -735,7 +741,7 @@ class PageResponseWrapper<I extends z.ZodTypeAny> {
 }
 
 export function pageResponse<I extends z.ZodTypeAny>(
-  item: I
+  item: I,
 ): ZodMetadata<
   ReturnType<PageResponseWrapper<I>["wrapped"]>,
   extractDeepMetadata<I> & { stainless: { pageResponse: true } }
@@ -753,15 +759,15 @@ export function pageResponse<I extends z.ZodTypeAny>(
   });
 }
 
-export type isPageResponse<T extends z.ZodTypeAny> = extractMetadata<
-  T,
-  { stainless: { pageResponse: true } }
-> extends { stainless: { pageResponse: true } }
-  ? true
-  : false;
+export type isPageResponse<T extends z.ZodTypeAny> =
+  extractMetadata<T, { stainless: { pageResponse: true } }> extends {
+    stainless: { pageResponse: true };
+  }
+    ? true
+    : false;
 
 export function isPageResponse<T extends z.ZodTypeAny>(
-  schema: T
+  schema: T,
 ): isPageResponse<T> {
   return (extractMetadata(schema, { stainless: { pageResponse: true } }) !=
     null) as isPageResponse<T>;
@@ -775,9 +781,8 @@ export type PageData<I> = {
   hasPreviousPage?: boolean;
 };
 
-export type PageItemType<D> = D extends PageData<any>
-  ? D["items"][number]
-  : never;
+export type PageItemType<D> =
+  D extends PageData<any> ? D["items"][number] : never;
 
 export const AnyPageData: z.ZodType<
   PageData<any>,
@@ -807,7 +812,7 @@ export type PaginationParams = z.infer<typeof PaginationParams>;
 
 export type CircularModel<
   Base extends z.ZodType<object, any, object>,
-  Props extends z.ZodRawShape
+  Props extends z.ZodRawShape,
 > = z.ZodType<
   z.output<Base> & { [K in keyof Props]: z.output<NonNullable<Props[K]>> },
   z.ZodTypeDef,
@@ -838,7 +843,7 @@ export class Schema<O, I = O> extends BaseSchema {
   transform(
     value: Out<I>,
     ctx: StlContext<any>,
-    zodInput: z.ParseInput
+    zodInput: z.ParseInput,
   ): Out<O> | PromiseLike<Out<O>> {
     return value as any;
   }
@@ -858,90 +863,90 @@ export const TransformSymbol = Symbol("Transform");
 export type In<T> = 0 extends 1 & T
   ? any
   : T extends BaseSchema
-  ? In<T["input"]>
-  : T extends Date
-  ? Date
-  : T extends Array<infer E>
-  ? Array<In<E>>
-  : T extends Set<infer E>
-  ? Set<In<E>>
-  : T extends Map<infer K, infer V>
-  ? Map<In<K>, In<V>>
-  : T extends PromiseLike<infer E>
-  ? PromiseLike<In<E>>
-  : T extends object
-  ? { [k in keyof T]: In<T[k]> }
-  : T;
+    ? In<T["input"]>
+    : T extends Date
+      ? Date
+      : T extends Array<infer E>
+        ? Array<In<E>>
+        : T extends Set<infer E>
+          ? Set<In<E>>
+          : T extends Map<infer K, infer V>
+            ? Map<In<K>, In<V>>
+            : T extends PromiseLike<infer E>
+              ? PromiseLike<In<E>>
+              : T extends object
+                ? { [k in keyof T]: In<T[k]> }
+                : T;
 
 export type Out<T> = 0 extends 1 & T
   ? any
   : T extends BaseSchema
-  ? Out<T["output"]>
-  : T extends Date
-  ? Date
-  : T extends Array<infer E>
-  ? Array<Out<E>>
-  : T extends Set<infer E>
-  ? Set<Out<E>>
-  : T extends Map<infer K, infer V>
-  ? Map<Out<K>, Out<V>>
-  : T extends PromiseLike<infer E>
-  ? PromiseLike<Out<E>>
-  : T extends object
-  ? { [k in keyof T]: Out<T[k]> }
-  : T;
+    ? Out<T["output"]>
+    : T extends Date
+      ? Date
+      : T extends Array<infer E>
+        ? Array<Out<E>>
+        : T extends Set<infer E>
+          ? Set<Out<E>>
+          : T extends Map<infer K, infer V>
+            ? Map<Out<K>, Out<V>>
+            : T extends PromiseLike<infer E>
+              ? PromiseLike<Out<E>>
+              : T extends object
+                ? { [k in keyof T]: Out<T[k]> }
+                : T;
 
 export type toZod<T> = 0 extends 1 & T
   ? any
   : [null | undefined] extends [T]
-  ? z.ZodOptional<z.ZodNullable<toZod<NonNullable<T>>>>
-  : [null] extends [T]
-  ? z.ZodNullable<toZod<NonNullable<T>>>
-  : [undefined] extends [T]
-  ? z.ZodOptional<toZod<NonNullable<T>>>
-  : [T] extends [z.ZodTypeAny]
-  ? T
-  : [T] extends [BaseSchema]
-  ? schemaTypeToZod<T>
-  : [T] extends [Date]
-  ? z.ZodDate
-  : [T] extends [Array<infer E>]
-  ? z.ZodArray<toZod<E>>
-  : [T] extends [Set<infer E>]
-  ? z.ZodSet<toZod<E>>
-  : [T] extends [Map<infer K, infer V>]
-  ? z.ZodMap<toZod<K>, toZod<V>>
-  : [T] extends [PromiseLike<infer E>]
-  ? z.ZodPromise<toZod<E>>
-  : [T] extends [object]
-  ? z.ZodObject<{ [k in keyof T]-?: toZod<T[k]> }>
-  : [number] extends [T]
-  ? z.ZodNumber
-  : [string] extends [T]
-  ? z.ZodString
-  : [boolean] extends [T]
-  ? z.ZodBoolean
-  : [bigint] extends [T]
-  ? z.ZodBigInt
-  : z.ZodType<Out<T>, any, In<T>>;
+    ? z.ZodOptional<z.ZodNullable<toZod<NonNullable<T>>>>
+    : [null] extends [T]
+      ? z.ZodNullable<toZod<NonNullable<T>>>
+      : [undefined] extends [T]
+        ? z.ZodOptional<toZod<NonNullable<T>>>
+        : [T] extends [z.ZodTypeAny]
+          ? T
+          : [T] extends [BaseSchema]
+            ? schemaTypeToZod<T>
+            : [T] extends [Date]
+              ? z.ZodDate
+              : [T] extends [Array<infer E>]
+                ? z.ZodArray<toZod<E>>
+                : [T] extends [Set<infer E>]
+                  ? z.ZodSet<toZod<E>>
+                  : [T] extends [Map<infer K, infer V>]
+                    ? z.ZodMap<toZod<K>, toZod<V>>
+                    : [T] extends [PromiseLike<infer E>]
+                      ? z.ZodPromise<toZod<E>>
+                      : [T] extends [object]
+                        ? z.ZodObject<{ [k in keyof T]-?: toZod<T[k]> }>
+                        : [number] extends [T]
+                          ? z.ZodNumber
+                          : [string] extends [T]
+                            ? z.ZodString
+                            : [boolean] extends [T]
+                              ? z.ZodBoolean
+                              : [bigint] extends [T]
+                                ? z.ZodBigInt
+                                : z.ZodType<Out<T>, any, In<T>>;
 
 type schemaTypeToZod<T extends BaseSchema> = T extends {
   metadata: infer M extends object;
 }
   ? ZodMetadata<toZod<Omit<T, "metadata">>, M>
   : T extends {
-      [ZodSchemaSymbol]: true;
-      zodSchema: infer S extends z.ZodTypeAny;
-    }
-  ? S
-  : T extends {
-      [IncludableSymbol]: true;
-      includable: infer I;
-    }
-  ? z.ZodEffects<toZod<I>, IncludableOutput<Out<I>>, IncludableInput<In<I>>>
-  : T extends { [EffectsSymbol]: true; input: infer I; output: infer O }
-  ? z.ZodEffects<toZod<I>, Out<O>, In<I>>
-  : toZod<T["output"]>;
+        [ZodSchemaSymbol]: true;
+        zodSchema: infer S extends z.ZodTypeAny;
+      }
+    ? S
+    : T extends {
+          [IncludableSymbol]: true;
+          includable: infer I;
+        }
+      ? z.ZodEffects<toZod<I>, IncludableOutput<Out<I>>, IncludableInput<In<I>>>
+      : T extends { [EffectsSymbol]: true; input: infer I; output: infer O }
+        ? z.ZodEffects<toZod<I>, Out<O>, In<I>>
+        : toZod<T["output"]>;
 
 export type OptionalMessage<T> = T extends true
   ? true | string
@@ -997,7 +1002,7 @@ export type UUID = StringSchema<{ uuid: true }>;
 export const StringSchemaSymbol = Symbol("StringSchema");
 
 export class StringSchema<
-  Props extends StringSchemaProps
+  Props extends StringSchemaProps,
 > extends Schema<string> {
   declare [StringSchemaSymbol]: true;
   declare input: string;
@@ -1029,7 +1034,7 @@ export interface NumberSchemaProps {
 export const NumberSchemaSymbol = Symbol("NumberSchema");
 
 export class NumberSchema<
-  Props extends NumberSchemaProps
+  Props extends NumberSchemaProps,
 > extends Schema<number> {
   declare [NumberSchemaSymbol]: true;
   declare input: number;
@@ -1057,7 +1062,7 @@ export interface BigIntSchemaProps {
 export const BigIntSchemaSymbol = Symbol("BigIntSchema");
 
 export class BigIntSchema<
-  Props extends BigIntSchemaProps
+  Props extends BigIntSchemaProps,
 > extends Schema<bigint> {
   declare [BigIntSchemaSymbol]: true;
   declare input: bigint;
@@ -1087,7 +1092,7 @@ export const ObjectSchemaSymbol = Symbol("ObjectSchema");
 
 export class ObjectSchema<
   T extends object,
-  Props extends ObjectSchemaProps
+  Props extends ObjectSchemaProps,
 > extends Schema<T> {
   declare [ObjectSchemaSymbol]: true;
   declare props: Props;
@@ -1132,7 +1137,7 @@ export class Includable<T> extends Schema<
 
 export class Includes<
   T,
-  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3
+  Depth extends 0 | 1 | 2 | 3 | 4 | 5 = 3,
 > extends Schema<IncludablePaths<Out<T>, Depth>[]> {
   declare metadata: { stainless: { includes: true } };
 }

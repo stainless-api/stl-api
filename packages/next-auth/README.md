@@ -58,7 +58,7 @@ export const authOptions: AuthOptions = {
 
         const isCorrectPassword = await bcrypt.compare(
           credentials.password,
-          user.hashedPassword
+          user.hashedPassword,
         );
 
         if (!isCorrectPassword) {
@@ -118,7 +118,7 @@ export const makeCurrentUserPlugin = (): MakeStainlessPlugin => (stl) => ({
   async middleware<EC extends AnyEndpoint>(
     endpoint: EC,
     params: Params,
-    context: PartialStlContext<EC>
+    context: PartialStlContext<EC>,
   ) {
     const { session } = context;
 

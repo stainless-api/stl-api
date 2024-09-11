@@ -18,7 +18,7 @@ describe("API Client", () => {
 
     const config = { basePath: "/api" as const };
     const client = makeClientWithInferredTypes<typeof api, typeof config>(
-      config
+      config,
     );
 
     test("adds methods for each verb", () => {
@@ -99,7 +99,7 @@ describe("API Client", () => {
 
     const config = { basePath: "/api" as const };
     const client = makeClientWithInferredTypes<typeof api, typeof config>(
-      config
+      config,
     );
 
     test("Allows discriminating between functions using generics", () => {
@@ -135,7 +135,7 @@ describe("API Client", () => {
 
     const config = { basePath: "/api" as const };
     const client = makeClientWithInferredTypes<typeof api, typeof config>(
-      config
+      config,
     );
 
     test("has a methods for sibling resources", () => {

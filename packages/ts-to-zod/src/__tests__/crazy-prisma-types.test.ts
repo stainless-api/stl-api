@@ -7,7 +7,7 @@ it(`crazy prisma types`, async () =>
   expect(
     await multiFileTestCase({
       __filename,
-    })
+    }),
   ).toMatchInlineSnapshot(`
 {
   "prisma-client/index.d.codegen.ts": "import { z } from "zod";

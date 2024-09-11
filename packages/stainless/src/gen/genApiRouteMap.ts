@@ -27,11 +27,11 @@ export async function genApiRouteMap(apiSourceFile: string) {
           `export const ${name}: APIRouteMap = ${JSON.stringify(
             metadata,
             null,
-            2
-          )};`
+            2,
+          )};`,
       ),
     ].join("\n\n"),
-    "utf8"
+    "utf8",
   );
   console.error(`wrote ${path.relative(process.cwd(), metadataFile)}`);
 }
