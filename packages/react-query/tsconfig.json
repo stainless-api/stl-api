@@ -2,9 +2,8 @@
   "extends": "../../tsconfig-common.json",
   "include": ["src"],
   "compilerOptions": {
-    "outDir": "dist/cjs",
+    "outDir": "dist",
     "rootDir": "src",
     "jsx": "react"
-  },
-  "references": [{ "path": "../stainless" }]
+  }
 }

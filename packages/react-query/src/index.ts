@@ -24,26 +24,22 @@ import {
   MutateOptions,
 } from "@tanstack/react-query";
 import { type UpperFirst } from "./util.js";
-import {
-  ClientUseQuery,
-  UseQueryOptions,
-  isUseQueryOptions,
-} from "./useQuery.js";
+import { ClientUseQuery, UseQueryOptions, isUseQueryOptions } from "./useQuery";
 import {
   ClientUseMutation,
   UseMutationOptions,
   isMutateOptions,
-} from "./useMutation.js";
+} from "./useMutation";
 import {
   ClientUseInfiniteQueryHooks,
   UseInfiniteQueryOptions,
   UseItem,
   UseItemResult,
   isUseInfiniteQueryOptions,
-} from "./useInfiniteQuery.js";
-import { ClientPromise, ClientPromiseProps } from "./ClientPromise.js";
-import { PaginatorPromise } from "./PaginatorPromise.js";
-import { ClientMethods } from "./ClientMethod.js";
+} from "./useInfiniteQuery";
+import { ClientPromise, ClientPromiseProps } from "./ClientPromise";
+import { PaginatorPromise } from "./PaginatorPromise";
+import { ClientMethods } from "./ClientMethod";
 export {
   ClientPromise,
   ClientPromiseProps,
