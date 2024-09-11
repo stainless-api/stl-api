@@ -12,7 +12,7 @@ const rootDir = path.dirname(path.dirname(url.fileURLToPath(import.meta.url)));
 
 const packagesDir = path.join(rootDir, "packages");
 const packageDirs = (await fs.readdir(packagesDir)).map((dir) =>
-  path.join(packagesDir, dir),
+  path.join(packagesDir, dir)
 );
 
 const dryRun = process.argv.includes("--dry-run");

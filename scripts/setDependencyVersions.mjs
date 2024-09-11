@@ -22,7 +22,7 @@ export async function setDependencyVersions() {
   const packagesDir = path.join(rootDir, "packages");
 
   const packageDirs = (await fs.readdir(packagesDir)).map((d) =>
-    path.join(packagesDir, d),
+    path.join(packagesDir, d)
   );
 
   const packageJsons = Object.fromEntries(
@@ -30,8 +30,8 @@ export async function setDependencyVersions() {
       packageDirs.map(async (dir) => [
         dir,
         JSON.parse(await fs.readFile(path.join(dir, "package.json"), "utf8")),
-      ]),
-    ),
+      ])
+    )
   );
   const packageJsonsByName = _.keyBy(Object.values(packageJsons), "name");
 
@@ -47,7 +47,7 @@ export async function setDependencyVersions() {
       if (depPackageJson) {
         dependencies[pkg] = `github:${owner}/${repo}#${pkg.replace(
           /^@stl-api\//,
-          "",
+          ""
         )}-${depPackageJson.version}`;
         changed = true;
       }
@@ -57,7 +57,7 @@ export async function setDependencyVersions() {
       await fs.writeFile(
         file,
         JSON.stringify(packageJson, null, 2) + "\n",
-        "utf8",
+        "utf8"
       );
       console.error(`wrote ${file}`);
     }
