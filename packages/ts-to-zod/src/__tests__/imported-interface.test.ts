@@ -24,15 +24,15 @@ it(`imported interface`, async () =>
       __filename,
     })
   ).toMatchInlineSnapshot(`
-{
-  "src/__tests__/common.codegen.ts": "import { z } from "zod";
-export const AddressIface: z.ZodTypeAny = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
-",
-  "src/__tests__/imported-interface.test.codegen.ts": "import { z } from "zod";
-import * as ImportedInterfaceTest from "./imported-interface.test";
-import * as Common from "./common";
-export const TestClass: z.ZodTypeAny = z.instanceof(ImportedInterfaceTest.TestClass);
-const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => Common.AddressIface).optional(), testMyClass: z.lazy(() => TestClassSchema) });
-",
-}
-`));
+    {
+      "src/__tests__/common.codegen.ts": "import { z } from "zod";
+    export const AddressIface: z.ZodTypeAny = z.object({ street: z.string(), city: z.string(), state: z.string(), postalCode: z.string() });
+    ",
+      "src/__tests__/imported-interface.test.codegen.ts": "import { z } from "zod";
+    import * as ImportedInterfaceTest from "./imported-interface.test";
+    import * as Common from "./common";
+    export const TestClass: z.ZodTypeAny = z.instanceof(ImportedInterfaceTest.TestClass);
+    const T: z.ZodTypeAny = z.object({ firstName: z.string(), lastName: z.string(), address: z.lazy(() => Common.AddressIface).optional(), testMyClass: z.lazy(() => TestClass) });
+    ",
+    }
+  `));
