@@ -1,10 +1,10 @@
 {
-  "packages/cli": "0.1.0",
-  "packages/express": "0.1.0",
-  "packages/next-auth": "0.1.0",
-  "packages/next": "0.1.0",
-  "packages/prisma": "0.1.0",
-  "packages/react-query": "0.0.4",
-  "packages/stainless": "0.1.0",
-  "packages/ts-to-zod": "0.0.4"
+  "packages/cli": "0.1.1",
+  "packages/express": "0.1.2",
+  "packages/next-auth": "0.1.6",
+  "packages/next": "0.1.1",
+  "packages/prisma": "0.1.1",
+  "packages/react-query": "0.0.5",
+  "packages/stainless": "0.1.1",
+  "packages/ts-to-zod": "0.0.5"
 }

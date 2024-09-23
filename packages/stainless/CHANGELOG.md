@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.1](https://github.com/stainless-api/stl-api/compare/stainless-v0.1.0...stainless-v0.1.1) (2024-09-23)
+
+
+### Bug Fixes
+
+* **api:** disable includable for now ([ccc8298](https://github.com/stainless-api/stl-api/commit/ccc82981f938f9eee0804ed244ced337f5d86924))
+
 ## [0.1.0](https://github.com/stainless-api/stl-api/compare/stainless-v0.0.3...stainless-v0.1.0) (2023-12-06)
 
 ### ⚠ BREAKING CHANGES
