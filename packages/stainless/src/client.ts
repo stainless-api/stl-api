@@ -259,7 +259,8 @@ export function createClient<Api extends AnyAPIDescription>(
             )
             .join("/")
         );
-        return { method: method as HttpMethod, pathname, uri: pathname };
+        const fullUri = `${baseUrl}/${pathname}`;
+        return { method: method as HttpMethod, pathname, uri: fullUri };
       }
     }
     let path = callPath.join("/"); // eg; /issuing/cards

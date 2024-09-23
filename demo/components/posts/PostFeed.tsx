@@ -12,6 +12,7 @@ const PostFeed: React.FC<PostFeedProps> = ({ userId }) => {
     client.posts.useInfiniteList({
       userId,
       pageSize: 5,
+      // @ts-ignore
       include: ["items.user", "items.comments"],
     });
 

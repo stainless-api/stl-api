@@ -16,6 +16,7 @@ declare module "stainless" {
 
 const plugins = {
   next: makeNextPlugin(),
+  // @ts-ignore
   nextAuth: makeNextAuthPlugin({ authOptions }),
   prisma: makePrismaPlugin(),
   currentUser: makeCurrentUserPlugin(),

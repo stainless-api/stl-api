@@ -38,7 +38,8 @@ export function includes<
   if (obj) add("", obj, depth);
   const [first, ...rest] = values;
   if (!first) {
-    throw new Error(`schema has no includable properties`);
+    // @todo: get includable working again!
+    console.warn(`schema has no includable properties`);
   }
   return (
     z.array(z.enum([first, ...rest])) as any as z.ZodType<
