@@ -1,6 +1,6 @@
 {
   "name": "stainless",
-  "version": "0.1.3",
+  "version": "0.1.1",
   "description": "stainless api server and client",
   "author": "dev@stainlessapi.com",
   "repository": {
