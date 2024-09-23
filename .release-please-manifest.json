@@ -1,5 +1,6 @@
 {
   "packages/cli": "0.1.1",
+  "packages/client": "0.1.1",
   "packages/express": "0.1.2",
   "packages/next-auth": "0.1.6",
   "packages/next": "0.1.1",

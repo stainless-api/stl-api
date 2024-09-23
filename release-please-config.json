@@ -6,6 +6,7 @@
   "draft": false,
   "prerelease": false,
   "packages": {
+    "packages/client": {},
     "packages/cli": {},
     "packages/express": {},
     "packages/next": {},
