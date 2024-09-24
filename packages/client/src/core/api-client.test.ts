@@ -2,6 +2,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeClientWithInferredTypes } from "./api-client";
 import { Client } from "./api-client-types";
 import * as MockAPI from "../test-util/api-server";
+import { complicatedBasePath } from "../test-util/long-base-path-api";
 
 describe("API Client", () => {
   describe("configuration options", () => {
@@ -28,6 +29,42 @@ describe("API Client", () => {
         method: "GET",
       });
       expect(treat).toStrictEqual([{ yummy: true }]);
+    });
+  });
+
+  describe("long base paths", () => {
+    let client: Client<
+      MockAPI.APIWithCustomBasePathAPI,
+      MockAPI.APIWithCustomBasePathConfig
+    >;
+    let mockFetch: typeof fetch;
+
+    beforeEach(() => {
+      mockFetch = vi.fn(MockAPI.mockFetchImplementation);
+      const config = {
+        fetch: mockFetch,
+        basePath: complicatedBasePath,
+        urlCase: "camel",
+      };
+      client = makeClientWithInferredTypes<
+        MockAPI.APIWithCustomBasePathAPI,
+        MockAPI.APIWithCustomBasePathConfig
+      >(config);
+    });
+
+    afterEach(() => {
+      vi.restoreAllMocks();
+    });
+
+    it("preserves base path, including casing", async () => {
+      const dogs = await client.dogs.list();
+      expect(mockFetch).toHaveBeenCalledWith(
+        "/api/camelCase/kebab-case/v2/dogs",
+        {
+          method: "GET",
+        }
+      );
+      expect(dogs).toStrictEqual([{ name: "Fido", color: "red" }]);
     });
   });
 
