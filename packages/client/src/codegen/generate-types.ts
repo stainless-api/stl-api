@@ -335,6 +335,6 @@ export async function generateOutput<API extends APIConfig>(
   );
 
   return await prettier.format(output.flat().join("\n"), {
-    parser: "typescript",
+    parser: "babel",
   });
 }

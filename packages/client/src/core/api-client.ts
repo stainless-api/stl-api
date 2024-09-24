@@ -49,7 +49,7 @@ function isQueryOrBody(arg: unknown): arg is Record<string, string> {
 }
 
 function makeUrl(
-  callPath: string[],
+  [basePath, ...callPath]: string[],
   {
     outputCase,
     method,
@@ -77,7 +77,7 @@ function makeUrl(
     url = `${url}?${new URLSearchParams(Object.entries(body))}`;
   }
 
-  return url;
+  return `${basePath}/${url}`;
 }
 
 /**

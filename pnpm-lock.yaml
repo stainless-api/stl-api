@@ -263,8 +263,8 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0
       ts-to-zod:
-        specifier: github:stainless-api/stl-api#ts-to-zod-0.0.4
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/3a9757a2bc13b779c537996aee6b071ff755ad47
+        specifier: github:stainless-api/stl-api#ts-to-zod-0.0.5
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/10de832478ea5fc3e213b17cfb57a01b7bc47817
     devDependencies:
       '@swc/core':
         specifier: ^1.3.100
@@ -313,11 +313,11 @@ importers:
         specifier: ^4.17.21
         version: 4.17.21
       prettier:
-        specifier: ^3.3.3
-        version: 3.3.3
+        specifier: ^2.8.8
+        version: 2.8.8
       stainless:
-        specifier: github:stainless-api/stl-api#stainless-0.1.3
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        specifier: github:stainless-api/stl-api#stainless-0.1.1
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -331,6 +331,9 @@ importers:
       '@types/lodash':
         specifier: ^4.14.202
         version: 4.17.7
+      '@types/prettier':
+        specifier: ^2.7.3
+        version: 2.7.3
       ts-node:
         specifier: ^10.9.1
         version: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
@@ -348,7 +351,7 @@ importers:
         version: 4.17.21
       stainless:
         specifier: github:stainless-api/stl-api#stainless-0.1.1
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
     devDependencies:
       '@types/express':
         specifier: ^4.17.21
@@ -391,7 +394,7 @@ importers:
         version: 6.13.0
       stainless:
         specifier: github:stainless-api/stl-api#stainless-0.1.1
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
     devDependencies:
       '@types/node':
         specifier: ^20.10.3
@@ -410,10 +413,10 @@ importers:
     dependencies:
       '@stl-api/next':
         specifier: github:stainless-api/stl-api#next-0.1.1
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/d61d02b59888c2739715872cba29b0f3930cfb01(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/3965038ee3e1d062a26291aef025b0c60f2206b1(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
       stainless:
         specifier: github:stainless-api/stl-api#stainless-0.1.1
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
     devDependencies:
       '@types/node':
         specifier: ^20.10.3
@@ -438,7 +441,7 @@ importers:
         version: 4.16.2
       stainless:
         specifier: github:stainless-api/stl-api#stainless-0.1.1
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
       zod:
         specifier: ^3.22.4
         version: 3.22.4
@@ -466,7 +469,7 @@ importers:
         version: 6.13.0
       stainless:
         specifier: github:stainless-api/stl-api#stainless-0.1.1
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
     devDependencies:
       '@tanstack/query-core':
         specifier: ^4.36.1
@@ -2126,8 +2129,8 @@ packages:
   '@slorber/remark-comment@1.0.0':
     resolution: {integrity: sha512-RCE24n7jsOj1M0UPvIQCHTe7fI0sFL4S2nwKVWwHyVr/wI/H8GosgsJGyhnsZoGFnD/P2hLf1mSbrrgSLN93NA==}
 
-  '@stl-api/next@https://codeload.github.com/stainless-api/stl-api/tar.gz/d61d02b59888c2739715872cba29b0f3930cfb01':
-    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/d61d02b59888c2739715872cba29b0f3930cfb01}
+  '@stl-api/next@https://codeload.github.com/stainless-api/stl-api/tar.gz/3965038ee3e1d062a26291aef025b0c60f2206b1':
+    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/3965038ee3e1d062a26291aef025b0c60f2206b1}
     version: 0.1.1
 
   '@svgr/babel-plugin-add-jsx-attribute@8.0.0':
@@ -2467,6 +2470,9 @@ packages:
 
   '@types/parse-json@4.0.2':
     resolution: {integrity: sha512-dISoDXWWQwUquiKsyZ4Ng+HX2KsPL7LyHKHQwgGFEA3IaKac4Obd+h2a/a6waisAoepJlBcx9paWqjA8/HVjCw==}
+
+  '@types/prettier@2.7.3':
+    resolution: {integrity: sha512-+68kP9yzs4LMp7VNh8gdzMSPZFL44MLGqiHWvttYJe+6qnuVr4Ek9wSBQoveqY/r+LwjCcU29kNVkidwim+kYA==}
 
   '@types/prismjs@1.26.3':
     resolution: {integrity: sha512-A0D0aTXvjlqJ5ZILMz3rNfDBOx9hHxLZYv2by47Sm/pqW35zzjusrZTryatjN/Rf8Us2gZrJD+KeHbUSTux1Cw==}
@@ -4231,10 +4237,6 @@ packages:
 
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
-
-  hono@2.7.8:
-    resolution: {integrity: sha512-LXLXw6LilE16QO0siFBDiNzmaRP6ca5ZyF0gDWcaiUqJJtE/d4lV/Hpst2O33AmJB5n0DQa5w53gZLUVf7uXNg==}
-    engines: {node: '>=16.0.0'}
 
   hono@4.6.1:
     resolution: {integrity: sha512-6NGwvttY1+HAFii08VYiEKI6ETPAFbpLntpm2M/MogEsAFWdZV74UNT+2M4bmqX90cIQhjlpBSP+tO+CfB0uww==}
@@ -6744,19 +6746,9 @@ packages:
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
 
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/5e70bbbb1f8396402dd068e35c39afd2d507bfce:
-    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/5e70bbbb1f8396402dd068e35c39afd2d507bfce}
-    version: 0.1.0
-    hasBin: true
-
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d:
-    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d}
+  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e:
+    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e}
     version: 0.1.1
-    hasBin: true
-
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f:
-    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f}
-    version: 0.1.3
     hasBin: true
 
   start-server-and-test@2.0.3:
@@ -7092,9 +7084,9 @@ packages:
       '@swc/wasm':
         optional: true
 
-  ts-to-zod@https://codeload.github.com/stainless-api/stl-api/tar.gz/3a9757a2bc13b779c537996aee6b071ff755ad47:
-    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/3a9757a2bc13b779c537996aee6b071ff755ad47}
-    version: 0.0.4
+  ts-to-zod@https://codeload.github.com/stainless-api/stl-api/tar.gz/10de832478ea5fc3e213b17cfb57a01b7bc47817:
+    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/10de832478ea5fc3e213b17cfb57a01b7bc47817}
+    version: 0.0.5
 
   tslib@2.6.2:
     resolution: {integrity: sha512-AEYxH93jGFPn/a2iVAwW87VuUIkR1FVUKB77NwMF7nBTDkDrrT/Hpt/IrCJ0QXhW27jTBDcf5ZY7w6RiqTMw2Q==}
@@ -9984,12 +9976,12 @@ snapshots:
       micromark-util-character: 1.2.0
       micromark-util-symbol: 1.1.0
 
-  '@stl-api/next@https://codeload.github.com/stainless-api/stl-api/tar.gz/d61d02b59888c2739715872cba29b0f3930cfb01(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)':
+  '@stl-api/next@https://codeload.github.com/stainless-api/stl-api/tar.gz/3965038ee3e1d062a26291aef025b0c60f2206b1(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)':
     dependencies:
-      hono: 2.7.8
+      hono: 4.6.1
       lodash: 4.17.21
       qs: 6.13.0
-      stainless: https://codeload.github.com/stainless-api/stl-api/tar.gz/5e70bbbb1f8396402dd068e35c39afd2d507bfce(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+      stainless: https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
     transitivePeerDependencies:
       - '@swc/core'
       - '@swc/wasm'
@@ -10354,6 +10346,8 @@ snapshots:
       undici-types: 6.19.8
 
   '@types/parse-json@4.0.2': {}
+
+  '@types/prettier@2.7.3': {}
 
   '@types/prismjs@1.26.3': {}
 
@@ -12495,8 +12489,6 @@ snapshots:
   hoist-non-react-statics@3.3.2:
     dependencies:
       react-is: 16.13.1
-
-  hono@2.7.8: {}
 
   hono@4.6.1: {}
 
@@ -15876,35 +15868,7 @@ snapshots:
 
   stackback@0.0.2: {}
 
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/5e70bbbb1f8396402dd068e35c39afd2d507bfce(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
-    dependencies:
-      dedent-js: 1.0.1
-      lodash: 4.17.21
-      qs: 6.13.0
-      ts-node: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
-      zod: 3.22.4
-      zod-openapi: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.22.4)
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - typescript
-
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
-    dependencies:
-      dedent-js: 1.0.1
-      lodash: 4.17.21
-      qs: 6.13.0
-      ts-node: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
-      zod: 3.22.4
-      zod-openapi: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.22.4)
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - typescript
-
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
+  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/7c730d0e83d046d06ca3cfed4c0ecceb94cbd72e(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
     dependencies:
       dedent-js: 1.0.1
       lodash: 4.17.21
@@ -16315,7 +16279,7 @@ snapshots:
     optionalDependencies:
       '@swc/core': 1.3.100(@swc/helpers@0.5.5)
 
-  ts-to-zod@https://codeload.github.com/stainless-api/stl-api/tar.gz/3a9757a2bc13b779c537996aee6b071ff755ad47:
+  ts-to-zod@https://codeload.github.com/stainless-api/stl-api/tar.gz/10de832478ea5fc3e213b17cfb57a01b7bc47817:
     dependencies:
       '@types/lodash': 4.17.7
       lodash: 4.17.21
