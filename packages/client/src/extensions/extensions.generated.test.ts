@@ -1,14 +1,5 @@
-import {
-  MockInstance,
-  afterEach,
-  beforeEach,
-  describe,
-  expect,
-  it,
-  vi,
-} from "vitest";
-import { Client } from "../core/api-client-types";
-import { makeClientWithInferredTypes } from "../core/api-client";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { Client, makeClient } from "../test-util/generated-api-types";
 import * as ReactQuery from "@tanstack/react-query";
 import * as MockAPI from "../test-util/api-server";
 
@@ -28,7 +19,7 @@ async function mockUseQueryImplementation({
 
 describe("react-query extension runtime", () => {
   describe("useQuery", () => {
-    let client: Client<MockAPI.API, Config>;
+    let client: Client;
     let mockFetch: typeof fetch;
     let mockUseQuery: typeof ReactQuery.useQuery;
 
@@ -45,15 +36,15 @@ describe("react-query extension runtime", () => {
         basePath: "/api" as const,
         extensions: { reactQuery: { ...ReactQuery, useQuery: mockUseQuery } },
       };
-      client = makeClientWithInferredTypes<MockAPI.API, Config>(config);
+      client = makeClient(config);
     });
 
     afterEach(() => {
       vi.restoreAllMocks();
     });
 
-    it.skip("Should send the correct queryFn and queryKey", () => {
-      client.cats.list({ color: "black" }).useQuery();
+    it("Should send the correct queryFn and queryKey", () => {
+      client.cats.list().useQuery();
       expect(mockUseQuery).toBeCalledWith({
         queryFn: expect.any(Function),
         queryKey: ["/api/cats"],
@@ -66,7 +57,7 @@ describe("react-query extension runtime", () => {
       expect(mockFetch).toBeCalledWith("/api/cats", { method: "GET" });
     });
 
-    it.skip("Should allow for query params", async () => {
+    it("Should allow for query params", async () => {
       client.cats.list({ color: "black" }).useQuery();
       expect(mockUseQuery).toBeCalledWith({
         queryFn: expect.any(Function),

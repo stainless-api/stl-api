@@ -57,27 +57,48 @@ type CallableEndpoint<
     : never
   : /** Add types for API call method */ {
       [key in ActionName]: EndpointBodyInput<EPConfig> extends undefined
-        ? () => Promise<EndpointResponseOutput<EPConfig>>
+        ? (
+            query?: z.input<EPConfig["query"]>
+          ) => Promise<EndpointResponseOutput<EPConfig>> &
+            GetExtensions<
+              Extensions,
+              EndpointBodyInput<EPConfig>,
+              EndpointQueryInput<EPConfig>,
+              EndpointResponseOutput<EPConfig>
+            >
         : (
-            body: EndpointBodyInput<EPConfig>
-          ) => Promise<EndpointResponseOutput<EPConfig>>;
+            body: EndpointBodyInput<EPConfig>,
+            query?: z.input<EPConfig["query"]>
+          ) => Promise<EndpointResponseOutput<EPConfig>> &
+            GetExtensions<
+              Extensions,
+              EndpointBodyInput<EPConfig>,
+              EndpointQueryInput<EPConfig>,
+              EndpointResponseOutput<EPConfig>
+            >;
     } & {
       [key in ActionName as `use${Capitalize<key>}`]: EndpointBodyInput<EPConfig> extends undefined
-        ? () => {
+        ? (query?: z.input<EPConfig["query"]>) => {
             queryKey: string[];
             queryFn: () => Promise<EndpointResponseOutput<EPConfig>>;
           }
-        : (body: EndpointBodyInput<EPConfig>) => {
+        : (
+            body: EndpointBodyInput<EPConfig>,
+            query?: z.input<EPConfig["query"]>
+          ) => {
             queryKey: string[];
             queryFn: () => Promise<EndpointResponseOutput<EPConfig>>;
           };
     } & {
       [key in ActionName]: keyof Extensions extends string
-        ? GetExtensions<
-            Extensions,
-            EndpointBodyInput<EPConfig>,
-            EndpointResponseOutput<EPConfig>
-          >
+        ? EPConfig["query"] extends undefined
+          ? GetExtensions<
+              Extensions,
+              EndpointBodyInput<EPConfig>,
+              EndpointQueryInput<EPConfig>,
+              EndpointResponseOutput<EPConfig>
+            >
+          : "undefined"
         : "undefined";
     };
 

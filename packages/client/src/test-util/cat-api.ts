@@ -2,9 +2,18 @@ import { Stl, z } from "stainless";
 
 const stl = new Stl({ plugins: {} });
 
+const colorEnum = {
+  red: "red",
+  blue: "blue",
+  black: "black",
+  white: "white",
+};
+export type Color = keyof typeof colorEnum;
+export const color = z.nativeEnum(colorEnum);
+
 const cat = z.object({
   name: z.string(),
-  color: z.string(),
+  color: color,
 });
 
 const catPath = z.path({
@@ -13,17 +22,30 @@ const catPath = z.path({
 
 const createCatBody = z.body({
   name: z.string().trim(),
-  color: z.string().trim(),
+  color: color,
+});
+
+const CatQuery = z.object({
+  color: color,
 });
 
 const listCats = stl.endpoint({
   endpoint: "GET /api/cats",
   response: cat.array(),
-  handler: async (_params, _context) => {
-    return [
+  query: CatQuery,
+  handler: async (params, _context) => {
+    const cats = [
       { name: "Shiro", color: "black" },
       { name: "baby!", color: "black" },
+      { name: "baby!", color: "white" },
+      { name: "baby!", color: "red" },
     ];
+
+    if (params.color) {
+      return cats.filter((cat) => cat.color === params.color);
+    }
+
+    return cats;
   },
 });
 

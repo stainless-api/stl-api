@@ -199,52 +199,47 @@ function makeActionType(
   const action = api.resources[resources[0]].actions[resources[1]];
   const types: string[] = [];
   const body = action.body ? `body: ${zodToString(action.body)}` : "";
+  const query = action.query
+    ? `${body.length ? ", " : ""}query?: ${zodToString(action.query)}`
+    : "";
   const returnType = action.response ? zodToString(action.response) : "void";
 
   types.push(dedent`
-    use${capitalize(camelCase(name))}(${body}): {
+    use${capitalize(camelCase(name))}(${body}${query}): {
       queryFn(): Promise<${returnType}>;
       queryKey: string[];
     };`);
 
   if (config.extensions) {
-    if (action.body) {
-      const input = zodToString(action.body);
+    const input = action.body ? zodToString(action.body) : undefined;
+    const extensionMethds = dedent`
+        useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<${returnType}>;
+        useSuspenseQuery(opts?: UseSuspenseQueryOptions): ReactQuery.UseSuspenseQueryResult<${returnType}>;
+    `;
+    const extensionMutationMethod =
+      input !== undefined
+        ? dedent`useMutation(opts?: UseMutationOptions<${returnType}, unknown, ${input}>): ReactQuery.UseMutationResult<${returnType}, unknown, ${input}>;`
+        : dedent`useMutation(opts?: UseMutationOptions<${returnType}, unknown, void>): ReactQuery.UseMutationResult<${returnType}, unknown, void>;`;
+    const extensionQueryKeyMethod = `getQueryKey(): string[];`;
 
-      types.push(dedent`
-        ${camelCase(name)}: {
-          (${body}): Promise<${returnType}>;
-          useQuery(
-            body: ${input},
-            opts?: UseQueryOptions
-          ): ReactQuery.UseQueryResult<${returnType}>;
-          useSuspenseQuery(
-            body: ${input},
-            opts?: UseQueryOptions
-          ): ReactQuery.UseSuspenseQueryResult<${returnType}>;
-          useMutation(
-            opts?: UseMutationOptions
-          ): ReactQuery.UseMutationResult<${returnType}, unknown, ${input}>;
-          getQueryKey(): string[];
-          };`);
+    if (body.length || query.length) {
+      types.push(
+        `${camelCase(name)}: {
+          (${body}${query}): Promise<${returnType}> & {${extensionMethds}};
+          ${extensionMutationMethod}
+          ${extensionQueryKeyMethod}
+        };`
+      );
     } else {
-      types.push(dedent`
-        ${camelCase(name)}: {
-          (${body}): Promise<${returnType}>;
-          useQuery(
-            opts?: UseQueryOptions
-          ): ReactQuery.UseQueryResult<${returnType}>;
-          useSuspenseQuery(
-            opts?: UseQueryOptions
-          ): ReactQuery.UseSuspenseQueryResult<${returnType}>;
-          useMutation(
-            opts?: UseMutationOptions
-          ): ReactQuery.UseMutationResult<${returnType}, unknown, void>;
-          getQueryKey(): string[];
-          };`);
+      types.push(dedent`${camelCase(name)}: {
+        (): Promise<${returnType}>;
+        ${extensionMethds}
+        ${extensionMutationMethod}
+        ${extensionQueryKeyMethod}
+      };`);
     }
   } else {
-    types.push(`${camelCase(name)}(${body}): Promise<`);
+    types.push(`${camelCase(name)}(${body}${query}): Promise<`);
     types.push(`${returnType}`);
     types.push(">;");
   }
@@ -300,8 +295,11 @@ function makeTypes(
 
       type StlApiProvidedOpts = "queryFn" | "queryKey" | "mutationFn";
       type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts>;
-      type UseMutationOptions = Omit<ReactQuery.UseMutationOptions, StlApiProvidedOpts>;
-
+      type UseSuspenseQueryOptions = Omit<ReactQuery.UseSuspenseQueryOptions, StlApiProvidedOpts>;
+      type UseMutationOptions<TData = unknown, TError = Error, TVariables = void, TContext = unknown> = Omit<
+        ReactQuery.UseMutationOptions<TData, TError, TVariables, TContext>,
+        StlApiProvidedOpts
+      >;
     `);
   }
 
@@ -337,7 +335,6 @@ export async function generateOutput<API extends APIConfig>(
   );
 
   return await prettier.format(output.flat().join("\n"), {
-    semi: false,
-    parser: "typescript",
+    parser: "babel",
   });
 }

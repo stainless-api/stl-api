@@ -12,8 +12,9 @@ export async function mockFetchImplementation(
   const mockCat = { name: "Shiro", color: "black" };
   let payload;
   let update;
+  const [url, _search] = input.toString().split("?");
 
-  switch (`${options?.method} ${input}`) {
+  switch (`${options?.method} ${url}`) {
     case "GET /api/cats":
       payload = [mockCat];
       break;
@@ -41,6 +42,8 @@ export async function mockFetchImplementation(
     case "GET /api/dogs/fido/dogTreats/treatId":
       payload = { yummy: true };
       break;
+    case "PATCH /api/dogs/fido!":
+      return Promise.reject({ status: 500, message: "error message" });
 
     default:
       throw new Error(`Unmocked endpoint: ${options?.method} ${input}`);
@@ -72,7 +75,6 @@ export const nestedApi = stl.api({
     },
   },
 });
-
 export const customBasePathApi = stl.api({
   basePath: LongBasePath.complicatedBasePath,
   resources: {
@@ -84,7 +86,6 @@ export type APIWithCustomBasePathAPI = typeof customBasePathApi;
 export type APIWithCustomBasePathConfig = {
   basePath: APIWithCustomBasePathAPI["basePath"];
 };
-
 export type API = typeof api;
 export const config = { basePath: "/api" } as const;
 export type Config = typeof config;

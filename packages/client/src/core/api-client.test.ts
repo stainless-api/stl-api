@@ -88,6 +88,14 @@ describe("API Client", () => {
       expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
     });
 
+    it("can pass query params", async () => {
+      const cats = await client.cats.list({ color: "black" });
+      expect(mockFetch).toHaveBeenCalledWith("/api/cats?color=black", {
+        method: "GET",
+      });
+      expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
+    });
+
     it("can send a request body", async () => {
       const update = await client
         .cats<"update">("shiro")
@@ -115,9 +123,21 @@ describe("API Client", () => {
       });
       expect(treat).toStrictEqual([{ yummy: true }]);
     });
+
+    it("handles thrown errors", async () => {
+      const shouldThrow = client.dogs<"update">("fido").update({});
+      await expect(shouldThrow).rejects.toThrow(
+        "Unmocked endpoint: PATCH /api/dogs/fido"
+      );
+    });
+
+    it("handles error responses", async () => {
+      const shouldThrow = client.dogs<"update">("fido!").update({});
+      await expect(shouldThrow).rejects.toThrow("error message");
+    });
   });
 
-  describe("react hook calls", () => {
+  describe("`useMethod` style call", () => {
     let client: Client<MockAPI.API, MockAPI.Config>;
     let mockFetch: typeof fetch;
 
@@ -141,6 +161,19 @@ describe("API Client", () => {
 
       const cats = await queryFn();
       expect(mockFetch).toHaveBeenCalledWith("/api/cats", { method: "GET" });
+      expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
+    });
+
+    it("can pass query params", async () => {
+      const { queryFn, queryKey } = client.cats.useList({ color: "black" });
+
+      expect(queryKey).toEqual(["/api/cats"]);
+      expect(queryFn).toBeTypeOf("function");
+
+      const cats = await queryFn();
+      expect(mockFetch).toHaveBeenCalledWith("/api/cats?color=black", {
+        method: "GET",
+      });
       expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
     });
 
