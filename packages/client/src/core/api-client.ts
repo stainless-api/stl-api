@@ -1,6 +1,6 @@
 import { HttpMethod } from "stainless";
 import { APIConfig, Client, ClientConfig } from "./api-client-types";
-import { camelCase, kebabCase } from "../util/strings";
+import { kebabCase } from "../util/strings";
 import { getExtensionHandler } from "../extensions";
 
 const methodSynonyms = {
@@ -8,9 +8,9 @@ const methodSynonyms = {
   POST: ["post", "create", "make"],
   PUT: ["put"],
   PATCH: ["patch", "update"],
-  DELETE: ["delete", "destroy"],
-  OPTIONS: [],
-  HEAD: [],
+  DELETE: ["delete", "destroy", "remove"],
+  OPTIONS: ["options"],
+  HEAD: ["head"],
 } satisfies Record<HttpMethod, string[]>;
 
 /**
@@ -44,14 +44,40 @@ function isValidPathParam(arg: unknown): arg is string | number {
   return typeof arg === "string" || typeof arg === "number";
 }
 
-function makeUrl(callPath: string[], outputCase: "camel" | "kebab" = "kebab") {
-  return outputCase === "kebab"
-    ? callPath
-        .map((str) =>
-          str.startsWith(":") ? str.replace(":", "") : kebabCase(str)
-        )
-        .join("/")
-    : callPath.map((str) => str.replace(":", "")).join("/");
+function isQueryOrBody(arg: unknown): arg is Record<string, string> {
+  return typeof arg === "object";
+}
+
+function makeUrl(
+  callPath: string[],
+  {
+    outputCase,
+    method,
+    body,
+    query,
+  }: {
+    outputCase?: "camel" | "kebab";
+    method: HttpMethod;
+    body?: unknown;
+    query?: Record<string, string>;
+  }
+) {
+  let url =
+    outputCase === "kebab" || outputCase === undefined
+      ? callPath
+          .map((str) =>
+            str.startsWith(":") ? str.replace(":", "") : kebabCase(str)
+          )
+          .join("/")
+      : callPath.map((str) => str.replace(":", "")).join("/");
+
+  if (query) {
+    url = `${url}?${new URLSearchParams(Object.entries(query))}`;
+  } else if (method === "GET" && body !== undefined && body !== null) {
+    url = `${url}?${new URLSearchParams(Object.entries(body))}`;
+  }
+
+  return url;
 }
 
 /**
@@ -65,11 +91,17 @@ function makeUrl(callPath: string[], outputCase: "camel" | "kebab" = "kebab") {
 async function makeRequest(
   config: ClientConfig<string>,
   action: string,
-  [basePath, ...callPath]: string[],
-  body?: unknown
+  callPath: string[],
+  body?: unknown,
+  query?: Record<string, string>
 ) {
   const method = inferHTTPMethod(action, body);
-  const url = `${basePath}/${makeUrl(callPath, config.urlCase)}`;
+  const url = makeUrl(callPath, {
+    outputCase: config.urlCase,
+    method,
+    body,
+    query,
+  });
   const fetchFn = config.fetch ?? fetch;
   const options: RequestInit =
     method !== "GET" && body !== undefined
@@ -84,7 +116,15 @@ async function makeRequest(
 
   const response = await fetchFn(url, options);
 
-  return await response.json();
+  if (!response.ok) {
+    throw response;
+  }
+
+  try {
+    return await response.json();
+  } catch (e) {
+    return response;
+  }
 }
 
 function createClientProxy(
@@ -110,7 +150,11 @@ function createClientProxy(
         callPath.push(":" + pendingArgs[0].toString());
       }
 
-      return createClientProxy(config, [...callPath, key], undefined);
+      return createClientProxy(
+        config,
+        [...callPath, key],
+        isQueryOrBody(pendingArgs[0]) ? pendingArgs : undefined
+      );
     },
     apply(_target, _thisArg, argumentsList) {
       const lastCall = callPath[callPath.length - 1];
@@ -130,10 +174,19 @@ function createClientProxy(
       if (config.extensions) {
         const [action, extensionMethod] = callPath.slice(-2);
         const path = callPath.slice(0, -2);
-        const body = argumentsList[0];
-        const queryFn = (callTimeBody?: any) =>
-          makeRequest(config, action, path, callTimeBody ?? body);
-        const queryKey = [makeUrl(path, config.urlCase)];
+        const bodyOrQuery = isQueryOrBody(pendingArgs[0])
+          ? pendingArgs[0]
+          : undefined;
+        const queryFn = (callTimeBody?: any) => {
+          const method = inferHTTPMethod(action);
+          const body = method === "GET" ? undefined : callTimeBody;
+          const query = method === "GET" ? bodyOrQuery : undefined;
+
+          return makeRequest(config, action, path, body, query);
+        };
+        const queryKey = [
+          makeUrl(path, { outputCase: config.urlCase, method: "GET" }),
+        ];
         const handler = getExtensionHandler(
           config.extensions,
           extensionMethod,
@@ -153,7 +206,9 @@ function createClientProxy(
 
         return {
           queryFn: () => makeRequest(config, action, path, body),
-          queryKey: [makeUrl(path, config.urlCase)],
+          queryKey: [
+            makeUrl(path, { outputCase: config.urlCase, method: "GET" }),
+          ],
         };
       }
 

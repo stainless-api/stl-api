@@ -35,19 +35,19 @@ describe("API Client", () => {
         .cats<"retrieveLitter">("shiro")
         .litter.retrieveLitter();
 
-      expectTypeOf(listOutput).toEqualTypeOf<
+      expectTypeOf(listOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }[]>
       >();
-      expectTypeOf(createOutput).toEqualTypeOf<
+      expectTypeOf(createOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }>
       >();
-      expectTypeOf(retrieveOutput).toEqualTypeOf<
+      expectTypeOf(retrieveOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }>
       >();
-      expectTypeOf(updateOutput).toEqualTypeOf<
+      expectTypeOf(updateOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }>
       >();
-      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<
+      expectTypeOf(retrieveLitterOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }[]>
       >();
     });
@@ -107,7 +107,7 @@ describe("API Client", () => {
         .cats<"retrieveLitter">("shiro")
         .litter.retrieveLitter();
 
-      expectTypeOf(retrieveLitterOutput).toEqualTypeOf<
+      expectTypeOf(retrieveLitterOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }[]>
       >();
     });
@@ -117,7 +117,7 @@ describe("API Client", () => {
         .cats({ catName: "shiro", discriminator: "retrieve" })
         .retrieve();
 
-      expectTypeOf(retrieveOutput).toEqualTypeOf<
+      expectTypeOf(retrieveOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }>
       >();
     });
@@ -142,10 +142,10 @@ describe("API Client", () => {
       let catListOutput = client.cats.list();
       let dogListOutput = client.dogs.list();
 
-      expectTypeOf(catListOutput).toEqualTypeOf<
+      expectTypeOf(catListOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }[]>
       >();
-      expectTypeOf(dogListOutput).toEqualTypeOf<
+      expectTypeOf(dogListOutput).toMatchTypeOf<
         Promise<{ name: string; color: string }[]>
       >();
     });
@@ -155,7 +155,7 @@ describe("API Client", () => {
         .dogs<"retrieveTreat">("fido")
         .dogTreats("treatId")
         .retrieveTreat();
-      expectTypeOf(dogTreatOutput).toEqualTypeOf<Promise<{ yummy: boolean }>>();
+      expectTypeOf(dogTreatOutput).toMatchTypeOf<Promise<{ yummy: boolean }>>();
     });
   });
 });

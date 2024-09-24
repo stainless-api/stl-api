@@ -1,78 +1,71 @@
-// @ts-nocheck
 import { describe, expectTypeOf, test } from "vitest";
-import { cats } from "../test-util/cat-api";
-import { dogs } from "../test-util/dog-api";
-import { dogTreats } from "../test-util/dog-treat-api";
+import { Color } from "../test-util/cat-api";
 import { Stl } from "stainless";
-import { makeClientWithInferredTypes } from "../core/api-client";
 import { ClientConfig } from "../core/api-client-types";
 import { Config } from "./react-query";
+import { makeClient } from "../test-util/generated-api-types";
 
 const stl = new Stl({ plugins: {} });
 
-describe.skip("Client extensions", () => {
+describe("Client extensions", () => {
   describe("react-query", () => {
-    const api = stl.api({
-      basePath: "/api",
-      resources: {
-        cats,
-        dogs,
-        dogTreats,
-      },
-    });
-
     const config = {
       basePath: "/api" as const,
       extensions: { reactQuery: {} as Config },
     } satisfies ClientConfig;
-    const client = makeClientWithInferredTypes<typeof api, typeof config>(
-      config
-    );
+
+    const client = makeClient(config);
 
     test("adds useQuery method", () => {
-      const cats = client.cats.list().useQuery();
-      expectTypeOf(cats.data).toMatchTypeOf<
-        { name: string; color: string }[] | undefined
+      const cats = client.cats.list({ color: "black" }).useQuery();
+      expectTypeOf(cats.data).toEqualTypeOf<
+        { name: string; color: Color }[] | undefined
       >();
     });
 
     test("handles query params", () => {
       const cats = client.cats.list({ color: "black" }).useQuery();
       expectTypeOf(cats.data).toEqualTypeOf<
-        { name: string; color: string }[] | undefined
+        { name: string; color: Color }[] | undefined
       >();
     });
 
     test("adds useSuspenseQuery method", () => {
-      const cats = client.cats.list().useSuspenseQuery();
-      expectTypeOf(cats.data).toEqualTypeOf<
-        { name: string; color: string }[]
-      >();
+      const cats = client.cats.list({ color: "black" }).useSuspenseQuery();
+      expectTypeOf(cats.data).toEqualTypeOf<{ name: string; color: Color }[]>();
     });
 
     test("adds useMutation method", () => {
-      const mutation = client.cats<"update">("shiro").update.useMutation();
+      const mutation = client.cats("shiro").update.useMutation();
       expectTypeOf(mutation.mutate).toBeCallableWith({
         name: "string",
-        color: "string",
+        color: "black",
       });
       expectTypeOf(mutation.mutateAsync).toBeCallableWith({
         name: "string",
-        color: "string",
+        color: "blue",
+      });
+    });
+
+    test("has correct mutation option types", () => {
+      expectTypeOf(client.cats("shiro").update.useMutation).toBeCallableWith({
+        onSuccess({ name, color }) {
+          return { name, color };
+        },
       });
     });
 
     test("adds getQueryKey method", () => {
-      const queryKey = client.cats.list().getQueryKey();
+      const queryKey = client.cats.list.getQueryKey();
       expectTypeOf(queryKey).toEqualTypeOf<string[]>();
     });
 
     test("keeps non react-query methods", async () => {
       let cats = await client.cats.list();
-      expectTypeOf(cats).toEqualTypeOf<{ name: string; color: string }[]>();
+      expectTypeOf(cats).toEqualTypeOf<{ name: string; color: Color }[]>();
 
       cats = await client.cats.useList().queryFn();
-      expectTypeOf(cats).toEqualTypeOf<{ name: string; color: string }[]>();
+      expectTypeOf(cats).toEqualTypeOf<{ name: string; color: Color }[]>();
     });
   });
 });

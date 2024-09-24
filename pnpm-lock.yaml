@@ -46,7 +46,7 @@ importers:
     dependencies:
       '@next-auth/prisma-adapter':
         specifier: ^1.0.7
-        version: 1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+        version: 1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@prisma/client':
         specifier: ^4.16.2
         version: 4.16.2(prisma@4.16.2)
@@ -82,10 +82,10 @@ importers:
         version: 2.30.0
       next:
         specifier: ^14.2.8
-        version: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-auth:
         specifier: ^4.24.7
-        version: 4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       prisma:
         specifier: ^4.16.2
         version: 4.16.2
@@ -194,7 +194,7 @@ importers:
         version: 3.4.10(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2))
       ts-jest:
         specifier: ^29.1.1
-        version: 29.1.1(@babel/core@7.25.2)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2)
+        version: 29.1.1(@babel/core@7.23.5)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.23.5))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2)
       ts-node:
         specifier: ^10.9.1
         version: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)
@@ -316,8 +316,8 @@ importers:
         specifier: ^3.3.3
         version: 3.3.3
       stainless:
-        specifier: github:stainless-api/stl-api#stainless-0.1.4
-        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/141cb9fde6a42c99df89d2e95b457dc8c936f85d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+        specifier: github:stainless-api/stl-api#stainless-0.1.3
+        version: https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -401,7 +401,7 @@ importers:
         version: 6.9.15
       next:
         specifier: ^14.2.8
-        version: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -420,7 +420,7 @@ importers:
         version: 20.16.5
       next:
         specifier: ^14.2.8
-        version: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-auth:
         specifier: ^4.24.5
         version: 4.24.5(next@14.2.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -6744,11 +6744,6 @@ packages:
   stackback@0.0.2:
     resolution: {integrity: sha512-1XMJE5fQo1jGH6Y/7ebnwPOBEkIEnT4QF32d5R1+VXdXveM0IBMJt8zfaxX1P3QhVwrYe+576+jkANtSS2mBbw==}
 
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/141cb9fde6a42c99df89d2e95b457dc8c936f85d:
-    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/141cb9fde6a42c99df89d2e95b457dc8c936f85d}
-    version: 0.1.4
-    hasBin: true
-
   stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/5e70bbbb1f8396402dd068e35c39afd2d507bfce:
     resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/5e70bbbb1f8396402dd068e35c39afd2d507bfce}
     version: 0.1.0
@@ -6757,6 +6752,11 @@ packages:
   stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d:
     resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d}
     version: 0.1.1
+    hasBin: true
+
+  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f:
+    resolution: {tarball: https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f}
+    version: 0.1.3
     hasBin: true
 
   start-server-and-test@2.0.3:
@@ -9833,10 +9833,10 @@ snapshots:
       '@types/react': 18.0.28
       react: 17.0.2
 
-  '@next-auth/prisma-adapter@1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))':
+  '@next-auth/prisma-adapter@1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))':
     dependencies:
       '@prisma/client': 4.16.2(prisma@4.16.2)
-      next-auth: 4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next-auth: 4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
   '@next/env@14.2.9': {}
 
@@ -14247,7 +14247,7 @@ snapshots:
       '@panva/hkdf': 1.2.1
       cookie: 0.5.0
       jose: 4.15.9
-      next: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       oauth: 0.9.15
       openid-client: 5.7.0
       preact: 10.19.2
@@ -14256,13 +14256,13 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       uuid: 8.3.2
 
-  next-auth@4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next-auth@4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.25.6
       '@panva/hkdf': 1.2.1
       cookie: 0.5.0
       jose: 4.15.9
-      next: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       oauth: 0.9.15
       openid-client: 5.7.0
       preact: 10.19.2
@@ -14271,7 +14271,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       uuid: 8.3.2
 
-  next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@next/env': 14.2.9
       '@swc/helpers': 0.5.5
@@ -14281,7 +14281,7 @@ snapshots:
       postcss: 8.4.31
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      styled-jsx: 5.1.1(@babel/core@7.25.2)(react@18.3.1)
+      styled-jsx: 5.1.1(@babel/core@7.23.5)(react@18.3.1)
     optionalDependencies:
       '@next/swc-darwin-arm64': 14.2.9
       '@next/swc-darwin-x64': 14.2.9
@@ -15876,20 +15876,6 @@ snapshots:
 
   stackback@0.0.2: {}
 
-  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/141cb9fde6a42c99df89d2e95b457dc8c936f85d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
-    dependencies:
-      dedent-js: 1.0.1
-      lodash: 4.17.21
-      qs: 6.13.0
-      ts-node: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
-      zod: 3.22.4
-      zod-openapi: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.22.4)
-    transitivePeerDependencies:
-      - '@swc/core'
-      - '@swc/wasm'
-      - '@types/node'
-      - typescript
-
   stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/5e70bbbb1f8396402dd068e35c39afd2d507bfce(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
     dependencies:
       dedent-js: 1.0.1
@@ -15905,6 +15891,20 @@ snapshots:
       - typescript
 
   stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/d1b392e7dae869a2db0671a2939ad4a84ab3c17d(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
+    dependencies:
+      dedent-js: 1.0.1
+      lodash: 4.17.21
+      qs: 6.13.0
+      ts-node: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
+      zod: 3.22.4
+      zod-openapi: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.22.4)
+    transitivePeerDependencies:
+      - '@swc/core'
+      - '@swc/wasm'
+      - '@types/node'
+      - typescript
+
+  stainless@https://codeload.github.com/stainless-api/stl-api/tar.gz/ef991c2ca41bbe8e398d64702109d474364ab67f(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2):
     dependencies:
       dedent-js: 1.0.1
       lodash: 4.17.21
@@ -16028,12 +16028,12 @@ snapshots:
     dependencies:
       inline-style-parser: 0.2.3
 
-  styled-jsx@5.1.1(@babel/core@7.25.2)(react@18.3.1):
+  styled-jsx@5.1.1(@babel/core@7.23.5)(react@18.3.1):
     dependencies:
       client-only: 0.0.1
       react: 18.3.1
     optionalDependencies:
-      '@babel/core': 7.25.2
+      '@babel/core': 7.23.5
 
   stylehacks@6.1.1(postcss@8.4.32):
     dependencies:
@@ -16219,7 +16219,7 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-jest@29.1.1(@babel/core@7.25.2)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2):
+  ts-jest@29.1.1(@babel/core@7.23.5)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.23.5))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
@@ -16232,9 +16232,9 @@ snapshots:
       typescript: 5.3.2
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@babel/core': 7.25.2
+      '@babel/core': 7.23.5
       '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.25.2)
+      babel-jest: 29.7.0(@babel/core@7.23.5)
 
   ts-jest@29.1.1(@babel/core@7.25.2)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@20.16.5)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)))(typescript@5.3.2):
     dependencies:

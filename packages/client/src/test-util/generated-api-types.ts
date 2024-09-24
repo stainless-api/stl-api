@@ -6,94 +6,121 @@ import * as ReactQuery from "@tanstack/react-query";
 
 type StlApiProvidedOpts = "queryFn" | "queryKey" | "mutationFn";
 type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts>;
-type UseMutationOptions = Omit<
-  ReactQuery.UseMutationOptions,
+type UseSuspenseQueryOptions = Omit<
+  ReactQuery.UseSuspenseQueryOptions,
   StlApiProvidedOpts
 >;
-
+type UseMutationOptions<
+  TData = unknown,
+  TError = Error,
+  TVariables = void,
+  TContext = unknown
+> = Omit<
+  ReactQuery.UseMutationOptions<TData, TError, TVariables, TContext>,
+  StlApiProvidedOpts
+>;
 export interface Client {
   cats: {
-    useList(): {
+    useList(query?: { color: "red" | "blue" | "black" | "white" }): {
       queryFn(): Promise<
         {
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }[]
       >;
       queryKey: string[];
     };
     list: {
-      (): Promise<
+      (query?: { color: "red" | "blue" | "black" | "white" }): Promise<
         {
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }[]
-      >;
-      useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<
+      > & {
+        useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<
+          {
+            name: string;
+            color: "red" | "blue" | "black" | "white";
+          }[]
+        >;
+        useSuspenseQuery(
+          opts?: UseSuspenseQueryOptions
+        ): ReactQuery.UseSuspenseQueryResult<
+          {
+            name: string;
+            color: "red" | "blue" | "black" | "white";
+          }[]
+        >;
+      };
+      useMutation(
+        opts?: UseMutationOptions<
+          {
+            name: string;
+            color: "red" | "blue" | "black" | "white";
+          }[],
+          unknown,
+          void
+        >
+      ): ReactQuery.UseMutationResult<
         {
           name: string;
-          color: string;
-        }[]
-      >;
-      useSuspenseQuery(
-        opts?: UseQueryOptions
-      ): ReactQuery.UseSuspenseQueryResult<
-        {
-          name: string;
-          color: string;
-        }[]
-      >;
-      useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
-        {
-          name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }[],
         unknown,
         void
       >;
       getQueryKey(): string[];
     };
-    useCreate(body: { name: string; color: string }): {
+    useCreate(body: {
+      name: string;
+      color: "red" | "blue" | "black" | "white";
+    }): {
       queryFn(): Promise<{
         name: string;
-        color: string;
+        color: "red" | "blue" | "black" | "white";
       }>;
       queryKey: string[];
     };
     create: {
-      (body: { name: string; color: string }): Promise<{
+      (body: {
         name: string;
-        color: string;
-      }>;
-      useQuery(
-        body: {
+        color: "red" | "blue" | "black" | "white";
+      }): Promise<{
+        name: string;
+        color: "red" | "blue" | "black" | "white";
+      }> & {
+        useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
           name: string;
-          color: string;
-        },
-        opts?: UseQueryOptions
-      ): ReactQuery.UseQueryResult<{
-        name: string;
-        color: string;
-      }>;
-      useSuspenseQuery(
-        body: {
+          color: "red" | "blue" | "black" | "white";
+        }>;
+        useSuspenseQuery(
+          opts?: UseSuspenseQueryOptions
+        ): ReactQuery.UseSuspenseQueryResult<{
           name: string;
-          color: string;
-        },
-        opts?: UseQueryOptions
-      ): ReactQuery.UseSuspenseQueryResult<{
-        name: string;
-        color: string;
-      }>;
-      useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+          color: "red" | "blue" | "black" | "white";
+        }>;
+      };
+      useMutation(
+        opts?: UseMutationOptions<
+          {
+            name: string;
+            color: "red" | "blue" | "black" | "white";
+          },
+          unknown,
+          {
+            name: string;
+            color: "red" | "blue" | "black" | "white";
+          }
+        >
+      ): ReactQuery.UseMutationResult<
         {
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         },
         unknown,
         {
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }
       >;
       getQueryKey(): string[];
@@ -101,51 +128,54 @@ export interface Client {
     (catName: string | number): {
       useUpdate(body: {
         name?: string | undefined;
-        color?: string | undefined;
+        color?: ("red" | "blue" | "black" | "white") | undefined;
       }): {
         queryFn(): Promise<{
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }>;
         queryKey: string[];
       };
       update: {
         (body: {
           name?: string | undefined;
-          color?: string | undefined;
+          color?: ("red" | "blue" | "black" | "white") | undefined;
         }): Promise<{
           name: string;
-          color: string;
-        }>;
-        useQuery(
-          body: {
-            name?: string | undefined;
-            color?: string | undefined;
-          },
-          opts?: UseQueryOptions
-        ): ReactQuery.UseQueryResult<{
-          name: string;
-          color: string;
-        }>;
-        useSuspenseQuery(
-          body: {
-            name?: string | undefined;
-            color?: string | undefined;
-          },
-          opts?: UseQueryOptions
-        ): ReactQuery.UseSuspenseQueryResult<{
-          name: string;
-          color: string;
-        }>;
-        useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+          color: "red" | "blue" | "black" | "white";
+        }> & {
+          useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
+            name: string;
+            color: "red" | "blue" | "black" | "white";
+          }>;
+          useSuspenseQuery(
+            opts?: UseSuspenseQueryOptions
+          ): ReactQuery.UseSuspenseQueryResult<{
+            name: string;
+            color: "red" | "blue" | "black" | "white";
+          }>;
+        };
+        useMutation(
+          opts?: UseMutationOptions<
+            {
+              name: string;
+              color: "red" | "blue" | "black" | "white";
+            },
+            unknown,
+            {
+              name?: string | undefined;
+              color?: ("red" | "blue" | "black" | "white") | undefined;
+            }
+          >
+        ): ReactQuery.UseMutationResult<
           {
             name: string;
-            color: string;
+            color: "red" | "blue" | "black" | "white";
           },
           unknown,
           {
             name?: string | undefined;
-            color?: string | undefined;
+            color?: ("red" | "blue" | "black" | "white") | undefined;
           }
         >;
         getQueryKey(): string[];
@@ -153,29 +183,38 @@ export interface Client {
       useRetrieve(): {
         queryFn(): Promise<{
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }>;
         queryKey: string[];
       };
       retrieve: {
         (): Promise<{
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }>;
         useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }>;
         useSuspenseQuery(
-          opts?: UseQueryOptions
+          opts?: UseSuspenseQueryOptions
         ): ReactQuery.UseSuspenseQueryResult<{
           name: string;
-          color: string;
+          color: "red" | "blue" | "black" | "white";
         }>;
-        useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+        useMutation(
+          opts?: UseMutationOptions<
+            {
+              name: string;
+              color: "red" | "blue" | "black" | "white";
+            },
+            unknown,
+            void
+          >
+        ): ReactQuery.UseMutationResult<
           {
             name: string;
-            color: string;
+            color: "red" | "blue" | "black" | "white";
           },
           unknown,
           void
@@ -187,7 +226,7 @@ export interface Client {
           queryFn(): Promise<
             {
               name: string;
-              color: string;
+              color: "red" | "blue" | "black" | "white";
             }[]
           >;
           queryKey: string[];
@@ -196,27 +235,36 @@ export interface Client {
           (): Promise<
             {
               name: string;
-              color: string;
+              color: "red" | "blue" | "black" | "white";
             }[]
           >;
           useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<
             {
               name: string;
-              color: string;
+              color: "red" | "blue" | "black" | "white";
             }[]
           >;
           useSuspenseQuery(
-            opts?: UseQueryOptions
+            opts?: UseSuspenseQueryOptions
           ): ReactQuery.UseSuspenseQueryResult<
             {
               name: string;
-              color: string;
+              color: "red" | "blue" | "black" | "white";
             }[]
           >;
-          useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+          useMutation(
+            opts?: UseMutationOptions<
+              {
+                name: string;
+                color: "red" | "blue" | "black" | "white";
+              }[],
+              unknown,
+              void
+            >
+          ): ReactQuery.UseMutationResult<
             {
               name: string;
-              color: string;
+              color: "red" | "blue" | "black" | "white";
             }[],
             unknown,
             void
@@ -250,14 +298,23 @@ export interface Client {
         }[]
       >;
       useSuspenseQuery(
-        opts?: UseQueryOptions
+        opts?: UseSuspenseQueryOptions
       ): ReactQuery.UseSuspenseQueryResult<
         {
           name: string;
           color: string;
         }[]
       >;
-      useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+      useMutation(
+        opts?: UseMutationOptions<
+          {
+            name: string;
+            color: string;
+          }[],
+          unknown,
+          void
+        >
+      ): ReactQuery.UseMutationResult<
         {
           name: string;
           color: string;
@@ -278,28 +335,31 @@ export interface Client {
       (body: { name: string; color: string }): Promise<{
         name: string;
         color: string;
-      }>;
-      useQuery(
-        body: {
+      }> & {
+        useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
           name: string;
           color: string;
-        },
-        opts?: UseQueryOptions
-      ): ReactQuery.UseQueryResult<{
-        name: string;
-        color: string;
-      }>;
-      useSuspenseQuery(
-        body: {
+        }>;
+        useSuspenseQuery(
+          opts?: UseSuspenseQueryOptions
+        ): ReactQuery.UseSuspenseQueryResult<{
           name: string;
           color: string;
-        },
-        opts?: UseQueryOptions
-      ): ReactQuery.UseSuspenseQueryResult<{
-        name: string;
-        color: string;
-      }>;
-      useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+        }>;
+      };
+      useMutation(
+        opts?: UseMutationOptions<
+          {
+            name: string;
+            color: string;
+          },
+          unknown,
+          {
+            name: string;
+            color: string;
+          }
+        >
+      ): ReactQuery.UseMutationResult<
         {
           name: string;
           color: string;
@@ -330,12 +390,21 @@ export interface Client {
           color: string;
         }>;
         useSuspenseQuery(
-          opts?: UseQueryOptions
+          opts?: UseSuspenseQueryOptions
         ): ReactQuery.UseSuspenseQueryResult<{
           name: string;
           color: string;
         }>;
-        useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+        useMutation(
+          opts?: UseMutationOptions<
+            {
+              name: string;
+              color: string;
+            },
+            unknown,
+            void
+          >
+        ): ReactQuery.UseMutationResult<
           {
             name: string;
             color: string;
@@ -362,28 +431,31 @@ export interface Client {
         }): Promise<{
           name: string;
           color: string;
-        }>;
-        useQuery(
-          body: {
-            name?: string | undefined;
-            color?: string | undefined;
-          },
-          opts?: UseQueryOptions
-        ): ReactQuery.UseQueryResult<{
-          name: string;
-          color: string;
-        }>;
-        useSuspenseQuery(
-          body: {
-            name?: string | undefined;
-            color?: string | undefined;
-          },
-          opts?: UseQueryOptions
-        ): ReactQuery.UseSuspenseQueryResult<{
-          name: string;
-          color: string;
-        }>;
-        useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+        }> & {
+          useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
+            name: string;
+            color: string;
+          }>;
+          useSuspenseQuery(
+            opts?: UseSuspenseQueryOptions
+          ): ReactQuery.UseSuspenseQueryResult<{
+            name: string;
+            color: string;
+          }>;
+        };
+        useMutation(
+          opts?: UseMutationOptions<
+            {
+              name: string;
+              color: string;
+            },
+            unknown,
+            {
+              name?: string | undefined;
+              color?: string | undefined;
+            }
+          >
+        ): ReactQuery.UseMutationResult<
           {
             name: string;
             color: string;
@@ -420,14 +492,23 @@ export interface Client {
             }[]
           >;
           useSuspenseQuery(
-            opts?: UseQueryOptions
+            opts?: UseSuspenseQueryOptions
           ): ReactQuery.UseSuspenseQueryResult<
             {
               name: string;
               color: string;
             }[]
           >;
-          useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+          useMutation(
+            opts?: UseMutationOptions<
+              {
+                name: string;
+                color: string;
+              }[],
+              unknown,
+              void
+            >
+          ): ReactQuery.UseMutationResult<
             {
               name: string;
               color: string;
@@ -459,13 +540,21 @@ export interface Client {
             }[]
           >;
           useSuspenseQuery(
-            opts?: UseQueryOptions
+            opts?: UseSuspenseQueryOptions
           ): ReactQuery.UseSuspenseQueryResult<
             {
               yummy: boolean;
             }[]
           >;
-          useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+          useMutation(
+            opts?: UseMutationOptions<
+              {
+                yummy: boolean;
+              }[],
+              unknown,
+              void
+            >
+          ): ReactQuery.UseMutationResult<
             {
               yummy: boolean;
             }[],
@@ -489,12 +578,18 @@ export interface Client {
               yummy: boolean;
             }>;
             useSuspenseQuery(
-              opts?: UseQueryOptions
+              opts?: UseSuspenseQueryOptions
             ): ReactQuery.UseSuspenseQueryResult<{
               yummy: boolean;
             }>;
             useMutation(
-              opts?: UseMutationOptions
+              opts?: UseMutationOptions<
+                {
+                  yummy: boolean;
+                },
+                unknown,
+                void
+              >
             ): ReactQuery.UseMutationResult<
               {
                 yummy: boolean;
@@ -513,25 +608,26 @@ export interface Client {
           update: {
             (body: { yummy: boolean }): Promise<{
               yummy: boolean;
-            }>;
-            useQuery(
-              body: {
+            }> & {
+              useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
                 yummy: boolean;
-              },
-              opts?: UseQueryOptions
-            ): ReactQuery.UseQueryResult<{
-              yummy: boolean;
-            }>;
-            useSuspenseQuery(
-              body: {
+              }>;
+              useSuspenseQuery(
+                opts?: UseSuspenseQueryOptions
+              ): ReactQuery.UseSuspenseQueryResult<{
                 yummy: boolean;
-              },
-              opts?: UseQueryOptions
-            ): ReactQuery.UseSuspenseQueryResult<{
-              yummy: boolean;
-            }>;
+              }>;
+            };
             useMutation(
-              opts?: UseMutationOptions
+              opts?: UseMutationOptions<
+                {
+                  yummy: boolean;
+                },
+                unknown,
+                {
+                  yummy: boolean;
+                }
+              >
             ): ReactQuery.UseMutationResult<
               {
                 yummy: boolean;
@@ -580,42 +676,50 @@ export interface Client {
           githubUsername?: (string | null) | undefined;
           createAt: string;
           updatedAt: string;
-        }>;
-        useQuery(
-          body: {
-            name?: string | undefined;
-            email?: string | undefined;
-            accountType?: ("admin" | "free" | "paid") | undefined;
-          },
-          opts?: UseQueryOptions
-        ): ReactQuery.UseQueryResult<{
-          id: string;
-          name?: (string | null) | undefined;
-          email?: (string | null) | undefined;
-          siteWideRole: "admin" | "user";
-          accountType: "admin" | "free" | "paid";
-          githubUsername?: (string | null) | undefined;
-          createAt: string;
-          updatedAt: string;
-        }>;
-        useSuspenseQuery(
-          body: {
-            name?: string | undefined;
-            email?: string | undefined;
-            accountType?: ("admin" | "free" | "paid") | undefined;
-          },
-          opts?: UseQueryOptions
-        ): ReactQuery.UseSuspenseQueryResult<{
-          id: string;
-          name?: (string | null) | undefined;
-          email?: (string | null) | undefined;
-          siteWideRole: "admin" | "user";
-          accountType: "admin" | "free" | "paid";
-          githubUsername?: (string | null) | undefined;
-          createAt: string;
-          updatedAt: string;
-        }>;
-        useMutation(opts?: UseMutationOptions): ReactQuery.UseMutationResult<
+        }> & {
+          useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<{
+            id: string;
+            name?: (string | null) | undefined;
+            email?: (string | null) | undefined;
+            siteWideRole: "admin" | "user";
+            accountType: "admin" | "free" | "paid";
+            githubUsername?: (string | null) | undefined;
+            createAt: string;
+            updatedAt: string;
+          }>;
+          useSuspenseQuery(
+            opts?: UseSuspenseQueryOptions
+          ): ReactQuery.UseSuspenseQueryResult<{
+            id: string;
+            name?: (string | null) | undefined;
+            email?: (string | null) | undefined;
+            siteWideRole: "admin" | "user";
+            accountType: "admin" | "free" | "paid";
+            githubUsername?: (string | null) | undefined;
+            createAt: string;
+            updatedAt: string;
+          }>;
+        };
+        useMutation(
+          opts?: UseMutationOptions<
+            {
+              id: string;
+              name?: (string | null) | undefined;
+              email?: (string | null) | undefined;
+              siteWideRole: "admin" | "user";
+              accountType: "admin" | "free" | "paid";
+              githubUsername?: (string | null) | undefined;
+              createAt: string;
+              updatedAt: string;
+            },
+            unknown,
+            {
+              name?: string | undefined;
+              email?: string | undefined;
+              accountType?: ("admin" | "free" | "paid") | undefined;
+            }
+          >
+        ): ReactQuery.UseMutationResult<
           {
             id: string;
             name?: (string | null) | undefined;

@@ -57,6 +57,14 @@ describe("Generated API Client", () => {
       expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
     });
 
+    it("can pass query params", async () => {
+      const cats = await client.cats.list({ color: "black" });
+      expect(mockFetch).toHaveBeenCalledWith("/api/cats?color=black", {
+        method: "GET",
+      });
+      expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
+    });
+
     it("can send a request body", async () => {
       const update = await client.cats("shiro").update({ name: "Shiro!" });
       expect(update).toStrictEqual({ name: "Shiro!", color: "black" });
@@ -108,6 +116,19 @@ describe("Generated API Client", () => {
 
       const cats = await queryFn();
       expect(mockFetch).toHaveBeenCalledWith("/api/cats", { method: "GET" });
+      expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
+    });
+
+    it("can pass query params", async () => {
+      const { queryFn, queryKey } = client.cats.useList({ color: "black" });
+
+      expect(queryKey).toEqual(["/api/cats"]);
+      expect(queryFn).toBeTypeOf("function");
+
+      const cats = await queryFn();
+      expect(mockFetch).toHaveBeenCalledWith("/api/cats?color=black", {
+        method: "GET",
+      });
       expect(cats).toStrictEqual([{ name: "Shiro", color: "black" }]);
     });
 

@@ -3,37 +3,29 @@ import * as ReactQuery from "@tanstack/react-query";
 export type Config = typeof ReactQuery;
 
 type StlApiProvidedOpts = "queryFn" | "queryKey" | "mutationFn";
-type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts>;
-type UseMutationOptions = Omit<
-  ReactQuery.UseMutationOptions,
+type UseQueryOptions = Omit<ReactQuery.UseQueryOptions, StlApiProvidedOpts> & {
+  query?: Record<string, unknown>;
+};
+type UseMutationOptions<
+  TData = unknown,
+  TError = Error,
+  TVariables = void,
+  TContext = unknown
+> = Omit<
+  ReactQuery.UseMutationOptions<TData, TError, TVariables, TContext>,
   StlApiProvidedOpts
 >;
 
-export type MakeExtension<Input, Output> = Input extends undefined
-  ? {
-      useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<Output>;
-      useSuspenseQuery(
-        opts?: UseQueryOptions
-      ): ReactQuery.UseSuspenseQueryResult<Output>;
-      useMutation(
-        opts?: UseMutationOptions
-      ): ReactQuery.UseMutationResult<Output, unknown, Input>;
-      getQueryKey(): string[];
-    }
-  : {
-      useQuery(
-        body: Input,
-        opts?: UseQueryOptions
-      ): ReactQuery.UseQueryResult<Output>;
-      useSuspenseQuery(
-        body: Input,
-        opts?: UseQueryOptions
-      ): ReactQuery.UseSuspenseQueryResult<Output>;
-      useMutation(
-        opts?: UseMutationOptions
-      ): ReactQuery.UseMutationResult<Output, unknown, Input>;
-      getQueryKey(): string[];
-    };
+export type MakeExtension<Input, Output> = {
+  useQuery(opts?: UseQueryOptions): ReactQuery.UseQueryResult<Output>;
+  useSuspenseQuery(
+    opts?: ReactQuery.UseSuspenseQueryOptions
+  ): ReactQuery.UseSuspenseQueryResult<Output>;
+  useMutation(
+    opts?: UseMutationOptions<Output, unknown, Input>
+  ): ReactQuery.UseMutationResult<Output, unknown, Input>;
+  getQueryKey(): string[];
+};
 
 export function configureMethods(
   config: Config,
@@ -41,16 +33,16 @@ export function configureMethods(
   queryKey: string[]
 ): MakeExtension<any, any> {
   return {
-    useQuery(bodyOrOptions, options) {
+    useQuery(options) {
       return config.useQuery({
-        ...(options ?? bodyOrOptions),
+        ...options,
         queryFn,
         queryKey,
       });
     },
-    useSuspenseQuery(bodyOrOptions, options) {
+    useSuspenseQuery(options) {
       return config.useSuspenseQuery({
-        ...(options ?? bodyOrOptions),
+        ...options,
         queryFn,
         queryKey,
       });

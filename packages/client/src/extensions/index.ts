@@ -9,6 +9,7 @@ type Extensions = keyof ExtensionConfig;
 export type GetExtensions<
   Extensions extends ExtensionConfig,
   Input,
+  _Query,
   Output
 > = keyof Extensions extends "reactQuery"
   ? ReactQuery.MakeExtension<Input, Output>
