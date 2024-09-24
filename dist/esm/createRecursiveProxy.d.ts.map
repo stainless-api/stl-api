@@ -1,0 +1,1 @@
+{"version":3,"file":"createRecursiveProxy.d.ts","sourceRoot":"","sources":["../../src/createRecursiveProxy.ts"],"names":[],"mappings":"AAAA,MAAM,WAAW,oBAAoB;IACnC,IAAI,EAAE,MAAM,EAAE,CAAC;IACf,IAAI,EAAE,OAAO,EAAE,CAAC;CACjB;AAED,MAAM,MAAM,aAAa,GAAG,CAAC,IAAI,EAAE,oBAAoB,KAAK,OAAO,CAAC;AAEpE,wBAAgB,oBAAoB,CAAC,QAAQ,EAAE,aAAa,EAAE,IAAI,EAAE,MAAM,EAAE,WAyB3E"}
