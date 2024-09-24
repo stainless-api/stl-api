@@ -65,11 +65,11 @@ function makeUrl(callPath: string[], outputCase: "camel" | "kebab" = "kebab") {
 async function makeRequest(
   config: ClientConfig<string>,
   action: string,
-  callPath: string[],
+  [basePath, ...callPath]: string[],
   body?: unknown
 ) {
   const method = inferHTTPMethod(action, body);
-  const url = makeUrl(callPath, config.urlCase);
+  const url = `${basePath}/${makeUrl(callPath, config.urlCase)}`;
   const fetchFn = config.fetch ?? fetch;
   const options: RequestInit =
     method !== "GET" && body !== undefined
