@@ -1,7 +1,6 @@
 import { Stl } from "stainless";
 import { cats } from "../test-util/cat-api";
 import { dogs } from "../test-util/dog-api";
-import * as LongBasePath from "../test-util/long-base-path-api";
 import { users } from "../test-util/user-api";
 import { dogTreats } from "../test-util/dog-treat-api";
 
@@ -75,17 +74,7 @@ export const nestedApi = stl.api({
     },
   },
 });
-export const customBasePathApi = stl.api({
-  basePath: LongBasePath.complicatedBasePath,
-  resources: {
-    dogs: LongBasePath.dogs,
-  },
-});
 
-export type APIWithCustomBasePathAPI = typeof customBasePathApi;
-export type APIWithCustomBasePathConfig = {
-  basePath: APIWithCustomBasePathAPI["basePath"];
-};
 export type API = typeof api;
 export const config = { basePath: "/api" } as const;
-export type Config = typeof config;
+export type ClientConfig = typeof config;

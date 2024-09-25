@@ -2,11 +2,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { makeClientWithInferredTypes } from "./api-client";
 import { Client } from "./api-client-types";
 import * as MockAPI from "../test-util/api-server";
-import { complicatedBasePath } from "../test-util/long-base-path-api";
 
 describe("API Client", () => {
   describe("configuration options", () => {
-    let client: Client<MockAPI.API, MockAPI.Config>;
+    let client: Client<MockAPI.API, MockAPI.ClientConfig>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
@@ -16,7 +15,9 @@ describe("API Client", () => {
         basePath: "/api" as const,
         urlCase: "camel",
       };
-      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.Config>(config);
+      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.ClientConfig>(
+        config
+      );
     });
 
     afterEach(() => {
@@ -33,22 +34,24 @@ describe("API Client", () => {
   });
 
   describe("long base paths", () => {
-    let client: Client<
-      MockAPI.APIWithCustomBasePathAPI,
-      MockAPI.APIWithCustomBasePathConfig
-    >;
+    const longBasePath = "/api/camelCase/kebab-case/v2" as const;
+    type LongBasePath = typeof longBasePath;
+    type ClientConfigWithLongBasePath = {
+      basePath: LongBasePath;
+    };
+    let client: Client<MockAPI.API, ClientConfigWithLongBasePath>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
       mockFetch = vi.fn(MockAPI.mockFetchImplementation);
       const config = {
         fetch: mockFetch,
-        basePath: complicatedBasePath,
+        basePath: longBasePath,
         urlCase: "camel",
       };
       client = makeClientWithInferredTypes<
-        MockAPI.APIWithCustomBasePathAPI,
-        MockAPI.APIWithCustomBasePathConfig
+        MockAPI.API,
+        ClientConfigWithLongBasePath
       >(config);
     });
 
@@ -69,13 +72,15 @@ describe("API Client", () => {
   });
 
   describe("fetch calls", () => {
-    let client: Client<MockAPI.API, MockAPI.Config>;
+    let client: Client<MockAPI.API, MockAPI.ClientConfig>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
       mockFetch = vi.fn(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.Config>(config);
+      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.ClientConfig>(
+        config
+      );
     });
 
     afterEach(() => {
@@ -138,7 +143,7 @@ describe("API Client", () => {
   });
 
   describe("`useMethod` style call", () => {
-    let client: Client<MockAPI.API, MockAPI.Config>;
+    let client: Client<MockAPI.API, MockAPI.ClientConfig>;
     let mockFetch: typeof fetch;
 
     beforeEach(() => {
@@ -146,7 +151,9 @@ describe("API Client", () => {
         .fn(fetch)
         .mockImplementation(MockAPI.mockFetchImplementation);
       const config = { fetch: mockFetch, basePath: "/api" as const };
-      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.Config>(config);
+      client = makeClientWithInferredTypes<MockAPI.API, MockAPI.ClientConfig>(
+        config
+      );
     });
 
     afterEach(() => {

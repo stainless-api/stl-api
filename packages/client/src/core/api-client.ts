@@ -226,7 +226,7 @@ function createClientProxy(
 export function makeClientWithInferredTypes<
   API extends APIConfig,
   /** Unfortunately this cannot be infered from the parameter since the API generic needs to be specified */
-  Config extends ClientConfig<API["basePath"]>
+  Config extends ClientConfig
 >(config: Config): Client<API, Config> {
   return createClientProxy(config, [config.basePath]) as Client<API, Config>;
 }
