@@ -319,13 +319,13 @@ function makeTypes(
 
 export async function generateOutput<API extends APIConfig>(
   api: API,
-  config: ClientConfig<API["basePath"]>,
+  config: ClientConfig,
   installLocation: string = "@stl-api/client",
   reactQueryAlias: string = "@tanstack/react-query"
 ) {
   const resources = getResources(api.resources);
   const endpoints = getEndpoints(resources);
-  const apiMap = nestEndpoints(endpoints, config.basePath);
+  const apiMap = nestEndpoints(endpoints, api.basePath);
   const output = makeTypes(
     apiMap,
     api,
