@@ -1,0 +1,1 @@
+{"version":3,"file":"run-codegen.d.ts","sourceRoot":"","sources":["../../src/scripts/run-codegen.ts"],"names":[],"mappings":"AAMA,wBAAsB,mBAAmB,CAAC,EACxC,gBAAgB,EAChB,cAAc,EACd,eAAe,GAChB,EAAE;IACD,gBAAgB,EAAE,MAAM,CAAC;IACzB,cAAc,EAAE,MAAM,CAAC;IACvB,eAAe,CAAC,EAAE,MAAM,CAAC;CAC1B,iBAkBA"}
