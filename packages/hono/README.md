@@ -18,10 +18,10 @@ npm i --save stainless-api/stl-api#hono-0.1.0
 ## Creating a Hono app
 
 ```ts
-import { apiRoute } from "@stl-api/hono";
+import { stlApi } from "@stl-api/hono";
 import { Hono } from "hono";
 import api from "./api";
 
 const app = new Hono();
-app.route("/", apiRoute(api));
+app.use("*", stlApi(api));
 ```
