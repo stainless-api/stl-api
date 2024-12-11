@@ -28,11 +28,7 @@ export type StlAppOptions = {
 
 const methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
 
-function makeHandler(
-  basePath: string,
-  endpoints: AnyEndpoint[],
-  options?: StlAppOptions
-) {
+function makeHandler(endpoints: AnyEndpoint[], options?: StlAppOptions) {
   const stl = endpoints[0]?.stl;
   if (!stl) {
     throw new Error(`endpoints[0].stl must be defined`);
@@ -107,11 +103,10 @@ function makeHandler(
 }
 
 export function stlApi(
-  { basePath, topLevel, resources }: AnyAPIDescription,
+  { topLevel, resources }: AnyAPIDescription,
   options?: StlAppOptions
 ) {
   return makeHandler(
-    basePath,
     allEndpoints({
       actions: topLevel?.actions,
       namespacedResources: resources,
