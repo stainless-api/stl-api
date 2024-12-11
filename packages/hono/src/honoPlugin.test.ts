@@ -170,7 +170,19 @@ describe("basic routing", () => {
 describe("hono passthrough", () => {
   const baseApi = stl.api({
     basePath: "/api",
-    resources: {},
+    resources: {
+      posts: stl.resource({
+        summary: "posts",
+        actions: {
+          retrieve: stl.endpoint({
+            endpoint: "GET /api/posts",
+            handler: () => {
+              throw new Error("arbitrary error");
+            },
+          }),
+        },
+      }),
+    },
   });
 
   const app = new Hono();
@@ -180,6 +192,9 @@ describe("hono passthrough", () => {
   });
   app.notFound((c) => {
     return c.text("custom not found", 404);
+  });
+  app.onError((err, c) => {
+    return c.text(`custom error: ${err.message}`, 500);
   });
 
   test("public passthrough", async () => {
@@ -192,5 +207,13 @@ describe("hono passthrough", () => {
     const response = await app.request("/api/comments");
     expect(response).toHaveProperty("status", 404);
     expect(await response.text()).toMatchInlineSnapshot(`"custom not found"`);
+  });
+
+  test("error passthrough", async () => {
+    const response = await app.request("/api/posts");
+    expect(response).toHaveProperty("status", 500);
+    expect(await response.text()).toMatchInlineSnapshot(
+      `"custom error: arbitrary error"`
+    );
   });
 });
