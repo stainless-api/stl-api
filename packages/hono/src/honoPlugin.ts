@@ -1,4 +1,5 @@
-import { Hono, HonoRequest } from "hono";
+import { HonoRequest } from "hono";
+import { createMiddleware } from "hono/factory";
 import { StatusCode } from "hono/utils/http-status";
 import qs from "qs";
 import {
@@ -21,18 +22,25 @@ declare module "stainless" {
   }
 }
 
+export type StlAppOptions = {
+  handleErrors?: boolean;
+};
+
 const methods = ["GET", "HEAD", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"];
 
-function makeApp(endpoints: AnyEndpoint[]) {
+function makeHandler(
+  basePath: string,
+  endpoints: AnyEndpoint[],
+  options?: StlAppOptions
+) {
   const stl = endpoints[0]?.stl;
   if (!stl) {
     throw new Error(`endpoints[0].stl must be defined`);
   }
 
-  const app = new Hono();
   const routeMatcher = makeRouteMatcher(endpoints);
 
-  return app.all("*", async (c) => {
+  return createMiddleware(async (c, next) => {
     try {
       const match = routeMatcher.match(c.req.method, c.req.path);
       const { search } = new URL(c.req.url);
@@ -51,7 +59,11 @@ function makeApp(endpoints: AnyEndpoint[]) {
             { status: 405 }
           );
         }
-        throw new NotFoundError();
+        if (options?.handleErrors !== false) {
+          throw new NotFoundError();
+        }
+        await next();
+        return;
       }
 
       const [endpoint, path] = match[0][0];
@@ -77,6 +89,10 @@ function makeApp(endpoints: AnyEndpoint[]) {
 
       return c.json(result);
     } catch (error) {
+      if (options?.handleErrors === false) {
+        throw error;
+      }
+
       if (isStlError(error)) {
         return c.json(error.response, error.statusCode as StatusCode);
       }
@@ -90,11 +106,16 @@ function makeApp(endpoints: AnyEndpoint[]) {
   });
 }
 
-export function apiRoute({ topLevel, resources }: AnyAPIDescription) {
-  return makeApp(
+export function stlApi(
+  { basePath, topLevel, resources }: AnyAPIDescription,
+  options?: StlAppOptions
+) {
+  return makeHandler(
+    basePath,
     allEndpoints({
       actions: topLevel?.actions,
       namespacedResources: resources,
-    })
+    }),
+    options
   );
 }
