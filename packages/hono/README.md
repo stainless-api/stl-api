@@ -25,3 +25,18 @@ import api from "./api";
 const app = new Hono();
 app.use("*", stlApi(api));
 ```
+
+Individual handlers can also use Hono responses:
+
+```ts
+const retrieve = stl.endpoint({
+  endpoint: "GET /api/posts",
+  response: z.any() as z.ZodType<Response>,
+  handler: (_, context) => {
+    const [c] = context.server.args;
+
+    // c is a Hono context
+    return c.redirect("/");
+  },
+});
+```

@@ -83,6 +83,10 @@ function makeHandler(endpoints: AnyEndpoint[], options?: StlAppOptions) {
 
       const result = await stl.execute(params, context);
 
+      if (result instanceof Response) {
+        return result;
+      }
+
       return c.json(result);
     } catch (error) {
       if (options?.handleErrors === false) {
