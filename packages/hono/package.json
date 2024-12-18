@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/hono",
-  "version": "0.1.0",
+  "version": "0.1.3",
   "license": "ISC",
   "description": "hono plugin for stainless api",
   "author": "dev@stainlessapi.com",
