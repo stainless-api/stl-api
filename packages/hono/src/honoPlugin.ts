@@ -1,4 +1,4 @@
-import { HonoRequest } from "hono";
+import { Context } from "hono";
 import { createMiddleware } from "hono/factory";
 import { StatusCode } from "hono/utils/http-status";
 import qs from "qs";
@@ -13,7 +13,7 @@ import { isValidRouteMatch, makeRouteMatcher } from "./routeMatcher";
 
 export type HonoServerContext = {
   type: "hono";
-  args: [HonoRequest, Response];
+  args: [Context];
 };
 
 declare module "stainless" {
@@ -65,7 +65,7 @@ function makeHandler(endpoints: AnyEndpoint[], options?: StlAppOptions) {
       const [endpoint, path] = match[0][0];
       const server: HonoServerContext = {
         type: "hono",
-        args: [c.req, c.res],
+        args: [c],
       };
 
       const context = stl.initContext({
