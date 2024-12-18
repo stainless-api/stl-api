@@ -182,6 +182,19 @@ describe("hono passthrough", () => {
           }),
         },
       }),
+      redirect: stl.resource({
+        summary: "redirect",
+        actions: {
+          retrieve: stl.endpoint({
+            endpoint: "GET /api/redirect",
+            response: z.any() as z.ZodType<Response>,
+            handler: (_, context) => {
+              const [c] = context.server.args;
+              return c.redirect("/");
+            },
+          }),
+        },
+      }),
     },
   });
 
@@ -195,6 +208,12 @@ describe("hono passthrough", () => {
   });
   app.onError((err, c) => {
     return c.text(`custom error: ${err.message}`, 500);
+  });
+
+  test("hono response", async () => {
+    const response = await app.request("/api/redirect");
+    expect(response).toHaveProperty("status", 302);
+    expect(response.headers.get("location")).toMatchInlineSnapshot(`"/"`);
   });
 
   test("public passthrough", async () => {
