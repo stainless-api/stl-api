@@ -77,7 +77,11 @@ function makeHandler(endpoints: AnyEndpoint[], options?: StlAppOptions) {
       const params = stl.initParams({
         path,
         query: search ? qs.parse(search.replace(/^\?/, "")) : {},
-        body: await c.req.json().catch(() => undefined),
+        // Don't use up the raw body in case the handler needs to use it:
+        body: await c.req.raw
+          .clone()
+          .json()
+          .catch(() => undefined),
         headers: c.req.header(),
       });
 
