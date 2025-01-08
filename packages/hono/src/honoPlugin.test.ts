@@ -180,6 +180,15 @@ describe("hono passthrough", () => {
               throw new Error("arbitrary error");
             },
           }),
+          create: stl.endpoint({
+            endpoint: "POST /api/posts",
+            body: z.any(),
+            response: z.any(),
+            handler: async (body, context) => {
+              const [c] = context.server.args;
+              return { bodyStl: body, bodyRaw: await c.req.raw.text() };
+            },
+          }),
         },
       }),
       redirect: stl.resource({
@@ -234,5 +243,21 @@ describe("hono passthrough", () => {
     expect(await response.text()).toMatchInlineSnapshot(
       `"custom error: arbitrary error"`
     );
+  });
+
+  test("request passthrough", async () => {
+    const response = await app.request("/api/posts", {
+      method: "POST",
+      body: JSON.stringify({ message: "hello" }),
+    });
+    expect(response).toHaveProperty("status", 200);
+    expect(await response.json()).toMatchInlineSnapshot(`
+      {
+        "bodyRaw": "{"message":"hello"}",
+        "bodyStl": {
+          "message": "hello",
+        },
+      }
+    `);
   });
 });
