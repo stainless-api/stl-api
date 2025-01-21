@@ -48,6 +48,10 @@ function isQueryOrBody(arg: unknown): arg is Record<string, string> {
   return typeof arg === "object";
 }
 
+function makeQueryParams(query: Record<string, string>) {
+  return new URLSearchParams(Object.entries(query));
+}
+
 function makeUrl(
   [basePath, ...callPath]: string[],
   {
@@ -72,9 +76,9 @@ function makeUrl(
       : callPath.map((str) => str.replace(":", "")).join("/");
 
   if (query) {
-    url = `${url}?${new URLSearchParams(Object.entries(query))}`;
+    url = `${url}?${makeQueryParams(query)}`;
   } else if (method === "GET" && body !== undefined && body !== null) {
-    url = `${url}?${new URLSearchParams(Object.entries(body))}`;
+    url = `${url}?${makeQueryParams(body as Record<string, string>)}`;
   }
 
   return `${basePath}/${url}`;
@@ -188,8 +192,8 @@ function createClientProxy(
           makeUrl(path, {
             outputCase: config.urlCase,
             method: "GET",
-            query,
           }),
+          ...(query ? [`${makeQueryParams(query)}`] : []),
         ];
         const handler = getExtensionHandler(
           config.extensions,
@@ -215,8 +219,8 @@ function createClientProxy(
             makeUrl(path, {
               outputCase: config.urlCase,
               method: "GET",
-              query: method === "GET" ? body : undefined,
             }),
+            ...(method === "GET" && body ? [`${makeQueryParams(body)}`] : []),
           ],
         };
       }

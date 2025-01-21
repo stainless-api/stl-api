@@ -61,7 +61,7 @@ describe("react-query extension runtime", () => {
       client.cats.list({ color: "black" }).useQuery();
       expect(mockUseQuery).toBeCalledWith({
         queryFn: expect.any(Function),
-        queryKey: ["/api/cats?color=black"],
+        queryKey: ["/api/cats", "color=black"],
       });
       expect(mockFetch).toBeCalledWith("/api/cats?color=black", {
         method: "GET",
