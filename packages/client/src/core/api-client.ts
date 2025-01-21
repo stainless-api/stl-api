@@ -48,6 +48,10 @@ function isQueryOrBody(arg: unknown): arg is Record<string, string> {
   return typeof arg === "object";
 }
 
+function makeQueryParams(query: Record<string, string>) {
+  return new URLSearchParams(Object.entries(query));
+}
+
 function makeUrl(
   [basePath, ...callPath]: string[],
   {
@@ -72,9 +76,9 @@ function makeUrl(
       : callPath.map((str) => str.replace(":", "")).join("/");
 
   if (query) {
-    url = `${url}?${new URLSearchParams(Object.entries(query))}`;
+    url = `${url}?${makeQueryParams(query)}`;
   } else if (method === "GET" && body !== undefined && body !== null) {
-    url = `${url}?${new URLSearchParams(Object.entries(body))}`;
+    url = `${url}?${makeQueryParams(body as Record<string, string>)}`;
   }
 
   return `${basePath}/${url}`;
@@ -173,19 +177,23 @@ function createClientProxy(
 
       if (config.extensions) {
         const [action, extensionMethod] = callPath.slice(-2);
+        const method = inferHTTPMethod(action);
         const path = callPath.slice(0, -2);
         const bodyOrQuery = isQueryOrBody(pendingArgs[0])
           ? pendingArgs[0]
           : undefined;
+        const query = method === "GET" ? bodyOrQuery : undefined;
         const queryFn = (callTimeBody?: any) => {
-          const method = inferHTTPMethod(action);
           const body = method === "GET" ? undefined : callTimeBody;
-          const query = method === "GET" ? bodyOrQuery : undefined;
 
           return makeRequest(config, action, path, body, query);
         };
         const queryKey = [
-          makeUrl(path, { outputCase: config.urlCase, method: "GET" }),
+          makeUrl(path, {
+            outputCase: config.urlCase,
+            method: "GET",
+          }),
+          ...(query ? [`${makeQueryParams(query)}`] : []),
         ];
         const handler = getExtensionHandler(
           config.extensions,
@@ -201,13 +209,18 @@ function createClientProxy(
 
       if (isCallingHook(lastCall)) {
         const action = callPath.slice(-1)[0];
+        const method = inferHTTPMethod(action);
         const path = callPath.slice(0, -1);
         const body = argumentsList[0];
 
         return {
           queryFn: () => makeRequest(config, action, path, body),
           queryKey: [
-            makeUrl(path, { outputCase: config.urlCase, method: "GET" }),
+            makeUrl(path, {
+              outputCase: config.urlCase,
+              method: "GET",
+            }),
+            ...(method === "GET" && body ? [`${makeQueryParams(body)}`] : []),
           ],
         };
       }

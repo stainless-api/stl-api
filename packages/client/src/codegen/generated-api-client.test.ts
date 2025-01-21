@@ -122,7 +122,7 @@ describe("Generated API Client", () => {
     it("can pass query params", async () => {
       const { queryFn, queryKey } = client.cats.useList({ color: "black" });
 
-      expect(queryKey).toEqual(["/api/cats"]);
+      expect(queryKey).toEqual(["/api/cats", "color=black"]);
       expect(queryFn).toBeTypeOf("function");
 
       const cats = await queryFn();
