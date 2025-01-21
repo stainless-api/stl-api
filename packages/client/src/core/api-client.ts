@@ -173,19 +173,23 @@ function createClientProxy(
 
       if (config.extensions) {
         const [action, extensionMethod] = callPath.slice(-2);
+        const method = inferHTTPMethod(action);
         const path = callPath.slice(0, -2);
         const bodyOrQuery = isQueryOrBody(pendingArgs[0])
           ? pendingArgs[0]
           : undefined;
+        const query = method === "GET" ? bodyOrQuery : undefined;
         const queryFn = (callTimeBody?: any) => {
-          const method = inferHTTPMethod(action);
           const body = method === "GET" ? undefined : callTimeBody;
-          const query = method === "GET" ? bodyOrQuery : undefined;
 
           return makeRequest(config, action, path, body, query);
         };
         const queryKey = [
-          makeUrl(path, { outputCase: config.urlCase, method: "GET" }),
+          makeUrl(path, {
+            outputCase: config.urlCase,
+            method: "GET",
+            query,
+          }),
         ];
         const handler = getExtensionHandler(
           config.extensions,
@@ -201,13 +205,18 @@ function createClientProxy(
 
       if (isCallingHook(lastCall)) {
         const action = callPath.slice(-1)[0];
+        const method = inferHTTPMethod(action);
         const path = callPath.slice(0, -1);
         const body = argumentsList[0];
 
         return {
           queryFn: () => makeRequest(config, action, path, body),
           queryKey: [
-            makeUrl(path, { outputCase: config.urlCase, method: "GET" }),
+            makeUrl(path, {
+              outputCase: config.urlCase,
+              method: "GET",
+              query: method === "GET" ? body : undefined,
+            }),
           ],
         };
       }
