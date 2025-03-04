@@ -28,9 +28,9 @@ export function kebabCase(str: string) {
   return str
     .split("")
     .map((letter, idx) => {
-      return letter.toUpperCase() === letter
-        ? `${idx !== 0 ? "-" : ""}${letter.toLowerCase()}`
-        : letter;
+      return letter.toLowerCase() === letter
+        ? letter
+        : `${idx !== 0 ? "-" : ""}${letter.toLowerCase()}`;
     })
     .join("");
 }
