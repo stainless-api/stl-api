@@ -2,17 +2,15 @@
 
 ## [0.1.1](https://github.com/stainless-api/stl-api/compare/next-v0.1.0...next-v0.1.1) (2024-09-23)
 
-
 ### Bug Fixes
 
-* **deps:** update dependency hono to v4 [security] ([6c8b437](https://github.com/stainless-api/stl-api/commit/6c8b437fb86c9674cbcf6abe6bdd02253d584187))
-
+- **deps:** update dependency hono to v4 [security] ([6c8b437](https://github.com/stainless-api/stl-api/commit/6c8b437fb86c9674cbcf6abe6bdd02253d584187))
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * stainless bumped from github:stainless-api/stl-api#stainless-0.1.3 to github:stainless-api/stl-api#stainless-0.1.1
+- The following workspace dependencies were updated
+  - dependencies
+    - stainless bumped from github:stainless-api/stl-api#stainless-0.1.3 to github:stainless-api/stl-api#stainless-0.1.1
 
 ## [0.1.0](https://github.com/stainless-api/stl-api/compare/next-v0.0.3...next-v0.1.0) (2023-12-06)
 

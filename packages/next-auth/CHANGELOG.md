@@ -2,10 +2,10 @@
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * @stl-api/next bumped from github:stainless-api/stl-api#next-0.1.6 to github:stainless-api/stl-api#next-0.1.1
-    * stainless bumped from github:stainless-api/stl-api#stainless-0.1.3 to github:stainless-api/stl-api#stainless-0.1.1
+- The following workspace dependencies were updated
+  - dependencies
+    - @stl-api/next bumped from github:stainless-api/stl-api#next-0.1.6 to github:stainless-api/stl-api#next-0.1.1
+    - stainless bumped from github:stainless-api/stl-api#stainless-0.1.3 to github:stainless-api/stl-api#stainless-0.1.1
 
 ## [0.1.0](https://github.com/stainless-api/stl-api/compare/next-auth-v0.0.3...next-auth-v0.1.0) (2023-12-06)
 

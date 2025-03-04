@@ -2,9 +2,9 @@
 
 ### Dependencies
 
-* The following workspace dependencies were updated
-  * dependencies
-    * stainless bumped from github:stainless-api/stl-api#stainless-0.1.3 to github:stainless-api/stl-api#stainless-0.1.1
+- The following workspace dependencies were updated
+  - dependencies
+    - stainless bumped from github:stainless-api/stl-api#stainless-0.1.3 to github:stainless-api/stl-api#stainless-0.1.1
 
 ## [0.1.0](https://github.com/stainless-api/stl-api/compare/prisma-v0.0.3...prisma-v0.1.0) (2023-12-06)
 
