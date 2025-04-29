@@ -6,6 +6,15 @@
   - devDependencies
     - stainless bumped to 0.1.1
 
+## [0.2.0](https://github.com/stainless-api/stl-api/compare/ts-to-zod-v0.0.5...ts-to-zod-v0.2.0) (2025-04-29)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * devDependencies
+    * stainless bumped to 0.2.0
+
 ## [0.0.4](https://github.com/stainless-api/stl-api/compare/ts-to-zod-v0.0.3...ts-to-zod-v0.0.4) (2023-12-06)
 
 ### Features

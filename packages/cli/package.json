@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/cli",
-  "version": "0.1.1",
+  "version": "0.2.0",
   "description": "Bundle-time utilities implementing ergonomic stl-api helpers.\"",
   "author": "dev@stainlessapi.com",
   "repository": {
