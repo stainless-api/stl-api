@@ -156,6 +156,7 @@ export interface BaseEndpoint<
   Response extends z.ZodTypeAny | undefined
 > {
   stl: Stl<any>;
+  summary?: string;
   endpoint: MethodAndUrl;
   response: Response;
   config: Config;
