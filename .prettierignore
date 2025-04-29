@@ -16,4 +16,6 @@ next-env.d.ts
 # Local Netlify folder
 .netlify/
 
+CHANGELOG.md
+
 *-route-map.ts
