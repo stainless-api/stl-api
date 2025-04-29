@@ -1,6 +1,6 @@
 {
   "name": "ts-to-zod",
-  "version": "0.0.5",
+  "version": "0.2.0",
   "description": "",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",

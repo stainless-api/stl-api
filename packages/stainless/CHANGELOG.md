@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.0](https://github.com/stainless-api/stl-api/compare/stainless-v0.1.1...stainless-v0.2.0) (2025-04-29)
+
+
+### Features
+
+* Add route summary ([#92](https://github.com/stainless-api/stl-api/issues/92)) ([0901ac5](https://github.com/stainless-api/stl-api/commit/0901ac57888b8ac33a310f1117a53bf0eb45e698))
+
 ## [0.1.1](https://github.com/stainless-api/stl-api/compare/stainless-v0.1.0...stainless-v0.1.1) (2024-09-23)
 
 ### Bug Fixes

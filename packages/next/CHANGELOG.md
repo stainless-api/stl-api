@@ -1,5 +1,14 @@
 # Changelog
 
+## [0.2.0](https://github.com/stainless-api/stl-api/compare/next-v0.1.1...next-v0.2.0) (2025-04-29)
+
+
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * stainless bumped from github:stainless-api/stl-api#stainless-0.1.1 to 0.2.0
+
 ## [0.1.1](https://github.com/stainless-api/stl-api/compare/next-v0.1.0...next-v0.1.1) (2024-09-23)
 
 ### Bug Fixes
