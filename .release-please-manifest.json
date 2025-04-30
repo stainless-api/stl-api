@@ -1,12 +1,12 @@
 {
-  "packages/cli": "0.2.0",
-  "packages/express": "0.2.0",
-  "packages/next-auth": "0.2.0",
-  "packages/next": "0.2.0",
-  "packages/hono": "0.2.0",
-  "packages/prisma": "0.2.0",
-  "packages/react-query": "0.2.0",
-  "packages/stainless": "0.2.0",
-  "packages/ts-to-zod": "0.2.0",
-  "packages/client": "0.2.0"
+  "packages/cli": "0.2.1",
+  "packages/express": "0.2.1",
+  "packages/next-auth": "0.2.1",
+  "packages/next": "0.2.1",
+  "packages/hono": "0.2.1",
+  "packages/prisma": "0.2.1",
+  "packages/react-query": "0.2.1",
+  "packages/stainless": "0.2.1",
+  "packages/ts-to-zod": "0.2.1",
+  "packages/client": "0.2.1"
 }
