@@ -63,7 +63,7 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "qs": "^6.11.2",
-    "stainless": "github:stainless-api/stl-api#stainless-0.1.1"
+    "stainless": "workspace:*"
   },
   "peerDependencies": {
     "@tanstack/query-core": "^4.29.5",

@@ -33,6 +33,6 @@
   "dependencies": {
     "hono": "^4.0.0",
     "qs": "^6.11.2",
-    "stainless": "github:stainless-api/stl-api#stainless-0.1.1"
+    "stainless": "workspace:*"
   }
 }
