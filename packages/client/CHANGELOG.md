@@ -1,5 +1,11 @@
 # Changelog
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * stainless bumped to 0.2.1
+
 ## 0.2.0 (2025-04-29)
 
 

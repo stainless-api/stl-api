@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/stainless-api/stl-api/compare/stainless-v0.2.0...stainless-v0.2.1) (2025-04-30)
+
+
+### Bug Fixes
+
+* add summary to create endpoint types ([d82ec17](https://github.com/stainless-api/stl-api/commit/d82ec17e5d69e1a7a1a6a5232f79f8f2f7fa45a5))
+
 ## [0.2.0](https://github.com/stainless-api/stl-api/compare/stainless-v0.1.1...stainless-v0.2.0) (2025-04-29)
 
 
