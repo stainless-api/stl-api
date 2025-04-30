@@ -1,0 +1,12 @@
+{
+  "extends": "../../tsconfig-common.json",
+  "include": ["src"],
+  "exclude": ["test_project"],
+  "compilerOptions": {
+    "noEmit": true
+  },
+  "references": [
+    { "path": "../stainless" },
+    { "path": "../ts-to-zod/tsconfig.build.json" }
+  ]
+}
