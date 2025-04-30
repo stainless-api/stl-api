@@ -38,10 +38,11 @@
     "docs:build": "cd docs && pnpm build",
     "docs:deploy": "pnpm docs:build && netlify deploy --dir docs/build --prod",
     "watch": "pnpm run build:watch",
-    "clean": "pnpm -r run clean && rm -rf packages/*/{package,*.tgz}",
+    "clean": "pnpm -r run clean && rimraf packages/*/{package,*.tgz}",
     "format": "prettier --write .",
     "prettier:check": "prettier --list-different .",
-    "postinstall": "./node_modules/ghooks/bin/install"
+    "postinstall": "./node_modules/ghooks/bin/install",
+    "publish-git": "sh -c 'if [ -n \"$(git status --porcelain)\" ]; then echo \"Repository is dirty. Commit or stash your changes first.\" >&2; exit 1; fi && pnpm clean && pnpm build && ./scripts/publish.mjs && git reset --hard HEAD'"
   },
   "devDependencies": {
     "@types/node": "^20.10.3",
