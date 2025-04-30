@@ -547,6 +547,8 @@ interface CreateEndpointOptions<
    * and URL for this endpoint, e.g. `"GET /items/{id}"`
    */
   endpoint: MethodAndUrl;
+  /** Optional summary for the endpoint. */
+  summary?: string;
   /** Optional plugin configuration specific to the endpoint. */
   config?: Config;
   /** The schema for the response defining its properties. */
