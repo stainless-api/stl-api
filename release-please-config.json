@@ -9,6 +9,7 @@
     "packages/client": {},
     "packages/cli": {},
     "packages/express": {},
+    "packages/hono": {},
     "packages/next": {},
     "packages/next-auth": {},
     "packages/prisma": {},
