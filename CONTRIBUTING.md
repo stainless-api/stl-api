@@ -79,3 +79,13 @@ pnpm dev
 ```shell
 pnpm test
 ```
+
+## Release
+
+To create a release:
+
+1. Merge the feature PR into main. The commit message should follow conventional commits.
+1. Wait for release-please to run, which should result in a PR being opened. Merge that PR.
+1. `git checkout main && git pull main`
+1. `./scripts/publish.mjs --dry-run`
+1. Run above without `--dry-run`
