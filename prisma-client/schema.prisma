@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+  output   = "../node_modules/.prisma/client"
+}
+
+datasource db {
+  provider = "postgres"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id              String @id @db.Uuid @default(uuid())
+  name            String?
+  username        String?   @unique
+  bio             String?
+  email           String?   @unique
+  emailVerified   DateTime?
+  image           String?
+  coverImage      String?
+  profileImage    String?
+  hashedPassword  String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  followingIds    String[] @db.Uuid
+  hasNotification Boolean?
+
+  posts         Post[]
+  comments      Comment[]
+  notifications Notification[]
+}
+
+model Post {
+  id                 String @id @db.Uuid @default(uuid())
+  body               String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  userId             String @db.Uuid
+  likedIds           String[] @db.Uuid
+  image              String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  comments          Comment[]
+}
+
+model Comment {
+  id                 String @id @db.Uuid @default(uuid())
+  body               String
+  createdAt          DateTime @default(now())
+  updatedAt          DateTime @updatedAt
+  userId             String @db.Uuid
+  postId             String @db.Uuid
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  post Post @relation(fields: [postId], references: [id], onDelete: Cascade)
+}
+
+model Notification {
+  id                 String @id @db.Uuid @default(uuid())
+  body               String
+  userId             String @db.Uuid
+  createdAt          DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
