@@ -2,6 +2,7 @@ import * as z from "./z";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
 import coerceParams from "./coerceParams";
+export { openapiSpec };
 export { type SelectTree, parseSelect } from "./parseSelect";
 export { z };
 export { createClient } from "./client";
