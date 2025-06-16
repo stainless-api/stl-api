@@ -1,5 +1,11 @@
 # Changelog
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * stainless bumped to 0.2.2
+
 ## [0.2.1](https://github.com/stainless-api/stl-api/compare/hono-v0.2.0...hono-v0.2.1) (2025-04-30)
 
 

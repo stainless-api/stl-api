@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/prisma",
-  "version": "0.2.1",
+  "version": "0.2.2",
   "description": "prisma plugin for stainless api",
   "author": "dev@stainlessapi.com",
   "repository": {

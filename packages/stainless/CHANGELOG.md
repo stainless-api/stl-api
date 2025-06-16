@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/stainless-api/stl-api/compare/stainless-v0.2.1...stainless-v0.2.2) (2025-06-16)
+
+
+### Features
+
+* export openapi spec from stainless ([60c0195](https://github.com/stainless-api/stl-api/commit/60c0195c1ec6e438f47fddb93470d893c8999695))
+
 ## [0.2.1](https://github.com/stainless-api/stl-api/compare/stainless-v0.2.0...stainless-v0.2.1) (2025-04-30)
 
 
