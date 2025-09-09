@@ -792,9 +792,12 @@ export class Stl<Plugins extends AnyPlugins> {
         .catch(prependZodPath("<body>"));
     } catch (error) {
       if (error instanceof z.ZodError) {
-        const validationError = fromZodError(error);
+        let validationError = fromZodError(error).message;
+        if (validationError.startsWith("Validation error: ")) {
+          validationError = validationError.slice("Validation error: ".length);
+        }
         throw new BadRequestError({
-          message: validationError.message,
+          message: validationError,
           issues: error.issues,
         });
       }

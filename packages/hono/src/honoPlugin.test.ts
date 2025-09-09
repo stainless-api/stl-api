@@ -130,7 +130,7 @@ describe("basic routing", () => {
             "received": "undefined",
           },
         ],
-        "message": "Validation error: Required at "<body>"",
+        "message": "Required at "<body>"",
       }
     `);
   });
