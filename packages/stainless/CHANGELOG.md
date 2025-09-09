@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.3](https://github.com/stainless-api/stl-api/compare/stainless-v0.2.2...stainless-v0.2.3) (2025-09-09)
+
+
+### Features
+
+* make zod errors better ([#97](https://github.com/stainless-api/stl-api/issues/97)) ([5995e88](https://github.com/stainless-api/stl-api/commit/5995e883a7c8a88c45b74b4ba433f6bea1c139f5))
+
 ## [0.2.2](https://github.com/stainless-api/stl-api/compare/stainless-v0.2.1...stainless-v0.2.2) (2025-06-16)
 
 
