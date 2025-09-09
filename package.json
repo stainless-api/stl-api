@@ -1,0 +1,42 @@
+{
+  "name": "@stl-api/next",
+  "version": "0.2.3",
+  "license": "ISC",
+  "description": "next.js plugin for stainless api",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/next"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/next",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api",
+    "next"
+  ],
+  "source": "src/nextPlugin.ts",
+  "main": "dist/nextPlugin.js",
+  "types": "dist/nextPlugin.d.ts",
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.3",
+    "@types/qs": "^6.9.10",
+    "typescript": "^5.3.2",
+    "next": "^14.2.8"
+  },
+  "dependencies": {
+    "hono": "^4.0.0",
+    "lodash": "^4.17.21",
+    "qs": "^6.11.2",
+    "stainless": "github:stainless-api/stl-api#stainless-0.2.3"
+  },
+  "peerDependency": {
+    "next": "^13.5.6"
+  }
+}
