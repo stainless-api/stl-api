@@ -126,8 +126,8 @@ importers:
         specifier: workspace:*
         version: link:../packages/stainless
       zod:
-        specifier: ^3.22.4
-        version: 3.22.4
+        specifier: ^3.25.76
+        version: 3.25.76
       zustand:
         specifier: ^4.4.7
         version: 4.4.7(@types/react@18.0.28)(immer@9.0.21)(react@18.3.1)
@@ -323,7 +323,7 @@ importers:
         version: 5.3.2
       zod-to-ts:
         specifier: ^1.2.0
-        version: 1.2.0(typescript@5.3.2)(zod@3.22.4)
+        version: 1.2.0(typescript@5.3.2)(zod@3.25.76)
     devDependencies:
       '@tanstack/react-query':
         specifier: ^5.28.0
@@ -468,8 +468,8 @@ importers:
         specifier: workspace:*
         version: link:../stainless
       zod:
-        specifier: ^3.22.4
-        version: 3.22.4
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@types/lodash':
         specifier: ^4.14.202
@@ -560,11 +560,14 @@ importers:
         specifier: ^10.9.1
         version: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
       zod:
-        specifier: ^3.22.4
-        version: 3.22.4
+        specifier: ^3.25.76
+        version: 3.25.76
       zod-openapi:
         specifier: github:stainless-api/zod-openapi#2.8.0
-        version: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.22.4)
+        version: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.25.76)
+      zod-validation-error:
+        specifier: ^4.0.1
+        version: 4.0.1(zod@3.25.76)
     devDependencies:
       '@types/jest':
         specifier: ^29.5.10
@@ -609,8 +612,8 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0
       zod:
-        specifier: ^3.22.4
-        version: 3.22.4
+        specifier: ^3.25.76
+        version: 3.25.76
     devDependencies:
       '@types/jest':
         specifier: ^29.5.10
@@ -7591,8 +7594,14 @@ packages:
       typescript: ^4.9.4 || ^5.0.2
       zod: ^3
 
-  zod@3.22.4:
-    resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
+  zod-validation-error@4.0.1:
+    resolution: {integrity: sha512-F3rdaCOHs5ViJ5YTz5zzRtfkQdMdIeKudJAoxy7yB/2ZMEHw73lmCAcQw11r7++20MyGl4WV59EVh7A9rNAyog==}
+    engines: {node: '>=18.0.0'}
+    peerDependencies:
+      zod: ^3.25.0 || ^4.0.0
+
+  zod@3.25.76:
+    resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
   zustand@4.4.7:
     resolution: {integrity: sha512-QFJWJMdlETcI69paJwhSMJz7PPWjVP8Sjhclxmxmxv/RYI7ZOvR5BHX+ktH0we9gTWQMxcne8q1OY8xxz604gw==}
@@ -16795,16 +16804,20 @@ snapshots:
 
   yocto-queue@1.0.0: {}
 
-  zod-openapi@https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.22.4):
+  zod-openapi@https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.25.76):
     dependencies:
-      zod: 3.22.4
+      zod: 3.25.76
 
-  zod-to-ts@1.2.0(typescript@5.3.2)(zod@3.22.4):
+  zod-to-ts@1.2.0(typescript@5.3.2)(zod@3.25.76):
     dependencies:
       typescript: 5.3.2
-      zod: 3.22.4
+      zod: 3.25.76
 
-  zod@3.22.4: {}
+  zod-validation-error@4.0.1(zod@3.25.76):
+    dependencies:
+      zod: 3.25.76
+
+  zod@3.25.76: {}
 
   zustand@4.4.7(@types/react@18.0.28)(immer@9.0.21)(react@18.3.1):
     dependencies:
