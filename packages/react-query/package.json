@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/react-query",
-  "version": "0.2.2",
+  "version": "0.2.3",
   "description": "react-query client for stainless api",
   "author": "dev@stainlessapi.com",
   "repository": {
