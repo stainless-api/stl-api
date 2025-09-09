@@ -1,0 +1,74 @@
+{
+  "name": "@stl-api/react-query",
+  "version": "0.2.3",
+  "description": "react-query client for stainless api",
+  "author": "dev@stainlessapi.com",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/stainless-api/stl-api.git",
+    "directory": "packages/prisma"
+  },
+  "homepage": "https://github.com/stainless-api/stl-api/tree/main/packages/react-query",
+  "bugs": {
+    "url": "https://github.com/stainless-api/stl-api/issues"
+  },
+  "keywords": [
+    "stainless",
+    "api",
+    "prisma"
+  ],
+  "license": "ISC",
+  "source": "src/index.ts",
+  "main": "dist/cjs/index.js",
+  "module": "dist/esm/index.js",
+  "types": "dist/cjs/index.d.ts",
+  "exports": {
+    "./package.json": "./package.json",
+    ".": {
+      "types": "./dist/cjs/index.d.ts",
+      "require": "./dist/cjs/index.js",
+      "import": "./dist/esm/index.js",
+      "default": "./dist/esm/index.js"
+    },
+    "./*": {
+      "types": "./dist/cjs/*.d.ts",
+      "require": "./dist/cjs/*.js",
+      "import": "./dist/esm/*.js",
+      "default": "./dist/esm/*.js"
+    }
+  },
+  "scripts": {
+    "clean": "rimraf dist *.tsbuildinfo",
+    "prebuild": "mkdir -p dist/esm && echo '{\"type\": \"module\"}' > dist/esm/package.json",
+    "test": "echo \"Tests are currently skipped in this package.\""
+  },
+  "devDependencies": {
+    "@tanstack/query-core": "^4.36.1",
+    "@tanstack/react-query": "^4.36.1",
+    "@testing-library/react": "^14.1.2",
+    "@types/jest": "^29.5.10",
+    "@types/lodash": "^4.14.202",
+    "@types/node": "^20.10.3",
+    "@types/qs": "^6.9.10",
+    "@types/react": "18.0.28",
+    "@types/react-test-renderer": "^18.0.7",
+    "jest": "^29.7.0",
+    "jest-environment-jsdom": "^29.7.0",
+    "jest-watch-typeahead": "^2.2.2",
+    "react": "^18.2.0",
+    "react-test-renderer": "^18.2.0",
+    "ts-jest": "^29.1.1",
+    "typescript": "^5.3.2"
+  },
+  "dependencies": {
+    "lodash": "^4.17.21",
+    "qs": "^6.11.2",
+    "stainless": "github:stainless-api/stl-api#stainless-0.2.3"
+  },
+  "peerDependencies": {
+    "@tanstack/query-core": "^4.29.5",
+    "@tanstack/react-query": "^4.29.5",
+    "prisma": "^4.0.0",
+    "react": "^16.8.0 || ^17.0.0 || ^18.0.0"
+  }
+}
