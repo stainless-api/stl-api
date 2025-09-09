@@ -125,11 +125,41 @@ describe("basic routing", () => {
             "expected": "object",
             "message": "Required",
             "path": [
-              "<stainless request body>",
+              "<body>",
             ],
             "received": "undefined",
           },
         ],
+        "message": "Required at "<body>"",
+      }
+    `);
+  });
+
+  test("update posts, missing param", async () => {
+    const response = await app.request("/api/posts/5", {
+      method: "POST",
+      headers: {
+        "content-type": "application/json",
+      },
+      body: JSON.stringify({}),
+    });
+    expect(response).toHaveProperty("status", 400);
+    expect(await response.json()).toMatchInlineSnapshot(`
+      {
+        "error": "bad request",
+        "issues": [
+          {
+            "code": "invalid_type",
+            "expected": "string",
+            "message": "Required",
+            "path": [
+              "<body>",
+              "content",
+            ],
+            "received": "undefined",
+          },
+        ],
+        "message": "Validation error: Required at "<body>.content"",
       }
     `);
   });

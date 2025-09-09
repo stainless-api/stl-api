@@ -1,6 +1,7 @@
 import * as z from "./z";
 import { openapiSpec } from "./openapiSpec";
 import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
+import { fromZodError } from "zod-validation-error/v3";
 import coerceParams from "./coerceParams";
 export { openapiSpec };
 export { type SelectTree, parseSelect } from "./parseSelect";
@@ -778,20 +779,27 @@ export class Stl<Plugins extends AnyPlugins> {
         context.endpoint[coercedQuery] ??= coerceParams(context.endpoint.query);
         context.parsedParams.query = await context.endpoint[coercedQuery]
           .parseAsync(params.query, parseParams)
-          .catch(prependZodPath("<stainless request query>"));
+          .catch(prependZodPath("<query>"));
       }
       if (context.endpoint.path) {
         context.endpoint[coercedPath] ??= coerceParams(context.endpoint.path);
         context.parsedParams.path = await context.endpoint[coercedPath]
           .parseAsync(params.path, parseParams)
-          .catch(prependZodPath("<stainless request path>"));
+          .catch(prependZodPath("<path>"));
       }
       context.parsedParams.body = await context.endpoint.body
         ?.parseAsync(params.body, parseParams)
-        .catch(prependZodPath("<stainless request body>"));
+        .catch(prependZodPath("<body>"));
     } catch (error) {
       if (error instanceof z.ZodError) {
-        throw new BadRequestError({ issues: error.issues });
+        let validationError = fromZodError(error).message;
+        if (validationError.startsWith("Validation error: ")) {
+          validationError = validationError.slice("Validation error: ".length);
+        }
+        throw new BadRequestError({
+          message: validationError,
+          issues: error.issues,
+        });
       }
       throw error;
     }
