@@ -159,6 +159,7 @@ export interface BaseEndpoint<
 > {
   stl: Stl<any>;
   summary?: string;
+  description?: string;
   endpoint: MethodAndUrl;
   response: Response;
   config: Config;
@@ -551,6 +552,8 @@ interface CreateEndpointOptions<
   endpoint: MethodAndUrl;
   /** Optional summary for the endpoint. */
   summary?: string;
+  /** Optional description for the endpoint. */
+  description?: string;
   /** Optional plugin configuration specific to the endpoint. */
   config?: Config;
   /** The schema for the response defining its properties. */

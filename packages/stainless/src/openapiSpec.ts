@@ -47,7 +47,7 @@ export async function openapiSpec(
     const lowerMethod = httpMethod.toLowerCase() as "get" | "post" | "delete";
     const operation: ZodOpenApiOperationObject = {
       summary: route.summary,
-      description: undefined,
+      description: route.description,
       requestParams: {
         path: route.path,
         query: route.query,
