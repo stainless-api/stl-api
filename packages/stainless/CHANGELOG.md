@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.4](https://github.com/stainless-api/stl-api/compare/stainless-v0.2.3...stainless-v0.2.4) (2025-09-10)
+
+
+### Features
+
+* add endpoint descriptions ([cd26b94](https://github.com/stainless-api/stl-api/commit/cd26b94df837c289cddb1ec3f8508816dc5d3005))
+
 ## [0.2.3](https://github.com/stainless-api/stl-api/compare/stainless-v0.2.2...stainless-v0.2.3) (2025-09-09)
 
 

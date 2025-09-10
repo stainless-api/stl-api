@@ -24,6 +24,12 @@
   * dependencies
     * ts-to-zod bumped to 0.2.3
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * ts-to-zod bumped to 0.2.4
+
 ## [0.2.0](https://github.com/stainless-api/stl-api/compare/cli-v0.1.1...cli-v0.2.0) (2025-04-29)
 
 
