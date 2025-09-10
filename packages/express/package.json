@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/express",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "license": "ISC",
   "description": "express integration for stainless api",
   "author": "dev@stainlessapi.com",

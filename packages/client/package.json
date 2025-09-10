@@ -1,6 +1,6 @@
 {
   "name": "@stl-api/client",
-  "version": "0.2.3",
+  "version": "0.2.4",
   "description": "primary client package for stl-api",
   "author": "dev@stainlessapi.com",
   "license": "ISC",
