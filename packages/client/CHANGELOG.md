@@ -24,6 +24,13 @@
   * dependencies
     * stainless bumped to 0.2.4
 
+## [0.2.5](https://github.com/stainless-api/stl-api/compare/client-v0.2.4...client-v0.2.5) (2025-09-16)
+
+
+### Bug Fixes
+
+* replace Identifier type when not surrounded by spaces ([44326ad](https://github.com/stainless-api/stl-api/commit/44326ad8e0e56acd157063ee859e2dc1d7ed9d47))
+
 ## 0.2.0 (2025-04-29)
 
 
