@@ -148,8 +148,8 @@ function nestEndpoints(
 function zodToString(schema: ZodTypeAny) {
   const { node } = zodToTs(schema, undefined, { nativeEnums: "union" });
   const nodeString = printNode(node);
-  // This happens with large, lazyily loaded zod types
-  return nodeString.replaceAll(" Identifier ", " unknown ");
+  // This happens with large, lazily loaded zod types
+  return nodeString.replace(/\bIdentifier\b/g, "unknown");
 }
 
 function makeParameterType(
