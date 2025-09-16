@@ -8,5 +8,5 @@
   "packages/react-query": "0.2.4",
   "packages/stainless": "0.2.4",
   "packages/ts-to-zod": "0.2.4",
-  "packages/client": "0.2.4"
+  "packages/client": "0.2.5"
 }
