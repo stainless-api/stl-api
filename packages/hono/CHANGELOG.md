@@ -12,6 +12,13 @@
   * dependencies
     * stainless bumped to 0.2.4
 
+## [0.2.5](https://github.com/stainless-api/stl-api/compare/hono-v0.2.4...hono-v0.2.5) (2026-01-09)
+
+
+### Bug Fixes
+
+* Add comment on routeMatcher fix ([79e87ad](https://github.com/stainless-api/stl-api/commit/79e87ad5fe469dac5787a56e5ca9a582c1d5e16e))
+
 ## [0.2.3](https://github.com/stainless-api/stl-api/compare/hono-v0.2.2...hono-v0.2.3) (2025-09-09)
 
 
