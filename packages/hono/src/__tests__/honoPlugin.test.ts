@@ -1,7 +1,6 @@
 import { Hono } from "hono";
 import { Stl, UnauthorizedError, z } from "stainless";
-import { describe, expect, test } from "vitest";
-import { stlApi } from "./honoPlugin";
+import { stlApi } from "../honoPlugin";
 
 const stl = new Stl({ plugins: {} });
 
@@ -63,9 +62,7 @@ describe("basic routing", () => {
   test("list posts", async () => {
     const response = await app.request("/api/posts");
     expect(response).toHaveProperty("status", 200);
-    expect(await response.json()).toMatchInlineSnapshot(`
-      []
-    `);
+    expect(await response.json()).toMatchInlineSnapshot("[]");
   });
 
   test("retrieve posts", async () => {
@@ -85,9 +82,17 @@ describe("basic routing", () => {
     expect(response).toHaveProperty("status", 405);
     expect(await response.json()).toMatchInlineSnapshot(`
       {
-        "message": "No handler for PUT; only GET, POST.",
+        "message": "No handler for PUT; only GET, HEAD, POST.",
       }
     `);
+  });
+
+  test("head posts", async () => {
+    const response = await app.request("/api/posts/5", {
+      method: "HEAD",
+    });
+    expect(response).toHaveProperty("status", 200);
+    expect(await response.text()).toBe("");
   });
 
   test("update posts", async () => {
@@ -159,7 +164,7 @@ describe("basic routing", () => {
             "received": "undefined",
           },
         ],
-        "message": "Validation error: Required at "<body>.content"",
+        "message": "Required at "<body>.content"",
       }
     `);
   });
