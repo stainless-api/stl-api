@@ -3,7 +3,7 @@
   "packages/express": "0.2.4",
   "packages/next-auth": "0.2.4",
   "packages/next": "0.2.4",
-  "packages/hono": "0.2.4",
+  "packages/hono": "0.2.5",
   "packages/prisma": "0.2.4",
   "packages/react-query": "0.2.4",
   "packages/stainless": "0.2.4",
