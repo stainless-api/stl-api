@@ -36,7 +36,7 @@ export function makeRouteMatcher(endpoints: AnyEndpoint[]) {
     routeMatcher.add(method, path, endpoint);
     if (method === "GET") {
       // Add HEAD route for every GET route so that HEAD requests
-      // are also matched.
+      // are also matched
       routeMatcher.add("HEAD", path, endpoint);
     }
   }
