@@ -34,6 +34,11 @@ export function makeRouteMatcher(endpoints: AnyEndpoint[]) {
   for (const endpoint of endpoints) {
     const [method, path] = endpointToHono(endpoint.endpoint);
     routeMatcher.add(method, path, endpoint);
+    if (method === "GET") {
+      // Hono route matching is method-specific, so also add a
+      // HEAD route for GET endpoints
+      routeMatcher.add("HEAD", path, endpoint);
+    }
   }
 
   return routeMatcher;
