@@ -32,7 +32,7 @@
   "dependencies": {
     "lodash": "^4.17.21",
     "stainless": "workspace:*",
-    "zod": "^4.0.0"
+    "zod": "^4.3.6"
   },
   "peerDependencies": {
     "prisma": "^4.0.0"
