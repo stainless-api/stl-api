@@ -146,7 +146,9 @@ function nestEndpoints(
 }
 
 function zodToString(schema: ZodTypeAny) {
-  const { node } = zodToTs(schema, undefined, { nativeEnums: "union" });
+  // zod-to-ts v1 API: zodToTs(schema, identifier?, options?)
+  // Cast to any because zod/v3 types are structurally compatible at runtime
+  const { node } = zodToTs(schema as any, undefined, { nativeEnums: "union" });
   const nodeString = printNode(node);
   // This happens with large, lazily loaded zod types
   return nodeString.replace(/\bIdentifier\b/g, "unknown");

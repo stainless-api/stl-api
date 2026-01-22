@@ -11,8 +11,9 @@ import {
 import { includeSubPaths } from "./includeUtils";
 import { isPlainObject } from "lodash";
 
-declare module "zod" {
-  interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
+// Module augmentation for zod/v3 (stainless re-exports zod/v3 types)
+declare module "zod/v3" {
+  interface ZodType<Output, Def extends z.ZodTypeDef, Input = Output> {
     /**
      * Transforms the output value to fetch the Prisma model whose primary
      * key is the input value.  Throws if the primary key wasn't found.
@@ -79,7 +80,8 @@ z.ZodType.prototype.prismaModelLoader = function prismaModelLoader<
     }
   );
   // tsc -b is generating spurious errors here...
-  return (result as any).openapi({ effectType: "input" }) as typeof result;
+  // Removed .openapi() call - zod-openapi v5 uses .meta() which isn't available in zod/v3
+  return result;
 };
 
 z.ZodType.prototype.prismaModel = function prismaModel<

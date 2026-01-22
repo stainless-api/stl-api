@@ -3,8 +3,9 @@ import {
   ZodOpenApiOperationObject,
   ZodOpenApiPathsObject,
   createDocument,
+  oas31,
 } from "zod-openapi";
-import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
+type OpenAPIObject = oas31.OpenAPIObject;
 import { snakeCase } from "lodash";
 
 function allModels(
@@ -87,7 +88,9 @@ export async function openapiSpec(
     },
     servers: [{ url: "v1" }],
     components: {
-      schemas: models,
+      // Cast to any because zod/v3 types are structurally compatible with zod/v4
+      // at runtime, but TypeScript sees them as incompatible types
+      schemas: models as any,
     },
     paths,
   });

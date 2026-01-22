@@ -1,6 +1,7 @@
 import * as z from "./z";
 import { openapiSpec } from "./openapiSpec";
-import type { OpenAPIObject } from "zod-openapi/lib-types/openapi3-ts/dist/oas31";
+import type { oas31 } from "zod-openapi";
+type OpenAPIObject = oas31.OpenAPIObject;
 import { fromZodError } from "zod-validation-error/v3";
 import coerceParams from "./coerceParams";
 export { openapiSpec };

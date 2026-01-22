@@ -323,7 +323,7 @@ importers:
         version: 5.3.2
       zod-to-ts:
         specifier: ^1.2.0
-        version: 1.2.0(typescript@5.3.2)(zod@3.25.76)
+        version: 1.2.0(typescript@5.3.2)(zod@4.3.6)
     devDependencies:
       '@tanstack/react-query':
         specifier: ^5.28.0
@@ -474,8 +474,8 @@ importers:
         specifier: workspace:*
         version: link:../stainless
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.0.0
+        version: 4.3.6
     devDependencies:
       '@types/lodash':
         specifier: ^4.14.202
@@ -566,14 +566,14 @@ importers:
         specifier: ^10.9.1
         version: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.0.0
+        version: 4.3.6
       zod-openapi:
-        specifier: github:stainless-api/zod-openapi#2.8.0
-        version: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.25.76)
+        specifier: ^5.4.6
+        version: 5.4.6(zod@4.3.6)
       zod-validation-error:
         specifier: ^4.0.1
-        version: 4.0.1(zod@3.25.76)
+        version: 4.0.1(zod@4.3.6)
     devDependencies:
       '@types/jest':
         specifier: ^29.5.10
@@ -618,8 +618,8 @@ importers:
         specifier: ^19.0.0
         version: 19.0.0
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.0.0
+        version: 4.3.6
     devDependencies:
       '@types/jest':
         specifier: ^29.5.10
@@ -7587,12 +7587,11 @@ packages:
     resolution: {integrity: sha512-9bnSc/HEW2uRy67wc+T8UwauLuPJVn28jb+GtJY16iiKWyvmYJRXVT4UamsAEGQfPohgr2q4Tq0sQbQlxTfi1g==}
     engines: {node: '>=12.20'}
 
-  zod-openapi@https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b:
-    resolution: {tarball: https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b}
-    version: 2.8.0
-    engines: {node: '>=16.11'}
+  zod-openapi@5.4.6:
+    resolution: {integrity: sha512-P2jsOOBAq/6hCwUsMCjUATZ8szkMsV5VAwZENfyxp2Hc/XPJQpVwAgevWZc65xZauCwWB9LAn7zYeiCJFAEL+A==}
+    engines: {node: '>=20'}
     peerDependencies:
-      zod: ^3.21.4
+      zod: ^3.25.74 || ^4.0.0
 
   zod-to-ts@1.2.0:
     resolution: {integrity: sha512-x30XE43V+InwGpvTySRNz9kB7qFU8DlyEy7BsSTCHPH1R0QasMmHWZDCzYm6bVXtj/9NNJAZF3jW8rzFvH5OFA==}
@@ -7608,6 +7607,9 @@ packages:
 
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
+
+  zod@4.3.6:
+    resolution: {integrity: sha512-rftlrkhHZOcjDwkGlnUtZZkvaPHCsDATp4pGpuOOMDaTdDDXF91wuVDJoWoPsKX/3YPQ5fHuF3STjcYyKr+Qhg==}
 
   zustand@4.4.7:
     resolution: {integrity: sha512-QFJWJMdlETcI69paJwhSMJz7PPWjVP8Sjhclxmxmxv/RYI7ZOvR5BHX+ktH0we9gTWQMxcne8q1OY8xxz604gw==}
@@ -16810,20 +16812,22 @@ snapshots:
 
   yocto-queue@1.0.0: {}
 
-  zod-openapi@https://codeload.github.com/stainless-api/zod-openapi/tar.gz/550978836406882613e9547b2e9486fa7448a37b(zod@3.25.76):
+  zod-openapi@5.4.6(zod@4.3.6):
     dependencies:
-      zod: 3.25.76
+      zod: 4.3.6
 
-  zod-to-ts@1.2.0(typescript@5.3.2)(zod@3.25.76):
+  zod-to-ts@1.2.0(typescript@5.3.2)(zod@4.3.6):
     dependencies:
       typescript: 5.3.2
-      zod: 3.25.76
+      zod: 4.3.6
 
-  zod-validation-error@4.0.1(zod@3.25.76):
+  zod-validation-error@4.0.1(zod@4.3.6):
     dependencies:
-      zod: 3.25.76
+      zod: 4.3.6
 
   zod@3.25.76: {}
+
+  zod@4.3.6: {}
 
   zustand@4.4.7(@types/react@18.0.28)(immer@9.0.21)(react@18.3.1):
     dependencies:

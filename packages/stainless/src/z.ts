@@ -1,11 +1,13 @@
-import { extendZodWithOpenApi } from "zod-openapi";
+// Use zod/v3 compatibility layer for easier migration
+// zod-openapi v5 uses .meta() instead of .openapi(), no setup required
+import "zod-openapi";
 import {
   z,
   ParseContext,
   SafeParseReturnType,
   isValid,
   ZodFirstPartyTypeKind,
-} from "zod";
+} from "zod/v3";
 import { StlContext } from "./stl";
 import { SelectTree } from "./parseSelect";
 import { getSelects } from "./selects";
@@ -13,7 +15,7 @@ import { getIncludes, IncludablePaths } from "./includes";
 import { pickBy } from "lodash/fp";
 import { mapValues } from "lodash";
 
-export * from "zod";
+export * from "zod/v3";
 export { selects, selectsSymbol, getSelects } from "./selects";
 export {
   includes,
@@ -22,13 +24,8 @@ export {
   IncludablePaths,
 } from "./includes";
 
-/**
- * TODO: try to come up with a better error message
- * that you must import stl _before_ zod
- * in any file that uses z.openapi(),
- * including the file that calls stl.openapiSpec().
- */
-extendZodWithOpenApi(z); // https://github.com/asteasolutions/zod-to-openapi#the-openapi-method
+// zod-openapi v5 uses Zod's native .meta() method for OpenAPI metadata
+// No setup required - importing "zod-openapi" above enables TypeScript types
 
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
@@ -36,7 +33,7 @@ extendZodWithOpenApi(z); // https://github.com/asteasolutions/zod-to-openapi#the
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 
-declare module "zod" {
+declare module "zod/v3" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     withMetadata<M extends object>(metadata: M): ZodMetadata<this, M>;
   }
@@ -228,7 +225,7 @@ export function extractDeepMetadata<
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 
-declare module "zod" {
+declare module "zod/v3" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     /**
      * Marks this schema as includable via an `include[]` query param.
@@ -266,9 +263,7 @@ z.ZodType.prototype.includable = function includable(this: z.ZodTypeAny) {
       return include && zodPathIsIncluded(path, include) ? data : undefined;
     },
     this.optional()
-  )
-    .openapi({ effectType: "input" })
-    .withMetadata({ stainless: { includable: true } });
+  ).withMetadata({ stainless: { includable: true } });
 };
 
 export type isIncludable<T extends z.ZodTypeAny> = extractDeepMetadata<
@@ -301,7 +296,7 @@ function zodPathIsIncluded(
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 
-declare module "zod" {
+declare module "zod/v3" {
   // I don't know why TS errors without this, sigh
   interface ZodTypeDef {}
 
@@ -438,7 +433,7 @@ z.ZodType.prototype.selectable = function selectable(this: z.ZodTypeAny) {
 //////////////////////////////////////////////////
 //////////////////////////////////////////////////
 
-declare module "zod" {
+declare module "zod/v3" {
   interface ZodType<Output, Def extends ZodTypeDef, Input = Output> {
     safeParseAsync(
       data: unknown,
