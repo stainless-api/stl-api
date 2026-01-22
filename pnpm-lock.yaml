@@ -46,7 +46,7 @@ importers:
     dependencies:
       '@next-auth/prisma-adapter':
         specifier: ^1.0.7
-        version: 1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
+        version: 1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))
       '@prisma/client':
         specifier: ^4.16.2
         version: 4.16.2(prisma@4.16.2)
@@ -82,10 +82,10 @@ importers:
         version: 2.30.0
       next:
         specifier: ^14.2.8
-        version: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-auth:
         specifier: ^4.24.7
-        version: 4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       prisma:
         specifier: ^4.16.2
         version: 4.16.2
@@ -194,7 +194,7 @@ importers:
         version: 3.4.10(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2))
       ts-jest:
         specifier: ^29.1.1
-        version: 29.1.1(@babel/core@7.23.5)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.23.5))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2)
+        version: 29.1.1(@babel/core@7.25.2)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2)
       ts-node:
         specifier: ^10.9.1
         version: 10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)
@@ -321,9 +321,12 @@ importers:
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
+      zod:
+        specifier: ^4.3.6
+        version: 4.3.6
       zod-to-ts:
-        specifier: ^1.2.0
-        version: 1.2.0(typescript@5.3.2)(zod@4.3.6)
+        specifier: ^2.0.0
+        version: 2.0.0(typescript@5.3.2)(zod@4.3.6)
     devDependencies:
       '@tanstack/react-query':
         specifier: ^5.28.0
@@ -435,7 +438,7 @@ importers:
         version: 6.9.15
       next:
         specifier: ^14.2.8
-        version: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       typescript:
         specifier: ^5.3.2
         version: 5.3.2
@@ -454,7 +457,7 @@ importers:
         version: 20.16.5
       next:
         specifier: ^14.2.8
-        version: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+        version: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       next-auth:
         specifier: ^4.24.5
         version: 4.24.5(next@14.2.9(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
@@ -4997,9 +5000,11 @@ packages:
 
   lodash.clone@4.3.2:
     resolution: {integrity: sha512-Yc/0UmZvWkFsbx7NB4feSX5bSX03SR0ft8CTkI8RCb3w/TzT71HXew2iNDm0aml93P49tIR/NJHOIoE+XEKz9A==}
+    deprecated: This package is deprecated. Use structuredClone instead.
 
   lodash.clone@4.5.0:
     resolution: {integrity: sha512-GhrVeweiTD6uTmmn5hV/lzgCQhccwReIVRLHp7LT4SopOjqEZ5BbX8b5WWEtAKasjmy8hR7ZPwsYlxRCku5odg==}
+    deprecated: This package is deprecated. Use structuredClone instead.
 
   lodash.debounce@4.0.8:
     resolution: {integrity: sha512-FT1yDzDYEoYWhnSGnpE/4Kj1fLZkDFyqRb7fNt6FdYOSxlUWAtp42Eh6Wb0rGIv/m9Bgo7x4GhQbm5Ys4SG5ow==}
@@ -5444,6 +5449,7 @@ packages:
   next@14.2.9:
     resolution: {integrity: sha512-3CzBNo6BuJnRjcQvRw+irnU1WiuJNZEp+dkzkt91y4jeIDN/Emg95F+takSYiLpJ/HkxClVQRyqiTwYce5IVqw==}
     engines: {node: '>=18.17.0'}
+    deprecated: This version has a security vulnerability. Please upgrade to a patched version. See https://nextjs.org/blog/security-update-2025-12-11 for more details.
     hasBin: true
     peerDependencies:
       '@opentelemetry/api': ^1.1.0
@@ -6953,6 +6959,7 @@ packages:
   tar@6.2.1:
     resolution: {integrity: sha512-DZ4yORTwrbTj/7MZYq2w+/ZFdI6OZ/f9SFHR+71gIVUZhOQPHzVCLpvRnPgyaMpfWxxk/4ONva3GQSyNIKRv6A==}
     engines: {node: '>=10'}
+    deprecated: Old versions of tar are not supported, and contain widely publicized security vulnerabilities, which have been fixed in the current version. Please update. Support for old versions may be purchased (at exhorbitant rates) by contacting i@izs.me
 
   terser-webpack-plugin@5.3.10:
     resolution: {integrity: sha512-BKFPWlPDndPs+NGGCr1U59t0XScL5317Y0UReNrHaw9/FwhPENlq6bfgs+4yPfyP51vqC1bQ4rp1EfXW5ZSH9w==}
@@ -7436,6 +7443,7 @@ packages:
   whatwg-encoding@2.0.0:
     resolution: {integrity: sha512-p41ogyeMUrw3jWclHWTQg1k05DSVXPLcVxRTYsXUk+ZooOCZLcoYgPZ/HL/D/N+uQPOtcp1me1WhBEaX02mhWg==}
     engines: {node: '>=12'}
+    deprecated: Use @exodus/bytes instead for a more spec-conformant and faster implementation
 
   whatwg-mimetype@3.0.0:
     resolution: {integrity: sha512-nt+N2dzIutVRxARx1nghPKGv1xHikU7HKdfafKkLNLindmPU/ch3U31NOCGGA/dmPcmb1VlofO0vnKAcsm0o/Q==}
@@ -7593,11 +7601,11 @@ packages:
     peerDependencies:
       zod: ^3.25.74 || ^4.0.0
 
-  zod-to-ts@1.2.0:
-    resolution: {integrity: sha512-x30XE43V+InwGpvTySRNz9kB7qFU8DlyEy7BsSTCHPH1R0QasMmHWZDCzYm6bVXtj/9NNJAZF3jW8rzFvH5OFA==}
+  zod-to-ts@2.0.0:
+    resolution: {integrity: sha512-aHsUgIl+CQutKAxtRNeZslLCLXoeuSq+j5HU7q3kvi/c2KIAo6q4YjT7/lwFfACxLB923ELHYMkHmlxiqFy4lw==}
     peerDependencies:
-      typescript: ^4.9.4 || ^5.0.2
-      zod: ^3
+      typescript: ^5.0.0
+      zod: ^3.25.0 || ^4.0.0
 
   zod-validation-error@4.0.1:
     resolution: {integrity: sha512-F3rdaCOHs5ViJ5YTz5zzRtfkQdMdIeKudJAoxy7yB/2ZMEHw73lmCAcQw11r7++20MyGl4WV59EVh7A9rNAyog==}
@@ -9851,10 +9859,10 @@ snapshots:
       '@types/react': 18.0.28
       react: 17.0.2
 
-  '@next-auth/prisma-adapter@1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))':
+  '@next-auth/prisma-adapter@1.0.7(@prisma/client@4.16.2(prisma@4.16.2))(next-auth@4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1))':
     dependencies:
       '@prisma/client': 4.16.2(prisma@4.16.2)
-      next-auth: 4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next-auth: 4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
 
   '@next/env@14.2.9': {}
 
@@ -14253,7 +14261,7 @@ snapshots:
       '@panva/hkdf': 1.2.1
       cookie: 0.5.0
       jose: 4.15.9
-      next: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       oauth: 0.9.15
       openid-client: 5.7.0
       preact: 10.19.2
@@ -14262,13 +14270,13 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       uuid: 8.3.2
 
-  next-auth@4.24.7(next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next-auth@4.24.7(next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1))(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@babel/runtime': 7.25.6
       '@panva/hkdf': 1.2.1
       cookie: 0.5.0
       jose: 4.15.9
-      next: 14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
+      next: 14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1)
       oauth: 0.9.15
       openid-client: 5.7.0
       preact: 10.19.2
@@ -14277,7 +14285,7 @@ snapshots:
       react-dom: 18.3.1(react@18.3.1)
       uuid: 8.3.2
 
-  next@14.2.9(@babel/core@7.23.5)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
+  next@14.2.9(@babel/core@7.25.2)(react-dom@18.3.1(react@18.3.1))(react@18.3.1):
     dependencies:
       '@next/env': 14.2.9
       '@swc/helpers': 0.5.5
@@ -14287,7 +14295,7 @@ snapshots:
       postcss: 8.4.31
       react: 18.3.1
       react-dom: 18.3.1(react@18.3.1)
-      styled-jsx: 5.1.1(@babel/core@7.23.5)(react@18.3.1)
+      styled-jsx: 5.1.1(@babel/core@7.25.2)(react@18.3.1)
     optionalDependencies:
       '@next/swc-darwin-arm64': 14.2.9
       '@next/swc-darwin-x64': 14.2.9
@@ -15992,12 +16000,12 @@ snapshots:
     dependencies:
       inline-style-parser: 0.2.3
 
-  styled-jsx@5.1.1(@babel/core@7.23.5)(react@18.3.1):
+  styled-jsx@5.1.1(@babel/core@7.25.2)(react@18.3.1):
     dependencies:
       client-only: 0.0.1
       react: 18.3.1
     optionalDependencies:
-      '@babel/core': 7.23.5
+      '@babel/core': 7.25.2
 
   stylehacks@6.1.1(postcss@8.4.32):
     dependencies:
@@ -16183,7 +16191,7 @@ snapshots:
 
   ts-interface-checker@0.1.13: {}
 
-  ts-jest@29.1.1(@babel/core@7.23.5)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.23.5))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2):
+  ts-jest@29.1.1(@babel/core@7.25.2)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@18.14.2)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@18.14.2)(typescript@5.3.2)))(typescript@5.3.2):
     dependencies:
       bs-logger: 0.2.6
       fast-json-stable-stringify: 2.1.0
@@ -16196,9 +16204,9 @@ snapshots:
       typescript: 5.3.2
       yargs-parser: 21.1.1
     optionalDependencies:
-      '@babel/core': 7.23.5
+      '@babel/core': 7.25.2
       '@jest/types': 29.6.3
-      babel-jest: 29.7.0(@babel/core@7.23.5)
+      babel-jest: 29.7.0(@babel/core@7.25.2)
 
   ts-jest@29.1.1(@babel/core@7.25.2)(@jest/types@29.6.3)(babel-jest@29.7.0(@babel/core@7.25.2))(jest@29.7.0(@types/node@20.16.5)(ts-node@10.9.2(@swc/core@1.3.100(@swc/helpers@0.5.5))(@types/node@20.16.5)(typescript@5.3.2)))(typescript@5.3.2):
     dependencies:
@@ -16813,7 +16821,7 @@ snapshots:
     dependencies:
       zod: 4.3.6
 
-  zod-to-ts@1.2.0(typescript@5.3.2)(zod@4.3.6):
+  zod-to-ts@2.0.0(typescript@5.3.2)(zod@4.3.6):
     dependencies:
       typescript: 5.3.2
       zod: 4.3.6

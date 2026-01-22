@@ -1,4 +1,4 @@
-import { printNode, zodToTs } from "zod-to-ts";
+import { printNode, zodToTs, createAuxiliaryTypeStore } from "zod-to-ts";
 import { APIConfig, ClientConfig } from "../core/api-client-types";
 import { AnyActionsConfig, ResourceConfig, z } from "stainless";
 import { splitPathIntoParts } from "../core/endpoint";
@@ -145,10 +145,194 @@ function nestEndpoints(
   return api;
 }
 
+// Map zod/v3 typeName (e.g. "ZodString") to zod v4 type (e.g. "string")
+function mapZodV3TypeToV4(typeName: string): string {
+  // Remove "Zod" prefix and lowercase
+  if (typeName.startsWith("Zod")) {
+    const type = typeName.slice(3).toLowerCase();
+    // Map native enums to enum since zod-to-ts v2 only handles "enum"
+    if (type === "nativeenum") {
+      return "enum";
+    }
+    return type;
+  }
+  return typeName.toLowerCase();
+}
+
+// Wrap a value to recursively add _zod to any nested schemas
+function wrapSchemaValue(value: any, cache: WeakMap<object, any>): any {
+  if (!value || typeof value !== "object") return value;
+
+  // Check if it's a zod schema (has _def)
+  if (value._def && !value._zod) {
+    return wrapSchemaForZodToTs(value, cache);
+  }
+
+  // Wrap arrays (for union options, tuple items, etc.)
+  if (Array.isArray(value)) {
+    return value.map((item) => wrapSchemaValue(item, cache));
+  }
+
+  // Wrap plain objects (for object shapes)
+  if (value.constructor === Object) {
+    const result: Record<string, any> = {};
+    for (const key of Object.keys(value)) {
+      result[key] = wrapSchemaValue(value[key], cache);
+    }
+    return result;
+  }
+
+  return value;
+}
+
+// Create a v4-compatible _zod.def object from v3 _def
+function createV4CompatDef(v3Def: any, cache: WeakMap<object, any>): any {
+  const type = mapZodV3TypeToV4(v3Def.typeName);
+
+  const result: any = {
+    type,
+  };
+
+  // Map v3 property names to v4 equivalents and wrap nested schemas
+  // Array: v3 uses _def.type, v4 uses def.element
+  if (v3Def.type && v3Def.type._def) {
+    result.element = wrapSchemaValue(v3Def.type, cache);
+  }
+
+  // Object shape: v3 uses _def.shape() function, v4 uses def.shape object
+  if (typeof v3Def.shape === "function") {
+    const shapeObj = v3Def.shape();
+    result.shape = wrapSchemaValue(shapeObj, cache);
+  } else if (v3Def.shape && typeof v3Def.shape === "object") {
+    result.shape = wrapSchemaValue(v3Def.shape, cache);
+  }
+
+  // Optional/Nullable: innerType
+  if (v3Def.innerType) {
+    result.innerType = wrapSchemaValue(v3Def.innerType, cache);
+  }
+
+  // Union: options array
+  if (v3Def.options) {
+    result.options = wrapSchemaValue(v3Def.options, cache);
+  }
+
+  // Intersection: left and right
+  if (v3Def.left) {
+    result.left = wrapSchemaValue(v3Def.left, cache);
+  }
+  if (v3Def.right) {
+    result.right = wrapSchemaValue(v3Def.right, cache);
+  }
+
+  // Tuple: items
+  if (v3Def.items) {
+    result.items = wrapSchemaValue(v3Def.items, cache);
+  }
+
+  // Record/Map: keyType and valueType
+  if (v3Def.keyType) {
+    result.keyType = wrapSchemaValue(v3Def.keyType, cache);
+  }
+  if (v3Def.valueType) {
+    result.valueType = wrapSchemaValue(v3Def.valueType, cache);
+  }
+
+  // Lazy: getter
+  if (v3Def.getter) {
+    result.getter = () => wrapSchemaValue(v3Def.getter(), cache);
+  }
+
+  // Effects (transform/refine): schema/innerType
+  if (v3Def.schema) {
+    result.innerType = wrapSchemaValue(v3Def.schema, cache);
+  }
+
+  // Enum: entries or values
+  // v3 ZodEnum has values as array, v3 ZodNativeEnum has values as object
+  if (v3Def.values) {
+    if (Array.isArray(v3Def.values)) {
+      result.entries = v3Def.values.reduce(
+        (acc: Record<string, string>, v: string) => {
+          acc[v] = v;
+          return acc;
+        },
+        {}
+      );
+    } else if (typeof v3Def.values === "object") {
+      // Native enum - values is already an object
+      result.entries = v3Def.values;
+    }
+  }
+
+  // Literal: values array
+  if (v3Def.value !== undefined) {
+    result.values = [v3Def.value];
+  }
+
+  // Promise: innerType
+  if (v3Def.type && type === "promise") {
+    result.innerType = wrapSchemaValue(v3Def.type, cache);
+  }
+
+  // Catchall for objects - skip if it's ZodNever (strict mode default)
+  // because `[x: string]: never` is semantically "no extra properties" but
+  // generates invalid TypeScript when combined with known properties
+  if (v3Def.catchall && v3Def.catchall._def?.typeName !== "ZodNever") {
+    result.catchall = wrapSchemaValue(v3Def.catchall, cache);
+  }
+
+  return result;
+}
+
+// Recursively add _zod property to a schema for zod-to-ts v2 compatibility
+function wrapSchemaForZodToTs(
+  schema: any,
+  cache: WeakMap<object, any> = new WeakMap()
+): any {
+  if (!schema || typeof schema !== "object") return schema;
+
+  // Skip if already has _zod (native zod v4)
+  if (schema._zod) return schema;
+
+  // Skip if no _def (not a zod schema)
+  if (!schema._def) return schema;
+
+  // Check cache to handle circular references
+  if (cache.has(schema)) {
+    return cache.get(schema);
+  }
+
+  // Create wrapped schema with _zod property
+  const wrapped = Object.create(Object.getPrototypeOf(schema));
+  cache.set(schema, wrapped);
+
+  // Copy all own properties from original
+  Object.assign(wrapped, schema);
+
+  // Add _zod property
+  Object.defineProperty(wrapped, "_zod", {
+    get() {
+      return {
+        def: createV4CompatDef(schema._def, cache),
+        optin: false,
+        optout: schema.isOptional?.() ?? false,
+      };
+    },
+    configurable: true,
+    enumerable: false,
+  });
+
+  return wrapped;
+}
+
 function zodToString(schema: ZodTypeAny) {
-  // zod-to-ts v1 API: zodToTs(schema, identifier?, options?)
-  // Cast to any because zod/v3 types are structurally compatible at runtime
-  const { node } = zodToTs(schema as any, undefined, { nativeEnums: "union" });
+  // Wrap the schema to add _zod property for zod-to-ts v2 compatibility
+  const wrappedSchema = wrapSchemaForZodToTs(schema);
+
+  // zod-to-ts v2 API: zodToTs(schema, options)
+  const auxiliaryTypeStore = createAuxiliaryTypeStore();
+  const { node } = zodToTs(wrappedSchema as any, { auxiliaryTypeStore });
   const nodeString = printNode(node);
   // This happens with large, lazily loaded zod types
   return nodeString.replace(/\bIdentifier\b/g, "unknown");
