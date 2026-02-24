@@ -1,0 +1,1 @@
+{"version":3,"file":"routeMatcher.d.ts","sourceRoot":"","sources":["../src/routeMatcher.ts"],"names":[],"mappings":"AAAA,OAAO,EAAE,MAAM,EAAE,MAAM,aAAa,CAAC;AACrC,OAAO,EAAE,UAAU,EAAE,MAAM,yBAAyB,CAAC;AACrD,OAAO,EACL,WAAW,EAIZ,MAAM,WAAW,CAAC;AAwBnB,wBAAgB,gBAAgB,CAAC,SAAS,EAAE,WAAW,EAAE,2BAaxD;AAED,wBAAgB,iBAAiB,CAAC,CAAC,EAAE,MAAM,CAAC,WAAW,CAAC,WAMvD"}
