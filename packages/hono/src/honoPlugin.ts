@@ -92,7 +92,7 @@ function makeHandler(endpoints: AnyEndpoint[], options?: StlAppOptions) {
       }
 
       if (result === undefined) {
-        return c.body(null, 204);
+        return c.body(null, 200);
       }
 
       return c.json(result);
