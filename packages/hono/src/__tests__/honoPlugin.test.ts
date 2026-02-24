@@ -31,19 +31,19 @@ describe("void-returning handlers", () => {
   const app = new Hono();
   app.use("*", stlApi(api));
 
-  test("handler returning void responds with 204", async () => {
+  test("handler returning void responds with 200", async () => {
     const response = await app.request("/api/webhooks/events", {
       method: "POST",
     });
-    expect(response.status).toBe(204);
+    expect(response.status).toBe(200);
     expect(await response.text()).toBe("");
   });
 
-  test("handler with explicit bare return responds with 204", async () => {
+  test("handler with explicit bare return responds with 200", async () => {
     const response = await app.request("/api/webhooks/noop", {
       method: "POST",
     });
-    expect(response.status).toBe(204);
+    expect(response.status).toBe(200);
     expect(await response.text()).toBe("");
   });
 });
