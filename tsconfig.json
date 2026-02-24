@@ -1,0 +1,9 @@
+{
+  "extends": "../../tsconfig-common.json",
+  "include": ["src"],
+  "compilerOptions": {
+    "outDir": "dist",
+    "rootDir": "src"
+  },
+  "references": [{ "path": "../stainless" }]
+}
