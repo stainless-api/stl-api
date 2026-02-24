@@ -4,6 +4,50 @@ import { stlApi } from "../honoPlugin";
 
 const stl = new Stl({ plugins: {} });
 
+describe("void-returning handlers", () => {
+  const api = stl.api({
+    basePath: "/api",
+    resources: {
+      webhooks: stl.resource({
+        summary: "webhooks",
+        actions: {
+          fireAndForget: stl.endpoint({
+            endpoint: "POST /api/webhooks/events",
+            handler: async () => {
+              // Handler that does work but returns nothing
+            },
+          }),
+          earlyReturn: stl.endpoint({
+            endpoint: "POST /api/webhooks/noop",
+            handler: async () => {
+              return;
+            },
+          }),
+        },
+      }),
+    },
+  });
+
+  const app = new Hono();
+  app.use("*", stlApi(api));
+
+  test("handler returning void responds with 204", async () => {
+    const response = await app.request("/api/webhooks/events", {
+      method: "POST",
+    });
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe("");
+  });
+
+  test("handler with explicit bare return responds with 204", async () => {
+    const response = await app.request("/api/webhooks/noop", {
+      method: "POST",
+    });
+    expect(response.status).toBe(204);
+    expect(await response.text()).toBe("");
+  });
+});
+
 describe("basic routing", () => {
   const api = stl.api({
     basePath: "/api",

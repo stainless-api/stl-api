@@ -34,7 +34,7 @@
     "typescript": "^5.3.2"
   },
   "dependencies": {
-    "hono": "^4.0.0",
+    "hono": "^4.12.1",
     "qs": "^6.11.2",
     "stainless": "workspace:*"
   }

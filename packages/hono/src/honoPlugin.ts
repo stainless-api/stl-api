@@ -1,6 +1,6 @@
 import { Context } from "hono";
 import { createMiddleware } from "hono/factory";
-import { StatusCode } from "hono/utils/http-status";
+import { ContentfulStatusCode } from "hono/utils/http-status";
 import qs from "qs";
 import {
   allEndpoints,
@@ -91,6 +91,10 @@ function makeHandler(endpoints: AnyEndpoint[], options?: StlAppOptions) {
         return result;
       }
 
+      if (result === undefined) {
+        return c.body(null, 204);
+      }
+
       return c.json(result);
     } catch (error) {
       if (options?.handleErrors === false) {
@@ -98,7 +102,7 @@ function makeHandler(endpoints: AnyEndpoint[], options?: StlAppOptions) {
       }
 
       if (isStlError(error)) {
-        return c.json(error.response, error.statusCode as StatusCode);
+        return c.json(error.response, error.statusCode as ContentfulStatusCode);
       }
 
       console.error(
