@@ -12,6 +12,13 @@
   * dependencies
     * stainless bumped to 0.2.4
 
+## [0.2.7](https://github.com/stainless-api/stl-api/compare/hono-v0.2.6...hono-v0.2.7) (2026-02-24)
+
+
+### Bug Fixes
+
+* return 200 instead of 204 for empty responses ([3690d45](https://github.com/stainless-api/stl-api/commit/3690d45a68028d4b44e21c0c6070a6efdadfa962))
+
 ## [0.2.6](https://github.com/stainless-api/stl-api/compare/hono-v0.2.5...hono-v0.2.6) (2026-02-24)
 
 
