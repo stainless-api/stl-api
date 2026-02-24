@@ -384,8 +384,8 @@ importers:
   packages/hono:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.6.1
+        specifier: ^4.12.1
+        version: 4.12.2
       qs:
         specifier: ^6.11.2
         version: 6.13.0
@@ -415,8 +415,8 @@ importers:
   packages/next:
     dependencies:
       hono:
-        specifier: ^4.0.0
-        version: 4.6.1
+        specifier: ^4.12.0
+        version: 4.12.2
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -4268,9 +4268,9 @@ packages:
   hoist-non-react-statics@3.3.2:
     resolution: {integrity: sha512-/gGivxi8JPKWNm/W0jSmzcMPpfpPLc3dY/6GxhX2hQ9iGj3aDfklV4ET7NjKpSinLpJ5vafa9iiGIEZg10SfBw==}
 
-  hono@4.6.1:
-    resolution: {integrity: sha512-6NGwvttY1+HAFii08VYiEKI6ETPAFbpLntpm2M/MogEsAFWdZV74UNT+2M4bmqX90cIQhjlpBSP+tO+CfB0uww==}
-    engines: {node: '>=16.0.0'}
+  hono@4.12.2:
+    resolution: {integrity: sha512-gJnaDHXKDayjt8ue0n8Gs0A007yKXj4Xzb8+cNjZeYsSzzwKc0Lr+OZgYwVfB0pHfUs17EPoLvrOsEaJ9mj+Tg==}
+    engines: {node: '>=16.9.0'}
 
   hpack.js@2.1.6:
     resolution: {integrity: sha512-zJxVehUdMGIKsRaNt7apO2Gqp0BdqW5yaiGHXXmbpvxgBYVZnAql+BJb4RO5ad2MgpbZKn5G6nMnegrH1FcNYQ==}
@@ -12505,7 +12505,7 @@ snapshots:
     dependencies:
       react-is: 16.13.1
 
-  hono@4.6.1: {}
+  hono@4.12.2: {}
 
   hpack.js@2.1.6:
     dependencies:
