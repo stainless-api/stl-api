@@ -12,6 +12,13 @@
   * dependencies
     * stainless bumped to 0.2.4
 
+## [0.2.6](https://github.com/stainless-api/stl-api/compare/hono-v0.2.5...hono-v0.2.6) (2026-02-24)
+
+
+### Bug Fixes
+
+* **hono:** return 204 for void handler results instead of crashing ([3fa2af2](https://github.com/stainless-api/stl-api/commit/3fa2af2435af3d47f179b2519086db07084c9ad7))
+
 ## [0.2.5](https://github.com/stainless-api/stl-api/compare/hono-v0.2.4...hono-v0.2.5) (2026-01-09)
 
 

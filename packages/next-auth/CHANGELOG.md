@@ -35,6 +35,12 @@
     * @stl-api/next bumped to 0.2.4
     * stainless bumped to 0.2.4
 
+### Dependencies
+
+* The following workspace dependencies were updated
+  * dependencies
+    * @stl-api/next bumped to 0.2.5
+
 ## [0.2.0](https://github.com/stainless-api/stl-api/compare/next-auth-v0.1.6...next-auth-v0.2.0) (2025-04-29)
 
 
