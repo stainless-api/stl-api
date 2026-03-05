@@ -32,7 +32,7 @@ jobs:
       - name: Install dependencies
         uses: pnpm/action-setup@v2
         with:
-          version: 9.9.0
+          version: 9.15.9
           run_install: |
             - recursive: true
               args: [--frozen-lockfile, --strict-peer-dependencies]
