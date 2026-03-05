@@ -55,7 +55,7 @@
     "@types/bcrypt": "^5.0.2",
     "@types/jest": "^29.5.10",
     "@types/lodash": "^4.14.202",
-    "@types/node": "18.14.2",
+    "@types/node": "18.19.130",
     "@types/node-fetch": "^2.6.9",
     "@types/qs": "^6.9.10",
     "@types/react": "18.0.28",
