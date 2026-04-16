@@ -61,18 +61,21 @@ export async function openapiSpec(
           },
         },
       },
-      responses: {
-        200: {
-          description: "success",
-          content: route.response
-            ? {
-                "application/json": {
-                  schema: route.response,
-                },
-              }
-            : {},
-        },
-      },
+      responses:
+        route.response instanceof z.ZodVoid
+          ? { 204: { description: "No content" } }
+          : {
+              200: {
+                description: "success",
+                content: route.response
+                  ? {
+                      "application/json": {
+                        schema: route.response,
+                      },
+                    }
+                  : {},
+              },
+            },
     };
 
     paths[path] ??= {};
